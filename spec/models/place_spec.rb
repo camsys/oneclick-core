@@ -1,5 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Place, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+    it { should have_one :trip_as_origin }
+    it { should have_one :trip_as_destination }
+    it { should respond_to :trip}
 end
