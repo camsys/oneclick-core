@@ -1,0 +1,2 @@
+class Itinerary < ApplicationRecord
+end

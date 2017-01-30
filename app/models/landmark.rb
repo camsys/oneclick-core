@@ -1,0 +1,2 @@
+class Landmark < ApplicationRecord
+end
