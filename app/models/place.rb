@@ -4,6 +4,6 @@ class Place < ApplicationRecord
 
   def trip
     trip_as_origin || trip_as_destination
-  end 
+  end
 
 end
