@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :landmark do
-    street_number "201xxx"
+    street_number "201"
     route "Station Landing"
     city "Medford"
     state "MA"
