@@ -13,5 +13,6 @@ script:
 
 notifications:
   slack:
+    on_success: change
     rooms:
     - camsys:lXMC55pg5oKxSTYW38zsB9jm#1click 
