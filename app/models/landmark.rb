@@ -1,9 +1,16 @@
 class Landmark < ApplicationRecord
   
+  #### Includes ####
   include GooglePlace 
 
+  #### Serializers ####
   serialize :types 
 
+  #### Scopes ####
+  scope :is_old, -> { where(:old => true) }
+  scope :is_new, -> { where(:old => false) }
+
+  #### METHODS ####
   # Search over all landmarks by query string
   def self.get_by_query_str(query_str, limit, has_address=false)
     rel = Landmark.arel_table[:name].lower().matches(query_str)
@@ -11,4 +18,64 @@ class Landmark < ApplicationRecord
     landmarks
   end
 
-end
+  # Load new landmarks from CSV
+  # CSV must have the following columns: Name, Street Number, Route, Address, City, State, Zip, Lat, Lng, Types
+  def self.update file
+    #require 'open-uri'
+    require 'csv'
+    landmarks_file = open(file)
+    
+    # Iterate through CSV. 
+    failed = false
+    message = ""
+    Landmark.update_all(old: true)
+    line = 2 #Line 1 is the header, start with line 2 in the count
+    begin 
+      CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
+        begin
+          #If we have already created this Landmark, don't create it again.
+          l = Landmark.create!({
+        	  name: row[0],
+        	  street_number: row[1],
+        	  route: row[2],
+        	  address: row[3],
+        	  city: row[4],
+        	  state: row[5],
+        	  zip: row[6],
+        	  lat: row[7],
+        	  lng: row[8],
+        	  types: row[9],
+            old: false
+          })
+        rescue
+          #Found an error, back out all changes and restore previous POIs
+          message = 'Error found on line: ' + line.to_s
+          Rails.logger.info message
+          Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
+          Landmark.is_new.delete_all
+          Landmark.is_old.update_all(old: false)
+          failed = true
+          break
+        end
+        line += 1
+      end
+    rescue
+      failed = true
+      message = 'Error Reading File'
+      Rails.logger.info message
+      Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
+      Landmark.is_new.delete_all
+      Landmark.is_old.update_all(old: false)
+      failed = true
+    end
+
+    if failed 
+      return false, message
+    else
+      Landmark.is_old.delete_all
+      return true, Landmark.count.to_s + " landmarks loaded"
+    end
+  
+  end #Update
+
+end #Landmark

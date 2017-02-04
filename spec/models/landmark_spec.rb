@@ -14,4 +14,27 @@ RSpec.describe Landmark, type: :model do
   it "builds a google_place_hash with a proper name" do
     expect(landmark.google_place_hash[:name]).to eq("Cambridge Systematics")
   end
+
+  it "successfully updates the landmarks" do
+    result, message = Landmark.update 'spec/files/good_landmarks.csv'
+
+    expect(result).to eq(true)
+    expect(Landmark.count).to eq(3)
+  end
+
+  it "handles a malformed landmarks file" do
+    
+    #First load the good landmarks
+    Landmark.update 'spec/files/good_landmarks.csv'
+    
+    #Try to load bad landmarks
+    result, message = Landmark.update 'spec/files/bad_landmarks.csv'
+
+    #Confirm that the bad landmarks file was detected
+    expect(result).to eq(false)
+    expect(message).to eq("Error Reading File")
+
+    #The number of good landmarks should be unchanged
+    expect(Landmark.count).to eq(3)
+  end
 end

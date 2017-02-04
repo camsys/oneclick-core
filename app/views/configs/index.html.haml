@@ -1,0 +1,18 @@
+%h1.text-center
+  Configuration
+
+%div.row
+  %div.col-md-1
+  %div.col-md-10
+    .panel.panel-default
+      .panel-heading
+        %h4
+          = "Set Location of OpenTripPlanner Server"
+      .panel-body
+        = simple_form_for @open_trip_planner, url: set_open_trip_planner_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+          %div.col-md-10
+            %label
+              = "URL of the Open Trip Planner Server"
+            = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
+          %div.col-md-2.text-center
+            = f.submit "OK", class: 'btn action-button', role: 'button'
