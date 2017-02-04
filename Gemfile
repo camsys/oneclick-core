@@ -30,6 +30,9 @@ gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
 
+# Enables Awesome Inspect 
+gem 'awesome_print'
+
 ### USER AUTH ###
 
 # Use ActiveModel has_secure_password

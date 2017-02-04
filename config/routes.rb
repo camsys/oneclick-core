@@ -7,6 +7,13 @@ Rails.application.routes.draw do
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
       end
-    end
-  end
-end
+
+      resources :places do
+        collection do
+          get 'search'
+        end
+      end #places 
+    
+    end #v1
+  end #api
+end #draw
