@@ -30,33 +30,43 @@ class Landmark < ApplicationRecord
     message = ""
     Landmark.update_all(old: true)
     line = 2 #Line 1 is the header, start with line 2 in the count
-    CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
-      begin
-        #If we have already created this Landmark, don't create it again.
-        l = Landmark.create!({
-      	  name: row[0],
-      	  street_number: row[1],
-      	  route: row[2],
-      	  address: row[3],
-      	  city: row[4],
-      	  state: row[5],
-      	  zip: row[6],
-      	  lat: row[7],
-      	  lng: row[8],
-      	  types: row[9],
-          old: false
-        })
-      rescue
-        #Found an error, back out all changes and restore previous POIs
-        message = 'Error found on line: ' + line.to_s
-        Rails.logger.info message
-        Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
-        Landmark.is_new.delete_all
-        Landmark.is_old.update_all(old: false)
-        failed = true
-        break
+    begin 
+      CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
+        begin
+          #If we have already created this Landmark, don't create it again.
+          l = Landmark.create!({
+        	  name: row[0],
+        	  street_number: row[1],
+        	  route: row[2],
+        	  address: row[3],
+        	  city: row[4],
+        	  state: row[5],
+        	  zip: row[6],
+        	  lat: row[7],
+        	  lng: row[8],
+        	  types: row[9],
+            old: false
+          })
+        rescue
+          #Found an error, back out all changes and restore previous POIs
+          message = 'Error found on line: ' + line.to_s
+          Rails.logger.info message
+          Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
+          Landmark.is_new.delete_all
+          Landmark.is_old.update_all(old: false)
+          failed = true
+          break
+        end
+        line += 1
       end
-      line += 1
+    rescue
+      failed = true
+      message = 'Error Reading File'
+      Rails.logger.info message
+      Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
+      Landmark.is_new.delete_all
+      Landmark.is_old.update_all(old: false)
+      failed = true
     end
 
     if failed 

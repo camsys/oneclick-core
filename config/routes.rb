@@ -13,7 +13,6 @@ Rails.application.routes.draw do
           get 'search'
         end
       end #places 
-    
     end #v1
   end #api
 
@@ -22,12 +21,12 @@ Rails.application.routes.draw do
     collection do
       patch 'set_open_trip_planner'
     end
-  end #Built in Views
+  end 
 
   resources :landmarks, :only => [:index] do
     collection do
-      patch 'update'
+      patch 'update_all'
     end
-  end #Built in Views
+  end 
 
 end #draw
