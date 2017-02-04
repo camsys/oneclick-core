@@ -26,7 +26,7 @@ Rails.application.routes.draw do
 
   resources :landmarks, :only => [:index] do
     collection do
-      
+      patch 'update'
     end
   end #Built in Views
 
