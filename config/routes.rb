@@ -16,4 +16,12 @@ Rails.application.routes.draw do
     
     end #v1
   end #api
+
+  #Built in Views
+  resources :configs, :only => [:index] do
+    collection do
+      patch 'set_landmarks_file'
+    end
+  end #Built in Views
+
 end #draw
