@@ -16,23 +16,3 @@
             = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
           %div.col-md-2.text-center
             = f.submit "OK", class: 'btn action-button', role: 'button'
-
-
-%div.row
-  %div.col-md-1
-  %div.col-md-10
-    .panel.panel-default
-      .panel-heading
-        %h4
-          = "Upload Landmarks"
-      .panel-body
-        %div.row
-          = simple_form_for :landmarks, url: set_landmarks_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-            %div.col-md-2
-              %label
-                = "Upload Landmarks CSV"
-              = f.input "file", required:true, label: false, :as => :file
-            %div.col-md-8
-              =@landmarks.to_s + ' Landmarks loaded.'
-            %div.col-md-2.text-center
-              = f.submit "OK", class: 'btn action-button', role: 'button'
