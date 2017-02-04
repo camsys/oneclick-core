@@ -20,7 +20,8 @@ Rails.application.routes.draw do
   #Built in Views
   resources :configs, :only => [:index] do
     collection do
-      patch 'set_landmarks_file'
+      patch 'set_landmarks'
+      patch 'set_open_trip_planner'
     end
   end #Built in Views
 
