@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::PlacesController, type: :controller do
+  let!(:landmark) { create :landmark }
 
   it 'searches for cambridge systematics landmark' do
     get :search, search_string: "%Cambridge%", format: :json 
