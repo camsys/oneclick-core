@@ -5,7 +5,7 @@ module GooglePlace
     {
         address_components: self.google_address_components,
 
-        formatted_address: self.address,
+        formatted_address: "#{self.street_number} #{self.route}",
         geometry: {
           location: {
               lat: self.lat,
@@ -15,14 +15,13 @@ module GooglePlace
 
         id: self.id,
         name: self.name,
-        types: self.types
     }
   end
 
   def google_address_components
     address_components = []
 
-    #street_number
+    #Street Number
     if self.street_number
       address_components << {long_name: self.street_number, short_name: self.street_number, types: ['street_number']}
     end
@@ -30,11 +29,6 @@ module GooglePlace
     #Route
     if self.route
       address_components << {long_name: self.route, short_name: self.route, types: ['route']}
-    end
-
-    #Street Address
-    if self.address
-      address_components << {long_name: self.address, short_name: self.address, types: ['street_address']}
     end
 
     #City

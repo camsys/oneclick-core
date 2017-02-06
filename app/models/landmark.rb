@@ -3,16 +3,13 @@ class Landmark < ApplicationRecord
   #### Includes ####
   include GooglePlace 
 
-  #### Serializers ####
-  serialize :types 
-
   #### Scopes ####
   scope :is_old, -> { where(:old => true) }
   scope :is_new, -> { where(:old => false) }
 
   #### METHODS ####
   # Search over all landmarks by query string
-  def self.get_by_query_str(query_str, limit, has_address=false)
+  def self.get_by_query_str(query_str, limit)
     rel = Landmark.arel_table[:name].lower().matches(query_str)
     landmarks = Landmark.where(rel).limit(limit)
     landmarks
@@ -38,13 +35,11 @@ class Landmark < ApplicationRecord
         	  name: row[0],
         	  street_number: row[1],
         	  route: row[2],
-        	  address: row[3],
-        	  city: row[4],
-        	  state: row[5],
-        	  zip: row[6],
-        	  lat: row[7],
-        	  lng: row[8],
-        	  types: row[9],
+        	  city: row[3],
+        	  state: row[4],
+        	  zip: row[5],
+        	  lat: row[6],
+        	  lng: row[7],
             old: false
           })
         rescue

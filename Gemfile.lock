@@ -165,7 +165,6 @@ GEM
     rspec-support (3.5.0)
     ruby_parser (3.8.4)
       sexp_processor (~> 4.1)
-    rubyzip (1.2.0)
     sass (3.4.23)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
@@ -231,7 +230,6 @@ DEPENDENCIES
   puma (~> 3.0)
   rails (~> 5.0.1)
   rspec-rails (~> 3.5)
-  rubyzip
   sass-rails (~> 5.0)
   shoulda-matchers
   simple_form

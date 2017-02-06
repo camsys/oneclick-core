@@ -12,8 +12,6 @@
         Street Number
       %th
         Route
-      %th
-        Address
       %th 
         City
       %th
@@ -24,8 +22,6 @@
         Lat
       %th
         Lng
-      %th
-        Types
     -@landmarks.each do |landmark|
       %tr
         %td
@@ -34,8 +30,6 @@
           =landmark.street_number
         %td
           =landmark.route
-        %td
-          =landmark.address
         %td
           =landmark.city
         %td
@@ -46,8 +40,6 @@
           =landmark.lat
         %td
           =landmark.lng
-        %td
-          =landmark.types
   %div.col-md-1
 
 %div.row
