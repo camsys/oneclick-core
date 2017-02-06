@@ -1,0 +1,64 @@
+= render :partial => 'shared/flash'
+
+%h1.text-center
+  Landmarks
+%div.col-md-1
+%div.col-md-10
+  %table.table
+    %tr
+      %th
+        Name
+      %th
+        Street Number
+      %th
+        Route
+      %th 
+        City
+      %th
+        State
+      %th
+        Zip
+      %th 
+        Lat
+      %th
+        Lng
+    -@landmarks.each do |landmark|
+      %tr
+        %td
+          =landmark.name 
+        %td
+          =landmark.street_number
+        %td
+          =landmark.route
+        %td
+          =landmark.city
+        %td
+          =landmark.state
+        %td
+          =landmark.zip
+        %td
+          =landmark.lat
+        %td
+          =landmark.lng
+  %div.col-md-1
+
+%div.row
+  %div.col-md-4
+  %div.col-md-4
+    .panel.panel-default
+      .panel-heading
+        %h4
+          = "Update Landmarks"
+      .panel-body
+        %div.row
+          = simple_form_for :landmarks, url: update_all_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+            %div.col-md-10
+              %label
+                = "Upload CSV"
+              = f.input "file", required:true, label: false, :as => :file
+            %div.col-md-2.text-center
+              = f.submit "OK", class: 'btn action-button', role: 'button'
+
+
+
+

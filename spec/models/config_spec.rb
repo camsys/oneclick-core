@@ -1,5 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe Config, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it { should respond_to :key }
+  it { should respond_to :value }
 end

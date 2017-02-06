@@ -8,14 +8,33 @@ Rails.application.routes.draw do
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
       end
-    end
+
+      resources :places do
+        collection do
+          get 'search'
+        end
+      end #places
+    end #v1
 
     namespace :v2 do
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
       end
-    end
+    end #v2
 
+  end #api
+
+  #Built in Views
+  resources :configs, :only => [:index] do
+    collection do
+      patch 'set_open_trip_planner'
+    end
   end
 
-end
+  resources :landmarks, :only => [:index] do
+    collection do
+      patch 'update_all'
+    end
+  end
+
+end #draw
