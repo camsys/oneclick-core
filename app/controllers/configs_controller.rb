@@ -1,4 +1,4 @@
-class ConfigsController < ApplicationController
+class ConfigsController < AdminController
 
   def index
     @open_trip_planner = Config.where(key: 'open_trip_planner').first_or_initialize

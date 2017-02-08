@@ -25,6 +25,8 @@ Rails.application.routes.draw do
   end #api
 
   #Built in Views
+  resources :users, :only => [:index]
+
   resources :configs, :only => [:index] do
     collection do
       patch 'set_open_trip_planner'
