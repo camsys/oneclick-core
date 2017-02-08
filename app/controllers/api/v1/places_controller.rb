@@ -25,7 +25,7 @@ module Api
         hash = {places_search_results: {locations: locations}, record_count: locations.count}
         respond_with hash
 
-      end      
+      end
     end
   end
 end
