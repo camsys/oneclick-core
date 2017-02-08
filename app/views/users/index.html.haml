@@ -15,7 +15,8 @@
         %td
           =member.email 
         %td
-          =member.last_sign_in_at
+          -unless member.last_sign_in_at.nil?
+            =member.last_sign_in_at.strftime("%a, %e %b %Y %H:%M:%S %z").in_time_zone
 
   %div.col-md-1
 
