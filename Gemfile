@@ -43,6 +43,8 @@ gem 'autoprefixer-rails'
 # gem 'bcrypt', '~> 3.1.7'
 gem 'devise'
 gem 'simple_token_authentication', '~> 1.0' # For API Token Auth
+gem 'cancancan'
+gem 'rolify'
 #################
 
 # Use Capistrano for deployment

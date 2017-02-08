@@ -2,7 +2,11 @@ require 'rails_helper'
 
 RSpec.describe ConfigsController, type: :controller do
 
+  let!(:admin) { FactoryGirl.create :admin }
+  let!(:non_admin) { FactoryGirl.create :user }
+
   it 'sets the open_trip_planner config' do
+    sign_in admin
     params = {config: {value: 'http://otp-url.com'}}
     patch :set_open_trip_planner, params: params, format: :js
 
@@ -11,6 +15,19 @@ RSpec.describe ConfigsController, type: :controller do
 
     # Confirm that the variable was set correctly
     expect(Config.find_by(key: "open_trip_planner").value).to eq('http://otp-url.com')
+  end
+
+  it 'prevents configs from being updated by a non-admin' do
+    sign_in non_admin
+
+    params = {config: {value: 'http://otp-BAD-url.com'}}
+    patch :set_open_trip_planner, params: params, format: :js
+
+    # The response should be a re-direct
+    expect(response).to have_http_status(302)
+
+    # Confirm that the variable was NOT set
+    expect(Config.find_by(key: "open_trip_planner")).to eq(nil)
   end
   
 end
