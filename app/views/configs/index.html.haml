@@ -16,3 +16,11 @@
             = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
           %div.col-md-2.text-center
             = f.submit "OK", class: 'btn action-button', role: 'button'
+%div.row
+  %div.col-md-3.text-center
+  %div.col-md-3.text-center
+    %h3
+      =link_to "Landmarks", landmarks_path
+  %div.col-md-3.text-center
+    %h3
+      =link_to "Staff", users_path 

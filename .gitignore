@@ -15,3 +15,9 @@
 
 # Ignore Byebug command history file.
 .byebug_history
+
+# Ignore Mac DS Store
+.DS_Store
+
+# Ignore Emacs temp files
+*~

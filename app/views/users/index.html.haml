@@ -1,0 +1,24 @@
+= render :partial => 'shared/flash'
+
+%h1.text-center
+  Staff
+%div.col-md-1
+%div.col-md-10
+  %table.table
+    %tr
+      %th
+        Email
+      %th
+        Last Signed In
+    -@staff.each do |member|
+      %tr
+        %td
+          =member.email 
+        %td
+          =member.last_sign_in_at
+
+  %div.col-md-1
+
+
+
+
