@@ -21,9 +21,10 @@ module Api
       def destroy
         user_token = params[:user_token] || params[:session][:user_token]
         @user = User.find_by(authentication_token: user_token) if user_token
+
         if @user
           @user.update_attributes(authentication_token: nil)
-          render status: 204, json: { message: 'User successfully signed out.'}
+          render status: 200, json: { message: 'User successfully signed out.'}
         else
           render status: 401, json: { error: 'Please provide a valid token.' }
         end
