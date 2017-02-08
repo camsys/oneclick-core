@@ -1,4 +1,4 @@
-class LandmarksController < ApplicationController
+class LandmarksController < AdminController
 
   def index
     @landmarks = Landmark.all.order(:name)
