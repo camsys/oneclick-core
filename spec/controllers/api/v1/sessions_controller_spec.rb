@@ -26,11 +26,13 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
             response_body["email"]).to be # Should return an auth token and email
   end
 
-  it 'allows user sign_out requests' do
+  it 'allows user sign_out requests and refreshes auth token' do
     token = auth_token(user) # Sign in user and get their auth token
-    delete :destroy, params: { user_token: token}
-
+    delete :destroy, params: { user_token: token} # Sign out user
     expect(response).to be_success     # test for the 200 status-code
+
+    user.reload # Reload user (required for rspec model updates)
+    expect(user.authentication_token).not_to eq(token) # User should have a new auth token now
   end
 
 end

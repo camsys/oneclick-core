@@ -19,7 +19,7 @@ module Api
 
       # Custom sign_out method renders JSON and handles invalid token errors.
       def destroy
-        user_token = params[:user_token] || params[:session][:user_token]
+        user_token = request.headers["X-User-Token"] || params[:user_token] || params[:session][:user_token]
         @user = User.find_by(authentication_token: user_token) if user_token
 
         if @user
