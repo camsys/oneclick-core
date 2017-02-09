@@ -7,8 +7,14 @@ module Api
       def create
 
         # Shim to make old API call work properly
-        if params["user"].nil?
-          params["user"] = { "email" => params["email"], "password" => params["password"]}
+        if params[:user].nil?
+          params[:user] = {
+            email: params[:email],
+            password: params[:password],
+            password_confirmation: params[:password_confirmation],
+            first_name: params[:first_name],
+            last_name: params[:last_name]
+          }
         end
 
         super
