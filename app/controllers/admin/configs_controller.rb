@@ -1,4 +1,4 @@
-class ConfigsController < AdminController
+class Admin::ConfigsController < Admin::AdminController
 
   def index
     @open_trip_planner = Config.where(key: 'open_trip_planner').first_or_initialize
@@ -27,7 +27,7 @@ class ConfigsController < AdminController
 
     respond_to do |format|
       format.js
-      format.html {redirect_to configs_path}
+      format.html {redirect_to admin_configs_path}
     end
   end
 

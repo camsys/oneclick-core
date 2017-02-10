@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe LandmarksController, type: :controller do
+RSpec.describe Admin::LandmarksController, type: :controller do
 
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }

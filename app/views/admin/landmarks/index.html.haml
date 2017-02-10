@@ -51,7 +51,7 @@
           = "Update Landmarks"
       .panel-body
         %div.row
-          = simple_form_for :landmarks, url: update_all_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+          = simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
             %div.col-md-10
               %label
                 = "Upload CSV"

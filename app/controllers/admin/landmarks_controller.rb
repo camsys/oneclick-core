@@ -1,4 +1,4 @@
-class LandmarksController < AdminController
+class Admin::LandmarksController < Admin::AdminController
 
   def index
     @landmarks = Landmark.all.order(:name)
@@ -28,7 +28,7 @@ class LandmarksController < AdminController
 
     respond_to do |format|
       format.js
-      format.html {redirect_to landmarks_path}
+      format.html {redirect_to admin_landmarks_path}
     end
   end
 

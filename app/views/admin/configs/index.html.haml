@@ -9,7 +9,7 @@
         %h4
           = "Set Location of OpenTripPlanner Server"
       .panel-body
-        = simple_form_for @open_trip_planner, url: set_open_trip_planner_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+        = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
           %div.col-md-10
             %label
               = "URL of the Open Trip Planner Server"
@@ -20,7 +20,7 @@
   %div.col-md-3.text-center
   %div.col-md-3.text-center
     %h3
-      =link_to "Landmarks", landmarks_path
+      =link_to "Landmarks", admin_landmarks_path
   %div.col-md-3.text-center
     %h3
-      =link_to "Staff", users_path 
+      =link_to "Staff", admin_users_path 

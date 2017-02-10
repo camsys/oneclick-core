@@ -26,19 +26,21 @@ Rails.application.routes.draw do
 
   end #api
 
-  #Built in Views
-  resources :users, :only => [:index]
-
-  resources :configs, :only => [:index] do
-    collection do
-      patch 'set_open_trip_planner'
+  #Admin Views
+  namespace :admin do
+    resources :users, :only => [:index]
+ 
+    resources :configs, :only => [:index] do
+      collection do
+        patch 'set_open_trip_planner'
+      end
     end
-  end
 
-  resources :landmarks, :only => [:index] do
-    collection do
-      patch 'update_all'
+    resources :landmarks, :only => [:index] do
+      collection do
+        patch 'update_all'
+      end
     end
-  end
+  end #Admin
 
 end #draw
