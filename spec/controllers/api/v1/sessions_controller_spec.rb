@@ -24,6 +24,8 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
     expect( response_body &&
             response_body["authentication_token"] &&
             response_body["email"]).to be # Should return an auth token and email
+    expect(response_body["authentication_token"]).to eq(user.authentication_token) # Expect returned auth token to match that of user.
+    expect(response_body["email"]).to eq(user.email) # Expect returned email to match that of user.
   end
 
   it 'allows user sign_out requests and refreshes auth token' do

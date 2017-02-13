@@ -1,7 +1,6 @@
 module Api
   module V1
     class PlacesController < ApiController
-      respond_to :json
 
       def search
         #Get the Search String
