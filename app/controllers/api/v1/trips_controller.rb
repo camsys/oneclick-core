@@ -1,6 +1,8 @@
 module Api
   module V1
     class TripsController < ApiController
+      skip_before_action :authenticate_user_from_token!
+      before_action :authenticate_user_if_token_present
 
       # POST trips/, POST itineraries/plan
       def create
@@ -35,7 +37,7 @@ module Api
         # walk_mph = params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
 
 
-        puts "CREATING TRIP: ", params.ai
+        puts "CREATING TRIP: ", params.ai, @current_user.ai
         @trip = Trip.create(params[:trip])
         puts @trip.ai
         if @trip
