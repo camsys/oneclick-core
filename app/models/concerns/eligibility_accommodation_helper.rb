@@ -1,7 +1,5 @@
-class Accommodation < ApplicationRecord
+module EligibilityAccommodationHelper
   
-  before_save :snake_casify
-
   def snake_casify
     self.code = self.code.parameterize.underscore 	
   end

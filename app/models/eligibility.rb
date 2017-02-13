@@ -1,9 +1,8 @@
 class Eligibility < ApplicationRecord
 
-  before_save :snake_casify
+  #### Includes ####
+  include EligibilityAccommodationHelper 
 
-  def snake_casify
-    self.code = self.code.parameterize.underscore 	
-  end
+  before_save :snake_casify
 
 end
