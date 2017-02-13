@@ -2,8 +2,8 @@
   Eligibilities
 
 %div.row
-  %div.col-md-1
-  %div.col-md-10
+  %div.col-md-3
+  %div.col-md-6
     -@eligibilities.each do |eligibility|
       .panel.panel-default
         .panel-heading
@@ -16,15 +16,15 @@
             =button_to 'Delete', admin_eligibility_path(eligibility), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
 
 %div.row
-  %div.col-md-1
-  %div.col-md-10
+  %div.col-md-3
+  %div.col-md-6
     .panel.panel-primary
       .panel-heading
         %h4
           ="Create a new Eligibility"
       = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
         .panel-body.panel-primary
-          %div.col-md-10
+          %div.col-md-12
             %label
               = "Code"
             = f.input :code, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
