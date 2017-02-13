@@ -8,19 +8,28 @@
       .panel-heading
         %h4
           = "Set Location of OpenTripPlanner Server"
-      .panel-body
-        = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+
+      = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+        .panel-body
           %div.col-md-10
             %label
               = "URL of the Open Trip Planner Server"
             = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
-          %div.col-md-2.text-center
+        .panel-footer 
+          %center 
             = f.submit "OK", class: 'btn action-button', role: 'button'
 %div.row
   %div.col-md-3.text-center
-  %div.col-md-3.text-center
-    %h3
-      =link_to "Landmarks", admin_landmarks_path
-  %div.col-md-3.text-center
-    %h3
-      =link_to "Staff", admin_users_path 
+  %div.col-md-6.text-center
+    %div.col-md-3.text-center  
+      %h3
+        =link_to "Landmarks", admin_landmarks_path
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Staff", admin_users_path 
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Eligibilities", admin_eligibilities_path
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Accommodations", admin_accommodations_path

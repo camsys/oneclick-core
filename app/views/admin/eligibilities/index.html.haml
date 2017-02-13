@@ -1,0 +1,33 @@
+%h1.text-center
+  Eligibilities
+
+%div.row
+  %div.col-md-3
+  %div.col-md-6
+    -@eligibilities.each do |eligibility|
+      .panel.panel-default
+        .panel-heading
+          %h4
+            =eligibility.code
+        .panel-body
+          ='This panel will be used to show more information about this eligibilty in the future.  E.g., Number of services using it.  Number of travelers who have answered the question.  What the relevant translations are for this eligibility E.g, Question, Note, Name etc.'
+        .panel-footer
+          %center
+            =button_to 'Delete', admin_eligibility_path(eligibility), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
+
+%div.row
+  %div.col-md-3
+  %div.col-md-6
+    .panel.panel-primary
+      .panel-heading
+        %h4
+          ="Create a new Eligibility"
+      = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+        .panel-body.panel-primary
+          %div.col-md-12
+            %label
+              = "Code"
+            = f.input :code, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
+        .panel-footer.panel-primary 
+          %center 
+            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
