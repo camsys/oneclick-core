@@ -41,6 +41,10 @@ Rails.application.routes.draw do
         patch 'update_all'
       end
     end
+
+    resources :eligibilities, :only => [:index, :destroy] 
+    resources :accommodations, :only => [:index]
+
   end #Admin
 
 end #draw

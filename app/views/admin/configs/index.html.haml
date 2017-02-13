@@ -18,9 +18,16 @@
             = f.submit "OK", class: 'btn action-button', role: 'button'
 %div.row
   %div.col-md-3.text-center
-  %div.col-md-3.text-center
-    %h3
-      =link_to "Landmarks", admin_landmarks_path
-  %div.col-md-3.text-center
-    %h3
-      =link_to "Staff", admin_users_path 
+  %div.col-md-6.text-center
+    %div.col-md-3.text-center  
+      %h3
+        =link_to "Landmarks", admin_landmarks_path
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Staff", admin_users_path 
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Eligibilities", admin_eligibilities_path
+    %div.col-md-3.text-center
+      %h3
+        =link_to "Accommodations", admin_accommodations_path

@@ -19,8 +19,17 @@ namespace :db do
       end
     end
 
+    desc "Setup Sample Eligibilities"
+    task eligibilities: :environment do
+      eligs = [{code: "wheelchair"}, {code: "veteran"}, {code: "disability"}]
+
+      eligs.each do |elig|
+        Eligibility.where(code: elig[:code]).first_or_create!(elig)
+      end
+    end
+
     #Load all sample data 
-    task all: [:landmarks]
+    task all: [:landmarks, :eligibilities]
 
   end
 end 

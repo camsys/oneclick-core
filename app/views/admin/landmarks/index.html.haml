@@ -45,7 +45,7 @@
 %div.row
   %div.col-md-4
   %div.col-md-4
-    .panel.panel-default
+    .panel.panel-primary
       .panel-heading
         %h4
           = "Update Landmarks"
@@ -57,7 +57,7 @@
                 = "Upload CSV"
               = f.input "file", required:true, label: false, :as => :file
             %div.col-md-2.text-center
-              = f.submit "OK", class: 'btn action-button', role: 'button'
+              = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
 
 
 
