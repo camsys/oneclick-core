@@ -42,7 +42,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :eligibilities, :only => [:index, :destroy] 
+    resources :eligibilities, :only => [:index, :destroy, :create] 
     resources :accommodations, :only => [:index]
 
   end #Admin

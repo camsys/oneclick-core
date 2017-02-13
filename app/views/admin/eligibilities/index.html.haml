@@ -22,9 +22,12 @@
       .panel-heading
         %h4
           ="Create a new Eligibility"
-      .panel-body
-        ="ok"
-        %div.row
+      = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+        .panel-body.panel-primary
+          %div.col-md-10
+            %label
+              = "Code"
+            = f.input :code, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
+        .panel-footer.panel-primary 
           %center 
-            %a.btn.btn-primary.btn-sm.create_new_eligibility
-              ="Create"
+            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'

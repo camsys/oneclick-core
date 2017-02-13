@@ -49,15 +49,15 @@
       .panel-heading
         %h4
           = "Update Landmarks"
-      .panel-body
-        %div.row
-          = simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-            %div.col-md-10
-              %label
-                = "Upload CSV"
-              = f.input "file", required:true, label: false, :as => :file
-            %div.col-md-2.text-center
-              = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+      
+      = simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+        .panel-body.panel-primary
+          %label
+            = "Upload CSV"
+          = f.input "file", required:true, label: false, :as => :file
+        .panel-footer.panel-primary  
+          %center
+            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
 
 
 
