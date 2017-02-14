@@ -1,7 +1,4 @@
-class Landmark < ApplicationRecord
-  
-  #### Includes ####
-  include GooglePlace 
+class Landmark < Geocoded
 
   #### Scopes ####
   scope :is_old, -> { where(:old => true) }
@@ -21,13 +18,13 @@ class Landmark < ApplicationRecord
     #require 'open-uri'
     require 'csv'
     landmarks_file = open(file)
-    
-    # Iterate through CSV. 
+
+    # Iterate through CSV.
     failed = false
     message = ""
     Landmark.update_all(old: true)
     line = 2 #Line 1 is the header, start with line 2 in the count
-    begin 
+    begin
       CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
         begin
           #If we have already created this Landmark, don't create it again.
@@ -64,13 +61,13 @@ class Landmark < ApplicationRecord
       failed = true
     end
 
-    if failed 
+    if failed
       return false, message
     else
       Landmark.is_old.delete_all
       return true, Landmark.count.to_s + " landmarks loaded"
     end
-  
+
   end #Update
 
 end #Landmark

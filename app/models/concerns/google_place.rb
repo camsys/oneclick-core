@@ -1,5 +1,5 @@
 module GooglePlace
-  
+
   def google_place_hash
     #Based on Google Place Details
     {
@@ -8,8 +8,8 @@ module GooglePlace
         formatted_address: "#{self.street_number} #{self.route}",
         geometry: {
           location: {
-              lat: self.lat,
-              lng: self.lng,
+              lat: self.lat.to_s,
+              lng: self.lng.to_s,
           }
         },
 

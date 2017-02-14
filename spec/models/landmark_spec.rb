@@ -24,27 +24,27 @@ RSpec.describe Landmark, type: :model do
 
   it "loads all the landmark fields properly" do
     result, message = Landmark.update 'spec/files/good_landmarks.csv'
-    
+
     #Result should be true
     expect(result).to eq(true)
 
-    #Check that all fields were loaded properly. 
+    #Check that all fields were loaded properly.
     cambridge_sytematics = Landmark.find_by(name: "Cambridge Systematics")
     expect(cambridge_sytematics.street_number).to eq("201")
     expect(cambridge_sytematics.route).to eq("Station Landing")
     expect(cambridge_sytematics.city).to eq("Medford")
     expect(cambridge_sytematics.state).to eq("MA")
     expect(cambridge_sytematics.zip).to eq("02155")
-    expect(cambridge_sytematics.lat).to eq("42.401697")
-    expect(cambridge_sytematics.lng).to eq("-71.081818")
+    expect(cambridge_sytematics.lat).to eq(42.401697)
+    expect(cambridge_sytematics.lng).to eq(-71.081818)
 
   end
 
   it "handles a malformed landmarks file" do
-    
+
     #First load the good landmarks
     Landmark.update 'spec/files/good_landmarks.csv'
-    
+
     #Try to load bad landmarks
     result, message = Landmark.update 'spec/files/bad_landmarks.csv'
 
