@@ -1,11 +1,11 @@
 require 'rails_helper'
 
-RSpec.describe Admin::AccommodationsController, type: :controller do 
+RSpec.describe Admin::PurposesController, type: :controller do 
 
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }
   
-  it 'gets a list of all accommodations' do
+  it 'gets a list of all purposes' do
     sign_in admin
 
     get :index
@@ -14,7 +14,7 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
     expect(response).to be_success
   end
 
-  it 'it prevents non-admins from viewing the list of accommodaitons' do
+  it 'it prevents non-admins from viewing the list of purposes' do
     sign_in non_admin
 
     get :index
@@ -23,38 +23,38 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
     expect(response).to have_http_status(302)
   end
 
-  it 'creates a new accommodation' do
+  it 'creates a new purpose' do
     sign_in admin
-    params = {accommodation: {code: 'Test accommodAtion'}}
+    params = {purpose: {code: 'Test purPOSE'}}
     post :create, params: params, format: :js
 
     # test for the 302 status-code (redirect)
     expect(response).to have_http_status(302)
 
     # Confirm that the variable was set
-    expect(Accommodation.count).to eq(1)
+    expect(Purpose.count).to eq(1)
 
     # Confirm that the code was set to snake case
-    expect(Accommodation.last.code).to eq('test_accommodation')
+    expect(Purpose.last.code).to eq('test_purpose')
 
   end
 
-  it 'creates and destroys an accommodation' do 
+  it 'creates and destroys a purpose' do 
     sign_in admin
-    params = {accommodation: {code: 'Test DeLEte& accommodation22'}}
+    params = {purpose: {code: 'Test DeLEte& purpose22'}}
     post :create, params: params, format: :js
 
     # Confirm that the variable was set
-    expect(Accommodation.count).to eq(1)
+    expect(Purpose.count).to eq(1)
 
     # Confirm that the code was set to snake case
-    expect(Accommodation.last.code).to eq('test_delete_accommodation22')
+    expect(Purpose.last.code).to eq('test_delete_purpose22')
 
-    params = {id: Accommodation.last.id}
+    params = {id: Purpose.last.id}
     delete :destroy, params: params, format: :js 
 
     # Confirm that there are no eligibilities
-    expect(Accommodation.count).to eq(0)
+    expect(Purpose.count).to eq(0)
   end
 
 end

@@ -12,8 +12,6 @@ class Admin::EligibilitiesController < Admin::AdminController
   end
 
   def create
-
-  	puts params.ai 
   	Eligibility.create!(eligibility_params)
   	redirect_to admin_eligibilities_path
   end
