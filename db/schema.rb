@@ -42,22 +42,39 @@ ActiveRecord::Schema.define(version: 20170215144229) do
   end
 
   create_table "landmarks", force: :cascade do |t|
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
     t.string   "name"
     t.string   "street_number"
     t.string   "route"
     t.string   "city"
     t.string   "state"
     t.string   "zip"
-    t.string   "lat"
-    t.string   "lng"
     t.boolean  "old"
+    t.decimal  "lat",           precision: 10, scale: 6
+    t.decimal  "lng",           precision: 10, scale: 6
   end
 
   create_table "places", force: :cascade do |t|
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.string   "name"
+    t.string   "street_number"
+    t.string   "route"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.decimal  "lat",           precision: 10, scale: 6
+    t.decimal  "lng",           precision: 10, scale: 6
+<<<<<<< HEAD
+  end
+
+  create_table "purposes", force: :cascade do |t|
+    t.string   "code",       null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+=======
+>>>>>>> Improve and Refactor Landmarks & Places
   end
 
   create_table "purposes", force: :cascade do |t|
@@ -87,6 +104,8 @@ ActiveRecord::Schema.define(version: 20170215144229) do
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
+    t.datetime "trip_time"
+    t.boolean  "arrive_by"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree

@@ -1,7 +1,7 @@
 module Api
   module V1
     class PlacesController < ApiController
-      respond_to :json
+      skip_before_action :authenticate_user_from_token!
 
       def search
         #Get the Search String
