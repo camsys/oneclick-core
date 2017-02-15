@@ -1,6 +1,6 @@
 class Config < ApplicationRecord
 
-  serialize :types
+  serialize :value
 
   validates :key, presence: true
   validates :key, uniqueness: true
