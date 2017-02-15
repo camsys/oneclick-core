@@ -5,8 +5,8 @@ FactoryGirl.define do
     city "Medford"
     state "MA"
     zip "02155"
-    lat "42.401697"
-    lng "71.081818"
+    lat 42.401697
+    lng 71.081818
     name "Cambridge Systematics"
   end
 end

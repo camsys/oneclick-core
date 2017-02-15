@@ -16,6 +16,8 @@ Rails.application.routes.draw do
           get 'search'
         end
       end #places
+
+      resources :trips
     end #v1
 
     namespace :v2 do

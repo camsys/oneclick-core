@@ -3,18 +3,32 @@ module Api
     class SessionsController < Devise::SessionsController
       # acts_as_token_authentication_handler_for User, fallback: :none
       skip_before_action :verify_signed_out_user
+      prepend_before_filter :require_no_authentication, :only => [:create ]
+      include Devise::Controllers::Helpers
 
       # clear_respond_to
       respond_to :json
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        self.resource = warden.authenticate!(auth_options)
-        sign_in(resource_name, resource)
-        render json: {
-          authentication_token: resource.authentication_token,
-          email: resource.email
-        } # Failure response is rendered in api_auth_failure_app.rb
+        email = params[:email] || (params[:user] && params[:user][:email])
+        password = params[:password] || (params[:user] && params[:user][:password])
+        @user = User.find_by(email: email)
+
+        if @user && @user.valid_password?(password)
+          sign_in(:user, @user)
+          @user.ensure_authentication_token
+          render status: 200, json: {
+            authentication_token: @user.authentication_token,
+            email: @user.email
+          }
+        else
+          render status: 401, json: {
+            message: "Please enter a valid email address and password"
+          }
+        end
+        return
+
       end
 
       # Custom sign_out method renders JSON and handles invalid token errors.
@@ -24,6 +38,7 @@ module Api
 
         if @user
           @user.update_attributes(authentication_token: nil)
+          sign_out(@user)
           render status: 200, json: { message: 'User successfully signed out.'}
         else
           render status: 401, json: { error: 'Please provide a valid token.' }
