@@ -1,10 +1,4 @@
 require 'rails_helper'
-require 'helpers/api_v1_helpers'
-
-# Provides user api_sign_in and auth_token helper methods
-RSpec.configure do |config|
-  config.include Api::V1::Helpers
-end
 
 RSpec.describe Api::V1::SessionsController, type: :controller do
   # This line is necessary to get Devise scoped tests to work.
@@ -29,8 +23,8 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
   end
 
   it 'allows user sign_out requests and refreshes auth token' do
-    token = auth_token(user) # Sign in user and get their auth token
-    delete :destroy, params: { user_token: token} # Sign out user
+    token = user.authentication_token # Sign in user and get their auth token
+    delete :destroy, params: { user_email: user.email, user_token: token} # Sign out user
     expect(response).to be_success     # test for the 200 status-code
 
     user.reload # Reload user (required for rspec model updates)

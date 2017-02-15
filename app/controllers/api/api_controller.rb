@@ -40,14 +40,14 @@ module Api
       end
     end
 
-    # Sets the @current_user variable to the current api user
-    def set_current_api_user
-      @current_user = current_api_user
+    # Sets the @traveler variable to the current api user
+    def set_traveler
+      @traveler = current_api_user
     end
 
     # Actions to take after successfully authenticated a user token.
     def after_successful_token_authentication
-      set_current_api_user
+      set_traveler
     end
 
   end
