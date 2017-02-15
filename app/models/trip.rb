@@ -7,4 +7,10 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
 
+
+  # Build itineraries before_create? or around_create?
+  # Use options passed along with trip.create to decide which itineraries to build and how
+  # OR, create a custom plan method that calls create internally
+  # Perhaps create a TripPlanner PORO to handle creating trips and building itineraries for them
+
 end
