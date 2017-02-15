@@ -37,8 +37,16 @@ namespace :db do
       end
     end
 
+    desc "Setup Sample Purposes"
+    task purposes: :environment do 
+      purps = [{code: "grocery"}, {code: "medical"}, {code: 'shopping'}]
+      purps.each do |purp|
+        Purpose.where(code: purp[:code]).first_or_create!(purp)
+      end
+    end
+
     #Load all sample data 
-    task all: [:landmarks, :eligibilities, :accommodations]
+    task all: [:landmarks, :eligibilities, :accommodations, :purposes]
 
   end
 end 
