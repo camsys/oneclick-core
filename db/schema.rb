@@ -77,6 +77,12 @@ ActiveRecord::Schema.define(version: 20170215144229) do
 >>>>>>> Improve and Refactor Landmarks & Places
   end
 
+  create_table "purposes", force: :cascade do |t|
+    t.string   "code",       null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "roles", force: :cascade do |t|
     t.string   "name"
     t.string   "resource_type"
