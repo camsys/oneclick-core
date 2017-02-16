@@ -9,9 +9,6 @@
   </head>
 
   <body>
-    <%- @locale = "es" %>
-    <h1><%= t('hello') %></h1>
-    <h1><%= TranslationEngine.translate_text(:hello) %></h1>
     <%= yield %>
   </body>
 </html>

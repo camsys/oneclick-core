@@ -47,9 +47,11 @@ Rails.application.routes.draw do
     resources :eligibilities, :only => [:index, :destroy, :create] 
     resources :accommodations, :only => [:index, :destroy, :create]
     resources :purposes, :only => [:index, :destroy, :create]
+    
+    mount TranslationEngine::Engine => "/translation_engine"
 
   end #Admin
 
-  mount TranslationEngine::Engine => "/translation_engine"
+
 
 end #draw

@@ -19,7 +19,9 @@
           %center 
             = f.submit "OK", class: 'btn action-button', role: 'button'
 %div.row
-  %div.col-md-1.text-center
+  %div.col-md-2.text-center  
+    %h3
+      =link_to "Translations", admin_translation_engine.translations_path #admin_translation_engine_path
   %div.col-md-2.text-center  
     %h3
       =link_to "Landmarks", admin_landmarks_path
@@ -35,4 +37,4 @@
   %div.col-md-2.text-center
     %h3
       =link_to "Purposes", admin_purposes_path
-  %div.col-md-1.text-center  
+
