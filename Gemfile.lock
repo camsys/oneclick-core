@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/DerekEdwards/translation_engine.git
-  revision: 311c61444e61f6c42b2abd9682f114a0ecca8c10
+  revision: 70a6c8f68efffdf0b3838ffda279c0ce05c71000
   branch: simplify
   specs:
     translation_engine (3.6.6)
