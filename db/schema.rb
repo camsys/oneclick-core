@@ -76,16 +76,6 @@ ActiveRecord::Schema.define(version: 20170216132913) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "translations", force: :cascade do |t|
-    t.string   "locale"
-    t.string   "key"
-    t.text     "value"
-    t.text     "interpolations"
-    t.boolean  "is_proc",        default: false
-    t.datetime "created_at",                     null: false
-    t.datetime "updated_at",                     null: false
-  end
-
   create_table "trips", force: :cascade do |t|
     t.datetime "created_at",     null: false
     t.datetime "updated_at",     null: false
