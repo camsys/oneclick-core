@@ -20,5 +20,12 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
-  title: "OneclickCore"
+  delete: "Delete"
+  create_translation: "Create Translation"
+  add: "Add"
+  key: "Key"
+  locale.en: "English"
+  locale.es: "Spanish"
+  save: "Save"
+  cancel: "Cancel"
+
