@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170215144229) do
+ActiveRecord::Schema.define(version: 20170216132913) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -55,19 +55,6 @@ ActiveRecord::Schema.define(version: 20170215144229) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
-  create_table "places", force: :cascade do |t|
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
-    t.string   "name"
-    t.string   "street_number"
-    t.string   "route"
-    t.string   "city"
-    t.string   "state"
-    t.string   "zip"
-    t.decimal  "lat",           precision: 10, scale: 6
-    t.decimal  "lng",           precision: 10, scale: 6
-  end
-
   create_table "purposes", force: :cascade do |t|
     t.string   "code",       null: false
     t.datetime "created_at", null: false
@@ -87,6 +74,16 @@ ActiveRecord::Schema.define(version: 20170215144229) do
   create_table "services", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "translations", force: :cascade do |t|
+    t.string   "locale"
+    t.string   "key"
+    t.text     "value"
+    t.text     "interpolations"
+    t.boolean  "is_proc",        default: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
   end
 
   create_table "trips", force: :cascade do |t|
@@ -130,8 +127,21 @@ ActiveRecord::Schema.define(version: 20170215144229) do
     t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id", using: :btree
   end
 
+  create_table "waypoints", force: :cascade do |t|
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.string   "name"
+    t.string   "street_number"
+    t.string   "route"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.decimal  "lat",           precision: 10, scale: 6
+    t.decimal  "lng",           precision: 10, scale: 6
+  end
+
   add_foreign_key "itineraries", "trips"
-  add_foreign_key "trips", "places", column: "destination_id"
-  add_foreign_key "trips", "places", column: "origin_id"
   add_foreign_key "trips", "users"
+  add_foreign_key "trips", "waypoints", column: "destination_id"
+  add_foreign_key "trips", "waypoints", column: "origin_id"
 end

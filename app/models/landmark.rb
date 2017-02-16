@@ -1,4 +1,4 @@
-class Landmark < Geocoded
+class Landmark < Place
 
   #### Scopes ####
   scope :is_old, -> { where(:old => true) }

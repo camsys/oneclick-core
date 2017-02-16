@@ -1,8 +1,8 @@
 FactoryGirl.define do
   factory :trip do
     user
-    association :origin, factory: :place_2
-    association :destination, factory: :place
+    association :origin, factory: :waypoint_2
+    association :destination, factory: :waypoint
     trip_time DateTime.new(2020)
     arrive_by true
 

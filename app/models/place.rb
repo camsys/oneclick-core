@@ -1,9 +1,22 @@
-class Place < Geocoded
-  has_one :trip_as_origin, foreign_key: "origin_id", class_name: "Trip"
-  has_one :trip_as_destination, foreign_key: "destination_id", class_name: "Trip"
+class Place < ApplicationRecord
 
-  def trip
-    trip_as_origin || trip_as_destination
+  self.abstract_class = true
+  attr_accessor :google_place_attributes
+
+  #### Includes ####
+  include GooglePlace
+
+  def self.new attrs=nil
+    if attrs && attrs[:google_place_attributes]
+      initialize_from_google_place_attributes(attrs[:google_place_attributes])
+    else
+      super
+    end
+  end
+
+  # Converts google place attributes to readable format before initializing as normal
+  def self.initialize_from_google_place_attributes(attrs=nil)
+    self.new(attrs_from_google_place(attrs))
   end
 
 end

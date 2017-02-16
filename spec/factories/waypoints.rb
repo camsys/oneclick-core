@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :place do
+  factory :waypoint do
     street_number "201"
     route "Station Landing"
     city "Medford"
@@ -9,7 +9,7 @@ FactoryGirl.define do
     lng -71.081818
     name "Cambridge Systematics"
 
-    factory :place_2 do
+    factory :waypoint_2 do
       street_number "100"
       route "Cambridgepark Drive"
       city "Cambridge"
