@@ -6,6 +6,7 @@ class Place < ApplicationRecord
   #### Includes ####
   include GooglePlace
 
+  # If a google_place_attributes param is passed, will create a Place based on the JSON contained therein.
   def self.new attrs=nil
     if attrs && attrs[:google_place_attributes]
       initialize_from_google_place_attributes(attrs[:google_place_attributes])
