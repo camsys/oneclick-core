@@ -49,6 +49,7 @@ gem 'rolify'
 
 ### i18n Tooles ###
 gem 'rails-i18n'
+gem 'translation_engine', github: 'DerekEdwards/translation_engine', branch: 'simplify'
 #################
 
 # Use Capistrano for deployment

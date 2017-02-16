@@ -50,4 +50,6 @@ Rails.application.routes.draw do
 
   end #Admin
 
+  mount TranslationEngine::Engine => "/translation_engine"
+
 end #draw

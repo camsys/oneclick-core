@@ -55,6 +55,12 @@ ActiveRecord::Schema.define(version: 20170216132913) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
+  create_table "locales", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "purposes", force: :cascade do |t|
     t.string   "code",       null: false
     t.datetime "created_at", null: false
@@ -74,6 +80,20 @@ ActiveRecord::Schema.define(version: 20170216132913) do
   create_table "services", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "translation_keys", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "translations", force: :cascade do |t|
+    t.integer  "locale_id"
+    t.integer  "translation_key_id"
+    t.text     "value"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
   end
 
   create_table "trips", force: :cascade do |t|
