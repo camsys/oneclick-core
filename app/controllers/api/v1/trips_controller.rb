@@ -38,14 +38,23 @@ module Api
           walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
 
+        # Remove "mode_" from mode codes
+        options[:modes] = convert_mode_codes_to_symbols(options[:modes])
+
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
+        TripPlanner.new(@trips[0], options).plan
+
         if @trips
           render status: 200, json: @trips
         end
       end
 
       private
+
+      def convert_mode_codes_to_symbols modes
+        return modes.map {|m| m.slice(5..-1)}
+      end
 
       def trip_params(parameters)
         parameters.require(:trip).permit(

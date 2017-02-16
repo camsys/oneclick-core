@@ -85,10 +85,10 @@ class OTPService
     begin
       resp = Net::HTTP.get_response(URI.parse(url))
     rescue Exception=>e
-      return url, {'id'=>500, 'msg'=>e.to_s}
+      return {'id'=>500, 'msg'=>e.to_s}
     end
 
-    return url, resp
+    return resp
 
   end
 
