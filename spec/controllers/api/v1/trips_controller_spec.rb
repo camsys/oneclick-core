@@ -2,7 +2,10 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::TripsController, type: :controller do
   # This line is necessary to get Devise scoped tests to work.
+
+  before(:each) { Config.create(key: "otp", value: "http://otp-pa.camsys-apps.com:8080/otp/routers/default") unless Config.otp}
   before(:each) { @request.env["devise.mapping"] = Devise.mappings[:user] }
+
   let(:user) { create(:user) }
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_basic.json"))}

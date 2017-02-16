@@ -4,7 +4,7 @@
 # APIs.
 
 class TripPlanner
-  
+
   attr_reader :trip, :options, :otp, :errors
 
   # Initialize with a Trip object, and an options hash
@@ -14,8 +14,6 @@ class TripPlanner
     @modes = options[:modes]
     @otp = OTPService.new(Config.otp)
     @errors = []
-
-    puts "Trip Planner Initialized!", self.ai
   end
 
   # Constructs Itineraries for the Trip based on the options passed
