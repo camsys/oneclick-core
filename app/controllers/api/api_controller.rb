@@ -3,6 +3,7 @@ module Api
     protect_from_forgery prepend: true
     acts_as_token_authentication_handler_for User, fallback: :exception
     respond_to :json
+    attr_reader :traveler
 
     ###
     # By default, will attempt to authenticate_user_from_token! before controller actions.
@@ -20,6 +21,8 @@ module Api
         return false
       end
     end
+
+    private
 
     # Finds the User associated with auth headers.
     def current_api_user
