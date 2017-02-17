@@ -9,7 +9,7 @@ class AddTransitFieldsToItineraries < ActiveRecord::Migration[5.0]
     add_column :itineraries, :walk_time, :integer
     add_column :itineraries, :transit_time, :integer
 
-    add_column :itineraries, :cost, :decimal, precision: 10, scale: 2
+    add_column :itineraries, :cost, :float
 
   end
 end

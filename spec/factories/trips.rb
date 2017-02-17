@@ -9,5 +9,12 @@ FactoryGirl.define do
     factory :guest_trip do
       user nil
     end
+
+    factory :trip_with_itins do
+      after(:create) do |trip|
+        create(:itinerary, trip: trip)
+      end
+    end
+
   end
 end

@@ -18,32 +18,21 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    if @modes.include?('transit')
-      puts "Planning Transit Itineraries"
-      @trip.itineraries << transit_itineraries
-    end
+    itineraries = []
+    itineraries += transit_itineraries if @modes.include?('transit')
+    @trip.itineraries += itineraries
   end
 
   # Builds transit itineraries, using OTP by default
   def transit_itineraries
     response = @otp.plan(@trip, {mode: "TRANSIT,WALK"})
-    return false if otp_response_failure(response)
-
-    response_body = JSON.parse(response.body)
-    itineraries = response_body["plan"]["itineraries"] || []
-    # If so, create itineraries based on response
-    return itineraries.map {|i| @otp.create_itinerary(i)}
-  end
-
-  private
-
-  # Adds error to @errors and returns true if OTP Response was a failure
-  def otp_response_failure(response)
-    if response.failure?
-      @errors << {message: "OTP Request Failed with #{response.code}, #{response.message}"}
-      return true
+    if response[:error]
+      @errors << response
+      return []
+    elsif response[:itineraries]
+      return response[:itineraries].map {|i| Itinerary.create(i)}
     else
-      return false
+      return []
     end
   end
 

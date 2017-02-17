@@ -35,15 +35,15 @@ ActiveRecord::Schema.define(version: 20170216192026) do
   end
 
   create_table "itineraries", force: :cascade do |t|
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
     t.integer  "trip_id"
     t.datetime "start_time"
     t.datetime "end_time"
     t.text     "legs"
     t.integer  "walk_time"
     t.integer  "transit_time"
-    t.decimal  "cost",         precision: 10, scale: 2
+    t.float    "cost"
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
   end
 
