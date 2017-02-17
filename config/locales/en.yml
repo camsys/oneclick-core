@@ -20,12 +20,13 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  hello: "Hello from en.yml"
   delete: "Delete"
   create_translation: "Create Translation"
   add: "Add"
   key: "Key"
-  locale.en: "English"
-  locale.es: "Spanish"
+  locales.en: "English"
+  locales.es: "Spanish"
   save: "Save"
   cancel: "Cancel"
 
