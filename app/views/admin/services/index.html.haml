@@ -1,4 +1,5 @@
 = render :partial => 'shared/flash'
+- puts Transit.ai
 
 %div.row
   %div.col-md-3
@@ -7,12 +8,12 @@
       .panel.panel-default
         .panel-heading
           %h4
-            =service.id
+            =service.name
         .panel-body
-          ='Replace this whole thing with some version of the service data form from old 1-click'
+          = "Type: #{service.type}"
         .panel-footer
           %center
-            -# =button_to 'Delete', admin_eligibility_path(eligibility), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
+            =button_to 'Delete', admin_service_path(service), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
 
 %div.row
   %div.col-md-3
@@ -21,12 +22,13 @@
       .panel-heading
         %h4
           ="Create a new Service"
-      -# = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
-      -#   .panel-body.panel-primary
-      -#     %div.col-md-12
-      -#       %label
-      -#         = "Code"
-      -#       = f.input :code, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
-      -#   .panel-footer.panel-primary
-      -#     %center
-      -#       = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+      = simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+        .panel-body.panel-primary
+          %div.col-md-12
+            -# %label
+            -#   = "Name"
+            = f.input :name, required: true, :as => :string, input_html: {style: "width:100%;"}
+            = f.input :type, required: true, collection: ['Transit', 'Paratransit']
+        .panel-footer.panel-primary
+          %center
+            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
