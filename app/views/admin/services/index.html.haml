@@ -15,6 +15,7 @@
         .panel-footer
           %center
             =button_to 'Delete', admin_service_path(service), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
+          =link_to 'Update Service', admin_service_path(service), {method: :get, class: "btn btn-primary btn-sm"}
 
 %div.row
   %div.col-md-3

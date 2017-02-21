@@ -16,6 +16,11 @@ class Admin::ServicesController < Admin::AdminController
   	redirect_to admin_services_path
   end
 
+  def show
+    @service = Service.find(params[:id])
+    @service
+  end
+
   private
 
   def service_params
