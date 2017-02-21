@@ -5,7 +5,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-
+### DEFAULT RAILS GEMS ###
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.1'
 # Use postgresql as the database for Active Record
@@ -21,11 +21,6 @@ gem 'coffee-rails', '~> 4.2'
 # See https://github.com/rails/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
 
-### API & SERIALIZING ###
-# ActiveModel Serializers for serving JSON via the API
-gem 'active_model_serializers', '~> 0.10.0'
-#################
-
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
 # Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
@@ -34,6 +29,7 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
+##########################
 
 ### Internal Views ###
 gem 'awesome_print'
@@ -41,7 +37,12 @@ gem 'haml-rails'
 gem 'simple_form'
 gem 'bootstrap-sass', '~> 3.2.0'
 gem 'autoprefixer-rails'
-#################
+######################
+
+### API & SERIALIZING ###
+# ActiveModel Serializers for serving JSON via the API
+gem 'active_model_serializers', '~> 0.10.0'
+#########################
 
 ### USER AUTH ###
 # Use ActiveModel has_secure_password
@@ -51,6 +52,10 @@ gem 'simple_token_authentication', '~> 1.0' # For API Token Auth
 gem 'cancancan'
 gem 'rolify'
 #################
+
+### FILE UPLOAD ###
+gem 'carrierwave', '~> 1.0'
+###################
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
