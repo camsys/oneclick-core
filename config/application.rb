@@ -14,5 +14,8 @@ module OneclickCore
 
     config.time_zone = 'Eastern Time (US & Canada)'
 
+    # Load different Service Types
+    config.autoload_paths += %W(#{config.root}/app/models/services)
+
   end
 end
