@@ -1,6 +1,6 @@
 =content_for :header do
   ="Create a New Eligibility"
 =content_for :body do
-  = f.input :code, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
+  = f.input :code, required:true, :as => :string
 =content_for :footer do
-  = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+  = f.button :submit, "OK"#, class: 'btn action-button btn-primary', role: 'button'

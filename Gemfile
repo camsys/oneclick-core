@@ -55,6 +55,7 @@ gem 'rolify'
 
 ### FILE UPLOAD ###
 gem 'carrierwave', '~> 1.0'
+gem 'mini_magick' # For resizing images
 ###################
 
 # Use Capistrano for deployment
