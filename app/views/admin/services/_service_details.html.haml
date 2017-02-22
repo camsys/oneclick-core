@@ -1,0 +1,10 @@
+=content_for :header do
+  General Info
+
+=f.input :name
+%img{ src: @service.logo_url}
+=f.input :logo
+
+=content_for :footer do
+  -# = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'

@@ -1,36 +1,7 @@
-= render :partial => 'shared/flash'
-- puts Transit.ai
+=content_for :title do
+  Services
 
-%div.row
-  %div.col-md-3
-  %div.col-md-6
-    -@services.each do |service|
-      .panel.panel-default
-        .panel-heading
-          %h4
-            %img{ src: service.logo_url}
-            =service.name
-        .panel-body
-          = "Type: #{service.type}"
-        .panel-footer
-          %center
-            =button_to 'Delete', admin_service_path(service), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
-          =link_to 'Update Service', admin_service_path(service), {method: :get, class: "btn btn-primary btn-sm"}
+=render partial: 'service', layout: '/layouts/panel', collection: @services
 
-%div.row
-  %div.col-md-3
-  %div.col-md-6
-    .panel.panel-primary
-      .panel-heading
-        %h4
-          ="Create a new Service"
-      = simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
-        .panel-body.panel-primary
-          %div.col-md-12
-            -# %label
-            -#   = "Name"
-            = f.input :name, required: true, :as => :string, input_html: {style: "width:100%;"}
-            = f.input :type, required: true, collection: ['Transit', 'Paratransit']
-        .panel-footer.panel-primary
-          %center
-            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+= simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+  =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}

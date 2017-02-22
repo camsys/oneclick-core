@@ -1,1 +1,5 @@
-%h1 SHOWING SERVICE #{@service.name}
+=content_for :title do
+  = "Editing Service: #{@service.name}"
+
+= simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
+  =render partial: 'service_details', layout: '/layouts/panel', locals: {f: f}

@@ -1,0 +1,7 @@
+=content_for :header do
+  = "Create a new Service"
+=content_for :body do
+  = f.input :name, required: true, :as => :string, input_html: {style: "width:100%;"}
+  = f.input :type, required: true, collection: ['Transit', 'Paratransit'], include_blank: "Select a Service Type"
+=content_for :footer do
+  = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
