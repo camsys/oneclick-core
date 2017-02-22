@@ -4,8 +4,4 @@ Rails.configuration.to_prepare do
     include TranslationsExtensions
   end
 
-  Config.class_eval do 
-  	include TestExtensions
-  end
-
 end
