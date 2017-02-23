@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Pararansit, type: :model do
 
-  # let(:paratransit) { create(:paratransit)}
+  let(:paratransit) { create(:paratransit)}
   #
   # it 'paratransit service should be a Paratransit and have appropriate attributes' do
   #   expect(paratransit).to be
