@@ -1,5 +1,10 @@
 =content_for :title do
-  = "Editing Service: #{@service.name}"
+  = "Editing #{@service.type} Service: #{@service.name}"
 
 = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
   =render partial: 'service_details', layout: '/layouts/panel', locals: {f: f}
+
+-case @service.type
+-when 'Transit'
+  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
+    =render partial: 'transit_details_1', layout: '/layouts/panel', locals: {f: f}

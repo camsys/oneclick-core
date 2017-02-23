@@ -9,6 +9,7 @@
   .col-sm-9
     .input-group.col-xs-12
       =f.input_field :logo, class: "form-control file optional", type: "file"
+      
 =content_for :footer do
   -# = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
