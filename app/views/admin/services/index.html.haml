@@ -1,0 +1,7 @@
+=content_for :title do
+  Services
+
+=render partial: 'service', layout: '/layouts/panel', collection: @services
+
+= simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+  =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}

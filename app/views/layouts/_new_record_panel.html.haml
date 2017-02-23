@@ -1,0 +1,9 @@
+.panel.panel-primary
+  .panel-heading
+    %h4
+      =yield_content :header
+  .panel-body.panel-primary
+    =yield_content :body
+  .panel-footer.panel-primary
+    %center
+      =yield_content :footer

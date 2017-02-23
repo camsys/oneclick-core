@@ -53,6 +53,10 @@ GEM
     builder (3.2.3)
     byebug (9.0.6)
     cancancan (1.15.0)
+    carrierwave (1.0.0)
+      activemodel (>= 4.0.0)
+      activesupport (>= 4.0.0)
+      mime-types (>= 1.16)
     case_transform (0.2)
       activesupport
     coffee-rails (4.2.1)
@@ -118,6 +122,7 @@ GEM
     mime-types (3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
+    mini_magick (4.6.1)
     mini_portile2 (2.1.0)
     minitest (5.10.1)
     multi_json (1.12.1)
@@ -239,6 +244,7 @@ DEPENDENCIES
   bootstrap-sass (~> 3.2.0)
   byebug
   cancancan
+  carrierwave (~> 1.0)
   coffee-rails (~> 4.2)
   devise
   factory_girl_rails
@@ -246,6 +252,7 @@ DEPENDENCIES
   jbuilder (~> 2.5)
   jquery-rails
   listen (~> 3.0.5)
+  mini_magick
   pg (~> 0.18)
   puma (~> 3.0)
   rails (~> 5.0.1)
