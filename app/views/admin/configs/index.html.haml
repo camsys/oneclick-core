@@ -3,19 +3,3 @@
 
 = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
   =render partial: 'otp_config', layout: '/layouts/panel', locals: {f: f}
-
-
--# .panel.panel-default
--#   .panel-heading
--#     %h4
--#       = "Set Location of OpenTripPlanner Server"
--#
--# = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
--#   .panel-body
--#     .col-md-10
--#       %label
--#         = "URL of the Open Trip Planner Server"
--#       = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
--#   .panel-footer
--#     %center
--#       = f.submit "OK", class: 'btn action-button', role: 'button'
