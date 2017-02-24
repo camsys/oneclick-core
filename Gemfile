@@ -55,7 +55,7 @@ gem 'rolify'
 
 ### i18n Tooles ###
 gem 'rails-i18n'
-gem 'simple_translation_engine', github: 'camsys/simple_translation_engine', branch: 'initial_setup'
+gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
 #################
 
 ### FILE UPLOAD ###
