@@ -44,6 +44,8 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.integer  "walk_time"
     t.integer  "transit_time"
     t.float    "cost"
+    t.integer  "service_id"
+    t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
   end
 
@@ -90,6 +92,11 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.string   "name"
     t.string   "gtfs_agency_id"
     t.string   "logo"
+    t.string   "email"
+    t.string   "url"
+    t.string   "phone"
+    t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
+    t.index ["name"], name: "index_services_on_name", using: :btree
   end
 
   create_table "translation_keys", force: :cascade do |t|
@@ -160,6 +167,7 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
+  add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"

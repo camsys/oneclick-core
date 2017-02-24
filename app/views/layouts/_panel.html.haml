@@ -3,7 +3,13 @@
     %h4
       =yield_content :header
   .panel-body
-    =yield
+    -if content_for?(:body)
+      =yield_content :body
+    -else
+      =yield
   .panel-footer
     %center
-      =yield_content :footer
+      -if content_for?(:footer)
+        =yield_content :footer
+      -else
+        = f.button :submit, "OK"

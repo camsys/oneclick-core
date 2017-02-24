@@ -12,7 +12,7 @@ class TripPlanner
     @trip = trip
     @options = options
     @modes = options[:modes]
-    @otp = OTPAmbassador.new(Config.otp)
+    @otp = OTPAmbassador.new(Config.open_trip_planner)
     @errors = []
   end
 
@@ -20,6 +20,7 @@ class TripPlanner
   def plan
     itineraries = []
     itineraries += transit_itineraries if @modes.include?('transit')
+    itineraries += paratransit_itineraries if @modes.include?('paratransit')
     @trip.itineraries += itineraries
   end
 
@@ -33,6 +34,12 @@ class TripPlanner
       return response[:itineraries].map {|i| Itinerary.create(i)}
     else
       return []
+    end
+  end
+
+  def paratransit_itineraries
+    Paratransit.all.map do |service|
+      Itinerary.create(service: service)
     end
   end
 
