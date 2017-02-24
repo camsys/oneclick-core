@@ -19,14 +19,5 @@
 # To learn more, please read the Rails Internationalization guide
 # available at http://guides.rubyonrails.org/i18n.html.
 
-en:
-  hello: "Hello"
-  delete: "Delete"
-  create_translation: "Create Translation"
-  add: "Add"
-  key: "Key"
-  locales.en: "English"
-  locales.es: "Spanish"
-  save: "Save"
-  cancel: "Cancel"
-
+es:
+  hello: "Hola"

@@ -1,3 +1,14 @@
+GIT
+  remote: https://github.com/camsys/simple_translation_engine.git
+  revision: ee7fb8c7bffb271e56b79ba3a05685e2ee71cd70
+  branch: initial_setup
+  specs:
+    simple_translation_engine (1.0.0)
+      pg
+      rails (~> 5.0)
+      sass-rails
+      simple_form
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -152,6 +163,9 @@ GEM
       nokogiri (~> 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
+    rails-i18n (5.0.3)
+      i18n (~> 0.7)
+      railties (~> 5.0)
     railties (5.0.1)
       actionpack (= 5.0.1)
       activesupport (= 5.0.1)
@@ -256,12 +270,14 @@ DEPENDENCIES
   pg (~> 0.18)
   puma (~> 3.0)
   rails (~> 5.0.1)
+  rails-i18n
   rolify
   rspec-rails (~> 3.5)
   sass-rails (~> 5.0)
   shoulda-matchers
   simple_form
   simple_token_authentication (~> 1.0)
+  simple_translation_engine!
   spring
   spring-watcher-listen (~> 2.0.0)
   turbolinks (~> 5)

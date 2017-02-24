@@ -17,7 +17,15 @@ Rails.application.routes.draw do
         end
       end #places
 
+      resources :translations do
+        collection do
+          post 'find'
+          get  'all'
+        end
+      end
+
       resources :trips, only: [:create]
+
     end #v1
 
     namespace :v2 do
@@ -50,5 +58,8 @@ Rails.application.routes.draw do
     resources :services, :only => [:index, :destroy, :create, :show, :update]
 
   end #Admin
+
+  mount SimpleTranslationEngine::Engine => "/simple_translation_engine"
+
 
 end #draw

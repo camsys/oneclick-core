@@ -53,6 +53,11 @@ gem 'cancancan'
 gem 'rolify'
 #################
 
+### i18n Tooles ###
+gem 'rails-i18n'
+gem 'simple_translation_engine', github: 'camsys/simple_translation_engine', branch: 'initial_setup'
+#################
+
 ### FILE UPLOAD ###
 gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
