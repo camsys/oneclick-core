@@ -21,3 +21,6 @@
 
 # Ignore Emacs temp files
 *~
+
+# Instance-specific Files
+/public/uploads/*

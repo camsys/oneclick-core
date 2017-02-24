@@ -18,5 +18,8 @@ module OneclickCore
     config.i18n.available_locales = [:en, :es]
     config.i18n.default_locale = :en
 
+    # Load different Service Types
+    config.autoload_paths += %W(#{config.root}/app/models/services)
+
   end
 end

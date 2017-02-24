@@ -24,7 +24,8 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :trips
+      resources :trips, only: [:create]
+
     end #v1
 
     namespace :v2 do
@@ -38,7 +39,7 @@ Rails.application.routes.draw do
   #Admin Views
   namespace :admin do
     resources :users, :only => [:index]
- 
+
     resources :configs, :only => [:index] do
       collection do
         patch 'set_open_trip_planner'
@@ -51,9 +52,10 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :eligibilities, :only => [:index, :destroy, :create] 
+    resources :eligibilities, :only => [:index, :destroy, :create]
     resources :accommodations, :only => [:index, :destroy, :create]
     resources :purposes, :only => [:index, :destroy, :create]
+    resources :services, :only => [:index, :destroy, :create, :show, :update]
 
   end #Admin
 
