@@ -63,12 +63,6 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
-  create_table "locales", force: :cascade do |t|
-    t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "purposes", force: :cascade do |t|
     t.string   "code",       null: false
     t.datetime "created_at", null: false
@@ -97,20 +91,6 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.string   "phone"
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
-  end
-
-  create_table "translation_keys", force: :cascade do |t|
-    t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "translations", force: :cascade do |t|
-    t.integer  "locale_id"
-    t.integer  "translation_key_id"
-    t.text     "value"
-    t.datetime "created_at",         null: false
-    t.datetime "updated_at",         null: false
   end
 
   create_table "trips", force: :cascade do |t|
