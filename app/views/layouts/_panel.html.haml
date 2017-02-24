@@ -9,4 +9,7 @@
       =yield
   .panel-footer
     %center
-      =yield_content :footer
+      -if content_for?(:footer)
+        =yield_content :footer
+      -else
+        = f.button :submit, "OK"
