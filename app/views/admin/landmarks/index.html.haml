@@ -1,64 +1,41 @@
-= render :partial => 'shared/flash'
-
-%h1.text-center
+=content_for :title do
   Landmarks
-%div.col-md-1
-%div.col-md-10
-  %table.table
+%table.table
+  %tr
+    %th
+      Name
+    %th
+      Street Number
+    %th
+      Route
+    %th
+      City
+    %th
+      State
+    %th
+      Zip
+    %th
+      Lat
+    %th
+      Lng
+  -@landmarks.each do |landmark|
     %tr
-      %th
-        Name
-      %th
-        Street Number
-      %th
-        Route
-      %th 
-        City
-      %th
-        State
-      %th
-        Zip
-      %th 
-        Lat
-      %th
-        Lng
-    -@landmarks.each do |landmark|
-      %tr
-        %td
-          =landmark.name 
-        %td
-          =landmark.street_number
-        %td
-          =landmark.route
-        %td
-          =landmark.city
-        %td
-          =landmark.state
-        %td
-          =landmark.zip
-        %td
-          =landmark.lat
-        %td
-          =landmark.lng
-  %div.col-md-1
+      %td
+        =landmark.name
+      %td
+        =landmark.street_number
+      %td
+        =landmark.route
+      %td
+        =landmark.city
+      %td
+        =landmark.state
+      %td
+        =landmark.zip
+      %td
+        =landmark.lat
+      %td
+        =landmark.lng
 
-%div.row
-  %div.col-md-4
-  %div.col-md-4
-    .panel.panel-primary
-      .panel-heading
-        %h4
-          = "Update Landmarks"
-      
-      = simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-        .panel-body.panel-primary
-          %label
-            = "Upload CSV"
-          = f.input "file", required:true, label: false, :as => :file
-        .panel-footer.panel-primary  
-          %center
-            = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
-
-
-
-
+=simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
+  =render partial: 'update_landmarks', layout: '/layouts/new_record_panel', locals: {f: f}

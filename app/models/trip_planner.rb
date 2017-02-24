@@ -12,7 +12,7 @@ class TripPlanner
     @trip = trip
     @options = options
     @modes = options[:modes]
-    @otp = OTPAmbassador.new(Config.otp)
+    @otp = OTPAmbassador.new(Config.open_trip_planner)
     @errors = []
   end
 

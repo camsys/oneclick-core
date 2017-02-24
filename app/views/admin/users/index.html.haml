@@ -1,25 +1,15 @@
-= render :partial => 'shared/flash'
-
-%h1.text-center
+=content_for :title do
   Staff
-%div.col-md-1
-%div.col-md-10
-  %table.table
+%table.table
+  %tr
+    %th
+      Email
+    %th
+      Last Signed In
+  -@staff.each do |member|
     %tr
-      %th
-        Email
-      %th
-        Last Signed In
-    -@staff.each do |member|
-      %tr
-        %td
-          =member.email 
-        %td
-          -unless member.last_sign_in_at.nil?
-            =member.last_sign_in_at.strftime("%a, %e %b %Y %H:%M:%S %z").in_time_zone
-
-  %div.col-md-1
-
-
-
-
+      %td
+        =member.email
+      %td
+        -unless member.last_sign_in_at.nil?
+          =member.last_sign_in_at.strftime("%a, %e %b %Y %H:%M:%S %z").in_time_zone

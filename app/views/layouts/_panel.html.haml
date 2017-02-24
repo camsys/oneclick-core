@@ -3,7 +3,10 @@
     %h4
       =yield_content :header
   .panel-body
-    =yield
+    -if content_for?(:body)
+      =yield_content :body
+    -else
+      =yield
   .panel-footer
     %center
       =yield_content :footer

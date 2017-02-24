@@ -1,46 +1,36 @@
 %h1.text-center
   Configuration
 
-.row
-  .col-md-1
-  .col-md-10
-    .panel.panel-default 
-      .panel-heading
-        %h4
-          = "Set Location of OpenTripPlanner Server"
+.panel.panel-default
+  .panel-heading
+    %h4
+      = "Set Location of OpenTripPlanner Server"
 
-      = simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-        .panel-body
-          .col-md-10
-            %label
-              ="URL of OpenTripPlanner Server"
-            = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
-        .panel-footer
-          %center
-            = f.submit "OK", class: 'btn action-button', role: 'button'
+= simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
+  .panel-body
+    .col-md-10
+      %label
+        = "URL of the Open Trip Planner Server"
+      = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
+  .panel-footer
+    %center
+      = f.submit "OK", class: 'btn action-button', role: 'button'
 .row
-  .col-md-1
-  .col-md-10
-    .row
-      .col-md-1.text-center
-        %h3
-          =link_to "Landmarks", admin_landmarks_path
-      .col-md-2.text-center
-        %h3
-          =link_to "Staff", admin_users_path
-      .col-md-2.text-center
-        %h3
-          =link_to "Eligibilities", admin_eligibilities_path
-      .col-md-2.text-center
-        %h3
-          =link_to "Accommodations", admin_accommodations_path
-      .col-md-2.text-center
-        %h3
-          =link_to "Purposes", admin_purposes_path
-      .col-md-2.text-center
-        %h3
-          =link_to "Translations", simple_translation_engine.translations_path
-      .col-md-1.text-center
-        %h3
-          =link_to "Services", admin_services_path
-
+  .col-md-3.offset-md-1.text-center
+    %h3
+      =link_to "Landmarks", admin_landmarks_path
+  .col-md-3.text-center
+    %h3
+      =link_to "Staff", admin_users_path
+  .col-md-3.text-center
+    %h3
+      =link_to "Eligibilities", admin_eligibilities_path
+  .col-md-3.text-center
+    %h3
+      =link_to "Accommodations", admin_accommodations_path
+  .col-md-3.text-center
+    %h3
+      =link_to "Purposes", admin_purposes_path
+  .col-md-3.text-center
+    %h3
+      =link_to "Services", admin_services_path
