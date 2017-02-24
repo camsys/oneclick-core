@@ -90,6 +90,11 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.string   "name"
     t.string   "gtfs_agency_id"
     t.string   "logo"
+    t.string   "email"
+    t.string   "url"
+    t.string   "phone"
+    t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
+    t.index ["name"], name: "index_services_on_name", using: :btree
   end
 
   create_table "translation_keys", force: :cascade do |t|
