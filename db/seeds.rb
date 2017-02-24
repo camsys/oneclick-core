@@ -17,4 +17,4 @@ admin = User.where(email: 'admin@oneclick.com').first_or_create do |user|
 end
 
 ## Add Translations
-Rake::Task['translation_engine:update'].invoke
+Rake::Task['simple_translation_engine:update'].invoke
