@@ -5,8 +5,8 @@ RSpec.describe Service, type: :model do
   it { should have_many(:itineraries) }
 
   let(:service) { create(:service)}
-  let(:transit) { create(:transit)}
-  let(:paratransit) { create(:paratransit)}
+  let(:transit) { create(:transit_service)}
+  let(:paratransit) { create(:paratransit_service)}
 
   it 'should have a logo with a thumbnail version' do
     expect(service.logo_url).to be

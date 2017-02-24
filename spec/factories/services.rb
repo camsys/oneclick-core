@@ -8,13 +8,13 @@ FactoryGirl.define do
     type "Transit"
   end
 
-  factory :transit, parent: :service, class: 'Transit' do
+  factory :transit_service, parent: :service, class: 'Transit' do
     name "Test Transit Service"
     type "Transit"
     gtfs_agency_id "mbta"
   end
 
-  factory :paratransit, parent: :service, class: 'Paratransit' do
+  factory :paratransit_service, parent: :service, class: 'Paratransit' do
     name "Test Paratransit Service"
     type "Paratransit"
   end

@@ -1,11 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe ServiceSerializer, type: :serializer do
-  let(:transit_service) { create(:transit)}
+  let(:transit_service) { create(:transit_service)}
   let(:transit_serializer) { ServiceSerializer.new(transit_service)}
   let(:transit_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(transit_serializer).to_json) }
 
-  let(:paratransit_service) { create(:paratransit)}
+  let(:paratransit_service) { create(:paratransit_service)}
   let(:paratransit_serializer) { ServiceSerializer.new(paratransit_service)}
   let(:paratransit_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(paratransit_serializer).to_json) }
 
