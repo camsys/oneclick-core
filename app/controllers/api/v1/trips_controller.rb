@@ -46,7 +46,7 @@ module Api
         TripPlanner.new(@trips[0], options).plan
 
         if @trips
-          render status: 200, json: @trips
+          render status: 200, json: @trips, include: ['*.*']
         end
       end
 
