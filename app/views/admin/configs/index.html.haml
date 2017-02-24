@@ -4,7 +4,7 @@
 .row
   .col-md-1
   .col-md-10
-    .panel.panel-default
+    .panel.panel-default 
       .panel-heading
         %h4
           = "Set Location of OpenTripPlanner Server"
@@ -13,7 +13,7 @@
         .panel-body
           .col-md-10
             %label
-              = "URL of the Open Trip Planner Server"
+              ="URL of OpenTripPlanner Server"
             = f.input :value, required:true, label: false, :as => :string, input_html: {style: "width:100%;"}
         .panel-footer
           %center

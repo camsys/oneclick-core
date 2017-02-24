@@ -20,7 +20,7 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello from en.yml"
+  hello: "Hello"
   delete: "Delete"
   create_translation: "Create Translation"
   add: "Add"
