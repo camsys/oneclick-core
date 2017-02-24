@@ -10,23 +10,21 @@ RSpec.describe ServiceSerializer, type: :serializer do
   let(:paratransit_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(paratransit_serializer).to_json) }
 
   it 'faithfully serializes transit services' do
-    expect(transit_serialization["id"]).to eq(transit_itinerary.id)
-    expect(transit_serialization["cost"]).to eq(transit_itinerary.cost)
-    expect(transit_serialization["walk_time"]).to eq(transit_itinerary.walk_time)
-    expect(transit_serialization["transit_time"]).to eq(transit_itinerary.transit_time)
-    expect(transit_serialization["start_time"].to_datetime).to eq(transit_itinerary.start_time)
-    expect(transit_serialization["end_time"].to_datetime).to eq(transit_itinerary.end_time)
-    expect(transit_serialization["legs"]).to eq(transit_itinerary.legs)
+    expect(transit_serialization["id"]).to eq(transit_service.id)
+    expect(transit_serialization["name"]).to eq(transit_service.name)
+    expect(transit_serialization["type"]).to eq(transit_service.type)
+    expect(transit_serialization["url"]).to eq(transit_service.url)
+    expect(transit_serialization["email"]).to eq(transit_service.email)
+    expect(transit_serialization["phone"]).to eq(transit_service.phone)
   end
 
   it 'faithfully serializes paratransit services' do
-    expect(transit_serialization["id"]).to eq(transit_itinerary.id)
-    expect(transit_serialization["cost"]).to eq(transit_itinerary.cost)
-    expect(transit_serialization["walk_time"]).to eq(transit_itinerary.walk_time)
-    expect(transit_serialization["transit_time"]).to eq(transit_itinerary.transit_time)
-    expect(transit_serialization["start_time"].to_datetime).to eq(transit_itinerary.start_time)
-    expect(transit_serialization["end_time"].to_datetime).to eq(transit_itinerary.end_time)
-    expect(transit_serialization["legs"]).to eq(transit_itinerary.legs)
+    expect(paratransit_serialization["id"]).to eq(paratransit_service.id)
+    expect(paratransit_serialization["name"]).to eq(paratransit_service.name)
+    expect(paratransit_serialization["type"]).to eq(paratransit_service.type)
+    expect(paratransit_serialization["url"]).to eq(paratransit_service.url)
+    expect(paratransit_serialization["email"]).to eq(paratransit_service.email)
+    expect(paratransit_serialization["phone"]).to eq(paratransit_service.phone)
   end
 
 end
