@@ -59,7 +59,7 @@ Rails.application.routes.draw do
 
   end #Admin
 
-  mount SimpleTranslationEngine::Engine => "/simple_translation_engine"
+  mount SimpleTranslationEngine::Engine => "/admin/simple_translation_engine"
 
 
 end #draw
