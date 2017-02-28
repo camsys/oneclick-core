@@ -21,7 +21,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     expect(parsed_response["last_name"]).to eq("Bobson")
   end
 
-  it 'returns the first and last name of a user profile' do
+  it 'returns the preferred locale' do
     sign_in english_traveler
 
     request.headers['X-User-Token'] = english_traveler.authentication_token
