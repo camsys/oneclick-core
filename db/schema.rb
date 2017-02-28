@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170224214520) do
+ActiveRecord::Schema.define(version: 20170228012328) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -142,9 +142,11 @@ ActiveRecord::Schema.define(version: 20170224214520) do
     t.string   "authentication_token",   limit: 30
     t.string   "first_name"
     t.string   "last_name"
+    t.integer  "preferred_locale_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
     t.index ["last_name", "first_name"], name: "index_users_on_last_name_and_first_name", using: :btree
+    t.index ["preferred_locale_id"], name: "index_users_on_preferred_locale_id", using: :btree
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   end
 
@@ -172,4 +174,5 @@ ActiveRecord::Schema.define(version: 20170224214520) do
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"
+  add_foreign_key "users", "locales", column: "preferred_locale_id"
 end
