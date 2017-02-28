@@ -15,5 +15,12 @@ FactoryGirl.define do
       password_confirmation "welcome2"
     end
 
+    factory :english_speaker do
+      email "george@co.uk"
+      first_name "George"
+      last_name "Williams"
+      preferred_locale {create(:locale)}
+    end 
+
   end
 end
