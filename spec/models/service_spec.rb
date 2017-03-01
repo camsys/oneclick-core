@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Service, type: :model do
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id }
   it { should have_many(:itineraries) }
+  it { should have_and_belong_to_many :accommodations }
 
   let(:service) { create(:service)}
   let(:transit) { create(:transit_service)}
