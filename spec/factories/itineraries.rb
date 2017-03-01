@@ -12,6 +12,7 @@ FactoryGirl.define do
 
     factory :paratransit_itinerary do
       service {create(:paratransit_service)}
+      transit_time 2336
     end
 
   end

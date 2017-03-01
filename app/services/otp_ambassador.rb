@@ -48,7 +48,6 @@ class OTPAmbassador
       @trip.arrive_by,
       options
     )
-    puts JSON.parse(response.body).ai
     return response
   end
 
