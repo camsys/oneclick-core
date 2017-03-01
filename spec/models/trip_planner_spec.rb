@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe TripPlanner do
-  before(:each) { Config.create(key: "open_trip_planner", value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default") unless Config.open_trip_planner}
+  # before(:each) { Config.create(key: "open_trip_planner", value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default") unless Config.open_trip_planner}
   let(:trip) {create :trip}
 
   # Mock an OTP Ambassador with stubbed methods
@@ -37,6 +37,11 @@ RSpec.describe TripPlanner do
     expect(trip_planner.trip.itineraries.count).to eq(0)
     trip_planner.plan
     expect(trip_planner.trip.itineraries.count).to be > 0
+  end
+
+  it 'paratransit itineraries have transit_time populated' do
+    trip_planner.plan
+    expect(trip_planner.trip.itineraries[0].transit_time).to be_an(Integer)
   end
 
 end
