@@ -43,7 +43,9 @@ module Api
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
-        TripPlanner.new(@trips[0], options).plan
+        @trips.each do |trip|
+          TripPlanner.new(trip, options).plan
+        end
 
         if @trips
           render status: 200, json: @trips, include: ['*.*']

@@ -37,6 +37,9 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def service_params
+    # By default, views are packaging parameters under keys named based on the
+    # service's class name. Here's we're transfering all of that under a generic
+    # "service" parameter key.
     params[:service] = params.delete :transit if params.has_key? :transit
     params[:service] = params.delete :taxi if params.has_key? :taxi
     params[:service] = params.delete :paratransit if params.has_key? :paratransit
