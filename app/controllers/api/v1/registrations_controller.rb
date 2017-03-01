@@ -5,21 +5,28 @@ module Api
 
       # POST sign_up
       def create
-
-        # Shim to make old API call work properly
-        if params[:user].nil?
-          params[:user] = {
-            email: params[:email],
-            password: params[:password],
-            password_confirmation: params[:password_confirmation],
-            first_name: params[:first_name],
-            last_name: params[:last_name]
+        @user = User.new(sign_up_params)
+        if @user.save
+          render status: 200, json: {
+            message: "User #{@user.email} successfully registered.",
+            email: @user.email,
+            authentication_token: @user.authentication_token
+          }
+        else
+          render status: 422, json: {
+            message: "User #{@user.email} could not be created.",
+            errors: @user.errors.messages
           }
         end
 
-        super
-
       end
+
+      private
+
+      def sign_up_params
+        params.require(:registration).permit(:email, :password, :password_confirmation, :first_name, :last_name)
+      end
+
     end
   end
 end

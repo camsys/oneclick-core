@@ -13,7 +13,8 @@ RSpec.describe Api::V1::RegistrationsController, type: :controller do
 
     expect(response).to be_success    # test for the 200 status-code
     expect(response_body).to be       # test for response body
-    expect(response_body["id"]).to be # test for id from created user
+    expect(response_body["email"]).to be # test for email of created user
+    expect(response_body["authentication_token"]).to be # test for auth token
   end
 
   it 'errors if password does not match password_confirmation' do
