@@ -29,5 +29,17 @@ FactoryGirl.define do
       end
     end
 
+    trait :eligible do
+      after(:create) do |u|
+        u.user_eligibilities << create(:user_eligibility, :confirmed, user: u)
+      end
+    end
+
+    trait :ineligible do
+      after(:create) do |u|
+        u.user_eligibilities << create(:user_eligibility, :denied, user: u)
+      end
+    end
+
   end
 end

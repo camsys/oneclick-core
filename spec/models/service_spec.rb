@@ -4,6 +4,7 @@ RSpec.describe Service, type: :model do
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id }
   it { should have_many(:itineraries) }
   it { should have_and_belong_to_many :accommodations }
+  it { should have_and_belong_to_many :eligibilities }
 
   let(:service) { create(:service)}
   let(:transit) { create(:transit_service)}
@@ -11,6 +12,9 @@ RSpec.describe Service, type: :model do
   let(:accommodating_paratransit) { create(:paratransit_service, :accommodating)}
   let(:user_without_needs) { create(:user) }
   let(:user_needs_accommodation) { create(:user, :needs_accommodation) }
+  let(:ineligible_user) { create(:user, :ineligible) }
+  let(:eligible_user) { create(:user, :eligible) }
+  let(:strict_paratransit) { create(:paratransit_service, :strict)}
 
   it 'should have a logo with a thumbnail version' do
     expect(service.logo_url).to be
@@ -37,6 +41,14 @@ RSpec.describe Service, type: :model do
   it 'should be unavailable to users if it lacks a necessary accommodation' do
     expect(paratransit.accommodates?(user_without_needs)).to be true
     expect(paratransit.accommodates?(user_needs_accommodation)).to be false
+  end
+
+  it 'should be available to users that meet all eligibility requirements' do
+    expect(strict_paratransit.accepts_eligibility_of?(eligible_user)).to be true
+  end
+
+  it 'should be unavailable to users that do not meet all eligibility requirements' do
+    expect(strict_paratransit.accepts_eligibility_of?(ineligible_user)).to be false
   end
 
 end
