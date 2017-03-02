@@ -40,7 +40,7 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def paratransit_itineraries
-    Paratransit.all.map do |service|
+    Paratransit.available_for(@trip).map do |service|
       Itinerary.create(service: service, transit_time: @router.drive_time * @paratransit_drive_time_multiplier)
     end
   end

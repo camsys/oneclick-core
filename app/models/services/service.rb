@@ -10,6 +10,17 @@ class Service < ApplicationRecord
   ### Validations ###
   validates_presence_of :name, :type
 
+  ### Scopes ###
+  scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
+
+  def available_for?(trip)
+    accommodates?(trip.user)
+  end
+
+  def accommodates?(user)
+    (user.accommodations.pluck(:code) - accommodations.pluck(:code)).empty?
+  end
+
   def self.types
     ['Transit', 'Paratransit', 'Taxi']
   end
