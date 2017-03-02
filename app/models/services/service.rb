@@ -6,6 +6,7 @@ class Service < ApplicationRecord
   ### Associations ###
   has_many :itineraries
   has_and_belongs_to_many :accommodations
+  has_and_belongs_to_many :eligibilities
 
   ### Validations ###
   validates_presence_of :name, :type

@@ -9,6 +9,8 @@ class User < ApplicationRecord
   ### Associations ###
   has_many :trips
   has_and_belongs_to_many :accommodations
+  has_many :user_eligibilities, dependent: :destroy
+  has_many :eligibilities, through: :user_eligibilities
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
 
   ### Validations ###
