@@ -5,7 +5,15 @@ FactoryGirl.define do
     email "test_service@camsys.com"
     phone "(555)555-5555"
     url "http://www.test-service-url.com"
-    type "Transit"
+    type "Paratransit"
+
+    factory :different_service, class: 'Service' do
+      name "Test Service 2"
+      logo Rails.root.join("spec/files/parrot.gif").open
+      email "test_service2@camsys.com"
+      phone "(555)555-5556"
+      url "http://www.test-service-url2.com"
+    end
   end
 
   factory :transit_service, parent: :service, class: 'Transit' do

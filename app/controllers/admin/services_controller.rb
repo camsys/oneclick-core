@@ -12,7 +12,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-    puts "CREATE", params.ai
   	@service = Service.create(service_params)
   	redirect_to admin_service_path(@service)
   end
