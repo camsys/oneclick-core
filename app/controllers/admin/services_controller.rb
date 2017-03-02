@@ -46,11 +46,23 @@ class Admin::ServicesController < Admin::AdminController
 
     # Construct permitted parameters array based on Service Type
     permitted_params = [:name, :type, :logo, :url, :email, :phone]
-    permitted_params += [:gtfs_agency_id] if service_type == "Transit"
-    permitted_params += [{accommodation_ids: []}] if service_type == "Paratransit"
-    permitted_params += [] if service_type == "Taxi"
+    permitted_params += transit_params if service_type == "Transit"
+    permitted_params += paratransit_params if service_type == "Paratransit"
+    permitted_params += taxi_params if service_type == "Taxi"
 
     # Permit the allowed parameters
   	params.require(:service).permit(permitted_params)
+  end
+
+  def transit_params
+    [:gtfs_agency_id]
+  end
+
+  def paratransit_params
+    [{accommodation_ids: []}, {eligibility_ids: []}]
+  end
+
+  def taxi_params
+    []
   end
 end

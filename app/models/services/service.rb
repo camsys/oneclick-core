@@ -14,16 +14,30 @@ class Service < ApplicationRecord
   ### Scopes ###
   scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
 
-  def available_for?(trip)
-    accommodates?(trip.user)
-  end
 
-  def accommodates?(user)
-    (user.accommodations.pluck(:code) - accommodations.pluck(:code)).empty?
-  end
+  ### Class Methods ###
 
   def self.types
     ['Transit', 'Paratransit', 'Taxi']
   end
+
+
+  ### Instance Methods ###
+
+  def available_for?(trip)
+    accommodates?(trip.user) &&
+    accepts_eligibility_of?(trip.user)
+  end
+
+  # Returns true if service accommodates all of the user's needs.
+  def accommodates?(user)
+    (user.accommodations.pluck(:code) - self.accommodations.pluck(:code)).empty?
+  end
+
+  # Returns true if user meets all of the service's eligibility requirements.
+  def accepts_eligibility_of?(user)
+    (self.eligibilities.pluck(:code) - user.confirmed_eligibilities.pluck(:code)).empty?
+  end
+
 
 end

@@ -19,10 +19,16 @@ FactoryGirl.define do
     type "Paratransit"
 
     trait :accommodating do
-      after(:create) do |svc|
-        svc.accommodations << create(:wheelchair)
-        svc.accommodations << create(:stretcher)
-        svc.accommodations << create(:jacuzzi)
+      after(:create) do |s|
+        s.accommodations << create(:wheelchair)
+        s.accommodations << create(:stretcher)
+        s.accommodations << create(:jacuzzi)
+      end
+    end
+
+    trait :strict do
+      after(:create) do |s|
+        s.eligibilities << create(:eligibility)
       end
     end
   end
