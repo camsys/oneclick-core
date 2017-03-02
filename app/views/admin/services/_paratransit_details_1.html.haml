@@ -1,0 +1,7 @@
+=content_for :header do
+  Accommodations & Eligibility
+
+= f.association :accommodations, label_method: :code, as: :check_boxes
+
+=content_for :footer do
+  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'

@@ -17,6 +17,14 @@ FactoryGirl.define do
   factory :paratransit_service, parent: :service, class: 'Paratransit' do
     name "Test Paratransit Service"
     type "Paratransit"
+
+    trait :accommodating do
+      after(:create) do |svc|
+        svc.accommodations << create(:wheelchair)
+        svc.accommodations << create(:stretcher)
+        svc.accommodations << create(:jacuzzi)
+      end
+    end
   end
 
 end
