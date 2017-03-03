@@ -18,4 +18,3 @@ end
 
 ## Add Translations
 Rake::Task['simple_translation_engine:update'].invoke
-
