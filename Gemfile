@@ -64,6 +64,11 @@ gem 'mini_magick' # For resizing images
 gem 'fog'
 ###################
 
+### GEOSPATIAL ###
+gem 'rgeo'
+gem 'activerecord-postgis-adapter'
+##################
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
