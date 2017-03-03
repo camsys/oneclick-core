@@ -26,8 +26,8 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
   it 'creates a new accommodation' do
     sign_in admin
     params = {accommodation: {code: 'Test accommodAtion'}}
-    post :create, params: params, format: :js
     count = Accommodation.count
+    post :create, params: params, format: :js
 
     # test for the 302 status-code (redirect)
     expect(response).to have_http_status(302)
@@ -43,8 +43,8 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
   it 'creates and destroys an accommodation' do
     sign_in admin
     params = {accommodation: {code: 'Test DeLEte& accommodation22'}}
-    post :create, params: params, format: :js
     count = Accommodation.count
+    post :create, params: params, format: :js
 
     # Confirm that the variable was set
     expect(Accommodation.count).to eq(count + 1)

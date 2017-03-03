@@ -26,8 +26,8 @@ RSpec.describe Admin::EligibilitiesController, type: :controller do
   it 'creates a new eligibility' do
     sign_in admin
     params = {eligibility: {code: 'Test eligibility'}}
-    post :create, params: params, format: :js
     count = Eligibility.count
+    post :create, params: params, format: :js
 
     # test for the 302 status-code (redirect)
     expect(response).to have_http_status(302)
@@ -43,8 +43,8 @@ RSpec.describe Admin::EligibilitiesController, type: :controller do
   it 'creates and destroys an eligibility' do
     sign_in admin
     params = {eligibility: {code: 'Test DeLEte& eligibility22'}}
-    post :create, params: params, format: :js
     count = Eligibility.count
+    post :create, params: params, format: :js
 
     # Confirm that the variable was set
     expect(Eligibility.count).to eq(count + 1)
