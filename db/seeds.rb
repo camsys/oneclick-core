@@ -18,3 +18,22 @@ end
 
 ## Add Translations
 Rake::Task['simple_translation_engine:update'].invoke
+
+## Add some default eligibilities and accommodations
+puts "Creating default eligibilities and accommodations..."
+
+Eligibility.first_or_create([
+  { code: 'medicaid' },
+  { code: 'physically_disabled' },
+  { code: 'ada' },
+  { code: 'veteran' },
+  { code: 'over_65' }
+])
+
+Accommodation.first_or_create([
+  { code: 'folding_wheelchair' },
+  { code: 'motorized_wheelchair' },
+  { code: 'driver_assistance' },
+  { code: 'curb_to_curb' },
+  { code: 'door_to_door' }
+])
