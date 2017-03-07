@@ -47,8 +47,12 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.text     "value"
   end
 
-# Could not dump table "counties" because of following StandardError
-#   Unknown type 'geometry' for column 'geom'
+  create_table "counties", force: :cascade do |t|
+    t.string   "name"
+    t.string   "state"
+    t.geometry "geom",  limit: {:srid=>0, :type=>"geometry"}
+    t.index ["geom"], name: "index_counties_on_geom", using: :gist
+  end
 
   create_table "eligibilities", force: :cascade do |t|
     t.string   "code",       null: false
