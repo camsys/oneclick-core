@@ -67,6 +67,8 @@ gem 'fog'
 ### GEOSPATIAL ###
 gem 'rgeo'
 gem 'activerecord-postgis-adapter'
+gem 'rgeo-shapefile'
+gem 'dbf'
 ##################
 
 # Use Capistrano for deployment

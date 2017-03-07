@@ -81,6 +81,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
+    dbf (3.1.0)
     debug_inspector (0.0.2)
     devise (4.2.0)
       bcrypt (~> 3.0)
@@ -329,6 +330,9 @@ GEM
     rgeo-activerecord (5.0.1)
       activerecord (~> 5.0.0)
       rgeo (~> 0.3)
+    rgeo-shapefile (0.4.2)
+      dbf (~> 3.0)
+      rgeo (~> 0.3)
     rolify (5.1.0)
     rspec-core (3.5.4)
       rspec-support (~> 3.5.0)
@@ -414,6 +418,7 @@ DEPENDENCIES
   cancancan
   carrierwave (~> 1.0)
   coffee-rails (~> 4.2)
+  dbf
   devise
   factory_girl_rails
   fog
@@ -427,6 +432,7 @@ DEPENDENCIES
   rails (~> 5.0.1)
   rails-i18n
   rgeo
+  rgeo-shapefile
   rolify
   rspec-rails (~> 3.5)
   sass-rails (~> 5.0)
