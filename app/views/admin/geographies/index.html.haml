@@ -1,0 +1,19 @@
+=content_for :title do
+  Geography
+
+.col-md-6
+  %h2 Counties
+  =simple_form_for :geographies, url: admin_counties_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+    =render partial: 'upload_counties', layout: '/layouts/new_record_panel', locals: {f: f}
+  =render partial: '/shared/record_table',
+    locals: {columns: [:name, :state], records: @counties}
+
+.col-md-6
+  %h2 Zipcodes
+  =render partial: '/shared/record_table',
+    locals: {columns: [], records: []}
+
+.col-md-6
+  %h2 Cities
+  =render partial: '/shared/record_table',
+    locals: {columns: [], records: []}
