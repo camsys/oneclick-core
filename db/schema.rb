@@ -109,8 +109,11 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.datetime "updated_at", null: false
   end
 
-# Could not dump table "regions" because of following StandardError
-#   Unknown type 'geometry(MultiPolygon)' for column 'geom'
+  create_table "regions", force: :cascade do |t|
+    t.text     "recipe"
+    t.geometry "geom",   limit: {:srid=>0, :type=>"geometry"}
+    t.index ["geom"], name: "index_regions_on_geom", using: :gist
+  end
 
   create_table "roles", force: :cascade do |t|
     t.string   "name"
