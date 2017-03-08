@@ -60,6 +60,7 @@ class ShapefileUploader
   def load_shapefile(shp_name)
     puts "Reading Shapes into #{@model.to_s} Table..."
     RGeo::Shapefile::Reader.open(shp_name, { :assume_inner_follows_outer => true }) do |shapefile|
+      fail_count = 0
       shapefile.each do |shape|
         name = shape.attributes['NAME']
         state = StateCodeDictionary.code(shape.attributes['STATEFP'])
@@ -72,9 +73,10 @@ class ShapefileUploader
           puts " SUCCESS!"
         else
           puts " FAILED."
-          @errors << "#{name}, #{state} failed to load."
+          fail_count += 1
         end
       end
+      @errors << "#{fail_count} records failed to load." if fail_count > 0
     end
   end
 
