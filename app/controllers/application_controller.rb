@@ -18,7 +18,7 @@ class ApplicationController < ActionController::Base
 
     #Check to see if the logged-in user has permission
     unless can? :manage, :admin_features
-      flash[:error] = "You do not have permission to access this function."
+      flash[:danger] = "You do not have permission to access this function."
       redirect_to '/'  
       return 
     end

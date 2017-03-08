@@ -23,7 +23,7 @@ class ShapefileUploader
         extract_shapefiles(zip_file) {|file| load_shapefile(file)}
       end
     else
-      @errors << "Must upload a .zip file."
+      @errors << "Please upload a .zip file."
     end
     return self
   end
