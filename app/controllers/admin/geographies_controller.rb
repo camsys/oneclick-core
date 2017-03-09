@@ -7,7 +7,7 @@ class Admin::GeographiesController < Admin::AdminController
   def upload_counties
     uploader = ShapefileUploader.new(params[:geographies][:file], geo_type: :county)
     uploader.load
-    flash[:danger] = uploader.errors.join(' ') if uploader.errors
+    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
     redirect_to admin_geographies_path
   end
 
