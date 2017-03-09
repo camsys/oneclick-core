@@ -61,6 +61,7 @@ gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
 ### FILE UPLOAD ###
 gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
+gem 'fog'
 ###################
 
 # Use Capistrano for deployment

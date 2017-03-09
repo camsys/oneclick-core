@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :user do
-    email "test_user@camsys.com"
+    sequence(:email) {|i| "test_user_#{i}@camsys.com" }
     password "welcome1"
     password_confirmation "welcome1"
     first_name "Bob"
@@ -8,7 +8,7 @@ FactoryGirl.define do
 
     factory :admin do
       email "admin_user@camsys.com"
-      after(:create) {|user| user.add_role("admin")}
+      after(:create) {|u| u.add_role("admin")}
     end
 
     factory :password_typo_user do
@@ -20,7 +20,30 @@ FactoryGirl.define do
       first_name "George"
       last_name "Williams"
       preferred_locale {create(:locale)}
+<<<<<<< HEAD
     end 
+=======
+    end
+
+    trait :needs_accommodation do
+      after(:create) do |u|
+        u.accommodations << create(:wheelchair)
+        u.accommodations << create(:jacuzzi)
+      end
+    end
+
+    trait :eligible do
+      after(:create) do |u|
+        u.user_eligibilities << create(:user_eligibility, :confirmed, user: u)
+      end
+    end
+
+    trait :ineligible do
+      after(:create) do |u|
+        u.user_eligibilities << create(:user_eligibility, :denied, user: u)
+      end
+    end
+>>>>>>> master
 
   end
 end

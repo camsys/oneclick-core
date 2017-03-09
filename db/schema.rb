@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170228012328) do
+ActiveRecord::Schema.define(version: 20170302194818) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -19,6 +19,20 @@ ActiveRecord::Schema.define(version: 20170228012328) do
     t.string   "code",       null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "accommodations_services", id: false, force: :cascade do |t|
+    t.integer "service_id",       null: false
+    t.integer "accommodation_id", null: false
+    t.index ["accommodation_id"], name: "index_accommodations_services_on_accommodation_id", using: :btree
+    t.index ["service_id"], name: "index_accommodations_services_on_service_id", using: :btree
+  end
+
+  create_table "accommodations_users", id: false, force: :cascade do |t|
+    t.integer "user_id",          null: false
+    t.integer "accommodation_id", null: false
+    t.index ["accommodation_id"], name: "index_accommodations_users_on_accommodation_id", using: :btree
+    t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
   end
 
   create_table "configs", force: :cascade do |t|
@@ -32,6 +46,13 @@ ActiveRecord::Schema.define(version: 20170228012328) do
     t.string   "code",       null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "eligibilities_services", id: false, force: :cascade do |t|
+    t.integer "service_id",     null: false
+    t.integer "eligibility_id", null: false
+    t.index ["eligibility_id"], name: "index_eligibilities_services_on_eligibility_id", using: :btree
+    t.index ["service_id"], name: "index_eligibilities_services_on_service_id", using: :btree
   end
 
   create_table "itineraries", force: :cascade do |t|
@@ -126,6 +147,16 @@ ActiveRecord::Schema.define(version: 20170228012328) do
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
   end
 
+  create_table "user_eligibilities", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "eligibility_id"
+    t.boolean  "value",          default: true
+    t.datetime "created_at",                    null: false
+    t.datetime "updated_at",                    null: false
+    t.index ["eligibility_id"], name: "index_user_eligibilities_on_eligibility_id", using: :btree
+    t.index ["user_id"], name: "index_user_eligibilities_on_user_id", using: :btree
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at",                                     null: false
     t.datetime "updated_at",                                     null: false
@@ -174,5 +205,7 @@ ActiveRecord::Schema.define(version: 20170228012328) do
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"
+  add_foreign_key "user_eligibilities", "eligibilities"
+  add_foreign_key "user_eligibilities", "users"
   add_foreign_key "users", "locales", column: "preferred_locale_id"
 end

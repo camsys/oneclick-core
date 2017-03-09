@@ -9,7 +9,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     sign_in traveler
 
     request.headers['X-User-Token'] = traveler.authentication_token
-    request.headers['X-User-Email'] = "test_user@camsys.com"
+    request.headers['X-User-Email'] = traveler.email
     get :profile, format: :json
 
     # test for the 200 status-code
@@ -25,7 +25,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     sign_in english_traveler
 
     request.headers['X-User-Token'] = english_traveler.authentication_token
-    request.headers['X-User-Email'] = "george@co.uk"
+    request.headers['X-User-Email'] = english_traveler.email
     get :profile, format: :json
 
     # test for the 200 status-code

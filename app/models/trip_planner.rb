@@ -5,15 +5,16 @@
 
 class TripPlanner
 
-  attr_reader :trip, :options, :otp, :errors
+  attr_reader :trip, :options, :router, :errors
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
     @trip = trip
     @options = options
     @modes = options[:modes]
-    @otp = OTPAmbassador.new(Config.open_trip_planner)
+    @router = options[:router] || OTPAmbassador.new(@trip)
     @errors = []
+    @paratransit_drive_time_multiplier = 2.5
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -26,7 +27,7 @@ class TripPlanner
 
   # Builds transit itineraries, using OTP by default
   def transit_itineraries
-    response = @otp.plan(@trip, {mode: "TRANSIT,WALK"})
+    response = @router.get_transit_itineraries
     if response[:error]
       @errors << response
       return []
@@ -37,9 +38,10 @@ class TripPlanner
     end
   end
 
+  # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def paratransit_itineraries
-    Paratransit.all.map do |service|
-      Itinerary.create(service: service)
+    Paratransit.available_for(@trip).map do |service|
+      Itinerary.create(service: service, transit_time: @router.drive_time * @paratransit_drive_time_multiplier)
     end
   end
 
