@@ -10,7 +10,7 @@ class Admin::LandmarksController < Admin::AdminController
 
     landmark_file = params[:landmarks][:file] if params[:landmarks]
     if !landmark_file.nil?
-      reponse, message =  Landmark.update landmark_file
+      response, message =  Landmark.update landmark_file
       if response
         info_msgs << message
       else
