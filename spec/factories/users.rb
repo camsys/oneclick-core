@@ -20,9 +20,6 @@ FactoryGirl.define do
       first_name "George"
       last_name "Williams"
       preferred_locale {create(:locale)}
-<<<<<<< HEAD
-    end 
-=======
     end
 
     trait :needs_accommodation do
@@ -43,7 +40,6 @@ FactoryGirl.define do
         u.user_eligibilities << create(:user_eligibility, :denied, user: u)
       end
     end
->>>>>>> master
 
   end
 end
