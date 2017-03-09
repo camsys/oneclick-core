@@ -37,8 +37,15 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
   end
 
-# Could not dump table "cities" because of following StandardError
-#   Unknown type 'geometry' for column 'geom'
+  create_table "cities", force: :cascade do |t|
+    t.string   "name"
+    t.string   "state"
+    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
+    t.index ["geom"], name: "index_cities_on_geom", using: :gist
+    t.index ["name", "state"], name: "index_cities_on_name_and_state", using: :btree
+  end
 
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -50,8 +57,11 @@ ActiveRecord::Schema.define(version: 20170315135120) do
   create_table "counties", force: :cascade do |t|
     t.string   "name"
     t.string   "state"
-    t.geometry "geom",  limit: {:srid=>0, :type=>"geometry"}
+    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
     t.index ["geom"], name: "index_counties_on_geom", using: :gist
+    t.index ["name", "state"], name: "index_counties_on_name_and_state", using: :btree
   end
 
   create_table "eligibilities", force: :cascade do |t|
@@ -111,7 +121,9 @@ ActiveRecord::Schema.define(version: 20170315135120) do
 
   create_table "regions", force: :cascade do |t|
     t.text     "recipe"
-    t.geometry "geom",   limit: {:srid=>0, :type=>"geometry"}
+    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
     t.index ["geom"], name: "index_regions_on_geom", using: :gist
   end
 
@@ -231,8 +243,14 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
-# Could not dump table "zipcodes" because of following StandardError
-#   Unknown type 'geometry' for column 'geom'
+  create_table "zipcodes", force: :cascade do |t|
+    t.string   "name"
+    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
+    t.index ["geom"], name: "index_zipcodes_on_geom", using: :gist
+    t.index ["name"], name: "index_zipcodes_on_name", using: :btree
+  end
 
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"

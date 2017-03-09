@@ -5,6 +5,8 @@ class CreateCounties < ActiveRecord::Migration[5.0]
       t.string :state
       t.geometry :geom
       # t.geometry :geom, srid: 3785 # Use mercator projection
+
+      t.timestamps
     end
 
     change_table :counties do |t|
