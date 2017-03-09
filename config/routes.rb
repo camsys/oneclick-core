@@ -74,6 +74,9 @@ Rails.application.routes.draw do
 
     get 'geographies' => 'geographies#index'
     post 'counties' => 'geographies#upload_counties'
+    post 'cities' => 'geographies#upload_cities'
+    post 'zipcodes' => 'geographies#upload_zipcodes'
+
 
   end #Admin
 

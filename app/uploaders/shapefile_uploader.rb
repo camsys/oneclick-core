@@ -11,6 +11,7 @@ class ShapefileUploader
     @path = @file.tempfile.path
     @filetype = @file.content_type
     @model = opts[:geo_type].to_s.classify.constantize
+    @column_mappings = opts[:column_mappings] || {name: 'NAME', state: 'STATEFP'}
     @errors = []
   end
 
@@ -62,12 +63,13 @@ class ShapefileUploader
     RGeo::Shapefile::Reader.open(shp_name, { :assume_inner_follows_outer => true }) do |shapefile|
       fail_count = 0
       shapefile.each do |shape|
-        name = shape.attributes['NAME']
-        state = StateCodeDictionary.code(shape.attributes['STATEFP'])
+        attrs = {}
+        attrs[:name] = shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
+        attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:stat.e]]) if @column_mappings[:state]
         geom = shape.geometry
-        print "Loading #{name}, #{state}..."
+        print "Loading #{attrs.values.join(",")}..."
         record = ActiveRecord::Base.logger.silence do
-          @model.find_or_create_by(name: name, state: state).update_attributes(geom: geom)
+          @model.find_or_create_by(attrs).update_attributes(geom: geom)
         end
         if record
           puts " SUCCESS!"

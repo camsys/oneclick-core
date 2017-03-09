@@ -3,7 +3,7 @@ class Region < ApplicationRecord
 
   ### Attributes ###
   serialize :recipe, GeoRecipe
-  validates :recipe, geo_recipe: true
+  # validates :recipe, geo_recipe: true
 
   ### Callbacks ###
   before_save :build_geometry_from_recipe
