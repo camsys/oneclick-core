@@ -12,9 +12,9 @@ module GeoKitchen
       @errors << "#{invalid_count} arguments were not GeoIngredients" if invalid_count > 0
     end
 
-    # Combine all the ingredients' geometries into a single unified geom
+    # Combine all the ingredients' geometries into a single unified geom, cast as a multipolygon
     def make
-      @ingredients.map do |ingredient|
+      output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom
           geom
@@ -23,6 +23,7 @@ module GeoKitchen
           nil
         end
       end.compact.reduce {|combined_area, geom| combined_area.union(geom)}
+      RGeo::Feature.cast(output_geom, RGeo::Feature::MultiPolygon)
     end
 
     # Map its consituent ingredients to hashes

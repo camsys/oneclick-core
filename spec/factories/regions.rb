@@ -1,14 +1,14 @@
+include GeoKitchen
+
 FactoryGirl.define do
   factory :region do
-
-    # Create geography records to build this region from
-    before(:create) do
-      create(:county)
-    end
-
     recipe do
-      {counties: [attributes_for(:county)]}
+      county, city, zipcode = County.last, City.last, Zipcode.last
+      GeoRecipe.new([
+        GeoIngredient.new('County', name: county.name, state: county.state),
+        GeoIngredient.new('City', name: city.name, state: city.state),
+        GeoIngredient.new('Zipcode', name: zipcode.name)
+      ])
     end
-
   end
 end

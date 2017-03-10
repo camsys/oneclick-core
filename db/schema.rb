@@ -121,9 +121,9 @@ ActiveRecord::Schema.define(version: 20170315135120) do
 
   create_table "regions", force: :cascade do |t|
     t.text     "recipe"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
+    t.geometry "geom",       limit: {:srid=>0, :type=>"multi_polygon"}
+    t.datetime "created_at",                                            null: false
+    t.datetime "updated_at",                                            null: false
     t.index ["geom"], name: "index_regions_on_geom", using: :gist
   end
 
