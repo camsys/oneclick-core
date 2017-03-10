@@ -129,16 +129,16 @@ class OTPService
   end
 
   def get_otp_mode trip_type
-    hash = {'mode_transit': 'TRANSIT,WALK',
-    'mode_bicycle_transit': 'TRANSIT,BICYCLE',
-    'mode_park_transit':'CAR_PARK,WALK,TRANSIT',
-    'mode_car_transit':'CAR,WALK,TRANSIT',
-    'mode_bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
-    'mode_rail':'TRAINISH,WALK',
-    'mode_bus':'BUSISH,WALK',
-    'mode_walk':'WALK',
-    'mode_car':'CAR',
-    'mode_bicycle':'MODE_BICYCLE'}
+    hash = {'transit': 'TRANSIT,WALK',
+    'bicycle_transit': 'TRANSIT,BICYCLE',
+    'park_transit':'CAR_PARK,WALK,TRANSIT',
+    'car_transit':'CAR,WALK,TRANSIT',
+    'bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
+    'rail':'TRAINISH,WALK',
+    'bus':'BUSISH,WALK',
+    'walk':'WALK',
+    'car':'CAR',
+    'bicycle':'BICYCLE'}
     hash[trip_type.to_sym]
   end
 
