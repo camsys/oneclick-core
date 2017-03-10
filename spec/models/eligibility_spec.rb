@@ -6,4 +6,5 @@ RSpec.describe Eligibility, type: :model do
   it { should have_many(:user_eligibilities) }
   it { should have_many(:users).through(:user_eligibilities) }
   it { should have_and_belong_to_many(:services) }
+
 end

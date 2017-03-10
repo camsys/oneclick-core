@@ -20,6 +20,7 @@ FactoryGirl.define do
       first_name "George"
       last_name "Williams"
       preferred_locale {create(:locale)}
+      preferred_trip_types ['transit', 'unicycle']
     end
 
     trait :needs_accommodation do
@@ -32,6 +33,12 @@ FactoryGirl.define do
     trait :eligible do
       after(:create) do |u|
         u.user_eligibilities << create(:user_eligibility, :confirmed, user: u)
+      end
+    end
+
+    trait :not_a_veteran do 
+      after(:create) do |u|
+        u.user_eligibilities << create(:answered_veteran, :denied, user: u)
       end
     end
 

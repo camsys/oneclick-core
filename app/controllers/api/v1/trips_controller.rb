@@ -28,7 +28,7 @@ module Api
         # Hash of options parameters sent
         options = {
           user_profile: params[:user_profile],
-          modes: params['modes'] || ['mode_transit', 'mode_paratransit', 'mode_taxi', 'mode_ride_hailing'],
+          modes: params['modes'] || ['transit', 'paratransit', 'taxi', 'ride_hailing'],
           purpose: params[:trip_purpose],
           trip_token: params[:trip_token],
           optimize: params[:optimize],
@@ -37,9 +37,6 @@ module Api
           max_walk_seconds: params[:max_walk_seconds], # Seconds
           walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
-
-        # Remove "mode_" from mode codes
-        options[:modes] = convert_mode_codes_to_symbols(options[:modes])
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
@@ -53,10 +50,6 @@ module Api
       end
 
       private
-
-      def convert_mode_codes_to_symbols modes
-        return modes.map {|m| m.slice(5..-1)}
-      end
 
       def trip_params(parameters)
         parameters.require(:trip).permit(

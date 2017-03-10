@@ -8,4 +8,15 @@ class UserEligibility < ApplicationRecord
   scope :confirmed, -> { where(value: true) }
   scope :denied, -> { where(value: false) }
 
+  ### Hash Methods ###
+  def api_hash
+  	{
+  	  code: self.eligibility.code, 
+  	  name: SimpleTranslationEngine.translate(self.user.locale.name, "#{self.eligibility.code.to_s}_name"), 
+  	  note: SimpleTranslationEngine.translate(self.user.locale.name, "#{self.eligibility.code.to_s}_note"),
+  	  value: self.value 
+  	}
+  end
+
+
 end

@@ -10,5 +10,10 @@ FactoryGirl.define do
     trait :denied do
       value false
     end
+
+    factory :answered_veteran do 
+      association :eligibility, factory: :veteran
+    end 
+
   end
 end
