@@ -4,6 +4,8 @@ module Api
     acts_as_token_authentication_handler_for User, fallback: :exception
     respond_to :json
     attr_reader :traveler
+    after_action :disable_cors, if: Proc.new {Rails.env == "development"}
+    skip_before_action :authenticate_user_from_token!, only: [:handle_options_request]
 
     ###
     # By default, will attempt to authenticate_user_from_token! before controller actions.
@@ -20,6 +22,11 @@ module Api
       else
         return false
       end
+    end
+
+    # Allows requests with "OPTIONS" method--pulled from old oneclick.
+    def handle_options_request
+      head(:ok) if request.request_method == "OPTIONS"
     end
 
     private
@@ -51,6 +58,14 @@ module Api
     # Actions to take after successfully authenticated a user token.
     def after_successful_token_authentication
       set_traveler
+    end
+
+    # Method to disable cors to allow API testing
+    def disable_cors
+      headers['Access-Control-Allow-Origin'] = '*'
+      headers['Access-Control-Allow-Methods'] = 'POST, PUT, DELETE, GET, OPTIONS'
+      headers['Access-Control-Request-Method'] = '*'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     end
 
   end

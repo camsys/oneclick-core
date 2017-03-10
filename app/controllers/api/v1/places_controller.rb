@@ -26,6 +26,22 @@ module Api
         respond_with hash
 
       end
+
+      # STUBBED method for communication with UI
+      def recent
+        render status: 200, json: {}
+      end
+
+      # STUBBED method for communication with UI
+      def search
+        render status: 200, json: {}
+      end
+
+      # STUBBED method for communication with UI
+      def within_area
+        render status: 200, json: {result: true}
+      end
+
     end
   end
 end
