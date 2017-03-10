@@ -14,7 +14,6 @@ class Service < ApplicationRecord
   ### Scopes ###
   scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
 
-
   ### Class Methods ###
 
   def self.types

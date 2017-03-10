@@ -23,4 +23,43 @@ class User < ApplicationRecord
   validates :email, presence: true
   validates :email, uniqueness: true
 
+  ### Instance Methods ###
+  #Return a locale for a user, even if the users preferred locale is not set
+  def locale
+    self.preferred_locale || Locale.find_by(name: "en") || Locale.first 
+  end
+
+  ### Hash Methods ###
+  # Return Profile as a Hash
+  def profile_hash
+    hash = {email: email, first_name: first_name, last_name: last_name}
+    hash[:lang] = preferred_locale.nil? ? nil : preferred_locale.name
+    hash[:characteristics] = eligibilities_hash
+    hash[:accommodations] = accommodations_hash
+    hash[:preferred_modes] = preferred_modes_hash
+    return hash 
+  end
+
+  # Return Eligbilities as a Hash
+  def eligibilities_hash
+    eligibilities = []
+    self.user_eligibilities.each do |user_eligibility|
+      eligibilities << user_eligibility.api_hash
+    end
+    return eligibilities
+  end
+
+  # Return Accommodations as a Hash
+  def accommodations_hash
+    accommodations = []
+    self.accommodations.each do |accommodation|
+      accommodations << accommodation.api_hash(self.locale)
+    end
+    return accommodations
+  end
+
+  # Return Preferred Modes as a Hash
+  def preferred_modes_hash
+  end
+
 end
