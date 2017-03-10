@@ -45,7 +45,7 @@ module Api
         end
 
         if @trips
-          render status: 200, json: @trips, include: ['*.*']
+          render status: 200, json: @trips.first, include: ['*.*']
         end
       end
 
