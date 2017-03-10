@@ -27,7 +27,7 @@ RSpec.describe Admin::GeographiesController, type: :controller do
 
     params = {geographies: {file: cities_file}}
     post :upload_cities, params: params, format: :js
-    expect(City.count).to eq(246)
+    expect(City.count).to eq(54)
     expect(response).to have_http_status(302)
   end
 
@@ -39,7 +39,7 @@ RSpec.describe Admin::GeographiesController, type: :controller do
     params = {geographies: {file: zipcodes_file}}
     post :upload_zipcodes, params: params, format: :js
 
-    expect(Zipcode.count).to eq(605)
+    expect(Zipcode.count).to eq(139)
     expect(response).to have_http_status(302)
   end
 
