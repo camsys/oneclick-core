@@ -18,7 +18,7 @@ class ShapefileUploader
   # Call load to process the uploaded filepath into geometric database records
   def load
     @errors.clear
-    puts "Unzipping file..."
+    Rails.logger.info "Unzipping file..."
     if @filetype == "application/zip"
       Zip::File.open(@path) do |zip_file|
         extract_shapefiles(zip_file) {|file| load_shapefile(file)}
@@ -36,7 +36,7 @@ class ShapefileUploader
   private
 
   def extract_shapefiles(zip_file, &block)
-    puts "Unpacking shapefiles..."
+    Rails.logger.info "Unpacking shapefiles..."
     zip_shp = zip_file.glob('**/*.shp').first
     if zip_shp
       zip_shp_paths = zip_shp.name.split('/')
@@ -59,22 +59,22 @@ class ShapefileUploader
   end
 
   def load_shapefile(shp_name)
-    puts "Reading Shapes into #{@model.to_s} Table..."
+    Rails.logger.info "Reading Shapes into #{@model.to_s} Table..."
     RGeo::Shapefile::Reader.open(shp_name, { :assume_inner_follows_outer => true }) do |shapefile|
       fail_count = 0
       shapefile.each do |shape|
         attrs = {}
         attrs[:name] = shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
-        attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:stat.e]]) if @column_mappings[:state]
+        attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
         geom = shape.geometry
-        print "Loading #{attrs.values.join(",")}..."
+        Rails.logger.info "Loading #{attrs.values.join(",")}..."
         record = ActiveRecord::Base.logger.silence do
           @model.find_or_create_by(attrs).update_attributes(geom: geom)
         end
         if record
-          puts " SUCCESS!"
+          Rails.logger.info " SUCCESS!"
         else
-          puts " FAILED."
+          Rails.logger.info " FAILED."
           fail_count += 1
         end
       end
