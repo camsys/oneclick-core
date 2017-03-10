@@ -6,6 +6,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
+  ### Serialized Attributes ###
+  serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
+
   ### Associations ###
   has_many :trips
   has_and_belongs_to_many :accommodations
@@ -36,7 +39,8 @@ class User < ApplicationRecord
     hash[:lang] = preferred_locale.nil? ? nil : preferred_locale.name
     hash[:characteristics] = eligibilities_hash
     hash[:accommodations] = accommodations_hash
-    hash[:preferred_modes] = preferred_modes_hash
+    #TODO: Rename this to Trip Types (will break API V1)
+    hash[:preferred_modes] = preferred_trip_types
     return hash 
   end
 
@@ -56,10 +60,6 @@ class User < ApplicationRecord
       accommodations << accommodation.api_hash(self.locale)
     end
     return accommodations
-  end
-
-  # Return Preferred Modes as a Hash
-  def preferred_modes_hash
   end
 
 end
