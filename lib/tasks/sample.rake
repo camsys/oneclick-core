@@ -58,8 +58,21 @@ namespace :db do
       end
     end
 
+    desc "Setup Sample Services"
+    task services: :environment do
+      transit_service = Transit.find_or_create_by(name: "Sample Transit Service")
+      transit_service.update_attributes(gtfs_agency_id: "1",
+        phone: "555-555-5555", url: "http://www.mbta.com")
+
+      paratransit_service = Paratransit.find_or_create_by(name: "Sample Paratransit Service")
+      paratransit_service.accommodations << Accommodation.first << Accommodation.last
+      paratransit_service.eligibilities << Eligibility.first << Eligibility.last
+      paratransit_service.save
+    end
+
     #Load all sample data
-    task all: [:landmarks, :eligibilities, :accommodations, :purposes]
+    task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
+                :services]
 
   end
 end
