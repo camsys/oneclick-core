@@ -42,5 +42,4 @@ class Service < ApplicationRecord
     (self.eligibilities.pluck(:code) - user.confirmed_eligibilities.pluck(:code)).empty?
   end
 
-
 end

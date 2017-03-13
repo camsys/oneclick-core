@@ -70,6 +70,7 @@ gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
+gem 'leaflet-rails' # For embedding maps
 ##################
 
 # Use Capistrano for deployment

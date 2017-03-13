@@ -1,7 +1,26 @@
 =content_for :header do
   Service Areas
 
-%h4 SERVICE AREA FORM
+= f.input :start_or_end_area, label: "All trips must start or end in this area",
+  input_html: { value: @service.start_or_end_area.recipe.to_s }
+%h4 MAP
+= map(center: { latlng: @service.start_or_end_area.map_center, zoom: @service.start_or_end_area.map_zoom })
 
 =content_for :footer do
   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
+
+:javascript
+  $(document).ready(function() {
+    console.log("DOCUMENT READY! drawing map...");
+    var polygon = L.polygon(#{@service.start_or_end_area.to_a}).addTo(map);
+
+
+    /*
+    var polygon = L.polygon([
+      [42.416216, -71.171635],
+      [42.317129, -71.178786],
+      [42.314261, -71.012520],
+      [42.412750, -71.000302]
+    ]).addTo(map);
+    */
+  });
