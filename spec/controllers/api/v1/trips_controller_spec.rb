@@ -30,30 +30,30 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     trip_request = plan_call_params["itinerary_request"][0]
 
     expect(response).to be_success
-    expect(response_body[0]["user_id"]).to eq(user.id)
-    expect(response_body[0]["origin"]).to be
-    expect(response_body[0]["destination"]).to be
-    expect(response_body[0]["trip_time"].to_datetime).to eq(trip_request["trip_time"].to_datetime)
-    expect(response_body[0]["arrive_by"]).to eq(trip_request["departure_type"] == "arrive")
+    expect(response_body["user_id"]).to eq(user.id)
+    expect(response_body["origin"]).to be
+    expect(response_body["destination"]).to be
+    expect(response_body["trip_time"].to_datetime).to eq(trip_request["trip_time"].to_datetime)
+    expect(response_body["arrive_by"]).to eq(trip_request["departure_type"] == "arrive")
   end
 
-  it 'allows creation of multiple trips in one request' do
-    request.headers.merge!(request_headers) # Send user email and token headers
-    post :create, params: multi_plan_call_params
-    response_body = JSON.parse(response.body)
-
-    trip_requests_count =  multi_plan_call_params["itinerary_request"].count
-
-    expect(response).to be_success
-    expect(response_body.count).to eq(trip_requests_count)
-  end
+  # it 'allows creation of multiple trips in one request' do
+  #   request.headers.merge!(request_headers) # Send user email and token headers
+  #   post :create, params: multi_plan_call_params
+  #   response_body = JSON.parse(response.body)
+  #
+  #   trip_requests_count =  multi_plan_call_params["itinerary_request"].count
+  #
+  #   expect(response).to be_success
+  #   expect(response_body.count).to eq(trip_requests_count)
+  # end
 
   it 'allows creation of trips by guest users' do
     post :create, params: plan_call_params
     response_body = JSON.parse(response.body)
 
     expect(response).to be_success
-    expect(response_body[0]["user_id"]).to be_nil
+    expect(response_body["user_id"]).to be_nil
   end
 
   it 'sends back itineraries' do
@@ -65,24 +65,24 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     response_body = JSON.parse(response.body)
 
     expect(response).to be_success
-    expect(response_body[0]["itineraries"]).to be
-    expect(response_body[0]["itineraries"].count).to be > 0
+    expect(response_body["itineraries"]).to be
+    expect(response_body["itineraries"].count).to be > 0
   end
 
-  it 'sends back itineraries for multiple trips' do
-    # Stub out trip creation because itinerary planning happens in TripPlanner
-    allow(Trip).to receive(:create) { [trip, trip] }
-
-    request.headers.merge!(request_headers) # Send user email and token headers
-    post :create, params: multi_plan_call_params
-    response_body = JSON.parse(response.body)
-
-    trip_requests_count =  multi_plan_call_params["itinerary_request"].count
-
-    expect(response).to be_success
-    expect(response_body.count).to eq(trip_requests_count)
-    expect(response_body.map {|t| t["itineraries"]}).to all( be )
-    expect(response_body.map {|t| t["itineraries"].count}).to all( be > 0 )
-  end
+  # it 'sends back itineraries for multiple trips' do
+  #   # Stub out trip creation because itinerary planning happens in TripPlanner
+  #   allow(Trip).to receive(:create) { [trip, trip] }
+  #
+  #   request.headers.merge!(request_headers) # Send user email and token headers
+  #   post :create, params: multi_plan_call_params
+  #   response_body = JSON.parse(response.body)
+  #
+  #   trip_requests_count =  multi_plan_call_params["itinerary_request"].count
+  #
+  #   expect(response).to be_success
+  #   expect(response_body.count).to eq(trip_requests_count)
+  #   expect(response_body.map {|t| t["itineraries"]}).to all( be )
+  #   expect(response_body.map {|t| t["itineraries"].count}).to all( be > 0 )
+  # end
 
 end

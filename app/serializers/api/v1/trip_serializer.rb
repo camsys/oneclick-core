@@ -3,9 +3,11 @@ module Api
 
     class TripSerializer < ActiveModel::Serializer
 
-      attributes  :trip_id, :trip_token,
+      attributes  :trip_id, :trip_token, :user_id, :arrive_by, :trip_time,
                   :accommodations, :characteristics, :purposes
       has_many :itineraries
+      belongs_to :origin
+      belongs_to :destination
 
       def trip_id
         object.id
