@@ -3,12 +3,14 @@ Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   namespace :api do
+    match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
 
     namespace :v1 do
-      
-      resources :users do 
+
+      resources :users do
         collection do
           get 'profile'
+          get 'get_guest_token'
         end
       end
 
@@ -21,6 +23,9 @@ Rails.application.routes.draw do
       resources :places do
         collection do
           get 'search'
+          get 'recent'
+          get 'search'
+          post 'within_area'
         end
       end #places
 
@@ -32,6 +37,8 @@ Rails.application.routes.draw do
       end
 
       resources :trips, only: [:create]
+
+      post 'itineraries/plan' => 'trips#create'
 
     end #v1
 

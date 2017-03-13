@@ -30,11 +30,13 @@ class Service < ApplicationRecord
 
   # Returns true if service accommodates all of the user's needs.
   def accommodates?(user)
+    return true if user.nil?
     (user.accommodations.pluck(:code) - self.accommodations.pluck(:code)).empty?
   end
 
   # Returns true if user meets all of the service's eligibility requirements.
   def accepts_eligibility_of?(user)
+    return true if user.nil?
     (self.eligibilities.pluck(:code) - user.confirmed_eligibilities.pluck(:code)).empty?
   end
 
