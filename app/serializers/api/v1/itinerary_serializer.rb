@@ -3,7 +3,7 @@ module Api
 
     class ItinerarySerializer < ActiveModel::Serializer
       attributes  :accommodation_mismatch, :bookable, :cost, :cost_comments,
-                  :count, :date_mismatch, :discounts, :duration_estimated,
+                  :count, :date_mismatch, :discounts, :duration, :duration_estimated,
                   :end_location, :end_time, :external_info, :hidden, :id,
                   :is_bookable, :json_legs, :legs, :logo_url, :map_image,
                   :match_score, :missing_accommodations, :missing_information,
@@ -58,7 +58,7 @@ module Api
       def transfers; nil end
       def trip_part_id; nil end
       def user_registered; false end
-      def wait_time; nil end
+      def wait_time; 0 end
       def walk_distance; nil end
 
 
