@@ -12,7 +12,7 @@
       -@service.start_or_end_area.recipe.ingredients.each do |i|
         %div=i.to_s
 =f.simple_fields_for :start_or_end_area do |r|
-  =r.input :recipe, input_html: { value: @service.start_or_end_area.recipe.to_json_list }
+  =r.input :recipe, input_html: { value: @service.start_or_end_area.recipe.to_json }
 -# = f.input :start_or_end_area, label: "FOR SUBMIT",
 -#   input_html: { value: @service.trip_within_area.recipe.to_a, id: 'start_or_end_area-recipe-form' }
 
@@ -58,14 +58,11 @@
           .autocomplete('instance')._renderItem = $.proxy(this._render, this);
       },
       _select: function(e, ui) {
-        console.log("UI", ui);
         var label = '<div>' + ui.item.label + '</div>';
         $('#start-or-end-area-recipe-display').append(label);
-        $('#paratransit_start_or_end_area_attributes_recipe').val(
-          $('#paratransit_start_or_end_area_attributes_recipe').val() +
-          ',' +
-          JSON.stringify(ui.item.value)
-        )
+        var recipe = JSON.parse($('#paratransit_start_or_end_area_attributes_recipe').val());
+        recipe.push(ui.item.value);
+        $('#paratransit_start_or_end_area_attributes_recipe').val(JSON.stringify(recipe));
         return false;
       },
       _render: function(ul, item) {
