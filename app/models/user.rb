@@ -36,6 +36,8 @@ class User < ApplicationRecord
   def update_profile params 
     update_attributes params[:attributes]
     update_eligibilities params[:characteristics]
+    update_accommodations params[:accommodations]
+    return true
   end  
 
   def update_attributes params
@@ -51,9 +53,7 @@ class User < ApplicationRecord
           self.preferred_locale = Locale.find_by(name: value) || self.locale  
       end
     end
-
     self.save
-
   end
 
   def update_eligibilities params
@@ -67,6 +67,22 @@ class User < ApplicationRecord
         ue.save 
       end
     end
+  end
+
+  def update_accommodations params
+    user_accommodations = self.accommodations
+    params.each do |code, value|
+      accommodation = Accommodation.find_by(code: code)
+      if accommodation
+        user_accommodations.delete(accommodation)
+        if value 
+          user_accommodations << accommodation
+        end
+      end
+    end
+
+    self.accommodations = user_accommodations 
+
   end
 
   ### Hash Methods ###
