@@ -2,8 +2,11 @@
   Service Areas
 
 = f.input :start_or_end_area, label: "All trips must start or end in this area",
-  input_html: { value: @service.start_or_end_area.recipe.to_s }
-%h4 MAP
+  input_html: { value: @service.start_or_end_area.recipe.humanize },
+  as: :text
+= f.input :trip_within_area, label: "All trips must start or end in this area",
+  input_html: { value: @service.trip_within_area.recipe.humanize },
+  as: :text
 = map(center: { latlng: @service.start_or_end_area.center_of_geom, zoom: 0 })
 
 =content_for :footer do

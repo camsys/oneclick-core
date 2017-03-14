@@ -36,9 +36,19 @@ module GeoKitchen
       to_a.to_s
     end
 
+    # First convert to array, then to JSON
+    def to_json
+      to_a.to_json
+    end
+
     # For pretty printing
     def ai
       to_a.ai
+    end
+
+    # Prints as a nice text string for display
+    def humanize
+      @ingredients.map{|i| i.humanize}.join(', ')
     end
 
     private
@@ -67,6 +77,14 @@ module GeoKitchen
       @attributes = attributes
     end
 
+    def name
+      @attributes[:name]
+    end
+
+    def other_attributes
+      @attributes.except(:name)
+    end
+
     # Find the db record this ingredient refers to
     def find_record
       @model.find_by(@attributes)
@@ -88,12 +106,17 @@ module GeoKitchen
 
     # Converts to hash and then to string
     def to_s
-      @attributes.values.join(' - ')
+      "#{name}, #{other_attributes.values.join(', ')}"
     end
 
     # For pretty printing
     def ai
       to_h.ai
+    end
+
+    # Prints as a nice text string for display
+    def humanize
+      "#{name} (#{other_attributes.values.join(' ')}) [#{@model}]"
     end
 
     # Load method for serializing; called by GeoRecipe
