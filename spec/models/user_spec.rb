@@ -42,12 +42,13 @@ RSpec.describe User, type: :model do
   end
 
   it 'updates basic attributes' do 
-    params = {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en"}
+    params = {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en", preferred_trip_types: ['recumbent_bicycle', 'roller_blades']}
     traveler.update_basic_attributes params
     expect(traveler.email).to eq('gpburdell@email.com')
     expect(traveler.first_name).to eq('George')
     expect(traveler.last_name).to eq('Burdell')
     expect(traveler.locale).to eq(Locale.find_by(name: "en"))
+    expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
   end
 
   it 'updates eligibilities' do 

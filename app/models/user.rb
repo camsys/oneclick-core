@@ -52,6 +52,8 @@ class User < ApplicationRecord
           self.email = value    
         when :lang
           self.preferred_locale = Locale.find_by(name: value) || self.locale  
+        when :preferred_trip_types
+          self.preferred_trip_types = value 
       end
     end
     self.save
