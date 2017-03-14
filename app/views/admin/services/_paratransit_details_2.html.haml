@@ -1,12 +1,25 @@
 =content_for :header do
   Service Areas
 
-= f.input :start_or_end_area, label: "All trips must start or end in this area",
-  input_html: { value: @service.start_or_end_area.recipe.humanize },
-  as: :text
-= f.input :trip_within_area, label: "All trips must start or end in this area",
-  input_html: { value: @service.trip_within_area.recipe.humanize },
-  as: :text
+.form-group.string.optional.paratransit_start_or_end_area
+  %label.col-sm-3.control-label.text.optional{for: 'paratransit_start_or_end_area'} All trips must start or end in this area
+  .col-sm-9
+    .input-group.col-sm-12
+      %input#start-or-end-area-txt.form-control.string.optional{type: 'text'}
+    #start-or-end-area-results.results
+  .col-sm-12
+    #start-or-end-area-recipe-display
+      -@service.start_or_end_area.recipe.ingredients.each do |i|
+        %div=i.to_s
+=f.simple_fields_for :start_or_end_area do |r|
+  =r.input :recipe, input_html: { value: @service.start_or_end_area.recipe.to_json_list }
+-# = f.input :start_or_end_area, label: "FOR SUBMIT",
+-#   input_html: { value: @service.trip_within_area.recipe.to_a, id: 'start_or_end_area-recipe-form' }
+
+-# = f.input :start_or_end_area, label: "All trips must start or end in this area",
+-#   input_html: { value: @service.start_or_end_area.recipe.humanize }
+-# = f.input :trip_within_area, label: "All trips must start or end in this area",
+-#   input_html: { value: @service.trip_within_area.recipe.humanize }
 = map(center: { latlng: @service.start_or_end_area.center_of_geom, zoom: 0 })
 
 =content_for :footer do
@@ -14,6 +27,7 @@
 
 :javascript
   $(document).ready(function() {
+    console.log('#{admin_service_path}');
 
     var tripWithinArea = L.polygon(
       #{@service.trip_within_area.geom_to_array}, {color: 'cornflowerblue'}
@@ -24,5 +38,48 @@
     ).addTo(map);
 
     map.fitBounds(startOrEndArea.getBounds());
+
+    var app = window.app = {};
+
+    app.Counties = function() {
+      this._input = $('#start-or-end-area-txt');
+      this._initAutocomplete();
+    };
+
+    app.Counties.prototype = {
+      _initAutocomplete: function() {
+      console.log("Initializing Autocomplete");
+        this._input
+          .autocomplete({
+            source: '#{admin_service_path}',
+            appendTo: '#start-or-end-area-results',
+            select: $.proxy(this._select, this)
+          })
+          .autocomplete('instance')._renderItem = $.proxy(this._render, this);
+      },
+      _select: function(e, ui) {
+        console.log("UI", ui);
+        var label = '<div>' + ui.item.label + '</div>';
+        $('#start-or-end-area-recipe-display').append(label);
+        $('#paratransit_start_or_end_area_attributes_recipe').val(
+          $('#paratransit_start_or_end_area_attributes_recipe').val() +
+          ',' +
+          JSON.stringify(ui.item.value)
+        )
+        return false;
+      },
+      _render: function(ul, item) {
+        console.log("ITEM", item);
+        var markup = [
+          '<span>' + item.label + '</span>'
+        ];
+        return $('<li>')
+          .append(markup.join(''))
+          .appendTo(ul);
+      }
+    };
+
+    new app.Counties;
+
 
   });

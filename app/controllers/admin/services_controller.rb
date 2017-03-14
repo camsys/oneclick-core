@@ -1,5 +1,7 @@
 class Admin::ServicesController < Admin::AdminController
 
+  include GeoKitchen
+
   before_action :find_service, except: [:create, :index]
 
   def index
@@ -17,10 +19,20 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def show
-    @service
+    respond_to do |format|
+      format.html
+      format.json do
+        @counties = County.search(params[:term]).limit(10)
+        render json: @counties.map {|c| {label: c.to_geo.to_s, value: c.to_geo.to_h}}
+      end
+    end
   end
 
   def update
+    recipe = params[:paratransit][:start_or_end_area_attributes][:recipe]
+    recipe = "[#{recipe}]"
+    params[:paratransit][:start_or_end_area_attributes][:recipe] = recipe
+
     @service.update_attributes(service_params)
     redirect_to admin_service_path(@service)
   end
@@ -58,7 +70,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def paratransit_params
-    [{accommodation_ids: []}, {eligibility_ids: []}]
+    [{accommodation_ids: []}, {eligibility_ids: []}, start_or_end_area_attributes: [:recipe]]
   end
 
   def taxi_params

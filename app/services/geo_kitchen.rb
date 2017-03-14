@@ -14,6 +14,7 @@ module GeoKitchen
 
     # Combine all the ingredients' geometries into a single unified geom, cast as a multipolygon
     def make
+      puts "MAKING, ", @ingredients.ai
       output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom
@@ -46,6 +47,11 @@ module GeoKitchen
       to_a.ai
     end
 
+    # Produces a comma-separated list of json ingredients
+    def to_json_list
+      @ingredients.map{|i| i.to_json}.join(',')
+    end
+
     # Prints as a nice text string for display
     def humanize
       @ingredients.map{|i| i.humanize}.join(', ')
@@ -54,12 +60,20 @@ module GeoKitchen
     private
 
     # GeoRecipe#load and #dump allow this to respond to Rails serialize
-    def self.load(ingredients_array)
-      ingredients_array = eval(ingredients_array || "[]")
+    def self.load(ingredients_array_str)
+      self.from_array(eval(ingredients_array_str || "[]"))
+    end
+
+    def self.from_array(ingredients_array)
       self.new(ingredients_array.map {|i| GeoIngredient.load(i)})
     end
 
+    def self.from_json(recipe_json)
+      self.from_array(JSON.parse(recipe_json))
+    end
+
     def self.dump(obj)
+      obj = self.from_json(obj) if obj.is_a?(String)
       unless obj.is_a?(self)
         raise ::ActiveRecord::SerializationTypeMismatch,
           "Attribute was supposed to be a #{self}, but was a #{obj.class}. -- #{obj.inspect}"
@@ -74,7 +88,7 @@ module GeoKitchen
     # Takes the name of a Database table model, and a list of attributes to identify it uniquely
     def initialize(model_name, attributes={})
       @model = model_name.to_s.classify.constantize
-      @attributes = attributes
+      @attributes = attributes.symbolize_keys
     end
 
     def name
@@ -106,12 +120,17 @@ module GeoKitchen
 
     # Converts to hash and then to string
     def to_s
-      "#{name}, #{other_attributes.values.join(', ')}"
+      "#{name}, #{other_attributes.values.join(', ')} (#{@model.to_s})"
     end
 
     # For pretty printing
     def ai
       to_h.ai
+    end
+
+    # Converts to hash and then to JSON
+    def to_json
+      to_h.to_json
     end
 
     # Prints as a nice text string for display
@@ -121,6 +140,7 @@ module GeoKitchen
 
     # Load method for serializing; called by GeoRecipe
     def self.load(hash)
+      hash.symbolize_keys!
       self.new(hash[:model], hash[:attributes])
     end
 
