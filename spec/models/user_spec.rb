@@ -41,4 +41,13 @@ RSpec.describe User, type: :model do
   	expect(english_traveler.accommodations_hash.first[:note]).to eq('missing key wheelchair_note')
   end
 
+  it 'updates attributes' do 
+    params = {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en"}
+    traveler.update_attributes params
+    #expect(traveler.email).to eq('gpburdell@email.com')
+    expect(traveler.first_name).to eq('George')
+    expect(traveler.last_name).to eq('Burdell')
+    expect(traveler.locale).to eq(Locale.find_by(name: "en"))
+  end
+
 end
