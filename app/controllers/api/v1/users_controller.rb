@@ -12,6 +12,10 @@ module Api
         render status: 200, json: {}
       end
 
+      def update 
+        render json: @traveler.update_profile(params)
+      end
+
     end
   end
 end

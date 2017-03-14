@@ -32,6 +32,43 @@ class User < ApplicationRecord
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first 
   end
 
+  ### Update Profle from API Call ###
+  def update_profile params 
+    update_attributes params[:attributes]
+    update_eligibilities params[:characteristics]
+  end  
+
+  def update_attributes params
+    params.each do |key, value|
+      case key.to_sym
+        when :first_name
+          self.first_name = value
+        when :last_name
+          self.last_name = value
+        when :email
+          self.email = value    
+        when :lang
+          self.preferred_locale = Locale.find_by(name: value) || self.locale  
+      end
+    end
+
+    self.save
+
+  end
+
+  def update_eligibilities params
+    params.each do |code, value|
+      eligibility = Eligibility.find_by(code: code)
+      if eligibility
+        puts Eligibility.ai
+        ue = self.user_eligibilities.where(eligibility: eligibility).first_or_create
+        ue.value = value
+        puts ue.ai 
+        ue.save 
+      end
+    end
+  end
+
   ### Hash Methods ###
   # Return Profile as a Hash
   def profile_hash
