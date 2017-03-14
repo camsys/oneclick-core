@@ -33,6 +33,7 @@ class User < ApplicationRecord
   end
 
   ### Update Profle from API Call ###
+  
   def update_profile params 
     update_attributes params[:attributes]
     update_eligibilities params[:characteristics]
@@ -40,7 +41,7 @@ class User < ApplicationRecord
     return true
   end  
 
-  def update_attributes params
+  def update_basic_attributes params
     params.each do |key, value|
       case key.to_sym
         when :first_name
@@ -60,10 +61,8 @@ class User < ApplicationRecord
     params.each do |code, value|
       eligibility = Eligibility.find_by(code: code)
       if eligibility
-        puts Eligibility.ai
         ue = self.user_eligibilities.where(eligibility: eligibility).first_or_create
         ue.value = value
-        puts ue.ai 
         ue.save 
       end
     end
