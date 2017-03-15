@@ -29,10 +29,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
-    # recipe = params[:paratransit][:start_or_end_area_attributes][:recipe]
-    # recipe = "[#{recipe}]"
-    # params[:paratransit][:start_or_end_area_attributes][:recipe] = recipe
-
     @service.update_attributes(service_params)
     redirect_to admin_service_path(@service)
   end
