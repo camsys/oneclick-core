@@ -1,12 +1,6 @@
-class County < ApplicationRecord
-  include GeoKitchen
-
+class County < GeographyRecord
   validates_presence_of :name, :state
-
-  # Returns a GeoIngredient refering to this county
-  def to_geo
-    GeoIngredient.new('County', name: name, state: state)
-  end
+  acts_as_geo_ingredient attributes: [:name, :state]
 
   def to_s
     "#{name}, #{state}"

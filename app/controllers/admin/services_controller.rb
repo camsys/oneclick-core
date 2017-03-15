@@ -22,8 +22,11 @@ class Admin::ServicesController < Admin::AdminController
     respond_to do |format|
       format.html
       format.json do
-        @counties = County.search(params[:term]).limit(10)
-        render json: @counties.map {|c| {label: c.to_geo.to_s, value: c.to_geo.to_h}}
+        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        json_response = @counties + @zipcodes + @cities
+        render json: json_response
       end
     end
   end
@@ -66,7 +69,12 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def paratransit_params
-    [{accommodation_ids: []}, {eligibility_ids: []}, start_or_end_area_attributes: [:recipe]]
+    [
+      {accommodation_ids: []},
+      {eligibility_ids: []},
+      start_or_end_area_attributes: [:recipe],
+      trip_within_area_attributes: [:recipe]
+    ]
   end
 
   def taxi_params

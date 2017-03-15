@@ -9,7 +9,7 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :eligibilities
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
-  accepts_nested_attributes_for :start_or_end_area
+  accepts_nested_attributes_for :start_or_end_area, :trip_within_area
 
   ### Validations ###
   validates_presence_of :name, :type

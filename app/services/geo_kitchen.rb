@@ -1,5 +1,24 @@
 module GeoKitchen
 
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
+
+  module ClassMethods
+
+    # Dynamically define instance methods on including model
+    def acts_as_geo_ingredient(opts={})
+      model = opts[:model] || self.name
+      attributes = opts[:attributes] || [:name]
+
+      # Returns a GeoIngredient refering to this county
+      define_method("to_geo") do
+        GeoIngredient.new(model, attributes.map{|a| [a, self.send(a)]}.to_h)
+      end
+    end
+
+  end
+
   # GeoRecipe is basically a list of GeoIngredients, and can "make" itself into a unified geometry
   class GeoRecipe
     attr_reader :ingredients, :errors
@@ -45,11 +64,6 @@ module GeoKitchen
     # For pretty printing
     def ai
       to_a.ai
-    end
-
-    # Produces a comma-separated list of json ingredients
-    def to_json_list
-      @ingredients.map{|i| i.to_json}.join(',')
     end
 
     # Prints as a nice text string for display

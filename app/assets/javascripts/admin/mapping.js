@@ -40,7 +40,7 @@ var M = {
 
 M.Recipe.prototype = {
   _init: function() {
-    $('#start-or-end-area-display').append("");
+    this._display.append("");
     var that = this;
     // Set up autocomplete
     that._input
@@ -89,12 +89,14 @@ M.Recipe.prototype = {
     this._display.append(labelTag);
 
     // Add a data-index value to the label container
-    var container = this._display.children().last()
-    container.data("index", i);
+    var container = this._display.children().last();
+    container.addClass(ingredient.model);
 
     // Insert the ingredient description into the label
     var label = container.find('label');
-    label.text(ingredient.attributes.name + ", " + ingredient.attributes.state);
+    var labelText = ingredient.attributes.name;
+    if(ingredient.attributes.state) { labelText += (', ' + ingredient.attributes.state) }
+    label.text(labelText);
 
     // Set up delete button for ingredient
     var button = container.find('.btn');

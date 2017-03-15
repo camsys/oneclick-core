@@ -2,27 +2,30 @@
   Service Areas
 
 .form-group.string.optional.start-or-end-area
-  %label.col-sm-3.control-label.text.optional{for: 'paratransit_start_or_end_area'} All trips must start or end in this area
-  .col-sm-9
+  %label.col-sm-6.control-label.text.optional{for: 'paratransit_start_or_end_area'} All trips must start or end in this area:
+  .col-sm-4
     .input-group.col-sm-12
       %input#start-or-end-area-input.form-control.string.optional{type: 'text'}
     #start-or-end-area-results.results
-  .col-sm-12
-    #start-or-end-area-display
-      -# -@service.start_or_end_area.recipe.ingredients.each_with_index do |ing, i|
-      -#   .start-or-end-area-ingredient{ 'data-index' => i }
-      -#     %span=ing.to_s
-      -#     .btn.btn-link X
+.well#start-or-end-area-display
 =f.simple_fields_for :start_or_end_area do |r|
-  =r.input :recipe, input_html: { value: @service.start_or_end_area.recipe.to_json }
--# = f.input :start_or_end_area, label: "FOR SUBMIT",
--#   input_html: { value: @service.trip_within_area.recipe.to_a, id: 'start_or_end_area-recipe-form' }
+  =r.input :recipe,
+    wrapper_html: {class: 'hidden'},
+    input_html: { value: @service.start_or_end_area.recipe.to_json }
 
--# = f.input :start_or_end_area, label: "All trips must start or end in this area",
--#   input_html: { value: @service.start_or_end_area.recipe.humanize }
--# = f.input :trip_within_area, label: "All trips must start or end in this area",
--#   input_html: { value: @service.trip_within_area.recipe.humanize }
-= map(center: { latlng: @service.start_or_end_area.center_of_geom, zoom: 0 })
+.form-group.string.optional.trip-within-area
+  %label.col-sm-6.control-label.text.optional{for: 'paratransit_trip_within_area'} All trips must start AND end within this area:
+  .col-sm-4
+    .input-group.col-sm-12
+      %input#trip-within-area-input.form-control.string.optional{type: 'text'}
+    #trip-within-area.results
+.well#trip-within-area-display
+=f.simple_fields_for :trip_within_area do |r|
+  =r.input :recipe,
+    wrapper_html: {class: 'hidden'},
+    input_html: { value: @service.trip_within_area.recipe.to_json }
+
+= map(center: { latlng: @service.trip_within_area.center_of_geom, zoom: 0 })
 
 =content_for :footer do
   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
@@ -36,9 +39,17 @@
       #{@service.trip_within_area.geom_to_array},
       #{@service.start_or_end_area.geom_to_array}
     ]);
+
     new M.Recipe({
       fieldName: 'start-or-end-area',
       recipeForm: 'paratransit_start_or_end_area_attributes_recipe',
+      searchPath: '#{admin_service_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
+    });
+
+    new M.Recipe({
+      fieldName: 'trip-within-area',
+      recipeForm: 'paratransit_trip_within_area_attributes_recipe',
       searchPath: '#{admin_service_path}',
       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
     });
