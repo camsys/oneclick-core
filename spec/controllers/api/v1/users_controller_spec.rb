@@ -4,6 +4,8 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
   let!(:traveler) { FactoryGirl.create :user }
   let!(:english_traveler) { FactoryGirl.create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
+  let!(:age_65) { FactoryGirl.create :eligibility}
+  let!(:veteran) { FactoryGirl.create :veteran}
 
   it 'returns the first and last name of a user profile' do
     sign_in traveler
@@ -19,6 +21,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     parsed_response = JSON.parse(response.body)
     expect(parsed_response["first_name"]).to eq("Bob")
     expect(parsed_response["last_name"]).to eq("Bobson")
+
   end
 
   it 'returns the preferred locale' do
@@ -95,7 +98,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
     # Should be 1 Eligibility Question Answered
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response["characteristics"].count).to eq(2)
+    expect(parsed_response["accommodations"].count).to eq(2)
 
     # He needs space for a wheelchair
     expect(parsed_response["accommodations"].first['code']).to eq('wheelchair')
@@ -105,5 +108,100 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     expect(parsed_response["accommodations"].last['name']).to eq('missing key jacuzzi_name') # Just make sure we are making the call to get a name
     expect(parsed_response["accommodations"].last['note']).to eq('missing key jacuzzi_note') # Just make sure we are making the call to get a note
   end 
+
+  it 'updates basic attributes for a user' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    params = {attributes: {first_name: "Jorge", last_name: "Birdell", email: "gpburdell@email.net", lang: "en", preferred_modes: ['clown_car'] }}
+
+    post :update, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.first_name).to eq("Jorge")
+    expect(traveler.last_name).to eq("Birdell")
+    expect(traveler.email).to eq("gpburdell@email.net")
+    expect(traveler.preferred_locale).to eq(Locale.find_by(name:"en"))
+    expect(traveler.preferred_trip_types).to eq(['clown_car'])
+
+  end
+
+  it 'adds accommodations for a user' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    params = {accommodations: {wheelchair: true, jacuzzi: true}}
+    post :update, params: params
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+    # Confirm that all the attributes were updated
+    expect(traveler.accommodations.count).to eq(2)
+  end
+
+  it 'will remove accommodations for a user' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    # First Set 2 accommodations to be needed
+    params = {accommodations: {wheelchair: true, jacuzzi: true}}
+    post :update, params: params
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+    # Confirm that all the attributes were updated
+    expect(traveler.accommodations.count).to eq(2)
+
+    # Now remove the need for a wheelchair
+    params = {accommodations: {wheelchair: false}}
+    post :update, params: params
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+    # Confirm that all the attributes were updated
+    expect(traveler.accommodations.count).to eq(1)
+    expect(traveler.accommodations.first.code).to eq('jacuzzi')
+  end
+
+  it 'answers eligibility questions' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    # First Set 2 Characteristics to true
+    params = {characteristics: {age_65: true, veteran: true}}
+    post :update, params: params
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+    # Confirm that all the attributes were updated
+    expect(traveler.user_eligibilities.count).to eq(2)
+    expect(traveler.user_eligibilities.find_by(eligibility: veteran).value).to eq(true)
+    expect(traveler.user_eligibilities.find_by(eligibility: over_65).value).to eq(true)
+
+    # Now remove the need for a wheelchair
+    params = {characteristics: {veteran: false}}
+    post :update, params: params
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+    # Confirm that all the attributes were updated
+    expect(traveler.user_eligibilities.find_by(eligibility: veteran).value).to eq(false)
+    expect(traveler.user_eligibilities.find_by(eligibility: over_65).value).to eq(true)
+  end
 
 end

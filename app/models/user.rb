@@ -35,9 +35,9 @@ class User < ApplicationRecord
   ### Update Profle from API Call ###
   
   def update_profile params 
-    update_attributes params[:attributes]
-    update_eligibilities params[:characteristics]
-    update_accommodations params[:accommodations]
+    update_basic_attributes params[:attributes] unless params[:attributes].nil? 
+    update_eligibilities params[:characteristics] unless params[:characteristics].nil? 
+    update_accommodations params[:accommodations] unless params[:accommodations].nil? 
     return true
   end  
 
@@ -52,7 +52,7 @@ class User < ApplicationRecord
           self.email = value    
         when :lang
           self.preferred_locale = Locale.find_by(name: value) || self.locale  
-        when :preferred_trip_types
+        when :preferred_trip_types, :preferred_modes  
           self.preferred_trip_types = value 
       end
     end
@@ -60,11 +60,16 @@ class User < ApplicationRecord
   end
 
   def update_eligibilities params
+
+    Eligibility.all.each do |e|
+      puts e.ai
+    end
+    
     params.each do |code, value|
       eligibility = Eligibility.find_by(code: code)
       if eligibility
         ue = self.user_eligibilities.where(eligibility: eligibility).first_or_create
-        ue.value = value
+        ue.value = value.to_bool
         ue.save 
       end
     end
@@ -76,7 +81,7 @@ class User < ApplicationRecord
       accommodation = Accommodation.find_by(code: code)
       if accommodation
         user_accommodations.delete(accommodation)
-        if value 
+        if value.to_bool 
           user_accommodations << accommodation
         end
       end

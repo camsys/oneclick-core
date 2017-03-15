@@ -57,6 +57,7 @@ RSpec.describe Admin::EligibilitiesController, type: :controller do
 
     # Confirm that there are no eligibilities
     expect(Eligibility.count).to eq(count)
+
   end
 
 end
