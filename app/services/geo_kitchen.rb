@@ -33,7 +33,6 @@ module GeoKitchen
 
     # Combine all the ingredients' geometries into a single unified geom, cast as a multipolygon
     def make
-      puts "MAKING, ", @ingredients.ai
       output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom

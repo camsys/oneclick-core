@@ -6,6 +6,8 @@ FactoryGirl.define do
     phone "(555)555-5555"
     url "http://www.test-service-url.com"
     type "Paratransit"
+    association :start_or_end_area, factory: :region
+    association :trip_within_area, factory: :region_2
 
     factory :different_service, class: 'Service' do
       name "Test Service 2"
@@ -13,6 +15,9 @@ FactoryGirl.define do
       email "test_service2@camsys.com"
       phone "(555)555-5556"
       url "http://www.test-service-url2.com"
+      association :start_or_end_area, factory: :region_2
+      association :trip_within_area, factory: :region
+
     end
   end
 
@@ -25,6 +30,8 @@ FactoryGirl.define do
   factory :paratransit_service, parent: :service, class: 'Paratransit' do
     name "Test Paratransit Service"
     type "Paratransit"
+    association :start_or_end_area, factory: :region
+    association :trip_within_area, factory: :region_2
 
     trait :accommodating do
       after(:create) do |s|

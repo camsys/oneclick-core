@@ -10,7 +10,7 @@ RSpec.describe Service, type: :model do
   let(:transit) { create(:transit_service)}
   let(:paratransit) { create(:paratransit_service)}
   let(:user) { create(:user) }
-  
+
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
   let!(:wheelchair) { FactoryGirl.create :wheelchair }
@@ -36,14 +36,14 @@ RSpec.describe Service, type: :model do
   it 'should be available to users if it has all necessary accommodations' do
     # Make the paratransit service accommodating
     paratransit.accommodations += [jacuzzi, wheelchair]
-    
+
     # The user needs no accommodations
     expect(paratransit.accommodates?(user)).to be true
 
     # Make the user need accommodations
     user.accommodations += [jacuzzi, wheelchair]
 
-    # The service should still be accommodating 
+    # The service should still be accommodating
     expect(paratransit.accommodates?(user)).to be true
   end
 
@@ -53,7 +53,7 @@ RSpec.describe Service, type: :model do
 
     # Make the user need accommodations
     user.accommodations += [jacuzzi, wheelchair]
-    
+
     # This service does not provide the above accommodations
     expect(paratransit.accommodates?(user)).to be false
   end
@@ -61,8 +61,8 @@ RSpec.describe Service, type: :model do
   it 'should be available to users that meet all eligibility requirements' do
     # Make the paratransit service strict
     paratransit.eligibilities << eligibility
-    
-    # Make the user eligible 
+
+    # Make the user eligible
     ue = UserEligibility.where(user: user, eligibility: eligibility).first_or_create
     ue.value = true
     ue.save

@@ -18,8 +18,8 @@ class Admin::ServicesController < Admin::AdminController
   	redirect_to admin_service_path(@service)
   end
 
+  # If JSON is requested, search geography tables based on passed param
   def show
-    puts "SERVICE SHOW METHOD CALLED!", params[:term]
     respond_to do |format|
       format.html
       format.json do

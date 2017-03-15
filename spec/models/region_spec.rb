@@ -2,13 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Region, type: :model do
 
-  # Create Geographies so that region builds properly.
-  before(:each) do
-    create(:county)
-    create(:city)
-    create(:zipcode)
-  end
-  let(:geographies) { [ County.last, City.last, Zipcode.last ] }
+  let(:geographies) { [ create(:county), create(:city), create(:zipcode) ] }
   let(:region) { create(:region) }
 
   it { should respond_to :recipe, :geom }

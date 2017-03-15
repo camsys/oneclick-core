@@ -5,6 +5,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }
   before(:each) { sign_in admin }
+  let(:service) { create(:service) }
 
   it 'gets a list of all the services' do
     get :index
@@ -21,11 +22,8 @@ RSpec.describe Admin::ServicesController, type: :controller do
   end
 
   it 'shows an individual service' do
-    create_params = {service: attributes_for(:service)}
-    post :create, params: create_params
-    @service = Service.last
 
-    get :show, params: {id: @service.id}
+    get :show, params: {id: service.id}
     expect(response).to be_success
 
   end
@@ -88,40 +86,72 @@ RSpec.describe Admin::ServicesController, type: :controller do
   # end
 
   it 'destroys a service' do
-    attrs = attributes_for(:service)
-    params = {service: attrs}
+    service
     count = Service.count
 
-    post :create, params: params
-
-    # Confirm that a new service was created
-    expect(Service.count).to eq(count + 1)
-
-    delete :destroy, params: { id: Service.last.id }
+    delete :destroy, params: { id: service.id }
     expect(response).to have_http_status(302)
 
-    # Confirm thatthe service was destroyed
-    expect(Service.count).to eq(count)
+    # Confirm that the service was destroyed
+    expect(Service.count).to eq(count - 1)
 
   end
 
   it 'updates a service' do
-    create_params = {service: attributes_for(:service)}
-    post :create, params: create_params
-    @service = Service.last
-
     update_attrs = attributes_for(:different_service)
 
     update_params = {
-      id: @service.id,
+      id: service.id,
       service: update_attrs
     }
     put :update, params: update_params
     expect(response).to have_http_status(302)
-    @service.reload
+    service.reload
 
-    attributes_match = update_attrs.all? { |att| update_attrs[att] == @service[att] }
+    attributes_match = update_attrs.all? { |att| update_attrs[att] == service[att] }
     expect(attributes_match).to be true
+
+  end
+
+  it "updates a service's coverage areas" do
+    old_start_or_end_area = service.start_or_end_area
+    new_region_recipe = attributes_for(:region_2)[:recipe].to_json
+    update_params = {
+      id: service.id,
+      service: {
+        start_or_end_area_attributes: {
+          recipe: new_region_recipe
+        }
+      }
+    }
+    put :update, params: update_params
+    expect(response).to have_http_status(302)
+    service.reload
+
+    new_start_or_end_area = service.start_or_end_area
+
+    expect(old_start_or_end_area).not_to eq(new_start_or_end_area)
+  end
+
+  it 'allows search of geographies via show action' do
+    county = create(:county)
+    city = create(:city)
+    zipcode = create(:zipcode)
+
+    # Search returns county results by name and state
+    get :show, format: :json, params: {id: service.id, term: "#{county.name}, #{county.state}"}
+    response_body = JSON.parse(response.body)
+    expect(response_body.length).to be > 0
+
+    # Search returns city results by name and state
+    get :show, format: :json, params: {id: service.id, term: "#{city.name}, #{city.state}"}
+    response_body = JSON.parse(response.body)
+    expect(response_body.length).to be > 0
+
+    # Search returns zipcode resuls
+    get :show, format: :json, params: {id: service.id, term: zipcode.name}
+    response_body = JSON.parse(response.body)
+    expect(response_body.length).to be > 0
 
   end
 
