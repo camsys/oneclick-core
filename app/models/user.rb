@@ -60,11 +60,6 @@ class User < ApplicationRecord
   end
 
   def update_eligibilities params
-
-    Eligibility.all.each do |e|
-      puts e.ai
-    end
-    
     params.each do |code, value|
       eligibility = Eligibility.find_by(code: code)
       if eligibility
