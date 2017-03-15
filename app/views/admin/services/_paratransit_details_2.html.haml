@@ -6,7 +6,7 @@
   .col-sm-4
     .input-group.col-sm-12
       %input#start-or-end-area-input.form-control.string.optional{type: 'text'}
-    #start-or-end-area-results.results
+    #start-or-end-area-results.dropdown{style: 'position:absolute; z-index:500'}
 .well#start-or-end-area-display
 =f.simple_fields_for :start_or_end_area do |r|
   =r.input :recipe,
@@ -18,7 +18,7 @@
   .col-sm-4
     .input-group.col-sm-12
       %input#trip-within-area-input.form-control.string.optional{type: 'text'}
-    #trip-within-area.results
+    #trip-within-area-results.dropdown{style: 'position:absolute; z-index:499'}
 .well#trip-within-area-display
 =f.simple_fields_for :trip_within_area do |r|
   =r.input :recipe,

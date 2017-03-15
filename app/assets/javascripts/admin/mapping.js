@@ -58,8 +58,9 @@ M.Recipe.prototype = {
   },
   _render: function(ul, item) {
     var markup = [
-      '<span>' + item.label + '</span>'
+      '<a>' + item.label + '</a>'
     ];
+    ul.addClass('dropdown-menu');
     return $('<li>')
       .append(markup.join(''))
       .appendTo(ul);

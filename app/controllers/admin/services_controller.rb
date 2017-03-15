@@ -19,6 +19,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def show
+    puts "SERVICE SHOW METHOD CALLED!", params[:term]
     respond_to do |format|
       format.html
       format.json do
