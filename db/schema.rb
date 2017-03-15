@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(version: 20170315135120) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -36,12 +37,18 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
   end
 
+# Could not dump table "cities" because of following StandardError
+#   Unknown type 'geometry' for column 'geom'
+
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string   "key"
     t.text     "value"
   end
+
+# Could not dump table "counties" because of following StandardError
+#   Unknown type 'geometry' for column 'geom'
 
   create_table "eligibilities", force: :cascade do |t|
     t.string   "code",       null: false
@@ -98,6 +105,9 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.datetime "updated_at", null: false
   end
 
+# Could not dump table "regions" because of following StandardError
+#   Unknown type 'geometry(MultiPolygon)' for column 'geom'
+
   create_table "roles", force: :cascade do |t|
     t.string   "name"
     t.string   "resource_type"
@@ -109,8 +119,8 @@ ActiveRecord::Schema.define(version: 20170315135120) do
   end
 
   create_table "services", force: :cascade do |t|
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
     t.string   "type"
     t.string   "name"
     t.string   "gtfs_agency_id"
@@ -118,8 +128,19 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.string   "email"
     t.string   "url"
     t.string   "phone"
+    t.integer  "start_or_end_area_id"
+    t.integer  "trip_within_area_id"
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
+    t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
+    t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
+  end
+
+  create_table "spatial_ref_sys", primary_key: "srid", id: :integer, force: :cascade do |t|
+    t.string  "auth_name", limit: 256
+    t.integer "auth_srid"
+    t.string  "srtext",    limit: 2048
+    t.string  "proj4text", limit: 2048
   end
 
   create_table "translation_keys", force: :cascade do |t|
@@ -203,8 +224,13 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.decimal  "lng",           precision: 10, scale: 6
   end
 
+# Could not dump table "zipcodes" because of following StandardError
+#   Unknown type 'geometry' for column 'geom'
+
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "services", "regions", column: "start_or_end_area_id"
+  add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"
