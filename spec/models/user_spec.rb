@@ -41,4 +41,32 @@ RSpec.describe User, type: :model do
   	expect(english_traveler.accommodations_hash.first[:note]).to eq('missing key wheelchair_note')
   end
 
+  it 'updates basic attributes' do 
+    params = {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en", preferred_trip_types: ['recumbent_bicycle', 'roller_blades']}
+    traveler.update_basic_attributes params
+    expect(traveler.email).to eq('gpburdell@email.com')
+    expect(traveler.first_name).to eq('George')
+    expect(traveler.last_name).to eq('Burdell')
+    expect(traveler.locale).to eq(Locale.find_by(name: "en"))
+    expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
+  end
+
+  it 'updates eligibilities' do 
+    params = {over_65: false, veteran: true}
+    traveler.update_eligibilities params
+    expect(traveler.eligibilities.count).to eq(2)
+    veteran = Eligibility.find_by(code: "veteran")
+    over_65 = Eligibility.find_by(code: "over_65")
+    expect(traveler.user_eligibilities.find_by(eligibility: veteran).value).to eq(true)
+    expect(traveler.user_eligibilities.find_by(eligibility: over_65).value).to eq(false)
+  end
+
+  it 'updates accommodations' do 
+    params = {wheelchair: true, jacuzzi: false}
+    traveler.update_accommodations params
+    expect(traveler.accommodations.count).to eq(1)
+    expect(traveler.accommodations.where(code: "wheelchair").count).to eq(1)
+    expect(traveler.accommodations.where(code: "jacuzzi").count).to eq(0)
+  end
+
 end
