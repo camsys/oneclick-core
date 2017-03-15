@@ -155,13 +155,6 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
   end
 
-  create_table "spatial_ref_sys", primary_key: "srid", id: :integer, force: :cascade do |t|
-    t.string  "auth_name", limit: 256
-    t.integer "auth_srid"
-    t.string  "srtext",    limit: 2048
-    t.string  "proj4text", limit: 2048
-  end
-
   create_table "translation_keys", force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
