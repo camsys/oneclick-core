@@ -23,12 +23,12 @@ class Service < ApplicationRecord
     ['Transit', 'Paratransit', 'Taxi']
   end
 
-
   ### Instance Methods ###
 
   def available_for?(trip)
     accommodates?(trip.user) &&
-    accepts_eligibility_of?(trip.user)
+    accepts_eligibility_of?(trip.user) &&
+    available_by_geography_for?(trip)
   end
 
   # Returns true if service accommodates all of the user's needs.
@@ -41,6 +41,11 @@ class Service < ApplicationRecord
   def accepts_eligibility_of?(user)
     return true if user.nil?
     (self.eligibilities.pluck(:code) - user.confirmed_eligibilities.pluck(:code)).empty?
+  end
+
+  # Returns true if trip falls within service coverage areas.
+  def available_by_geography_for?(trip)
+    true
   end
 
 end

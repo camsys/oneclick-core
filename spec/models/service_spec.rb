@@ -11,6 +11,14 @@ RSpec.describe Service, type: :model do
   let(:paratransit) { create(:paratransit_service)}
   let(:user) { create(:user) }
 
+  # For coverage area testing:
+  let(:trip_1) { create(:trip)} # Trip all in MA
+  let(:trip_2) { create(:trip, origin: create(:way_out_point)) } # One end in CA
+  let(:trip_3) { create(:trip, origin: create(:way_out_point), destination: create(:way_out_point_2)) } # Both ends in CA
+  let(:service_0) { create(:service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
+  let(:service_1) { create(:service, trip_within_area: nil) } # Only start/end area set
+  let(:service_2) { create(:service) } # Both coverage areas set
+
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
   let!(:wheelchair) { FactoryGirl.create :wheelchair }
@@ -78,5 +86,18 @@ RSpec.describe Service, type: :model do
     # The user should not be eligible
     expect(paratransit.accepts_eligibility_of?(user)).to be false
   end
+
+  it 'should be (un)available for trips based on geographic requirements' do
+    expect(service_0.available_by_geography_for?(trip_1)).to be true
+    expect(service_0.available_by_geography_for?(trip_2)).to be true
+    expect(service_0.available_by_geography_for?(trip_3)).to be true
+    expect(service_1.available_by_geography_for?(trip_1)).to be true
+    expect(service_1.available_by_geography_for?(trip_2)).to be true
+    expect(service_1.available_by_geography_for?(trip_3)).to be false
+    expect(service_2.available_by_geography_for?(trip_1)).to be true
+    expect(service_2.available_by_geography_for?(trip_2)).to be false
+    expect(service_2.available_by_geography_for?(trip_3)).to be false
+  end
+
 
 end

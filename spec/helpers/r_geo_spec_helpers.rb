@@ -9,7 +9,7 @@ module RGeoSpecHelpers
     end
 
     def points(offset=[0,0])
-      lat, lng = 40 + offset[0], -80 + offset[1]
+      lat, lng = 42.393936 + offset[0], -71.144578 + offset[1]
       [
         point(lat + 1, lng + 1),
         point(lat - 1, lng + 1),
