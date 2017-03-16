@@ -28,4 +28,8 @@
     @include ingredient-label(khaki);
   }
 
+  &.CustomGeography {
+    @include ingredient-label(thistle);
+  }
+
 }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170315135120) do
+ActiveRecord::Schema.define(version: 20170316170409) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -62,6 +62,15 @@ ActiveRecord::Schema.define(version: 20170315135120) do
     t.datetime "updated_at",                                       null: false
     t.index ["geom"], name: "index_counties_on_geom", using: :gist
     t.index ["name", "state"], name: "index_counties_on_name_and_state", using: :btree
+  end
+
+  create_table "custom_geographies", force: :cascade do |t|
+    t.string   "name"
+    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
+    t.datetime "created_at",                                       null: false
+    t.datetime "updated_at",                                       null: false
+    t.index ["geom"], name: "index_custom_geographies_on_geom", using: :gist
+    t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
 
   create_table "eligibilities", force: :cascade do |t|

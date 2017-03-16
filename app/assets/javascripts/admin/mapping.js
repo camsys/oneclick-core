@@ -49,7 +49,6 @@ M.Recipe.prototype = {
         source: this._searchPath,
         appendTo: this._results,
         select: $.proxy(this._select, this),
-        autoFocus: true,
         focus: function(e, ui) {
           this.value = ui.item.label;
           e.preventDefault();

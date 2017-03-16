@@ -26,7 +26,8 @@ class Admin::ServicesController < Admin::AdminController
         @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
         @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
         @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        json_response = @counties + @zipcodes + @cities
+        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        json_response = @counties + @zipcodes + @cities + @custom_geographies
         render json: json_response
       end
     end

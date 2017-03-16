@@ -4,6 +4,7 @@ class Admin::GeographiesController < Admin::AdminController
     @counties = County.all.order(:state, :name)
     @cities = City.all.order(:state, :name)
     @zipcodes = Zipcode.all.order(:name)
+    @custom_geographies = CustomGeography.all.order(:name)
   end
 
   def upload_counties
@@ -24,6 +25,15 @@ class Admin::GeographiesController < Admin::AdminController
     uploader = ShapefileUploader.new(params[:geographies][:file],
       geo_type: :zipcode,
       column_mappings: {name: 'ZCTA5CE10'})
+    uploader.load
+    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
+    redirect_to admin_geographies_path
+  end
+
+  def upload_custom_geographies
+    uploader = ShapefileUploader.new(params[:geographies][:file],
+      geo_type: :custom_geography,
+      column_mappings: {name: 'NAME'})
     uploader.load
     flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
     redirect_to admin_geographies_path

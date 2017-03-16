@@ -35,4 +35,10 @@ FactoryGirl.define do
     geom RGeoSpecHelper.new.multi_polygon([1,-1])
     initialize_with { County.find_or_create_by(name: name, state: state)}
   end
+
+  factory :custom_geography, class: 'CustomGeography' do
+    name "Custom Geo"
+    geom RGeoSpecHelper.new.multi_polygon([0,-1])
+    initialize_with { CustomGeography.find_or_create_by(name: name)}
+  end
 end
