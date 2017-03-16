@@ -22,13 +22,13 @@ RSpec.describe TripPlanner do
   end
 
   it 'builds transit itineraries' do
-    itins = trip_planner.transit_itineraries
+    itins = trip_planner.build_transit_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
   end
 
   it 'builds paratransit itineraries' do
-    itins = trip_planner.paratransit_itineraries
+    itins = trip_planner.build_paratransit_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
   end

@@ -16,5 +16,7 @@ admin = User.where(email: 'admin@oneclick.com').first_or_create do |user|
   puts 'password: '+ 'welcome1'
 end
 
+Config.find_or_create_by(key: "open_trip_planner")
+
 ## Add Translations
 Rake::Task['simple_translation_engine:update'].invoke

@@ -28,7 +28,7 @@ module Api
         # Hash of options parameters sent
         options = {
           user_profile: params[:user_profile],
-          modes: params['modes'] || ['transit', 'paratransit', 'taxi', 'ride_hailing'],
+          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
           purpose: params[:trip_purpose],
           trip_token: params[:trip_token],
           optimize: params[:optimize],
@@ -63,6 +63,11 @@ module Api
 
       def place_attributes
         [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
+      end
+
+      # Removes "mode_" from the start of mode code string
+      def demodeify(string)
+        string.sub("mode_", "")
       end
 
     end

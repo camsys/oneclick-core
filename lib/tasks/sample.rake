@@ -70,9 +70,14 @@ namespace :db do
       paratransit_service.save
     end
 
+    desc "Set Default Config Values"
+    task config: :environment do
+      Config.find_or_create_by(key: "open_trip_planner").update_attributes(value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default")
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services]
+                :services, :config]
 
   end
 end
