@@ -33,6 +33,7 @@ module LeafletAmbassador
     def make_attribute_mappable(attr)
 
       define_method("#{attr}_to_array") do
+        return [] unless self.send(attr)
         self.send(attr).map do |polygon|
           unpack_polygon(polygon)
         end

@@ -27,12 +27,14 @@ module GeoKitchen
     def initialize(ingredients=[])
       @ingredients = ingredients.select {|i| i.is_a?(GeoIngredient)}
       @errors = []
+      @factory = RGeo::Geos::CAPIFactory.new
       invalid_count = ingredients.length - @ingredients.length
       @errors << "#{invalid_count} arguments were not GeoIngredients" if invalid_count > 0
     end
 
     # Combine all the ingredients' geometries into a single unified geom, cast as a multipolygon
     def make
+      puts "MAKING, ", @ingredients.ai
       output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom
@@ -41,7 +43,8 @@ module GeoKitchen
           @errors << "#{ingredient.to_s} could not be converted to a geometry."
           nil
         end
-      end.compact.reduce {|combined_area, geom| combined_area.union(geom)}
+      end.compact.reduce(@factory.multi_polygon([])) {|combined_area, geom| combined_area.union(geom)}
+      puts output_geom.ai
       RGeo::Feature.cast(output_geom, RGeo::Feature::MultiPolygon)
     end
 

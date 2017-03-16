@@ -13,8 +13,8 @@ var M = {
   // Draw service areas onto the map
   drawMaps: function(layers) {
     layers.forEach(function(layer, i) {
-      var poly = L.polygon(layer, {color: M.colors[i]}).addTo(map);
-      if(i == 0) {
+      if(layer != null && layer.length > 0) {
+        var poly = L.polygon(layer, {color: M.colors[i]}).addTo(map);
         map.fitBounds(poly.getBounds());
       }
     });
@@ -38,6 +38,7 @@ var M = {
 
 }
 
+// Creates a jQuery autocomplete widget for searching GeoIngredients and adding them to the GeoRecipe
 M.Recipe.prototype = {
   _init: function() {
     this._display.append("");
@@ -47,7 +48,12 @@ M.Recipe.prototype = {
       .autocomplete({
         source: this._searchPath,
         appendTo: this._results,
-        select: $.proxy(this._select, this)
+        select: $.proxy(this._select, this),
+        autoFocus: true,
+        focus: function(e, ui) {
+          this.value = ui.item.label;
+          e.preventDefault();
+        }
       })
       .autocomplete('instance')._renderItem = $.proxy(this._render, this);
   },
