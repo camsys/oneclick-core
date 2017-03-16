@@ -6,6 +6,7 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
+        puts "CREATING TRIP..."
 
         # Create an array of strong trip parameters based on itinerary_request sent
         trips_request = params[:itinerary_request] || []
@@ -28,7 +29,7 @@ module Api
         # Hash of options parameters sent
         options = {
           user_profile: params[:user_profile],
-          modes: params['modes'] || ['transit', 'paratransit', 'taxi', 'ride_hailing'],
+          modes: params['modes'].map{|m| demodeify(m) } || ['transit', 'paratransit', 'taxi', 'ride_hailing'],
           purpose: params[:trip_purpose],
           trip_token: params[:trip_token],
           optimize: params[:optimize],
@@ -40,7 +41,9 @@ module Api
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
+        puts "TRIPS CREATED!", @trips.ai
         @trips.each do |trip|
+          puts "PLANNING TRIP #{trip.id}"
           TripPlanner.new(trip, options).plan
         end
 
@@ -63,6 +66,11 @@ module Api
 
       def place_attributes
         [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
+      end
+
+      # Removes "mode_" from the start of mode code string
+      def demodeify(string)
+        string.sub("mode_", "")
       end
 
     end

@@ -11,7 +11,7 @@ class TripPlanner
   def initialize(trip, options={})
     @trip = trip
     @options = options
-    @modes = options[:modes]
+    @modes = options[:modes] || ['transit', 'paratransit']
     @router = options[:router] || OTPAmbassador.new(@trip)
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
