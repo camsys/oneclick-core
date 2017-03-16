@@ -51,6 +51,10 @@ RSpec.configure do |config|
     FactoryGirl.reload
   end
 
+  config.before(:suite) do
+    Rails.application.load_seed # loading seeds
+  end
+
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.
 =begin
