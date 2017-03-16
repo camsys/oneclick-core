@@ -27,7 +27,7 @@ RSpec.describe Admin::ConfigsController, type: :controller do
     expect(response).to have_http_status(302)
 
     # Confirm that the variable was NOT set
-    expect(Config.find_by(key: "open_trip_planner")).to eq(nil)
+    expect(Config.find_by(key: "open_trip_planner").value).not_to eq('http://otp-BAD-url.com')
   end
-  
+
 end
