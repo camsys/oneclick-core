@@ -1,5 +1,7 @@
 class Admin::ServicesController < Admin::AdminController
 
+  include GeoKitchen
+
   before_action :find_service, except: [:create, :index]
 
   def index
@@ -16,8 +18,19 @@ class Admin::ServicesController < Admin::AdminController
   	redirect_to admin_service_path(@service)
   end
 
+  # If JSON is requested, search geography tables based on passed param
   def show
-    @service
+    respond_to do |format|
+      format.html
+      format.json do
+        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        json_response = @counties + @zipcodes + @cities + @custom_geographies
+        render json: json_response
+      end
+    end
   end
 
   def update
@@ -58,7 +71,12 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def paratransit_params
-    [{accommodation_ids: []}, {eligibility_ids: []}]
+    [
+      {accommodation_ids: []},
+      {eligibility_ids: []},
+      start_or_end_area_attributes: [:recipe],
+      trip_within_area_attributes: [:recipe]
+    ]
   end
 
   def taxi_params

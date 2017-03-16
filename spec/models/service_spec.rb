@@ -10,7 +10,15 @@ RSpec.describe Service, type: :model do
   let(:transit) { create(:transit_service)}
   let(:paratransit) { create(:paratransit_service)}
   let(:user) { create(:user) }
-  
+
+  # For coverage area testing:
+  let(:trip_1) { create(:trip)} # Trip all in MA
+  let(:trip_2) { create(:trip, origin: create(:way_out_point)) } # One end in CA
+  let(:trip_3) { create(:trip, origin: create(:way_out_point), destination: create(:way_out_point_2)) } # Both ends in CA
+  let(:service_0) { create(:service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
+  let(:service_1) { create(:service, trip_within_area: nil) } # Only start/end area set
+  let(:service_2) { create(:service) } # Both coverage areas set
+
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
   let!(:wheelchair) { FactoryGirl.create :wheelchair }
@@ -36,14 +44,14 @@ RSpec.describe Service, type: :model do
   it 'should be available to users if it has all necessary accommodations' do
     # Make the paratransit service accommodating
     paratransit.accommodations += [jacuzzi, wheelchair]
-    
+
     # The user needs no accommodations
     expect(paratransit.accommodates?(user)).to be true
 
     # Make the user need accommodations
     user.accommodations += [jacuzzi, wheelchair]
 
-    # The service should still be accommodating 
+    # The service should still be accommodating
     expect(paratransit.accommodates?(user)).to be true
   end
 
@@ -53,7 +61,7 @@ RSpec.describe Service, type: :model do
 
     # Make the user need accommodations
     user.accommodations += [jacuzzi, wheelchair]
-    
+
     # This service does not provide the above accommodations
     expect(paratransit.accommodates?(user)).to be false
   end
@@ -61,8 +69,8 @@ RSpec.describe Service, type: :model do
   it 'should be available to users that meet all eligibility requirements' do
     # Make the paratransit service strict
     paratransit.eligibilities << eligibility
-    
-    # Make the user eligible 
+
+    # Make the user eligible
     ue = UserEligibility.where(user: user, eligibility: eligibility).first_or_create
     ue.value = true
     ue.save
@@ -78,5 +86,18 @@ RSpec.describe Service, type: :model do
     # The user should not be eligible
     expect(paratransit.accepts_eligibility_of?(user)).to be false
   end
+
+  it 'should be (un)available for trips based on geographic requirements' do
+    expect(service_0.available_by_geography_for?(trip_1)).to be true
+    expect(service_0.available_by_geography_for?(trip_2)).to be true
+    expect(service_0.available_by_geography_for?(trip_3)).to be true
+    expect(service_1.available_by_geography_for?(trip_1)).to be true
+    expect(service_1.available_by_geography_for?(trip_2)).to be true
+    expect(service_1.available_by_geography_for?(trip_3)).to be false
+    expect(service_2.available_by_geography_for?(trip_1)).to be true
+    expect(service_2.available_by_geography_for?(trip_2)).to be false
+    expect(service_2.available_by_geography_for?(trip_3)).to be false
+  end
+
 
 end

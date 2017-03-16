@@ -37,6 +37,7 @@ gem 'haml-rails'
 gem 'simple_form'
 gem 'bootstrap-sass', '~> 3.2.0'
 gem 'autoprefixer-rails'
+gem 'jquery-ui-rails'
 ######################
 
 ### API & SERIALIZING ###
@@ -63,6 +64,15 @@ gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
 gem 'fog'
 ###################
+
+### GEOSPATIAL ###
+gem 'rgeo'
+gem 'activerecord-postgis-adapter'
+gem 'rgeo-shapefile'
+gem 'dbf'
+gem 'rubyzip' # For unzipping shapefiles
+gem 'leaflet-rails' # For embedding maps
+##################
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

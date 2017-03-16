@@ -1,41 +1,10 @@
 =content_for :title do
   Landmarks
-%table.table
-  %tr
-    %th
-      Name
-    %th
-      Street Number
-    %th
-      Route
-    %th
-      City
-    %th
-      State
-    %th
-      Zip
-    %th
-      Lat
-    %th
-      Lng
-  -@landmarks.each do |landmark|
-    %tr
-      %td
-        =landmark.name
-      %td
-        =landmark.street_number
-      %td
-        =landmark.route
-      %td
-        =landmark.city
-      %td
-        =landmark.state
-      %td
-        =landmark.zip
-      %td
-        =landmark.lat
-      %td
-        =landmark.lng
+
+=render partial: '/shared/record_table',
+  locals: { columns: [:name, :street_number, :route,
+                      :city, :state, :zip, :lat, :lng],
+            records: @landmarks}
 
 =simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
   =render partial: 'update_landmarks', layout: '/layouts/new_record_panel', locals: {f: f}

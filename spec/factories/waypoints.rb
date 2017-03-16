@@ -19,5 +19,27 @@ FactoryGirl.define do
       lng -71.144785
       name "Old Cambridge Systematics"
     end
+
+    factory :way_out_point do
+      street_number "555"
+      route "12th St"
+      city "Oakland"
+      state "CA"
+      zip "94607"
+      lat 37.803380
+      lng -122.275297
+      name "Cambridge Systematics Oakland Office"
+    end
+
+    factory :way_out_point_2 do
+      street_number "515"
+      route "S Figueroa St"
+      city "Los Angelese"
+      state "CA"
+      zip "90071"
+      lat 34.052191
+      lng -118.258469
+      name "Cambridge Systematics LA Office"
+    end
   end
 end

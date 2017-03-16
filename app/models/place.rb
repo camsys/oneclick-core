@@ -20,4 +20,9 @@ class Place < ApplicationRecord
     self.new(attrs_from_google_place(attrs))
   end
 
+  # Returns an RGeo point object based on lat and lng
+  def to_point
+    RGeo::Geographic.spherical_factory(:srid => 4326).point(lng, lat)
+  end
+
 end

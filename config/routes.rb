@@ -72,6 +72,12 @@ Rails.application.routes.draw do
     resources :purposes, :only => [:index, :destroy, :create]
     resources :services, :only => [:index, :destroy, :create, :show, :update]
 
+    get 'geographies' => 'geographies#index'
+    post 'counties' => 'geographies#upload_counties'
+    post 'cities' => 'geographies#upload_cities'
+    post 'zipcodes' => 'geographies#upload_zipcodes'
+    post 'custom_geographies' => 'geographies#upload_custom_geographies'
+
   end #Admin
 
   mount SimpleTranslationEngine::Engine => "/admin/simple_translation_engine"

@@ -10,7 +10,7 @@ class Admin::LandmarksController < Admin::AdminController
 
     landmark_file = params[:landmarks][:file] if params[:landmarks]
     if !landmark_file.nil?
-      reponse, message =  Landmark.update landmark_file
+      response, message =  Landmark.update landmark_file
       if response
         info_msgs << message
       else
@@ -21,7 +21,7 @@ class Admin::LandmarksController < Admin::AdminController
     end
 
     if error_msgs.size > 0
-      flash[:error] = error_msgs.join(' ')
+      flash[:danger] = error_msgs.join(' ')
     elsif info_msgs.size > 0
       flash[:success] = info_msgs.join(' ')
     end
