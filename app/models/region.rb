@@ -10,6 +10,12 @@ class Region < ApplicationRecord
   before_save :build_geometry_from_recipe
 
   ### Methods ###
+  def contains?(other_geom)
+    if(other_geom.is_a?(Place))
+      other_geom = other_geom.to_point
+    end
+    geom.contains?(other_geom)
+  end
 
   private
 

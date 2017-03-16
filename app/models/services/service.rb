@@ -45,7 +45,22 @@ class Service < ApplicationRecord
 
   # Returns true if trip falls within service coverage areas.
   def available_by_geography_for?(trip)
-    true
+    available_by_start_or_end_area_for?(trip) &&
+    available_by_trip_within_area_for?(trip)
+  end
+
+  # Returns true if trip origin OR destination are in start or end area, or area is not set
+  def available_by_start_or_end_area_for?(trip)
+    start_or_end_area.nil? ||
+    start_or_end_area.contains?(trip.origin) ||
+    start_or_end_area.contains?(trip.destination)
+  end
+
+  # Returns true if trip origin AND destination are in trip within area, or area is not set
+  def available_by_trip_within_area_for?(trip)
+    trip_within_area.nil? ||
+    (trip_within_area.contains?(trip.origin) &&
+    trip_within_area.contains?(trip.destination))
   end
 
 end
