@@ -4,6 +4,8 @@
 # APIs.
 
 class TripPlanner
+  # Constant list of trip types that can be planned.
+  TRIP_TYPES = [:transit, :paratransit]
 
   attr_reader :trip, :options, :router, :errors
 
@@ -11,7 +13,7 @@ class TripPlanner
   def initialize(trip, options={})
     @trip = trip
     @options = options
-    @modes = options[:modes] || ['transit', 'paratransit']
+    @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all if nil
     @router = options[:router] || OTPAmbassador.new(@trip)
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
@@ -19,14 +21,16 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    itineraries = []
-    itineraries += transit_itineraries if @modes.include?('transit')
-    itineraries += paratransit_itineraries if @modes.include?('paratransit')
-    @trip.itineraries += itineraries
+    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+  end
+
+  # Calls the requisite trip_type itineraries method
+  def build_itineraries(trip_type)
+    self.send("build_#{trip_type}_itineraries")
   end
 
   # Builds transit itineraries, using OTP by default
-  def transit_itineraries
+  def build_transit_itineraries
     response = @router.get_transit_itineraries
     if response[:error]
       @errors << response
@@ -39,7 +43,7 @@ class TripPlanner
   end
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
-  def paratransit_itineraries
+  def build_paratransit_itineraries
     Paratransit.available_for(@trip).map do |service|
       Itinerary.create(service: service, transit_time: @router.drive_time * @paratransit_drive_time_multiplier)
     end

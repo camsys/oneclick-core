@@ -6,7 +6,6 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
-        puts "CREATING TRIP..."
 
         # Create an array of strong trip parameters based on itinerary_request sent
         trips_request = params[:itinerary_request] || []
@@ -29,7 +28,7 @@ module Api
         # Hash of options parameters sent
         options = {
           user_profile: params[:user_profile],
-          modes: params['modes'].map{|m| demodeify(m) } || ['transit', 'paratransit', 'taxi', 'ride_hailing'],
+          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
           purpose: params[:trip_purpose],
           trip_token: params[:trip_token],
           optimize: params[:optimize],
@@ -41,9 +40,7 @@ module Api
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
-        puts "TRIPS CREATED!", @trips.ai
         @trips.each do |trip|
-          puts "PLANNING TRIP #{trip.id}"
           TripPlanner.new(trip, options).plan
         end
 
