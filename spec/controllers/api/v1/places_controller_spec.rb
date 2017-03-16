@@ -5,7 +5,7 @@ RSpec.describe Api::V1::PlacesController, type: :controller do
 
   it 'searches for cambridge systematics landmark' do
 
-    get :search, search_string: "%Cambridge%", format: :json
+    get :search, params: {search_string: "%Cambridge%"}, format: :json
 
     json = JSON.parse(response.body)
 
@@ -18,7 +18,7 @@ RSpec.describe Api::V1::PlacesController, type: :controller do
   end
 
   it 'searches for a landmark that does not exist' do
-    get :search, search_string: "%blah%", format: :json
+    get :search, params: {search_string: "%blah%"}, format: :json
 
     json = JSON.parse(response.body)
 
