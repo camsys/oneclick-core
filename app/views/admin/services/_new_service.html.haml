@@ -2,4 +2,4 @@
   = "Create a New Service"
 
 = f.input :name, required: true, :as => :string
-= f.input :type, required: true, collection: ['Transit', 'Paratransit'], include_blank: "Select a Service Type"
+= f.input :type, required: true, collection: Service::SERVICE_TYPES, include_blank: "Select a Service Type"
