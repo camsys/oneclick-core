@@ -4,6 +4,7 @@ RSpec.describe Admin::ConfigsController, type: :controller do
 
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }
+  let!(:config) { create :config, key: "open_trip_planner", value: nil }
 
   it 'sets the open_trip_planner config' do
     sign_in admin

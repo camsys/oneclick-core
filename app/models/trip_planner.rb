@@ -21,7 +21,6 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    @router.fetch_responses
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
   end
 

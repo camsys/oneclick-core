@@ -7,8 +7,8 @@ RSpec.describe TripPlanner do
   # Mock an OTP Ambassador with stubbed methods
   let(:otp) do
     double('otp',
-      get_transit_itineraries: {itineraries: [attributes_for(:transit_itinerary)]},
-      drive_time: attributes_for(:paratransit_itinerary)[:transit_time]
+      get_itineraries: {itineraries: [attributes_for(:transit_itinerary)]},
+      get_duration: attributes_for(:paratransit_itinerary)[:transit_time]
     )
   end
 
@@ -39,9 +39,9 @@ RSpec.describe TripPlanner do
     expect(trip_planner.trip.itineraries.count).to be > 0
   end
 
-  it 'paratransit itineraries have transit_time populated' do
+  it 'all itineraries have transit_time populated' do
     trip_planner.plan
-    expect(trip_planner.trip.itineraries[0].transit_time).to be_an(Integer)
+    expect(trip_planner.trip.itineraries.all? {|i| i.transit_time.is_a?(Integer)}).to be true
   end
 
 end

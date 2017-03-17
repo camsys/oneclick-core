@@ -17,6 +17,18 @@ class OTPAmbassador
     @responses = {}
   end
 
+  def get_itineraries(trip_type)
+    return errors(trip_type) if errors(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
+    return {itineraries: itineraries.map {|i| translate_itinerary(i)}}
+  end
+
+  def get_duration(trip_type)
+    return errors(trip_type) if errors(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
+    return itineraries[0]["duration"] if itineraries[0]
+  end
+
   # Makes calls to OTP based on trip types, unpacks and stores the responses.
   def fetch_responses
     requests = @request_types.map do |trip_type|
@@ -33,18 +45,15 @@ class OTPAmbassador
     return @responses
   end
 
-  def get_itineraries(trip_type)
-    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
-    return {itineraries: itineraries.map {|i| translate_itinerary(i)}}
-  end
-
-  def get_duration(trip_type)
-    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
-    return itineraries[0]["duration"] if itineraries[0]
-  end
-
   private
 
+  # Packages and returns any errors that came back with a given trip request
+  def errors(trip_type)
+    response_error = ensure_response(trip_type)["error"]
+    response_error.nil? ? nil : { error: response_error }
+  end
+
+  # Fetches responses if they haven't already been stored
   def ensure_response(trip_type)
     trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
     @responses[trip_type_label] || fetch_responses[trip_type_label]

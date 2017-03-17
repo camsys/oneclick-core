@@ -20,6 +20,8 @@ class Admin::ServicesController < Admin::AdminController
 
   # If JSON is requested, search geography tables based on passed param
   def show
+    @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
+
     respond_to do |format|
       format.html
       format.json do
