@@ -15,9 +15,9 @@ RSpec.describe Service, type: :model do
   let(:trip_1) { create(:trip)} # Trip all in MA
   let(:trip_2) { create(:trip, origin: create(:way_out_point)) } # One end in CA
   let(:trip_3) { create(:trip, origin: create(:way_out_point), destination: create(:way_out_point_2)) } # Both ends in CA
-  let(:service_0) { create(:service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
-  let(:service_1) { create(:service, trip_within_area: nil) } # Only start/end area set
-  let(:service_2) { create(:service) } # Both coverage areas set
+  let(:service_0) { create(:paratransit_service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
+  let(:service_1) { create(:paratransit_service, trip_within_area: nil) } # Only start/end area set
+  let(:service_2) { create(:paratransit_service) } # Both coverage areas set
 
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }

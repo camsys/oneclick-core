@@ -1,5 +1,7 @@
 FactoryGirl.define do
   factory :config do
+    initialize_with { Config.find_or_create_by(key: key) }
+
     key "test_config"
     value "test"
 

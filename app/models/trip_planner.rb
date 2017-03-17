@@ -7,14 +7,14 @@ class TripPlanner
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit]
 
-  attr_reader :trip, :options, :router, :errors
+  attr_reader :trip, :options, :router, :errors, :trip_types
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
     @trip = trip
     @options = options
-    @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all if nil
-    @router = options[:router] || OTPAmbassador.new(@trip)
+    @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
+    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types)
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
   end
@@ -31,7 +31,7 @@ class TripPlanner
 
   # Builds transit itineraries, using OTP by default
   def build_transit_itineraries
-    response = @router.get_transit_itineraries
+    response = @router.get_itineraries(:transit)
     if response[:error]
       @errors << response
       return []
@@ -45,7 +45,7 @@ class TripPlanner
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
     Paratransit.available_for(@trip).map do |service|
-      Itinerary.create(service: service, transit_time: @router.drive_time * @paratransit_drive_time_multiplier)
+      Itinerary.create(service: service, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
     end
   end
 
