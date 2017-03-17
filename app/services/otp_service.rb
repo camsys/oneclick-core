@@ -1,11 +1,31 @@
 # require 'json'
 # require 'net/http'
+# require 'eventmachine' # For multi_plan
+# require 'em-http' # For multi_plan
 
 class OTPService
   attr_accessor :base_url
 
   def initialize(base_url)
     @base_url = base_url
+  end
+
+  # Makes multiple OTP requests in parallel, and returns once they're all done.
+  # Send it a list or array of request hashes.
+  def multi_plan(*requests)
+    requests = requests.flatten
+    EM.run do
+      multi = EM::MultiRequest.new
+      requests.each_with_index do |request, i|
+        url = build_url(request[:from], request[:to], request[:trip_time], request[:arrive_by], request[:options] || {})
+        multi.add (request[:name] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
+      end
+
+      multi.callback do
+        EventMachine.stop
+        return multi.responses
+      end
+    end
   end
 
   ###
@@ -15,7 +35,21 @@ class OTPService
   # Accepts a hash of additional options, none of which are required to make the plan call run
   def plan(from, to, trip_datetime, arrive_by=true, options={})
 
+    url = build_url(from, to, trip_datetime, arrive_by, options)
+
+    begin
+      resp = Net::HTTP.get_response(URI.parse(url))
+    rescue Exception=>e
+      return {'id'=>500, 'msg'=>e.to_s}
+    end
+
+    return resp
+
+  end
+
+  def build_url(from, to, trip_datetime, arrive_by, options={})
     # Set Default Options
+    arrive_by = arrive_by.nil? ? true : arrive_by
     mode = options[:mode] || "TRANSIT,WALK"
     wheelchair = options[:wheelchair] || "false"
     walk_speed = options[:walk_speed] || 3.0 #walk_speed is defined in MPH and converted to m/s before going to OTP
@@ -82,14 +116,7 @@ class OTPService
 
     Rails.logger.info url
 
-    begin
-      resp = Net::HTTP.get_response(URI.parse(url))
-    rescue Exception=>e
-      return {'id'=>500, 'msg'=>e.to_s}
-    end
-
-    return resp
-
+    return url
   end
 
   def last_built
