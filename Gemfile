@@ -5,7 +5,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-### DEFAULT RAILS GEMS ###
+### DEFAULT RAILS GEMS ####################
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.1'
 # Use postgresql as the database for Active Record
@@ -29,50 +29,54 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
-##########################
+############################################
 
-### Internal Views ###
+### Internal Views #########################
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
 gem 'bootstrap-sass', '~> 3.2.0'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
-######################
+############################################
 
-### API & SERIALIZING ###
+### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
 gem 'active_model_serializers', '~> 0.10.0'
-#########################
+############################################
 
-### USER AUTH ###
+### USER AUTH ##############################
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 gem 'devise'
 gem 'simple_token_authentication', '~> 1.0' # For API Token Auth
 gem 'cancancan'
 gem 'rolify'
-#################
+############################################
 
-### i18n Tooles ###
+### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
-#################
+############################################
 
-### FILE UPLOAD ###
+### FILE UPLOAD ############################
 gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
 gem 'fog'
-###################
+############################################
 
-### GEOSPATIAL ###
+### GEOSPATIAL #############################
 gem 'rgeo'
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps
-##################
+############################################
+
+### ASYNCHRONOUS API CALLS (e.g. to OTP) ###
+gem 'em-http-request'
+############################################
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
