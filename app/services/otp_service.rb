@@ -18,7 +18,7 @@ class OTPService
       multi = EM::MultiRequest.new
       requests.each_with_index do |request, i|
         url = build_url(request[:from], request[:to], request[:trip_time], request[:arrive_by], request[:options] || {})
-        multi.add (request[:name] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
+        multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
       end
 
       multi.callback do

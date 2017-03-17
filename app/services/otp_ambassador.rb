@@ -1,55 +1,53 @@
 class OTPAmbassador
-  attr_reader :otp, :trip
+  attr_reader :otp, :trip, :trip_types, :responses
 
-  def initialize(trip)
+  # Translates 1-click trip_types into OTP mode requests
+  TRIP_TYPE_DICTIONARY = {
+    transit:      { label: :transit,  modes: "TRANSIT,WALK" },
+    paratransit:  { label: :drive,    modes: "CAR" },
+    taxi:         { label: :drive,    modes: "CAR" }
+  }
+
+  # Initialize with a trip and an array of trip types
+  def initialize(trip, trip_types)
     @trip = trip
+    @trip_types = trip_types
+    @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     @otp = OTPService.new(Config.open_trip_planner)
-    @drive_time = nil
+    @responses = {}
   end
 
-  # Plan a transit trip via OTP and send back itinerary hashes or errors
-  def get_transit_itineraries
-    response = plan(mode: "TRANSIT,WALK")
+  # Makes calls to OTP based on trip types, unpacks and stores the responses.
+  def fetch_responses
+    requests = @request_types.map do |trip_type|
+      {
+        from: [@trip.origin.lat, @trip.origin.lng],
+        to: [@trip.destination.lat, @trip.destination.lng],
+        trip_time: @trip.trip_time,
+        arrive_by: @trip.arrive_by,
+        label: trip_type[:label],
+        options: { mode: trip_type[:modes] }
+      }
+    end
+    @responses = unpack_otp_responses(@otp.multi_plan(requests))
+    return @responses
+  end
 
-    errors = otp_response_failure(response)
-    return errors if errors
-
-    response_body = JSON.parse(response.body)
-
-    itineraries = response_body["plan"]["itineraries"] || []
+  def get_itineraries(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
     return {itineraries: itineraries.map {|i| translate_itinerary(i)}}
   end
 
-  # Returns drive_time instance variable if already calculated, or makes a call
-  # to OTP to get it.
-  def drive_time
-    return @drive_time if @drive_time # Return @drive_time if it's already been calculated
-
-    response = plan(mode: "CAR")
-
-    errors = otp_response_failure(response)
-    return errors if errors
-
-    # Parse the response and pull out the duration to calculate drive time
-    response_body = JSON.parse(response.body)
-    itineraries = response_body["plan"]["itineraries"] || []
-    @drive_time = itineraries[0]["duration"] if itineraries[0]
-
-    return @drive_time
+  def get_duration(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
+    return itineraries[0]["duration"] if itineraries[0]
   end
 
   private
 
-  # Unpacks a trip and plans it via OTP
-  def plan(options={})
-    response = @otp.plan(
-      [@trip.origin.lat, @trip.origin.lng],
-      [@trip.destination.lat, @trip.destination.lng],
-      @trip.trip_time,
-      @trip.arrive_by,
-      options
-    )
-    return response
+  def ensure_response(trip_type)
+    trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
+    @responses[trip_type_label] || fetch_responses[trip_type_label]
   end
 
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
@@ -85,5 +83,13 @@ class OTPAmbassador
       return false
     end
   end
+
+  # Processes and unpacks an OTP multi_plan responses hash
+  def unpack_otp_responses(responses)
+    Hash[responses[:callback].map do |type, resp|
+      [type, JSON.parse(resp.response)]
+    end]
+  end
+
 
 end
