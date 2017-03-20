@@ -9,7 +9,12 @@ class TFFAmbassador
     @responses = {}
   end
 
-  def get_fare(trip, service)
+  def fare(trip, service)
+    fare to, from, city
+  end
+
+  def set_taxi_fares trip
+    
   end
 
 end
