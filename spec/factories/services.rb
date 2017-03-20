@@ -45,6 +45,12 @@ FactoryGirl.define do
       gtfs_agency_id "mbta"
     end
 
+    factory :taxi_service, parent: :service, class: 'Taxi' do 
+      name "Taxi Test Service"
+      type "Taxi"
+      taxi_fare_finder_id "Boston"
+    end
+
   end
 
 
