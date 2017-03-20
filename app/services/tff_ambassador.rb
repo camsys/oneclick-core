@@ -1,4 +1,5 @@
 class TFFAmbassador
+  attr_accessor :trip, :service
 
   # Initialize with a trip and an array of trip types
   def initialize(trip, service)
