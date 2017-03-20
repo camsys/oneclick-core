@@ -1,14 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
-  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id }
+  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
   it { should have_many(:itineraries) }
   it { should have_and_belong_to_many :accommodations }
   it { should have_and_belong_to_many :eligibilities }
 
-  let(:service) { create(:service)}
-  let(:transit) { create(:transit_service)}
-  let(:paratransit) { create(:paratransit_service)}
+  let(:service) { create(:service) }
+  let(:transit) { create(:transit_service) }
+  let(:paratransit) { create(:paratransit_service) }
+  let(:taxi) { create(:taxi_service) }
   let(:user) { create(:user) }
 
   # For coverage area testing:
@@ -39,6 +40,12 @@ RSpec.describe Service, type: :model do
   it 'paratransit service should be a Paratransit and have appropriate attributes' do
     expect(paratransit).to be
     expect(paratransit).to be_a(Paratransit)
+  end
+
+  it 'taxi service should be a Taxi and have approproate attributes' do 
+    expect(taxi).to be
+    expect(taxi).to be_a(Taxi)
+    expect(taxi.taxi_fare_finder_id).to be
   end
 
   it 'should be available to users if it has all necessary accommodations' do
