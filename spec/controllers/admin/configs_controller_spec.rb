@@ -18,6 +18,18 @@ RSpec.describe Admin::ConfigsController, type: :controller do
     expect(Config.find_by(key: "open_trip_planner").value).to eq('http://otp-url.com')
   end
 
+  it 'sets the tff_ppi_key config' do
+    sign_in admin
+    params = {config: {value: 'SECRETKEYS'}}
+    patch :set_tff_api_key, params: params, format: :js
+
+    # test for the 200 status-code
+    expect(response).to be_success
+
+    # Confirm that the variable was set correctly
+    expect(Config.find_by(key: "tff_api_key").value).to eq('SECRETKEYS')
+  end
+
   it 'prevents configs from being updated by a non-admin' do
     sign_in non_admin
 
