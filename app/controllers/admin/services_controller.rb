@@ -82,6 +82,8 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def taxi_params
-    []
+    [
+      {accommodation_ids: []}
+    ]
   end
 end
