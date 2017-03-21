@@ -16,9 +16,11 @@ class Service < ApplicationRecord
 
   ### Scopes ###
   scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
+  scope :transit_services, -> { where(type: "Transit") }
+  scope :paratransit_services, -> { where(type: "Paratransit") }
+  scope :taxi_services, -> { where(type: "Taxi") }
 
   ### Constants ###
-
   SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
 
   ### Instance Methods ###

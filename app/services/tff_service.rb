@@ -9,13 +9,13 @@ class TFFService
     @api_key = api_key
   end
 
-  def fare to, from, city
+  def fare city, to, from
     entity = '&entity_handle=' + city
     api_key = '?key=' + @api_key
     fare_options = "&origin=" + to[0].to_s + ',' + to[1].to_s + "&destination=" + from[0].to_s + ',' + from[1].to_s
 
     url = BASE_URL + 'fare' + api_key + entity + fare_options
-    Rails.logger.info "TripPlanner#get_taxi_itineraries-fare: url: #{url}"
+    Rails.logger.info "Calling Taxi Fare Finder: url: #{url}"
 
     resp = nil
     begin
@@ -30,12 +30,11 @@ class TFFService
     end
     body = JSON.parse(resp.body)
 
-    puts body.ai 
-    
     if body['status'] != 'OK'
       return {code: 500, status: body['status'], message: body['explanation']}
     else
       return {code: 200, status: "Success", fare: body['metered_fare']}
     end
   end
+
 end
