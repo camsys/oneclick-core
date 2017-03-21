@@ -22,7 +22,6 @@ module Api
       # FILL IN THESE METHODS AS NEEDED TO MAKE API WORK
       def accommodation_mismatch; false end
       def bookable; false end
-      def cost; nil end
       def cost_comments; nil end
       def count; nil end
       def date_mismatch; false end
