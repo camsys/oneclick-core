@@ -9,8 +9,6 @@ RSpec.describe Schedule, type: :model do
   let(:night_time_diff_day) { DateTime.new(2020,1,3,3,30) }
 
   it 'can include a time that falls within its day and time range' do
-    puts "TIME ZONE: ", Time.zone.to_s
-    puts "day_time_same_day", day_time_same_day
     expect(schedule.include?(day_time_same_day)).to be true
     expect(schedule.include?(night_time_same_day)).to be false
     expect(schedule.include?(day_time_diff_day)).to be false
