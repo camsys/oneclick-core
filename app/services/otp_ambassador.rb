@@ -5,7 +5,8 @@ class OTPAmbassador
   TRIP_TYPE_DICTIONARY = {
     transit:      { label: :transit,  modes: "TRANSIT,WALK" },
     paratransit:  { label: :drive,    modes: "CAR" },
-    taxi:         { label: :drive,    modes: "CAR" }
+    taxi:         { label: :drive,    modes: "CAR" },
+    drive:        { label: :drive,    modes: "CAR" }
   }
 
   # Initialize with a trip and an array of trip types

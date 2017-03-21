@@ -17,11 +17,11 @@ class TripPlanner
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types)
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
+    @tff_ambassador = TFFAmbassador.new(@trip)
   end
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    puts @trip_types.ai 
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
   end
 
@@ -53,7 +53,7 @@ class TripPlanner
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
     Taxi.available_for(@trip).map do |service|
-      Itinerary.create(service: service, transit_time: 5000)
+      Itinerary.create(service: service, cost: @tff_ambassador.fare(service), transit_time: @router.get_duration(:drive))
     end 
   end
 
