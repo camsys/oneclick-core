@@ -66,7 +66,7 @@ gem 'fog'
 ############################################
 
 ### GEOSPATIAL #############################
-gem 'rgeo'
+gem 'rgeo', '0.5.3'
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
 gem 'dbf'
