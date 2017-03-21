@@ -14,5 +14,10 @@ FactoryGirl.define do
       start_time 1    # 12:01am
       end_time 2      # 12:02am
     end
+
+    factory :midnight_schedule do
+      start_time 82800
+      end_time 86400
+    end
   end
 end
