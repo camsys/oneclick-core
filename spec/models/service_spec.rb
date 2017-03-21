@@ -51,7 +51,7 @@ RSpec.describe Service, type: :model do
     expect(paratransit).to be_a(Paratransit)
   end
 
-  it 'taxi service should be a Taxi and have approproate attributes' do 
+  it 'taxi service should be a Taxi and have appropriate attributes' do 
     expect(taxi).to be
     expect(taxi).to be_a(Taxi)
     expect(taxi.taxi_fare_finder_id).to be
