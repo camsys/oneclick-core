@@ -22,7 +22,6 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    puts @trip_types.ai 
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
   end
 
@@ -55,7 +54,7 @@ class TripPlanner
   def build_taxi_itineraries
     Taxi.available_for(@trip).map do |service|
       Itinerary.create(service: service, trip_type: :taxi, cost: @tff_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
-    end 
+    end
   end
 
 end
