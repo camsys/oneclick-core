@@ -18,6 +18,12 @@ class Paratransit < Service
     accepts_eligibility_of?(user)
   end
 
+  # Returns true if trip time falls within service's schedules, or
+  # if no schedules have been set for this service
+  def available_by_schedule_for?(trip)
+    schedules.empty? || available_by_schedule_for_trip_time?(trip)
+  end
+
 end
 
 

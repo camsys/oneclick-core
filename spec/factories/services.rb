@@ -37,6 +37,19 @@ FactoryGirl.define do
           s.eligibilities << create(:eligibility)
         end
       end
+
+      trait :with_schedules do
+        after(:create) do |s|
+          (1..5).each { |i| s.schedules << FactoryGirl.create(:schedule, day: i) }
+        end
+      end
+
+      trait :with_micro_schedules do
+        after(:create) do |s|
+          s.schedules << FactoryGirl.create(:micro_schedule)
+        end
+      end
+
     end
 
     factory :transit_service, parent: :service, class: 'Transit' do
