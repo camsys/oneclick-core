@@ -343,7 +343,7 @@ GEM
       trollop (~> 2.1)
     responders (2.3.0)
       railties (>= 4.2.0, < 5.1)
-    rgeo (0.5.3)
+    rgeo (0.6.0)
     rgeo-activerecord (5.0.1)
       activerecord (~> 5.0.0)
       rgeo (~> 0.3)
@@ -452,7 +452,7 @@ DEPENDENCIES
   puma (~> 3.0)
   rails (~> 5.0.1)
   rails-i18n
-  rgeo (= 0.5.3)
+  rgeo
   rgeo-shapefile
   rolify
   rspec-rails (~> 3.5)
