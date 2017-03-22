@@ -17,7 +17,7 @@ class OTPService
     EM.run do
       multi = EM::MultiRequest.new
       requests.each_with_index do |request, i|
-        url = build_url(request[:from], request[:to], request[:trip_time], request[:arrive_by], request[:options] || {})
+        url = plan_url(request)
         multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
       end
 
@@ -26,6 +26,10 @@ class OTPService
         return multi.responses
       end
     end
+  end
+
+  def plan_url(request)
+    build_url(request[:from], request[:to], request[:trip_time], request[:arrive_by], request[:options] || {})
   end
 
   ###

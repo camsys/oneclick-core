@@ -9,12 +9,18 @@ class TFFService
     @api_key = api_key
   end
 
-  def fare city, to, from
+  # Returns a TFF url based on passed params
+  def fare_url(city, to, from)
     entity = '&entity_handle=' + city
     api_key = '?key=' + @api_key
     fare_options = "&origin=" + to[0].to_s + ',' + to[1].to_s + "&destination=" + from[0].to_s + ',' + from[1].to_s
 
-    url = BASE_URL + 'fare' + api_key + entity + fare_options
+    BASE_URL + 'fare' + api_key + entity + fare_options
+  end
+
+  def fare city, to, from
+    url = fare_url(city, to, from)
+
     Rails.logger.info "Calling Taxi Fare Finder: url: #{url}"
 
     resp = nil

@@ -14,17 +14,25 @@ class TFFAmbassador
   def fare service
     city = service.taxi_fare_finder_id
     return @fares[city] if @fares[city]
-    
+
     to = [@trip.destination.lat, @trip.destination.lng]
     from = [@trip.origin.lat, @trip.origin.lng]
 
     fare = retrieve_fare(city, to, from)
     @fares[city] = fare
-    return fare 
+    return fare
+  end
+
+  # Gets a fare request url
+  def get_request_url(service)
+    city = service.taxi_fare_finder_id
+    to = [@trip.destination.lat, @trip.destination.lng]
+    from = [@trip.origin.lat, @trip.origin.lng]
+    @tff.fare_url(city, to, from)
   end
 
   # Get Fare from TFF.
-  def retrieve_fare city, to, from 
+  def retrieve_fare city, to, from
     response = @tff.fare(city, to, from)
     if response[:code] == 200
       return response[:fare]
@@ -38,7 +46,7 @@ class TFFAmbassador
   def set_taxi_fares
     @trip.itineraries.taxi_itineraries.each do |itin|
       itin.cost = fare(itin.service)
-      itin.save 
+      itin.save
     end
   end
 

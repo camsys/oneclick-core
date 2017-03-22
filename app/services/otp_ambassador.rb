@@ -9,12 +9,20 @@ class OTPAmbassador
   }
 
   # Initialize with a trip and an array of trip types
-  def initialize(trip, trip_types)
+  def initialize(trip, trip_types, http_request_bundler)
     @trip = trip
     @trip_types = trip_types
+    @http_request_bundler = http_request_bundler
     @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     @otp = OTPService.new(Config.open_trip_planner)
     @responses = {}
+
+    # add http calls to bundler based on trip and modes
+    prepare_http_requests
+  end
+
+  def prepare_http_requests
+    # @request_types.each
   end
 
   def get_itineraries(trip_type)
@@ -29,23 +37,32 @@ class OTPAmbassador
     return itineraries[0]["duration"] if itineraries[0]
   end
 
+  def get_request_url(request_type)
+    @otp.plan_url(format_trip_as_otp_request(request_type))
+  end
+
   # Makes calls to OTP based on trip types, unpacks and stores the responses.
   def fetch_responses
-    requests = @request_types.map do |trip_type|
-      {
-        from: [@trip.origin.lat, @trip.origin.lng],
-        to: [@trip.destination.lat, @trip.destination.lng],
-        trip_time: @trip.trip_time,
-        arrive_by: @trip.arrive_by,
-        label: trip_type[:label],
-        options: { mode: trip_type[:modes] }
-      }
+    requests = @request_types.map do |request_type|
+      format_trip_as_otp_request(request_type)
     end
     @responses = unpack_otp_responses(@otp.multi_plan(requests))
     return @responses
   end
 
   private
+
+  # Formats the trip as an OTP request based on trip_type
+  def format_trip_as_otp_request(trip_type)
+    {
+      from: [@trip.origin.lat, @trip.origin.lng],
+      to: [@trip.destination.lat, @trip.destination.lng],
+      trip_time: @trip.trip_time,
+      arrive_by: @trip.arrive_by,
+      label: trip_type[:label],
+      options: { mode: trip_type[:modes] }
+    }
+  end
 
   # Packages and returns any errors that came back with a given trip request
   def errors(trip_type)

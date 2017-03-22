@@ -7,22 +7,38 @@ class TripPlanner
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi]
 
-  attr_reader :trip, :options, :router, :errors, :trip_types
+  attr_reader :trip, :options, :router, :errors, :trip_types, :available_services
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
-    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types)
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
-    @tff_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip)
+    @available_services = identify_available_services
+
+    # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
+    @http_request_bundler = HTTPRequestBundler.new
+
+    # External API Ambassadors
+    @router = OTPAmbassador.new(@trip, @trip_types, @available_services, @http_request_bundler)
+    @tff_ambassador = TFFAmbassador.new(@trip)
+
   end
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
+
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+  end
+
+  def identify_available_services
+    @trip_types.map {|tt| [tt, get_available_services(tt)]}.to_h
+  end
+
+  def get_available_services(trip_type)
+    trip_type.to_s.classify.constantize.available_for(@trip)
   end
 
   # Calls the requisite trip_type itineraries method
