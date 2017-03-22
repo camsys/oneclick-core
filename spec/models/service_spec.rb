@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Service, type: :model do
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
   it { should have_many(:itineraries) }
+  it { should have_many(:schedules) }
   it { should have_and_belong_to_many :accommodations }
   it { should have_and_belong_to_many :eligibilities }
 
@@ -19,6 +20,14 @@ RSpec.describe Service, type: :model do
   let(:service_0) { create(:paratransit_service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
   let(:service_1) { create(:paratransit_service, trip_within_area: nil) } # Only start/end area set
   let(:service_2) { create(:paratransit_service) } # Both coverage areas set
+
+  # For schedules testing:
+  let(:weekday_day_trip) { create(:trip, :weekday_day) }
+  let(:weekday_night_trip) { create(:trip, :weekday_night) }
+  let(:weekend_trip) { create(:trip, :weekend_day) }
+  let(:service_with_schedules) { create(:paratransit_service, :with_schedules) }
+  let(:service_without_schedules) { create(:paratransit_service) }
+  let(:service_with_micro_schedules) { create(:paratransit_service, :with_micro_schedules) }
 
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
@@ -42,7 +51,7 @@ RSpec.describe Service, type: :model do
     expect(paratransit).to be_a(Paratransit)
   end
 
-  it 'taxi service should be a Taxi and have approproate attributes' do 
+  it 'taxi service should be a Taxi and have appropriate attributes' do 
     expect(taxi).to be
     expect(taxi).to be_a(Taxi)
     expect(taxi.taxi_fare_finder_id).to be
@@ -104,6 +113,18 @@ RSpec.describe Service, type: :model do
     expect(service_2.available_by_geography_for?(trip_1)).to be true
     expect(service_2.available_by_geography_for?(trip_2)).to be false
     expect(service_2.available_by_geography_for?(trip_3)).to be false
+  end
+
+  it 'should be (un)available for trips based on schedule' do
+    expect(service_with_schedules.available_by_schedule_for?(weekday_day_trip)).to be true
+    expect(service_without_schedules.available_by_schedule_for?(weekday_day_trip)).to be true
+    expect(service_with_micro_schedules.available_by_schedule_for?(weekday_day_trip)).to be false
+    expect(service_with_schedules.available_by_schedule_for?(weekday_night_trip)).to be false
+    expect(service_without_schedules.available_by_schedule_for?(weekday_night_trip)).to be true
+    expect(service_with_micro_schedules.available_by_schedule_for?(weekday_night_trip)).to be false
+    expect(service_with_schedules.available_by_schedule_for?(weekend_trip)).to be false
+    expect(service_without_schedules.available_by_schedule_for?(weekend_trip)).to be true
+    expect(service_with_micro_schedules.available_by_schedule_for?(weekend_trip)).to be false
   end
 
 

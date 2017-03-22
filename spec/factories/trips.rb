@@ -3,7 +3,7 @@ FactoryGirl.define do
     user
     association :origin, factory: :waypoint_2
     association :destination, factory: :waypoint
-    trip_time DateTime.new(2020)
+    trip_time DateTime.new(2020, 7, 14, 14) # Tuesday, 10am EST
     arrive_by true
 
     factory :guest_trip do
@@ -15,6 +15,24 @@ FactoryGirl.define do
         create(:itinerary, trip: trip)
       end
     end
+
+    trait :weekday_day do
+      # puts "TIME ZONE: ", Time.zone.to_s
+      trip_time DateTime.new(2020, 7, 14, 17) # Tuesday, 12pm EST
+    end
+
+    trait :weekday_night do
+      trip_time DateTime.new(2020, 7, 15, 3, 30) # Tuesday, 11pm EST
+    end
+
+    trait :weekend_day do
+      trip_time DateTime.new(2020, 7, 12, 17) # Tuesday, 12pm EST
+    end
+
+    trait :weekend_night do
+      trip_time DateTime.new(2020, 7, 13, 3, 30) # Sunday, 11pm EST
+    end
+
 
   end
 end
