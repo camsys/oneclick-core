@@ -49,10 +49,9 @@ FactoryGirl.define do
       name "Taxi Test Service"
       type "Taxi"
       taxi_fare_finder_id "Boston"
+      trip_within_area nil 
     end
 
   end
-
-
 
 end

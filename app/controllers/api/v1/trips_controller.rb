@@ -6,7 +6,6 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
-
         # Create an array of strong trip parameters based on itinerary_request sent
         trips_request = params[:itinerary_request] || []
         trips_params = trips_request.map do |trip|
