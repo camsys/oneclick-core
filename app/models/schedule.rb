@@ -1,44 +1,18 @@
 class Schedule < ApplicationRecord
 
+  ### INCLUDES ###
+  include ScheduleHelper
+
   ### VALIDATIONS ###
-  validates_inclusion_of :day, in: 0..6 # 0 = Sunday .. 6 = Saturday
-  validates_inclusion_of :start_time, in: 0..86400 # seconds since midnight
-  validates_inclusion_of :end_time, in: 0..86400 # seconds since midnight
+  validates_inclusion_of :day, in: SUN..SAT # 0 = Sunday .. 6 = Saturday
+  validates_inclusion_of :start_time, in: 0..DAY_LENGTH # seconds since midnight
+  validates_inclusion_of :end_time, in: 0..DAY_LENGTH  # seconds since midnight
 
   ### ASSOCIATIONS ###
   belongs_to :service
 
   ### SCOPES ###
-  scope :by_day, -> (day_of_week=(0..6).to_a) { where(day: day_of_week) }
-
-  ### CLASS METHODS ###
-
-  # Splits schedules up if they pass over midnight, and creates valid schedules with the pieces
-  def self.create_valid(schedule_hashes)
-    schedule_hashes = [schedule_hashes] unless schedule_hashes.is_a?(Array)
-    valid_schedules = []
-    schedule_hashes.each do |s|
-      day, start_time, end_time = s[:day], s[:start_time], s[:end_time]
-
-      # Previous day schedule
-      if start_time < 0
-        prev_day_sched = { day: (day - 1) % 7, start_time: start_time + 86400, end_time: 86400 }
-        valid_schedules << prev_day_sched
-      end
-
-      # Current day schedule
-      current_day_sched = { day: day, start_time: [start_time, 0].max, end_time: [end_time, 86400].min }
-      valid_schedules << current_day_sched
-
-      # Next day schedule
-      if end_time > 86400
-        next_day_sched = { day: (day + 1) % 7, start_time: 0, end_time: end_time - 86400 }
-        valid_schedules << next_day_sched
-      end
-
-    end
-    return valid_schedules
-  end
+  scope :by_day, -> (day_of_week=(SUN..SAT).to_a) { where(day: day_of_week) }
 
   ### INSTANCE METHODS ###
 
@@ -48,8 +22,14 @@ class Schedule < ApplicationRecord
   end
 
   # Returns true if the start to end time range includes the passed time
-  def include?(time)
-    (time.wday == day) && to_range.include?(time.in_time_zone.seconds_since_midnight)
+  # Converts passed datetime to a time in seconds since midnight, and then shifts
+  # it to the schedule's weekday, both forward and backward. If either of these
+  # falls in the schedule's range, returns true.
+  def include?(datetime)
+    time_in_seconds = datetime.in_time_zone.seconds_since_midnight
+    time_on_schedule_day_fwd = time_in_seconds + (datetime.wday - self.day).wday * DAY_LENGTH
+    time_on_schedule_day_back = time_in_seconds + (self.day - datetime.wday).wday * DAY_LENGTH
+    to_range.include?(time_on_schedule_day_fwd) || to_range.include?(time_on_schedule_day_back)
   end
 
 end

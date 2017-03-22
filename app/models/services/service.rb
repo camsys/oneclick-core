@@ -74,7 +74,7 @@ class Service < ApplicationRecord
   # Return true if trip_time falls within set schedules
   def available_by_schedule_for_trip_time?(trip)
     wday = trip.trip_time.wday
-    schedules.by_day(wday).any? {|s| s.include?(trip.trip_time) }
+    schedules.any? {|s| s.include?(trip.trip_time) }
   end
 
   ### IMPLEMENTATION METHODS ###
