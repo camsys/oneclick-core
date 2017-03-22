@@ -15,7 +15,7 @@ module Api
                   :selected, :server_message, :server_status, :service_bookable,
                   :service_comments, :service_id, :service_name,
                   :start_location, :start_time, :time_mismatch, :too_early,
-                  :too_late, :transfers, :transit_time, :trip_part_id,
+                  :too_late, :transfers, :transit_time, :trip_part_id, :trip_type,
                   :url, :user_registered, :wait_time, :walk_distance, :walk_time
 
 
@@ -81,7 +81,7 @@ module Api
       end
 
       def returned_mode_code
-        (object.legs.nil? || object.legs.empty?) ? "mode_paratransit" : "mode_transit"
+        object.trip_type.nil? ? nil : "mode_#{object.trip_type.to_s}"
       end
 
       # Service fields

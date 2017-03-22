@@ -73,7 +73,8 @@ class OTPAmbassador
       transit_time: transit_time,
       walk_time: walk_time,
       cost: cost,
-      legs: legs
+      legs: legs,
+      trip_type: :transit #TODO: Make this smarter
     }
   end
 
