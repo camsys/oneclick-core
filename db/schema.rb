@@ -147,6 +147,17 @@ ActiveRecord::Schema.define(version: 20170321210839) do
     t.index ["name"], name: "index_roles_on_name", using: :btree
   end
 
+  create_table "schedules", force: :cascade do |t|
+    t.integer  "service_id"
+    t.integer  "day"
+    t.integer  "start_time"
+    t.integer  "end_time"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["day"], name: "index_schedules_on_day", using: :btree
+    t.index ["service_id"], name: "index_schedules_on_service_id", using: :btree
+  end
+
   create_table "services", force: :cascade do |t|
     t.datetime "created_at",           null: false
     t.datetime "updated_at",           null: false
@@ -258,6 +269,7 @@ ActiveRecord::Schema.define(version: 20170321210839) do
 
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "schedules", "services"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "trips", "users"
