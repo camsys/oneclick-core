@@ -2,6 +2,7 @@ FactoryGirl.define do
   factory :itinerary do
 
     factory :transit_itinerary do
+      trip { create(:trip) }
       cost 1.6
       walk_time 1246
       transit_time 3167

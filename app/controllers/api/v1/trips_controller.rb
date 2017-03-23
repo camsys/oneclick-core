@@ -1,8 +1,8 @@
 module Api
   module V1
     class TripsController < ApiController
-      skip_before_action :authenticate_user_from_token!
-      before_action :authenticate_user_if_token_present
+      skip_before_action :authenticate_user_from_token!, except: [:select, :cancel]
+      before_action :authenticate_user_if_token_present, except: [:select, :cancel] 
 
       # POST trips/, POST itineraries/plan
       def create
@@ -46,6 +46,38 @@ module Api
         if @trips
           render status: 200, json: @trips.first, include: ['*.*']
         end
+      end
+
+      def select
+        select_itineraries =  params[:select_itineraries] || []
+        #Get the itineraries
+        results = {}
+        select_itineraries.each do |itin|
+          itinerary = Itinerary.find_by(id: itin[:itinerary_id].to_i)
+          if @traveler.owns? itinerary
+            itinerary.select
+            results[itinerary.id] = true
+          else
+            results[itin[:itinerary_id]] = false
+          end
+        end
+        render status: 200, json: results
+      end
+
+      def cancel
+        bookingcancellation_request = params[:bookingcancellation_request] || []
+        # At the moment, this only handles unselecting itineraries.  True cancelling is not yet supported.
+        results = {}
+        bookingcancellation_request.each do |bc|
+          itinerary = Itinerary.find_by(id: bc[:itinerary_id].to_i)
+          if @traveler.owns? itinerary
+            itinerary.unselect
+            results[itinerary.id] = true
+          else
+            results[bc[:itinerary_id]] = false
+          end
+        end
+        render status: 200, json: results
       end
 
       private

@@ -32,6 +32,18 @@ class User < ApplicationRecord
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first 
   end
 
+  # Check to see if this user owns the object 
+  def owns? object
+    case object.class.name
+    when "Trip"
+      return self == object.user 
+    when "Itinerary"
+      return self == object.trip.user
+    else
+      return false
+    end
+  end
+
   ### Update Profle from API Call ###
   
   def update_profile params 

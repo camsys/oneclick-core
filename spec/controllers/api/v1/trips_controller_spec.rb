@@ -11,6 +11,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary)}
   let(:user) { trip.user }
+  let(:hacker) { create(:english_speaker) }
   let(:trip_planner) { TripPlanner.new(trip, trip_types: []) }
 
   let!(:eligibility) { FactoryGirl.create :eligibility }
@@ -71,6 +72,79 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(response_body["itineraries"]).to be
     expect(response_body["itineraries"].count).to be > 0
   end
+
+  it 'cannot select an itinerary because you are not logged in' do 
+    post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
+    expect(response).to have_http_status(302)
+  end
+
+  it 'cannot select an itinerary because you do not own the itinerary' do 
+    # Make sure that our itinerary has a trip
+    itinerary.trip = trip
+    itinerary.save 
+
+    sign_in hacker
+    request.headers['X-User-Token'] = hacker.authentication_token
+    request.headers['X-User-Email'] = hacker.email
+    post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
+    itinerary.reload 
+    expect(itinerary.selecting_trip).to eq(nil)
+  end
+
+  it 'selects an itinerary' do 
+    # Make sure that our itinerary has a trip and that our trip has a user
+    trip.user = user
+    trip.save
+    itinerary.trip = trip
+    itinerary.save 
+
+    sign_in user
+    request.headers['X-User-Token'] = user.authentication_token
+    request.headers['X-User-Email'] = user.email
+    post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
+    itinerary.reload 
+    expect(itinerary.selecting_trip).to eq(trip)
+  end
+
+  it 'cannot cancel an itinerary because you do not own the itinerary' do 
+    # Make sure that our itinerary has a trip
+    trip.user = user
+    trip.save
+    itinerary.trip = trip
+    itinerary.save 
+    itinerary.select 
+    itinerary.reload
+
+    expect(itinerary.selecting_trip).to eq(trip)
+
+    sign_in hacker
+    request.headers['X-User-Token'] = hacker.authentication_token
+    request.headers['X-User-Email'] = hacker.email
+    post :cancel, params: { "bookingcancellation_request": [ {"itinerary_id": itinerary.id} ] }
+    itinerary.reload 
+    expect(itinerary.selecting_trip).to eq(trip)
+  end
+
+  it 'cancels a trip' do 
+    # Make sure that our itinerary has a trip
+    trip.user = user
+    trip.save
+    itinerary.trip = trip
+    itinerary.save 
+    itinerary.select 
+    itinerary.reload
+
+    expect(itinerary.selecting_trip).to eq(trip)
+
+    sign_in user
+    request.headers['X-User-Token'] = user.authentication_token
+    request.headers['X-User-Email'] = user.email
+    post :cancel, params: { "bookingcancellation_request": [ {"itinerary_id": itinerary.id} ] }
+    itinerary.reload 
+    expect(itinerary.selecting_trip).to eq(nil)
+  end
+
+
 
   # it 'sends back itineraries for multiple trips' do
   #   # Stub out trip creation because itinerary planning happens in TripPlanner

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170321210839) do
+ActiveRecord::Schema.define(version: 20170323180806) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -192,15 +192,17 @@ ActiveRecord::Schema.define(version: 20170321210839) do
   end
 
   create_table "trips", force: :cascade do |t|
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
     t.datetime "trip_time"
     t.boolean  "arrive_by"
+    t.integer  "selected_itinerary_id"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
+    t.index ["selected_itinerary_id"], name: "index_trips_on_selected_itinerary_id", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
   end
 
@@ -272,6 +274,7 @@ ActiveRecord::Schema.define(version: 20170321210839) do
   add_foreign_key "schedules", "services"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
+  add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"
