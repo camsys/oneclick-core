@@ -10,4 +10,20 @@ RSpec.describe Itinerary, type: :model do
   it 'duration returns sum of walk and transit time' do
     expect(itinerary.duration).to eq(itinerary.transit_time + itinerary.walk_time)
   end
+
+  it 'selects itself' do
+    itinerary.select
+    expect(itinerary.selecting_trip).to eq(itinerary.trip)
+  end
+
+  it 'selects and unselects itself' do 
+    itinerary.select
+    expect(itinerary.selecting_trip).to eq(itinerary.trip)
+
+    itinerary.unselect
+    itinerary.reload
+    itinerary.trip.reload 
+    expect(itinerary.trip.selected_itinerary).to eq(nil)
+  end
+
 end
