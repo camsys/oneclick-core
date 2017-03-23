@@ -40,6 +40,8 @@ Rails.application.routes.draw do
       resources :trips, only: [:create]
 
       post 'itineraries/plan' => 'trips#create'
+      post 'itineraries/select' => 'trips#select'
+      post 'itineraries/cancel' => 'trips#cancel'
 
     end #v1
 
