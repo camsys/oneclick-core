@@ -13,7 +13,7 @@ class TFFAmbassador
     # add http calls to bundler based on services
     prepare_http_requests.each do |request|
       @http_request_bundler.add(request[:label], request[:url], request[:action])
-    end
+    end if @services
   end
 
   # Get the Fare for a Single Service.
@@ -36,7 +36,6 @@ class TFFAmbassador
 
   # Get fare from TFF response
   def retrieve_fare(city_label)
-    @http_request_bundler.make_calls unless @http_request_bundler.response(city_label)
     response = @tff.unpack_response(@http_request_bundler.response(city_label))
     if response[:code] == 200
       return response[:fare]

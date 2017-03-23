@@ -16,27 +16,20 @@ class TripPlanner
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
-    bm = Benchmark.measure do
-      @available_services = identify_available_services
-    end
-    puts "BENCHMARK AVAILABLE SERVICES", bm.real
+    @available_services = identify_available_services
 
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
-    @http_request_bundler = HTTPRequestBundler.new
+    @http_request_bundler = options[:http_bundler] || HTTPRequestBundler.new
 
     # External API Ambassadors
-    @router = OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
-    @tff_ambassador = @trip_types.include?(:taxi) ? TFFAmbassador.new(@trip, @available_services[:taxi], @http_request_bundler) : nil
-
+    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
+    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @available_services[:taxi], @http_request_bundler)
   end
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    bm = Benchmark.measure do
-      @http_request_bundler.make_calls # Make all the API calls at once
-    end
-    puts "BENCHMARK API CALLS", @tff_ambassador.nil?, bm.real
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+    @trip.save
   end
 
   def identify_available_services
@@ -59,7 +52,7 @@ class TripPlanner
       @errors << response
       return []
     elsif response[:itineraries]
-      return response[:itineraries].map {|i| Itinerary.create(i)}
+      return response[:itineraries].map {|i| Itinerary.new(i)}
     else
       return []
     end
@@ -67,15 +60,15 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
-    Paratransit.available_for(@trip).map do |service|
-      Itinerary.create(service: service, trip_type: :paratransit, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
+    @available_services[:paratransit].map do |service|
+      Itinerary.new(service: service, trip_type: :paratransit, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
     end
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
-    Taxi.available_for(@trip).map do |service|
-      Itinerary.create(service: service, trip_type: :taxi, cost: @tff_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
+    @available_services[:taxi].map do |service|
+      Itinerary.new(service: service, trip_type: :taxi, cost: @taxi_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
     end
   end
 

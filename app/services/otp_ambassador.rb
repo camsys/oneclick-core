@@ -1,5 +1,5 @@
 class OTPAmbassador
-  attr_reader :otp, :trip, :trip_types, :responses
+  attr_reader :otp, :trip, :trip_types, :responses, :http_request_bundler
 
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
@@ -66,14 +66,18 @@ class OTPAmbassador
 
   # Packages and returns any errors that came back with a given trip request
   def errors(trip_type)
-    response_error = ensure_response(trip_type) && ensure_response(trip_type)["error"]
+    response = ensure_response(trip_type)
+    if response
+      response_error = response["error"]
+    else
+      response_error = "No response for #{trip_type}."
+    end
     response_error.nil? ? nil : { error: response_error }
   end
 
   # Fetches responses if they haven't already been stored
   def ensure_response(trip_type)
     trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
-    @http_request_bundler.make_calls unless @http_request_bundler.response(trip_type_label)
     @http_request_bundler.response(trip_type_label)
   end
 

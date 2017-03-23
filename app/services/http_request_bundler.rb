@@ -6,7 +6,7 @@ class HTTPRequestBundler
 
   def initialize
     @requests = []
-    @responses = {successes: {}, errors: {}}
+    @responses = nil
   end
 
   # Add an HTTP request to the bundler, for later processing
@@ -20,11 +20,14 @@ class HTTPRequestBundler
 
   # Return the HTTP request response, based on the label used when passing in the request
   def response(label)
+    make_calls unless @responses
+    return nil unless @responses
     @responses[:successes][label] || @responses[:errors][label]
   end
 
   # Make all of the HTTP requests that have been added to the bundler
   def make_calls
+    return false if @requests.empty?
     EM.run do
       multi = EM::MultiRequest.new
       @requests.each_with_index do |request, i|
