@@ -11,7 +11,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary)}
   let(:user) { trip.user }
-  let(:trip_planner) { TripPlanner.new(trip) }
+  let(:trip_planner) { TripPlanner.new(trip, trip_types: []) }
 
   let!(:eligibility) { FactoryGirl.create :eligibility }
 

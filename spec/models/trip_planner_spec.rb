@@ -1,9 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe TripPlanner do
-  # before(:each) { Config.create(key: "open_trip_planner", value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default") unless Config.open_trip_planner}
+  before(:each) { create(:otp_config) }
+  before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
-  let!(:taxi) { FactoryGirl.create :taxi_service } 
+  let!(:taxi) { FactoryGirl.create :taxi_service }
+
+  # Mock an HTTP Request Bundler with stubbed methods
 
   # Mock an OTP Ambassador with stubbed methods
   let(:otp) do
