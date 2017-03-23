@@ -28,6 +28,7 @@ class OTPService
     end
   end
 
+  # Constructs an OTP request url
   def plan_url(request)
     build_url(request[:from], request[:to], request[:trip_time], request[:arrive_by], request[:options] || {})
   end

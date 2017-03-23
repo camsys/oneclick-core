@@ -2,13 +2,14 @@
 # asynchronously, and returns the categorized results in a useful way.
 
 class HTTPRequestBundler
-  attr_reader :responses
+  attr_reader :requests, :responses
 
   def initialize
     @requests = []
-    @responses = {successes: [], errors: []}
+    @responses = {successes: {}, errors: {}}
   end
 
+  # Add an HTTP request to the bundler, for later processing
   def add(label, url, action=:get)
     @requests << {
       label: label,
@@ -17,6 +18,12 @@ class HTTPRequestBundler
     }
   end
 
+  # Return the HTTP request response, based on the label used when passing in the request
+  def response(label)
+    @responses[:successes][label] || @responses[:errors][label]
+  end
+
+  # Make all of the HTTP requests that have been added to the bundler
   def make_calls
     EM.run do
       multi = EM::MultiRequest.new
@@ -26,11 +33,20 @@ class HTTPRequestBundler
 
       multi.callback do
         EventMachine.stop
-        @responses[:successes] = multi.responses[:callback]
-        @responses[:errors] = multi.responses[:errors]
+        @responses = parse_responses(multi.responses)
         return @responses
       end
     end
+  end
+
+  private
+
+  # Parses the response bodies and stores them in successes and errors hashes under @responses
+  def parse_responses(responses)
+    {
+      successes: responses[:callback].map {|k,v| [k, JSON.parse(v.response)]}.to_h,
+      errors: responses[:errback].map {|k,v| [k, JSON.parse(v.response)]}.to_h
+    }
   end
 
 end

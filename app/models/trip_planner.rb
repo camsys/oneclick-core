@@ -7,7 +7,7 @@ class TripPlanner
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi]
 
-  attr_reader :trip, :options, :router, :errors, :trip_types, :available_services
+  attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
@@ -16,20 +16,26 @@ class TripPlanner
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
-    @available_services = identify_available_services
+    bm = Benchmark.measure do
+      @available_services = identify_available_services
+    end
+    puts "BENCHMARK AVAILABLE SERVICES", bm.real
 
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = HTTPRequestBundler.new
 
     # External API Ambassadors
-    @router = OTPAmbassador.new(@trip, @trip_types, @available_services, @http_request_bundler)
-    @tff_ambassador = TFFAmbassador.new(@trip)
+    @router = OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
+    @tff_ambassador = @trip_types.include?(:taxi) ? TFFAmbassador.new(@trip, @available_services[:taxi], @http_request_bundler) : nil
 
   end
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-
+    bm = Benchmark.measure do
+      @http_request_bundler.make_calls # Make all the API calls at once
+    end
+    puts "BENCHMARK API CALLS", @tff_ambassador.nil?, bm.real
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
   end
 
