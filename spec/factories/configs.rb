@@ -19,5 +19,15 @@ FactoryGirl.define do
       key "num_config"
       value 3.1415
     end
+
+    factory :otp_config do
+      key "open_trip_planner"
+      value "http://otp-ma.camsys-apps.com:8080/otp/routers/default"
+    end
+
+    factory :tff_config do
+      key "tff_api_key"
+      value "test" #"SIefr5akieS5"
+    end
   end
 end
