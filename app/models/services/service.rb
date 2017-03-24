@@ -17,19 +17,28 @@ class Service < ApplicationRecord
 
   ### Scopes ###
   scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
-  scope :available_for_2, -> (trip) do
+  scope :available_for_sql, -> (trip) do
     available_for_user(trip.user)
     .available_by_geography_for(trip)
     .available_by_schedule_for(trip)
   end
+  scope :transit_services, -> { where(type: "Transit") }
+  scope :paratransit_services, -> { where(type: "Paratransit") }
+  scope :taxi_services, -> { where(type: "Taxi") }
 
+  # Secondary Scopes #
+  scope :available_for_user, -> (user) { user ? accepts_eligibility_of(user).accommodates(user) : all }
+  scope :available_by_geography_for, -> (trip) { all }
+  scope :available_by_schedule_for, -> (trip) { all }
+
+  # Tertiary Scopes #
   # available_for_user scopes
   scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
   scope :accommodates, -> (user) do
     if user.accommodations.empty?
       all
     else
-      user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+      where(id: accommodates_all_needs(user))
     end
   end
   scope :accepts_eligibility_of, -> (user) do
@@ -40,14 +49,8 @@ class Service < ApplicationRecord
   scope :available_by_trip_within_area_for, -> (trip) { all }
   scope :available_by_schedule_for, -> (trip) { all }
 
-  scope :transit_services, -> { where(type: "Transit") }
-  scope :paratransit_services, -> { where(type: "Paratransit") }
-  scope :taxi_services, -> { where(type: "Taxi") }
 
-  # SUBCLASS SCOPES
-  scope :available_for_user, -> (user) { all } # OVERWRITE IN SUBCLASS
-  scope :available_by_geography_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
-  scope :available_by_schedule_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
+
 
   #################
   # CLASS METHODS #
@@ -65,6 +68,10 @@ class Service < ApplicationRecord
     joins(:eligibilities).where(eligibilities: {code: user.eligibilities.pluck(:code)}).pluck(:id)
   end
 
+  # Returns IDs of Services that accommodate all of a user's needs
+  def self.accommodates_all_needs(user)
+    user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+  end
 
   ### Constants ###
   SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
@@ -128,7 +135,7 @@ class Service < ApplicationRecord
   # OVERWRITE
   # Returns true if user meets all accoomodation and eligibility requirements
   def available_for_user?(user)
-    true
+    accepts_eligibility_of?(user) && accommodates?(user)
   end
 
   # OVERWRITE

@@ -1,5 +1,7 @@
 class Paratransit < Service
 
+  ### INSTANCE METHODS ###
+
   # Build associated geographies
   def build_geographies
     build_start_or_end_area unless start_or_end_area
