@@ -17,9 +17,35 @@ class Service < ApplicationRecord
 
   ### Scopes ###
   scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
+  scope :available_for_2, -> (trip) do
+    available_for_user(trip.user)
+    .available_by_geography_for(trip)
+    .available_by_schedule_for(trip)
+  end
+
+  # available_for_user scopes
+  scope :accommodates, -> (user) do
+    if user.accommodations.empty?
+      all
+    else
+      user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+    end
+  end
+  scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
+
+  scope :accepts_eligibility_of, -> (user) { all }
+  scope :available_by_start_or_end_area_for, -> (trip) { all }
+  scope :available_by_trip_within_area_for, -> (trip) { all }
+  scope :available_by_schedule_for, -> (trip) { all }
+
   scope :transit_services, -> { where(type: "Transit") }
   scope :paratransit_services, -> { where(type: "Paratransit") }
   scope :taxi_services, -> { where(type: "Taxi") }
+
+  # SUBCLASS SCOPES
+  scope :available_for_user, -> (user) { all } # OVERWRITE IN SUBCLASS
+  scope :available_by_geography_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
+  scope :available_by_schedule_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
 
   ### Constants ###
   SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
