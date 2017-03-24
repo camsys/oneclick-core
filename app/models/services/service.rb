@@ -24,6 +24,7 @@ class Service < ApplicationRecord
   end
 
   # available_for_user scopes
+  scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
   scope :accommodates, -> (user) do
     if user.accommodations.empty?
       all
@@ -31,9 +32,10 @@ class Service < ApplicationRecord
       user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
     end
   end
-  scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
+  scope :accepts_eligibility_of, -> (user) do
+    where(id: no_eligibilities | with_met_eligibilities(user) )
+  end
 
-  scope :accepts_eligibility_of, -> (user) { all }
   scope :available_by_start_or_end_area_for, -> (trip) { all }
   scope :available_by_trip_within_area_for, -> (trip) { all }
   scope :available_by_schedule_for, -> (trip) { all }
@@ -46,6 +48,23 @@ class Service < ApplicationRecord
   scope :available_for_user, -> (user) { all } # OVERWRITE IN SUBCLASS
   scope :available_by_geography_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
   scope :available_by_schedule_for, -> (trip) { all } # OVERWRITE IN SUBCLASS
+
+  #################
+  # CLASS METHODS #
+  #################
+
+  ### SCOPE HELPER METHODS ###
+
+  # Returns IDs of Services with no eligibility requirements
+  def self.no_eligibilities
+    Eligibility.joins(:eligibilities_services).pluck(:service_id).uniq
+  end
+
+  # Returns IDs of Services with at least one eligibility requirement met by user
+  def self.with_met_eligibilities(user)
+    joins(:eligibilities).where(eligibilities: {code: user.eligibilities.pluck(:code)}).pluck(:id)
+  end
+
 
   ### Constants ###
   SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
