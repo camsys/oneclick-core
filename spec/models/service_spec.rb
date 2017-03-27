@@ -18,7 +18,8 @@ RSpec.describe Service, type: :model do
   let(:trip_2) { create(:trip, origin: create(:way_out_point)) } # One end in CA
   let(:trip_3) { create(:trip, origin: create(:way_out_point), destination: create(:way_out_point_2)) } # Both ends in CA
   let(:service_0) { create(:paratransit_service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
-  let(:service_1) { create(:paratransit_service, trip_within_area: nil) } # Only start/end area set
+  let(:service_1a) { create(:paratransit_service, trip_within_area: nil) } # Only start/end area set
+  let(:service_1b) { create(:paratransit_service, start_or_end_area: nil) } # Only trip_within_area area set
   let(:service_2) { create(:paratransit_service) } # Both coverage areas set
 
   # For schedules testing:
@@ -51,7 +52,7 @@ RSpec.describe Service, type: :model do
     expect(paratransit).to be_a(Paratransit)
   end
 
-  it 'taxi service should be a Taxi and have appropriate attributes' do 
+  it 'taxi service should be a Taxi and have appropriate attributes' do
     expect(taxi).to be
     expect(taxi).to be_a(Taxi)
     expect(taxi.taxi_fare_finder_id).to be
@@ -103,13 +104,27 @@ RSpec.describe Service, type: :model do
     expect(paratransit.accepts_eligibility_of?(user)).to be false
   end
 
-  it 'should be (un)available for trips based on geographic requirements' do
+  it 'services with no service areas should always be available' do
     expect(service_0.available_by_geography_for?(trip_1)).to be true
     expect(service_0.available_by_geography_for?(trip_2)).to be true
     expect(service_0.available_by_geography_for?(trip_3)).to be true
-    expect(service_1.available_by_geography_for?(trip_1)).to be true
-    expect(service_1.available_by_geography_for?(trip_2)).to be true
-    expect(service_1.available_by_geography_for?(trip_3)).to be false
+  end
+
+  # NOTE: Craziness--if you try calling these twice in the same spec, it breaks.
+  # seems to only be a problem in RSPEC...
+  it 'services should be (un)available by start_or_end_area' do
+    expect(service_1a.available_by_geography_for?(trip_1)).to be true
+    expect(service_1a.available_by_geography_for?(trip_2)).to be true
+    expect(service_1a.available_by_geography_for?(trip_3)).to be false
+  end
+
+  it 'services should be (un)available by trip_within_area' do
+    expect(service_1b.available_by_geography_for?(trip_1)).to be true
+    expect(service_1b.available_by_geography_for?(trip_2)).to be false
+    expect(service_1b.available_by_geography_for?(trip_3)).to be false
+  end
+
+  it 'services should be (un)available by both start_or_end_area and trip_within_area' do
     expect(service_2.available_by_geography_for?(trip_1)).to be true
     expect(service_2.available_by_geography_for?(trip_2)).to be false
     expect(service_2.available_by_geography_for?(trip_3)).to be false
