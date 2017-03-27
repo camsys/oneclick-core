@@ -2,6 +2,7 @@ class Service < ApplicationRecord
 
   ### Includes ###
   mount_uploader :logo, LogoUploader
+  include ScheduleHelper
 
   ### Associations ###
   has_many :itineraries
@@ -16,11 +17,11 @@ class Service < ApplicationRecord
   validates_presence_of :name, :type
 
   ### Scopes ###
-  scope :available_for, -> (trip) { self.select {|service| service.available_for?(trip)} }
-  scope :available_for_sql, -> (trip) do
-    available_for_user(trip.user)
-    .available_by_geography_for(trip)
-    .available_by_schedule_for(trip)
+  scope :available_for_rb, -> (trip) { self.select {|service| service.available_for?(trip)} }
+  scope :available_for, -> (trip) do
+    available_by_geography_for(trip)
+    .available_for_user(trip.user)
+    .available_by_time_for(trip)
   end
   scope :transit_services, -> { where(type: "Transit") }
   scope :paratransit_services, -> { where(type: "Paratransit") }
@@ -28,10 +29,14 @@ class Service < ApplicationRecord
 
   # Secondary Scopes #
   scope :available_for_user, -> (user) { user ? accepts_eligibility_of(user).accommodates(user) : all }
-  scope :available_by_geography_for, -> (trip) { all }
-  scope :available_by_schedule_for, -> (trip) { all }
+  scope :available_by_time_for, -> (trip) { available_by_schedule_for(trip) }
+  scope :available_by_geography_for, -> (trip) do
+    available_by_start_or_end_area_for(trip)
+    .available_by_trip_within_area_for(trip)
+  end
 
   # Tertiary Scopes #
+
   # available_for_user scopes
   scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
   scope :accommodates, -> (user) do
@@ -42,39 +47,33 @@ class Service < ApplicationRecord
     end
   end
   scope :accepts_eligibility_of, -> (user) do
-    where(id: no_eligibilities | with_met_eligibilities(user) )
+    # Either no eligibilities are set, or the user meets an eligibility requirement
+    where( id: no_eligibilities | with_met_eligibilities(user) )
   end
 
-  scope :available_by_start_or_end_area_for, -> (trip) { all }
-  scope :available_by_trip_within_area_for, -> (trip) { all }
-  scope :available_by_schedule_for, -> (trip) { all }
+  # available_by_time_for scopes
+  scope :available_by_schedule_for, -> (trip) do
+    # Either no schedules are set, or there is a schedule that includes the trip time
+    where( id: no_schedules | with_matching_schedule(trip) )
+  end
 
-
-
+  # available_by_geography_for scopes
+  scope :available_by_start_or_end_area_for, -> (trip) do
+    # no start_or_end_area, or start_or_end_area contains origin OR destination
+    where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
+  end
+  scope :available_by_trip_within_area_for, -> (trip) do
+    # no trip_within_area, or trip_within_area contains origin OR destination
+    where( id: no_region(:trip_within_area) | with_containing_trip_within_area(trip) )
+  end
 
   #################
   # CLASS METHODS #
   #################
 
-  ### SCOPE HELPER METHODS ###
-
-  # Returns IDs of Services with no eligibility requirements
-  def self.no_eligibilities
-    Eligibility.joins(:eligibilities_services).pluck(:service_id).uniq
-  end
-
-  # Returns IDs of Services with at least one eligibility requirement met by user
-  def self.with_met_eligibilities(user)
-    joins(:eligibilities).where(eligibilities: {code: user.eligibilities.pluck(:code)}).pluck(:id)
-  end
-
-  # Returns IDs of Services that accommodate all of a user's needs
-  def self.accommodates_all_needs(user)
-    user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
-  end
-
-  ### Constants ###
+  ### CONSTANTS ###
   SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
+
 
   ####################
   # INSTANCE METHODS #
@@ -100,7 +99,7 @@ class Service < ApplicationRecord
   # Returns true if user meets all of the service's eligibility requirements.
   def accepts_eligibility_of?(user)
     return true if user.nil?
-    (self.eligibilities.pluck(:code) - user.confirmed_eligibilities.pluck(:code)).empty?
+    !(self.eligibilities.pluck(:code) & user.confirmed_eligibilities.pluck(:code)).empty?
   end
 
 
@@ -156,6 +155,62 @@ class Service < ApplicationRecord
     nil
   end
 
+  private
+
+  ### SCOPE HELPER METHODS ###
+
+  # Returns IDs of Services with no eligibility requirements
+  def self.no_eligibilities
+    includes(:eligibilities).where(eligibilities: {id: nil}).pluck(:id)
+  end
+
+  # Returns IDs of Services with at least one eligibility requirement met by user
+  def self.with_met_eligibilities(user)
+    joins(:eligibilities).where(eligibilities: {code: user.eligibilities.pluck(:code)}).pluck(:id)
+  end
+
+  # Returns IDs of Services that accommodate all of a user's needs
+  def self.accommodates_all_needs(user)
+    user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+  end
+
+  # Returns IDs of Services with no schedules set
+  def self.no_schedules
+    includes(:schedules).where(schedules: {id: nil}).pluck(:id)
+  end
+
+  # Returns IDs of Services with a schedule that includes the trip time
+  def self.with_matching_schedule(trip)
+    joins(:schedules).where(schedules: {
+      day: trip.wday,
+      start_time: 0..trip.secs,
+      end_time: trip.secs..DAY_LENGTH
+    }).pluck(:id)
+  end
+
+  # Returns IDs of Services with no region of given association type
+  def self.no_region(region_type)
+    includes(region_type).where(regions: { id: nil }).pluck(:id)
+  end
+
+  # Returns IDs of Services with a start_or_end_area containing trip origin OR destination
+  def self.with_containing_start_or_end_area(trip)
+    region_contains(:start_or_end_area, Trip.last.origin.to_point)
+    .or(region_contains(:start_or_end_area, Trip.last.destination.to_point))
+    .pluck(:id)
+  end
+
+  # Returns IDs of Services with a trip_within_area containing trip origin AND destination
+  def self.with_containing_trip_within_area(trip)
+    region_contains(:trip_within_area, Trip.last.origin.to_point)
+    .region_contains(:trip_within_area, Trip.last.destination.to_point)
+    .pluck(:id)
+  end
+
+  # Helper scope constructs a contains query based on region association name and a geometry
+  scope :region_contains, -> (region, geom) do
+    joins(region).where("ST_CONTAINS(regions.geom, ?)", geom.to_s)
+  end
 
 
 end
