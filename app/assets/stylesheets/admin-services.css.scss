@@ -33,3 +33,44 @@
   }
 
 }
+
+// For Schedules UI
+.schedule-row-wrapper {
+  margin: 5px 0;
+  padding: 5px 0;
+  min-height: 50px;
+}
+
+.schedule-row-label {
+  margin: 10px 0;
+  // margin-bottom: 0;
+}
+
+.schedule-row-body-wrapper {
+  padding: 0 10px;
+}
+
+.schedule-body {
+  &.active {
+    @include ingredient-label(lightgreen);
+  }
+
+  &.inactive {
+    @include ingredient-label(gainsboro);
+  }
+
+  display: inline-block;
+  // border: 1px solid gainsboro;
+  border-radius: 3px;
+  padding: 5px 0 5px 5px;
+  margin: 0 5px 5px 0;
+
+  .schedule-form-group .schedule-input {
+    border: none;
+    background-color: transparentize(white, 0.8);
+    box-shadow: none;
+    width: 4em;
+    padding-right: 0px;
+
+  }
+}

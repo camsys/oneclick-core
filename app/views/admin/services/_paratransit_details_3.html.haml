@@ -1,0 +1,39 @@
+=content_for :header do
+  Schedules
+
+-# Build a schedule row for each weekday
+-(0..6).each do |d|
+  -day_scheds = @service.schedules.by_day(d).for_display
+  -new_day_sched = @service.schedules.by_day(d).build
+  -puts day_scheds.ai
+  .row.schedule-row-wrapper
+    %label.col-sm-2.schedule-row-label
+      -# %span
+        -# .label{ class: day_scheds.empty? ? 'label-default' : 'label-primary' }
+      =Date::DAYNAMES[d]
+    .col-sm-10.schedule-row-body-wrapper
+      -# Existing Schedules
+      =f.simple_fields_for :schedules, day_scheds, include_id: false do |sched_form|
+        .schedule-body.active
+          =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
+          =sched_form.input :start_time, wrapper_html: {class: 'schedule-form-group'}, input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input'}
+          %span to
+          =sched_form.input :end_time, wrapper_html: {class: 'schedule-form-group'}, input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input'}
+          =sched_form.input :id, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :id)}
+          =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :_destroy), value: false}
+          .btn.btn-link
+            %span.glyphicon.glyphicon-remove
+
+      -# New Schedule
+      =f.simple_fields_for :schedules, new_day_sched, include_id: false do |sched_form|
+        .schedule-body.inactive
+          =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
+          =sched_form.input :start_time, wrapper_html: {class: 'schedule-form-group'}, input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input'}
+          %span to
+          =sched_form.input :end_time, wrapper_html: {class: 'schedule-form-group'}, input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input'}
+          =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :_destroy), value: true}
+          .btn.btn-link
+            %span.glyphicon.glyphicon-plus
+
+=content_for :footer do
+  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'

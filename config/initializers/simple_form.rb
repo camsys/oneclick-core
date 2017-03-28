@@ -83,6 +83,18 @@ SimpleForm.setup do |config|
     end
   end
 
+  config.wrappers :inline_input_group, tag: 'div', class: 'form-group', error_class: 'has-error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.use :label, class: 'sr-only'
+
+    b.wrapper tag: 'div', class: 'input-group mb-2 mr-sm-2 mb-sm-0' do |ba|
+      ba.use :input, class: 'form-control'
+      ba.use :error, wrap_with: { tag: 'span', class: 'help-block' }
+      ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+    end
+  end
+
   ###
   # This is the same as horizontal_input_group, except no form-control class, which messes up
   # the checkbox styling. Is mapped to checkbox type inputs below in config.wrapper_mappings
