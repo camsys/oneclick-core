@@ -6,7 +6,7 @@
 
 
 .delete-schedule {
-  @include custom-btn-link($brand-danger);
+  @include custom-btn-link($brand-info);
 }
 
 .confirm-schedule {
@@ -23,25 +23,7 @@
 }
 
 .schedule-body {
-  &.schedule-active {
-    @include unit-box($brand-info-pastel);
-
-    .confirm-schedule {
-      display: none;
-    }
-  }
-
-  &.schedule-inactive {
-    @include unit-box(lightgray);
-
-    .schedule-input {
-      color: $gray-pastel;
-    }
-
-    .delete-schedule {
-      display: none;
-    }
-  }
+  @include unit-box($brand-info-pastel);
 
   display: inline-block;
   border-radius: 3px;
@@ -59,5 +41,15 @@
 
   .btn.btn-link {
     padding: 6px 5px 6px 0;
+  }
+}
+
+.btn.add-schedule {
+  @include dashed-unit-box($gray-paler);
+
+  padding: 10px;
+
+  span + span {
+    margin-left: 10px;
   }
 }

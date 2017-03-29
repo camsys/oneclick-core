@@ -17,3 +17,8 @@
     background-color: lighten($color, 8%);
   }
 }
+
+@mixin dashed-unit-box($color) {
+  @include unit-box($color);
+  border-style: dashed;
+}

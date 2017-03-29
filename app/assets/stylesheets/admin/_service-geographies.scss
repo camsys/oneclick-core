@@ -7,10 +7,6 @@
   height: 350px;
 }
 
-.delete-geography {
-  @include custom-btn-link($brand-danger);
-}
-
 // For GeoRecipe ingredient display
 .btn.ingredient-container {
   padding-right: 0px;
@@ -18,18 +14,34 @@
 
   &.County {
     @include unit-box($brand-primary-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-primary);
+    }
   }
 
   &.City {
     @include unit-box($brand-success-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-success);
+    }
   }
 
   &.Zipcode {
     @include unit-box($brand-warning-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-warning);
+    }
   }
 
   &.CustomGeography {
     @include unit-box($brand-danger-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-danger);
+    }
   }
 
 }

@@ -37,6 +37,9 @@ class Admin::ServicesController < Admin::AdminController
 
   def update
     @service.update_attributes(service_params)
+    error_msgs = @service.errors.messages.values
+    flash[:danger] = error_msgs.join(' ')
+
     redirect_to admin_service_path(@service)
   end
 
