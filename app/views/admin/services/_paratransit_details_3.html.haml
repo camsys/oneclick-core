@@ -1,0 +1,83 @@
+=content_for :header do
+  Schedules
+
+-# Build a schedule row for each weekday
+-(0..6).each do |d|
+  -day_scheds = @service.schedules.by_day(d).for_display
+  -new_day_sched = @service.schedules.by_day(d).build(start_time: 21600, end_time: 72000)
+  .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold'}
+    .row.panel-body
+      %label.col-sm-2.schedule-row-label
+        %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
+          =Date::DAYNAMES[d]
+      .col-sm-10.schedule-row-body-wrapper
+        -# Existing Schedules
+        =f.simple_fields_for :schedules, day_scheds, include_id: false do |sched_form|
+          .schedule-body.schedule-active
+            =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
+            =sched_form.input :start_time,
+              collection: ScheduleHelper::TIMES_OF_DAY,
+              wrapper_html: {class: 'schedule-form-group'},
+              input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input start-time'}
+            %span to
+            =sched_form.input :end_time,
+              collection: ScheduleHelper::TIMES_OF_DAY,
+              wrapper_html: {class: 'schedule-form-group'},
+              input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
+            =sched_form.input :id, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :id)}
+            =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: false}
+            .btn.btn-link.delete-schedule
+              %span.glyphicon.glyphicon-remove
+            .btn.btn-link.confirm-schedule
+              %span.glyphicon.glyphicon-ok
+
+        -# New Schedule
+        =f.simple_fields_for :schedules, new_day_sched, include_id: false do |sched_form|
+          .schedule-body.schedule-inactive.schedule-new
+            =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
+            =sched_form.input :start_time,
+              collection: ScheduleHelper::TIMES_OF_DAY,
+              wrapper_html: {class: 'schedule-form-group'},
+              input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input start-time'}
+            %span to
+            =sched_form.input :end_time,
+              collection: ScheduleHelper::TIMES_OF_DAY,
+              wrapper_html: {class: 'schedule-form-group'},
+              input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
+            =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: true}
+            .btn.btn-link.delete-schedule
+              %span.glyphicon.glyphicon-remove
+            .btn.btn-link.confirm-schedule
+              %span.glyphicon.glyphicon-ok
+
+=content_for :footer do
+  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
+
+:javascript
+  $(document).ready(function() {
+
+    var updateNewSchedules = function(startTime, endTime) {
+      console.log("UPDATE NEW SCHEDULES TO", startTime, endTime, $('.schedule-new select.start-time'));
+    };
+
+    // Click handler for marking schedules for deletion
+    $('.delete-schedule').click(function(e) {
+      var parent = $(this).parent('.schedule-body');
+      parent.find('input.destroy').val(true);
+      parent.removeClass('schedule-active');
+      parent.addClass('schedule-inactive');
+    });
+
+    // Click handler for confirming schedules
+    $('.confirm-schedule').click(function(e) {
+      var parent = $(this).parent('.schedule-body');
+      parent.find('input.destroy').val(false);
+      $(this).parent('.schedule-body').removeClass('schedule-inactive');
+      $(this).parent('.schedule-body').addClass('schedule-active');
+      updateNewSchedules(parent.find('select.start-time').val(),parent.find('select.end-time').val());
+    });
+
+
+
+
+  });
