@@ -15,7 +15,9 @@
  *= require leaflet
  */
 
-@import "bootstrap-sprockets"
-@import "bootstrap"
+// 3rd-party CSS
+@import "bootstrap-sprockets";
+@import "bootstrap";
 
-@import "admin-services"
+// Admin UI
+@import "admin/*";
