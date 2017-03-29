@@ -1,0 +1,35 @@
+// SERVICE GEOGRAPHIES STYLING
+
+@import 'mixins';
+@import 'variables';
+
+#map {
+  height: 350px;
+}
+
+.delete-geography {
+  @include custom-btn-link($brand-danger);
+}
+
+// For GeoRecipe ingredient display
+.btn.ingredient-container {
+  padding-right: 0px;
+  margin: 4px;
+
+  &.County {
+    @include unit-box($brand-primary-pastel);
+  }
+
+  &.City {
+    @include unit-box($brand-success-pastel);
+  }
+
+  &.Zipcode {
+    @include unit-box($brand-warning-pastel);
+  }
+
+  &.CustomGeography {
+    @include unit-box($brand-danger-pastel);
+  }
+
+}

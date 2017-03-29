@@ -1,0 +1,19 @@
+
+// Makes a custom-colored bootstrap link button
+@mixin custom-btn-link($color) {
+  &.btn.btn-link {
+    color: $color;
+    &:hover {
+      color: darken($color, 10%);
+    }
+  }
+}
+
+// Button-like box to represent a unit or model of some sort
+@mixin unit-box($color) {
+  border: 2px solid $color;
+  background-color: lighten($color, 10%);
+  &:hover {
+    background-color: lighten($color, 8%);
+  }
+}

@@ -1,0 +1,17 @@
+@import "bootstrap/variables";
+
+$gray-pastel: lighten($gray, 20%);
+$gray-pale: lighten($gray, 40%);
+$gray-lightest: lighten($gray, 60%);
+
+$brand-primary-pastel: lighten($brand-primary, 25%);
+$brand-success-pastel: lighten($brand-success, 20%);
+$brand-info-pastel: lighten($brand-info, 15%);
+$brand-warning-pastel: lighten($brand-warning, 15%);
+$brand-danger-pastel: lighten($brand-danger, 25%);
+
+// $brand-primary-pastel: lighten($brand-primary, 25%);
+// $brand-success-pastel: lighten($brand-success, 20%);
+$brand-info-pale: lighten($brand-info, 34%);
+// $brand-warning-pastel: lighten($brand-warning, 15%);
+// $brand-danger-pastel: lighten($brand-danger, 25%);

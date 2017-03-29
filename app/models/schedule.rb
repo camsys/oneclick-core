@@ -7,6 +7,7 @@ class Schedule < ApplicationRecord
   validates_inclusion_of :day, in: SUN..SAT # 0 = Sunday .. 6 = Saturday
   validates_inclusion_of :start_time, in: 0..DAY_LENGTH # seconds since midnight
   validates_inclusion_of :end_time, in: 0..DAY_LENGTH  # seconds since midnight
+  validate :start_time_must_be_before_end_time
 
   ### CALLBACKS ###
   after_create :create_midnight_shim, if: :ends_at_midnight?
@@ -18,7 +19,7 @@ class Schedule < ApplicationRecord
   ### SCOPES ###
   scope :by_day, -> (day_of_week=(SUN..SAT).to_a) { where(day: day_of_week) }
   scope :midnight_shims, -> { where(start_time: 0, end_time: 0) }
-  scope :for_display, -> { where.not(start_time: 0, end_time: 0) }
+  scope :for_display, -> { where.not(start_time: 0, end_time: 0).order(:day, :start_time) }
 
   ### INSTANCE METHODS ###
 
@@ -63,6 +64,11 @@ class Schedule < ApplicationRecord
       start_time: 0,
       end_time: 0
     }
+  end
+
+  # Validates that start_time is at or before end_time
+  def start_time_must_be_before_end_time
+    errors.add(:start_time, "cannot be after end time") if (start_time > end_time)
   end
 
 end
