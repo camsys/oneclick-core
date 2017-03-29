@@ -1,6 +1,7 @@
 =content_for :header do
   Schedules
 
+-# For use in building new schedule forms
 -new_sched = @service.schedules.build
 
 -# Build a schedule row for each weekday
@@ -12,9 +13,7 @@
         %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
           =Date::DAYNAMES[d]
       .col-sm-10.schedule-row-body-wrapper
-        -# Existing Schedules
         =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-
         .btn.add-schedule
           %span.text-muted add schedule
           %span.text-muted.glyphicon.glyphicon-plus
@@ -33,7 +32,6 @@
 
     // Delete schedule function for click handlers
     var deleteSchedule = function() {
-      console.log("DELETE SCHEDULE CLICKED");
       var parent = $(this).parents('.schedule-body');
       parent.find('input.destroy').val(true);
       parent.addClass('hidden');

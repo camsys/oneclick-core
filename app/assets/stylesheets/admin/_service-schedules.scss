@@ -9,32 +9,21 @@
   @include custom-btn-link($brand-info);
 }
 
-.confirm-schedule {
-  @include custom-btn-link($brand-success);
+.schedule-row-body-wrapper {
+  padding: 0 10px;
 }
 
 .schedule-row-label {
   margin: 10px 0;
-  // margin-bottom: 0;
-}
-
-.schedule-row-body-wrapper {
-  padding: 0 10px;
 }
 
 .schedule-body {
   @include unit-box($brand-info-pastel);
 
-  display: inline-block;
-  border-radius: 3px;
-  padding: 5px 0 5px 5px;
-  margin: 0 5px 5px 0;
-
   .schedule-form-group .schedule-input {
     border: none;
     background-color: transparentize(white, 0.8);
     box-shadow: none;
-    // width: 80px;
     padding-right: 0px;
     font-weight: bold;
   }
@@ -44,10 +33,10 @@
   }
 }
 
-.btn.add-schedule {
+.add-schedule {
   @include dashed-unit-box($gray-paler);
 
-  padding: 10px;
+  padding: 12px;
 
   span + span {
     margin-left: 10px;
