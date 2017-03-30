@@ -6,58 +6,39 @@
 
 
 .delete-schedule {
-  @include custom-btn-link($brand-danger);
-}
-
-.confirm-schedule {
-  @include custom-btn-link($brand-success);
-}
-
-.schedule-row-label {
-  margin: 10px 0;
-  // margin-bottom: 0;
+  @include custom-btn-link($brand-info);
 }
 
 .schedule-row-body-wrapper {
   padding: 0 10px;
 }
 
+.schedule-row-label {
+  margin: 10px 0;
+}
+
 .schedule-body {
-  &.schedule-active {
-    @include unit-box($brand-info-pastel);
-
-    .confirm-schedule {
-      display: none;
-    }
-  }
-
-  &.schedule-inactive {
-    @include unit-box(lightgray);
-
-    .schedule-input {
-      color: $gray-pastel;
-    }
-
-    .delete-schedule {
-      display: none;
-    }
-  }
-
-  display: inline-block;
-  border-radius: 3px;
-  padding: 5px 0 5px 5px;
-  margin: 0 5px 5px 0;
+  @include unit-box($brand-info-pastel);
 
   .schedule-form-group .schedule-input {
     border: none;
     background-color: transparentize(white, 0.8);
     box-shadow: none;
-    // width: 80px;
     padding-right: 0px;
     font-weight: bold;
   }
 
   .btn.btn-link {
     padding: 6px 5px 6px 0;
+  }
+}
+
+.add-schedule {
+  @include dashed-unit-box($gray-paler);
+
+  padding: 12px;
+
+  span + span {
+    margin-left: 10px;
   }
 }
