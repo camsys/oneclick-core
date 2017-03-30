@@ -11,8 +11,9 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        email = params[:email] || (params[:user] && params[:user][:email])
-        password = params[:password] || (params[:user] && params[:user][:password])
+        puts "SIGN IN", session_params[:email]
+        email = session_params[:email] #params[:email] || (params[:user] && params[:user][:email])
+        password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
 
         if @user && @user.valid_password?(password)
@@ -43,6 +44,14 @@ module Api
         else
           render status: 401, json: { error: 'Please provide a valid token.' }
         end
+      end
+
+      private
+
+      def session_params
+        params[:session] = params.delete :user if params.has_key? :user
+
+        params.require(:session).permit(:email, :password)
       end
 
     end
