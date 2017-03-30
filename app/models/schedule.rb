@@ -68,7 +68,7 @@ class Schedule < ApplicationRecord
 
   # Validates that start_time is at or before end_time
   def start_time_must_be_before_end_time
-    errors.add(:start_time, "cannot be after end time") if (start_time > end_time)
+    errors.add(:start_time, "start time cannot be after end time") if (start_time > end_time)
   end
 
 end

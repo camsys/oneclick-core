@@ -1,54 +1,22 @@
 =content_for :header do
   Schedules
 
+-# For use in building new schedule forms
+-new_sched = @service.schedules.build
+
 -# Build a schedule row for each weekday
 -(0..6).each do |d|
   -day_scheds = @service.schedules.by_day(d).for_display
-  -new_day_sched = @service.schedules.by_day(d).build(start_time: 21600, end_time: 72000)
-  .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold'}
+  .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold', data: {day: d}}
     .row.panel-body
       %label.col-sm-2.schedule-row-label
         %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
           =Date::DAYNAMES[d]
       .col-sm-10.schedule-row-body-wrapper
-        -# Existing Schedules
-        =f.simple_fields_for :schedules, day_scheds, include_id: false do |sched_form|
-          .schedule-body.schedule-active
-            =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
-            =sched_form.input :start_time,
-              collection: ScheduleHelper::TIMES_OF_DAY,
-              wrapper_html: {class: 'schedule-form-group'},
-              input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input start-time'}
-            %span to
-            =sched_form.input :end_time,
-              collection: ScheduleHelper::TIMES_OF_DAY,
-              wrapper_html: {class: 'schedule-form-group'},
-              input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
-            =sched_form.input :id, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :id)}
-            =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: false}
-            .btn.btn-link.delete-schedule
-              %span.glyphicon.glyphicon-remove
-            .btn.btn-link.confirm-schedule
-              %span.glyphicon.glyphicon-ok
-
-        -# New Schedule
-        =f.simple_fields_for :schedules, new_day_sched, include_id: false do |sched_form|
-          .schedule-body.schedule-inactive.schedule-new
-            =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :day)}
-            =sched_form.input :start_time,
-              collection: ScheduleHelper::TIMES_OF_DAY,
-              wrapper_html: {class: 'schedule-form-group'},
-              input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input start-time'}
-            %span to
-            =sched_form.input :end_time,
-              collection: ScheduleHelper::TIMES_OF_DAY,
-              wrapper_html: {class: 'schedule-form-group'},
-              input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
-            =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: true}
-            .btn.btn-link.delete-schedule
-              %span.glyphicon.glyphicon-remove
-            .btn.btn-link.confirm-schedule
-              %span.glyphicon.glyphicon-ok
+        =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
+        .btn.add-schedule
+          %span.text-muted add schedule
+          %span.text-muted.glyphicon.glyphicon-plus
 
 =content_for :footer do
   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
@@ -56,28 +24,53 @@
 :javascript
   $(document).ready(function() {
 
-    var updateNewSchedules = function(startTime, endTime) {
-      console.log("UPDATE NEW SCHEDULES TO", startTime, endTime, $('.schedule-new select.start-time'));
+    // Helper object keeps track of default schedule values
+    var defaultSchedule = {
+      startTime: 6 * 3600,
+      endTime: 20 * 3600
     };
 
-    // Click handler for marking schedules for deletion
-    $('.delete-schedule').click(function(e) {
-      var parent = $(this).parent('.schedule-body');
+    // Delete schedule function for click handlers
+    var deleteSchedule = function() {
+      var parent = $(this).parents('.schedule-body');
       parent.find('input.destroy').val(true);
-      parent.removeClass('schedule-active');
-      parent.addClass('schedule-inactive');
+      parent.addClass('hidden');
+    };
+
+    // Update Default start or end time
+    var updateDefaultStartTime = function() {
+      defaultSchedule.startTime = $(this).val();
+    }
+    var updateDefaultEndTime = function() {
+      defaultSchedule.endTime = $(this).val();
+    }
+
+    // Click handler for marking schedules for deletion
+    $('.delete-schedule').click(deleteSchedule);
+
+    // On change of start and end time, update default schedule
+    $('select.start-time').change(updateDefaultStartTime);
+    $('select.end-time').change(updateDefaultEndTime);
+
+    // Click handler for adding new schedules
+    $('.add-schedule').click(function(e) {
+      var parent = $(this).parents('.schedule-row-wrapper');
+      var scheduleDay = parent.data().day;
+
+      // Build partial for new schedule form
+      $(this).before('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched}}');
+
+      // Update it with appropriate values
+      var newSchedule = parent.find('.schedule-body').last();
+      newSchedule.find('input.day').val(scheduleDay);
+      newSchedule.find('select.start-time').val(defaultSchedule.startTime);
+      newSchedule.find('select.end-time').val(defaultSchedule.endTime);
+
+      // Set it up with click handlers
+      newSchedule.find('.delete-schedule').click(deleteSchedule);
+      newSchedule.find('select.start-time').change(updateDefaultStartTime);
+      newSchedule.find('select.end-time').change(updateDefaultEndTime);
     });
-
-    // Click handler for confirming schedules
-    $('.confirm-schedule').click(function(e) {
-      var parent = $(this).parent('.schedule-body');
-      parent.find('input.destroy').val(false);
-      $(this).parent('.schedule-body').removeClass('schedule-inactive');
-      $(this).parent('.schedule-body').addClass('schedule-active');
-      updateNewSchedules(parent.find('select.start-time').val(),parent.find('select.end-time').val());
-    });
-
-
 
 
   });
