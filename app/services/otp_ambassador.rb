@@ -30,7 +30,7 @@ class OTPAmbassador
   end
 
   def get_duration(trip_type)
-    return errors(trip_type) if errors(trip_type)
+    return 0 if errors(trip_type)
     itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
     return itineraries[0]["duration"] if itineraries[0]
   end
