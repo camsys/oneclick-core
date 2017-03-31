@@ -2,9 +2,13 @@ require 'rails_helper'
 
 RSpec.describe Region, type: :model do
 
-  let(:geographies) { [ create(:county), create(:city), create(:zipcode) ] }
-  let(:region) { create(:region) }
-  let(:waypoint) { create(:waypoint) }
+  let(:geographies) { [
+    County.find_by(name: "Essex", state: "MA"),
+    City.find_by(name: "Boston", state: "MA"),
+    Zipcode.find_by(name: "02139")
+  ] }
+  let(:region) { create(:combined_region) }
+  let(:waypoint) { create(:waypoint_1) }
   let(:way_out_point) { create(:way_out_point) }
 
   it { should respond_to :recipe, :geom }
@@ -14,7 +18,9 @@ RSpec.describe Region, type: :model do
   end
 
   it 'contains all geometries from its recipe' do
-    expect(geographies.all? {|g| g.geom.within?(region.geom)}).to be true
+    expect(geographies.all? do |g|
+      g.geom.within?(region.geom)
+    end).to be true
   end
 
   it 'has a contains? helper function that works on places' do
