@@ -60,6 +60,9 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
+    response = @router.get_itineraries(:paratransit)
+    @errors << response if response[:error]
+
     @available_services[:paratransit].map do |service|
       Itinerary.new(service: service, trip_type: :paratransit, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
     end
@@ -67,6 +70,9 @@ class TripPlanner
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
+    response = @router.get_itineraries(:taxi)
+    @errors << response if response[:error]
+
     @available_services[:taxi].map do |service|
       Itinerary.new(service: service, trip_type: :taxi, cost: @taxi_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
     end
