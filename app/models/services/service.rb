@@ -144,16 +144,16 @@ class Service < ApplicationRecord
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination
   def self.with_containing_start_or_end_area(trip)
     joins(:start_or_end_area).empty_region(:start_or_end_area)
-    .or(joins(:start_or_end_area).region_contains(Trip.last.origin.to_point))
-    .or(joins(:start_or_end_area).region_contains(Trip.last.destination.to_point))
+    .or(joins(:start_or_end_area).region_contains(trip.origin.to_point))
+    .or(joins(:start_or_end_area).region_contains(trip.destination.to_point))
     .pluck(:id)
   end
 
   # Returns IDs of Services with a trip_within_area that is EMPTY or containing trip origin AND destination
   def self.with_containing_trip_within_area(trip)
     joins(:trip_within_area)
-    .region_contains(Trip.last.origin.to_point)
-    .region_contains(Trip.last.destination.to_point)
+    .region_contains(trip.origin.to_point)
+    .region_contains(trip.destination.to_point)
     .or(joins(:trip_within_area).empty_region(:trip_within_area))
     .pluck(:id)
   end

@@ -49,6 +49,8 @@ RSpec.configure do |config|
 
   config.before(:all) do
     FactoryGirl.reload
+    OneclickCore::Application.load_tasks
+    Rake::Task["db:sample:test_geographies"].invoke
   end
 
 # The settings below are suggested to provide a good initial experience

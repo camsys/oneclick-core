@@ -16,8 +16,7 @@ FactoryGirl.define do
       phone "(555)555-5556"
       url "http://www.test-service-url2.com"
       association :start_or_end_area, factory: :region_2
-      association :trip_within_area, factory: :region
-
+      association :trip_within_area, factory: :big_region
     end
 
     factory :paratransit_service, parent: :service, class: 'Paratransit' do
@@ -58,11 +57,11 @@ FactoryGirl.define do
       gtfs_agency_id "mbta"
     end
 
-    factory :taxi_service, parent: :service, class: 'Taxi' do 
+    factory :taxi_service, parent: :service, class: 'Taxi' do
       name "Taxi Test Service"
       type "Taxi"
       taxi_fare_finder_id "Boston"
-      trip_within_area nil 
+      trip_within_area nil
     end
 
   end

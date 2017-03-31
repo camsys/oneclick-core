@@ -2,6 +2,7 @@ require './spec/helpers/r_geo_spec_helpers'
 include RGeoSpecHelpers
 
 FactoryGirl.define do
+
   factory :zipcode, class: 'Zipcode' do
     name "00000"
     geom RGeoSpecHelper.new.multi_polygon([1,1])
@@ -41,4 +42,5 @@ FactoryGirl.define do
     geom RGeoSpecHelper.new.multi_polygon([0,-1])
     initialize_with { CustomGeography.find_or_create_by(name: name)}
   end
+
 end

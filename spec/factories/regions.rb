@@ -4,28 +4,18 @@ FactoryGirl.define do
 
   factory :region do
     recipe do
-      @county = create(:county)
-      @city = create(:city)
-      @zipcode = create(:zipcode)
-      GeoRecipe.new([@county.to_geo, @city.to_geo, @zipcode.to_geo])
+      GeoRecipe.new([Zipcode.find_by(name: "02139").to_geo])
     end
 
     factory :region_2 do
       recipe do
-        @county_2 = create(:county_2)
-        @county_3 = create(:county_3)
-        GeoRecipe.new([@county_2.to_geo, @county_3.to_geo])
+        GeoRecipe.new([Zipcode.find_by(name: "02140").to_geo])
       end
     end
 
     factory :big_region do
       recipe do
-        @county = create(:county)
-        @city = create(:city)
-        @zipcode = create(:zipcode)
-        @county_2 = create(:county_2)
-        @county_3 = create(:county_3)
-        GeoRecipe.new([@county.to_geo, @city.to_geo, @zipcode.to_geo, @county_2.to_geo, @county_3.to_geo])
+        GeoRecipe.new([City.find_by(name: "Cambridge", state: "MA").to_geo])
       end
     end
 

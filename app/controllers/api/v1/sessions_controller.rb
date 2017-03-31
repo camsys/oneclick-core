@@ -11,7 +11,6 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        puts "SIGN IN", session_params[:email]
         email = session_params[:email] #params[:email] || (params[:user] && params[:user][:email])
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)

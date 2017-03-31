@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
+
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
   it { should have_many(:itineraries) }
   it { should have_many(:schedules) }
@@ -15,7 +16,8 @@ RSpec.describe Service, type: :model do
 
   # For coverage area testing:
   let(:trip_1) { create(:trip)} # Trip all in MA
-  let(:trip_2) { create(:trip, origin: create(:way_out_point)) } # One end in CA
+  let(:trip_1_flipped) { create(:trip, origin: trip_1.destination, destination: trip_1.origin)}
+  let(:trip_2) { create(:trip, destination: create(:way_out_point)) } # One end in CA
   let(:trip_3) { create(:trip, origin: create(:way_out_point), destination: create(:way_out_point_2)) } # Both ends in CA
   let(:service_0) { create(:paratransit_service, start_or_end_area: nil, trip_within_area: nil) } # No coverage areas set
   let(:service_1a) { create(:paratransit_service, trip_within_area: nil) } # Only start/end area set
@@ -110,8 +112,6 @@ RSpec.describe Service, type: :model do
     expect(service_0.available_by_geography_for?(trip_3)).to be true
   end
 
-  # NOTE: Craziness--if you try calling these twice in the same spec, it breaks.
-  # seems to only be a problem in RSPEC...
   it 'services should be (un)available by start_or_end_area' do
     expect(service_1a.available_by_geography_for?(trip_1)).to be true
     expect(service_1a.available_by_geography_for?(trip_2)).to be true
@@ -128,6 +128,11 @@ RSpec.describe Service, type: :model do
     expect(service_2.available_by_geography_for?(trip_1)).to be true
     expect(service_2.available_by_geography_for?(trip_2)).to be false
     expect(service_2.available_by_geography_for?(trip_3)).to be false
+  end
+
+  it 'start_or_end_area should work in both directions' do
+    expect(service_2.available_by_geography_for?(trip_1)).to be true
+    expect(service_2.available_by_geography_for?(trip_1_flipped)).to be true
   end
 
   it 'should be (un)available for trips based on schedule' do

@@ -8,8 +8,8 @@ class ShapefileUploader
   # Initialize with a path to a zipfile containing shapefiles
   def initialize(file, opts={})
     @file = file
-    @path = @file.tempfile.path
-    @filetype = @file.content_type
+    @path = opts[:path] || @file.tempfile.path
+    @filetype = opts[:content_type] || @file.content_type
     @model = opts[:geo_type].to_s.classify.constantize
     @column_mappings = opts[:column_mappings] || {name: 'NAME', state: 'STATEFP'}
     @errors = []

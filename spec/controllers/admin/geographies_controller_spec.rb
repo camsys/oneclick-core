@@ -12,47 +12,48 @@ RSpec.describe Admin::GeographiesController, type: :controller do
   it 'uploads counties' do
     sign_in admin
 
-    expect(County.count).to eq(0)
+    County.destroy_all
+    count = County.count
 
     params = {geographies: {file: counties_file}}
     post :upload_counties, params: params, format: :js
 
-    expect(County.count).to eq(2)
+    expect(County.count).to eq(count + 2)
     expect(response).to have_http_status(302)
   end
 
   it 'uploads cities' do
     sign_in admin
 
-    expect(City.count).to eq(0)
+    count = City.count
 
     params = {geographies: {file: cities_file}}
     post :upload_cities, params: params, format: :js
-    expect(City.count).to eq(4)
+    expect(City.count).to eq(count + 4)
     expect(response).to have_http_status(302)
   end
 
   it 'uploads zipcodes' do
     sign_in admin
 
-    expect(Zipcode.count).to eq(0)
+    count = Zipcode.count
 
     params = {geographies: {file: zipcodes_file}}
     post :upload_zipcodes, params: params, format: :js
 
-    expect(Zipcode.count).to eq(3)
+    expect(Zipcode.count).to eq(count + 3)
     expect(response).to have_http_status(302)
   end
 
   it 'uploads custom geographies' do
     sign_in admin
 
-    expect(CustomGeography.count).to eq(0)
+    count = CustomGeography.count
 
     params = {geographies: {file: custom_geographies_file}}
     post :upload_custom_geographies, params: params, format: :js
 
-    expect(CustomGeography.count).to eq(1)
+    expect(CustomGeography.count).to eq(count + 1)
     expect(response).to have_http_status(302)
   end
 

@@ -75,6 +75,30 @@ namespace :db do
       Config.find_or_create_by(key: "open_trip_planner").update_attributes(value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default")
     end
 
+    desc "Test Samples"
+    task test_geographies: :environment do
+      puts "Uploading Sample Geographies..."
+      counties_file = File.open("spec/files/test_sample_counties.zip")
+      ShapefileUploader.new(counties_file,
+        path: counties_file.path,
+        content_type: "application/zip",
+        geo_type: :county
+      ).load
+      cities_file = File.open("spec/files/test_sample_cities.zip")
+      ShapefileUploader.new(cities_file,
+        path: cities_file.path,
+        content_type: "application/zip",
+        geo_type: :city
+      ).load
+      zipcodes_file = File.open("spec/files/test_sample_zipcodes.zip")
+      ShapefileUploader.new(zipcodes_file,
+        path: zipcodes_file.path,
+        content_type: "application/zip",
+        geo_type: :zipcode,
+        column_mappings: {name: "ZCTA5CE10"}
+      ).load
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config]
