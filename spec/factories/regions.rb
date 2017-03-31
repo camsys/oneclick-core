@@ -19,6 +19,16 @@ FactoryGirl.define do
       end
     end
 
+    factory :combined_region do
+      recipe do
+        GeoRecipe.new([
+          County.find_by(name: "Essex", state: "MA").to_geo,
+          City.find_by(name: "Boston", state: "MA").to_geo,
+          Zipcode.find_by(name: "02139").to_geo
+        ])
+      end
+    end
+
   end
 
 end
