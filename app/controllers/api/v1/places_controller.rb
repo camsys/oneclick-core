@@ -23,7 +23,7 @@ module Api
         end
 
         hash = {places_search_results: {locations: locations}, record_count: locations.count}
-        respond_with hash
+        render status: 200, json: hash
 
       end
 

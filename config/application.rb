@@ -20,5 +20,14 @@ module OneclickCore
     # Load different Service Types
     config.autoload_paths += %W(#{config.root}/app/models/services)
 
+    # Set default CORS settings
+    config.action_dispatch.default_headers = {
+      'Access-Control-Allow-Origin' => '*',
+      'Access-Control-Allow-Methods' => 'POST, PUT, DELETE, GET, OPTIONS',
+      'Access-Control-Request-Method' => '*',
+      'Access-Control-Allow-Headers' => 'Origin, X-Requested-With,
+        Content-Type, Accept, Authorization, X-User-Token, X-User-Email'
+    }
+
   end
 end
