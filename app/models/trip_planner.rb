@@ -5,7 +5,11 @@
 
 class TripPlanner
   # Constant list of trip types that can be planned.
+<<<<<<< HEAD
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :drive, :bicycle]
+=======
+  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk]
+>>>>>>> master
 
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
@@ -37,7 +41,11 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
+<<<<<<< HEAD
     unless trip_type.in? [:walk, :drive, :bicycle] 
+=======
+    unless trip_type.in? [:walk] 
+>>>>>>> master
       trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
@@ -55,6 +63,7 @@ class TripPlanner
   # Builds walk itineraries, using OTP by default
   def build_walk_itineraries
     build_fixed_itineraries :walk
+<<<<<<< HEAD
   end
 
   def build_drive_itineraries
@@ -63,6 +72,8 @@ class TripPlanner
 
   def build_bicycle_itineraries
     build_fixed_itineraries :bicycle
+=======
+>>>>>>> master
   end
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
