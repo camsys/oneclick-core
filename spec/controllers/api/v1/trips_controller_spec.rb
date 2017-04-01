@@ -6,8 +6,6 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_basic.json"))}
-  let(:multi_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_multiple_trips.json"))}
-  let(:taxi_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_taxi.json"))}
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary)}
   let(:user) { trip.user }
