@@ -6,7 +6,9 @@ class OTPAmbassador
     transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
     paratransit:  { label: :otp_drive,    modes: "CAR" },
     taxi:         { label: :otp_drive,    modes: "CAR" },
-    walk:         { label: :otp_walk,     modes: "WALK"}
+    walk:         { label: :otp_walk,     modes: "WALK"},
+    drive:        { label: :otp_drive,    modes: "CAR"},
+    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"}
   }
 
   # Initialize with a trip and an array of trip types
@@ -86,8 +88,8 @@ class OTPAmbassador
   def translate_itinerary(otp_itin, trip_type)
     start_time = Time.at(otp_itin["startTime"].to_i/1000).in_time_zone
     end_time = Time.at(otp_itin["endTime"].to_i/1000).in_time_zone
-    walk_time = otp_itin["walkTime"]
-    transit_time = otp_itin["transitTime"]
+    walk_time = get_walk_time(otp_itin, trip_type)
+    transit_time = get_transit_time(otp_itin, trip_type)
     cost = extract_cost(otp_itin, trip_type)
     legs = otp_itin["legs"]
     return {
@@ -101,12 +103,31 @@ class OTPAmbassador
     }
   end
 
+  # OTP Lists Drive and Walk as having 0 transit time
+  def get_transit_time(otp_itin, trip_type)
+    if trip_type.in? [:drive, :bicycle]
+      return otp_itin["walkTime"]
+    else
+      return otp_itin["transitTime"]
+    end
+  end
+
+  # OTP returns drive and bicycle time as walk time 
+  def get_walk_time otp_itin, trip_type
+    if trip_type.in? [:drive, :bicycle]
+      return 0
+    else
+      return otp_itin["walkTime"]
+    end
+  end
+
   # Extracts cost from OTP itinerary
   def extract_cost(otp_itin, trip_type)
     # OTP returns a nil cost for walk trips.  nil means unknown, so it should be zero instead
-    if trip_type.in? [:walk]
+    if trip_type.in? [:walk, :bicycle]
       return 0.0
     end
+
     otp_itin['fare'] &&
     otp_itin['fare']['fare'] &&
     otp_itin['fare']['fare']['regular'] &&
