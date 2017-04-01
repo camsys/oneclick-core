@@ -5,7 +5,7 @@
 
 class TripPlanner
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi]
+  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk]
 
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
@@ -37,7 +37,9 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    trip_type.to_s.classify.constantize.available_for(@trip)
+    unless trip_type.in? [:walk] 
+      trip_type.to_s.classify.constantize.available_for(@trip)
+    end
   end
 
   # Calls the requisite trip_type itineraries method
@@ -47,15 +49,12 @@ class TripPlanner
 
   # Builds transit itineraries, using OTP by default
   def build_transit_itineraries
-    response = @router.get_itineraries(:transit)
-    if response[:error]
-      @errors << response
-      return []
-    elsif response[:itineraries]
-      return response[:itineraries].map {|i| Itinerary.new(i)}
-    else
-      return []
-    end
+    build_fixed_itineraries :transit
+  end
+
+  # Builds walk itineraries, using OTP by default
+  def build_walk_itineraries
+    build_fixed_itineraries :walk
   end
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
@@ -75,6 +74,19 @@ class TripPlanner
 
     @available_services[:taxi].map do |service|
       Itinerary.new(service: service, trip_type: :taxi, cost: @taxi_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
+    end
+  end
+
+  # Generic OTP Call
+  def build_fixed_itineraries trip_type
+    response = @router.get_itineraries(trip_type)
+    if response[:error]
+      @errors << response
+      return []
+    elsif response[:itineraries]
+      return response[:itineraries].map {|i| Itinerary.new(i)}
+    else
+      return []
     end
   end
 
