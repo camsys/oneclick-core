@@ -5,7 +5,8 @@ class OTPAmbassador
   TRIP_TYPE_DICTIONARY = {
     transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
     paratransit:  { label: :otp_drive,    modes: "CAR" },
-    taxi:         { label: :otp_drive,    modes: "CAR" }
+    taxi:         { label: :otp_drive,    modes: "CAR" },
+    walk:         { label: :otp_walk,     modes: "WALK"}
   }
 
   # Initialize with a trip and an array of trip types
@@ -26,7 +27,7 @@ class OTPAmbassador
   def get_itineraries(trip_type)
     return errors(trip_type) if errors(trip_type)
     itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
-    return {itineraries: itineraries.map {|i| translate_itinerary(i)}}
+    return {itineraries: itineraries.map {|i| translate_itinerary(i, trip_type)}}
   end
 
   def get_duration(trip_type)
@@ -82,12 +83,12 @@ class OTPAmbassador
   end
 
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
-  def translate_itinerary(otp_itin)
+  def translate_itinerary(otp_itin, trip_type)
     start_time = Time.at(otp_itin["startTime"].to_i/1000).in_time_zone
     end_time = Time.at(otp_itin["endTime"].to_i/1000).in_time_zone
     walk_time = otp_itin["walkTime"]
     transit_time = otp_itin["transitTime"]
-    cost = extract_cost(otp_itin)
+    cost = extract_cost(otp_itin, trip_type)
     legs = otp_itin["legs"]
     return {
       start_time: start_time,
@@ -96,12 +97,16 @@ class OTPAmbassador
       walk_time: walk_time,
       cost: cost,
       legs: legs,
-      trip_type: :transit #TODO: Make this smarter
+      trip_type: trip_type #TODO: Make this smarter
     }
   end
 
   # Extracts cost from OTP itinerary
-  def extract_cost(otp_itin)
+  def extract_cost(otp_itin, trip_type)
+    # OTP returns a nil cost for walk trips.  nil means unknown, so it should be zero instead
+    if trip_type.in? [:walk]
+      return 0.0
+    end
     otp_itin['fare'] &&
     otp_itin['fare']['fare'] &&
     otp_itin['fare']['fare']['regular'] &&

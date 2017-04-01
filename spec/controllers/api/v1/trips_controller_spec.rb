@@ -6,8 +6,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_basic.json"))}
-  let(:multi_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_multiple_trips.json"))}
-  let(:taxi_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_taxi.json"))}
+  let(:walk_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_walk.json"))}
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary)}
   let(:user) { trip.user }
@@ -33,6 +32,20 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
     trip_request = plan_call_params["itinerary_request"][0]
 
+    expect(response).to be_success
+    expect(response_body["user_id"]).to eq(user.id)
+    expect(response_body["origin"]).to be
+    expect(response_body["destination"]).to be
+    expect(response_body["trip_time"].to_datetime).to eq(trip_request["trip_time"].to_datetime)
+    expect(response_body["arrive_by"]).to eq(trip_request["departure_type"] == "arrive")
+  end
+
+
+  it 'responds to a walk trip' do
+    request.headers.merge!(request_headers) # Send user email and token headers
+    post :create, params: walk_plan_call_params
+    response_body = JSON.parse(response.body)
+    trip_request = plan_call_params["itinerary_request"][0]
     expect(response).to be_success
     expect(response_body["user_id"]).to eq(user.id)
     expect(response_body["origin"]).to be

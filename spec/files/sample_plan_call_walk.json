@@ -1,6 +1,6 @@
 {
 	"trip_purpose":"Adult Day Care",
-	"modes":["mode_taxi"],
+	"modes":["mode_walk"],
 	"itinerary_request":[
 		{
 			"segment_index":0,
