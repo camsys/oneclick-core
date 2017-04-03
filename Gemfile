@@ -63,6 +63,7 @@ gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
 gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
 gem 'fog'
+gem 'remotipart', '~> 1.3', '>= 1.3.1'
 ############################################
 
 ### GEOSPATIAL #############################

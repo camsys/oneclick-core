@@ -1,21 +1,38 @@
 console.log("FORM HELPER CALLED");
 
 function FormHandler(form) {
-  this.form = form;
+  console.log("NEW FORM HANDLER");
+  this.form = $(form);
+  this._container = this.form.closest('.form-container');
+  this._submitButton = this._container.find('.panel-form-submit');
+  this._cancelButton = this._container.find('.panel-form-cancel');
   this._addSubmitHandler();
   this._addAJAXHandler();
+  this._addCancelHandler();
 }
 
 FormHandler.prototype = {
   _addSubmitHandler: function() {
-    $('.panel-form-submit').click(function() {
-      $(this).closest('.form-container').find('form').submit();
+    var fh = this;
+    this._submitButton.click(function() {
+      fh.form.submit();
     });
   },
   _addAJAXHandler: function() {
-    $('form').on("ajax:success", function(evt, data, status, xhr) {
-      console.log("AJAX SUCCESSFUL");
-      $(this).closest('.form-container').replaceWith(xhr.responseText);
+    var fh = this;
+    console.log("adding AJAX handler to ", fh.form);
+    this.form.on("ajax:complete", function(xhr, status) {
+      console.log("AJAX SUCCESSFUL", xhr);
+      // fh._container.replaceWith(xhr.responseText);
+    });
+    // this.form.on("ajax:remotipartComplete", function(e, data){
+    //   console.log("REMOTIPART COMPLETE", data);
+    // });
+  },
+  _addCancelHandler: function() {
+    var fh = this;
+    this._cancelButton.click(function() {
+      console.log("CANCEL BUTTON CLICKED");
     });
   }
 }
@@ -23,6 +40,7 @@ FormHandler.prototype = {
 // FormHelper constructor function
 function FormHelper() {
   console.log("Initializing FormHelper...");
+  console.log("IDENTIFYING FORMS", $('form'));
 
   // Identify all the forms on the page, and set each one up with click, AJAX handlers, etc.
   this.forms = $('form').map(function(i, f) {

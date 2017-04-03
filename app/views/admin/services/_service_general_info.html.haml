@@ -2,10 +2,8 @@
   General Info
 
 =simple_form_for @service,
-  url: admin_service_path,
-  remote: true, data: {type: :html},
-  html: {class: 'form-horizontal', multipart: true, method: :put },
-  authenticity_token: true do |f|
+  url: admin_service_path, remote: true, authenticity_token: true,
+  html: {class: 'form-horizontal', id: 'edit-service-general', multipart: true, method: :put } do |f|
   =f.input :name
   -# CUSTOM FIELD FOR LOGO
   .form-group.file.optional

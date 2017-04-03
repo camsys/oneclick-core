@@ -37,16 +37,23 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
+    puts "REMOTIPART?", remotipart_submitted?
+
     @service.update_attributes(service_params)
+    @service.update_attributes(url: 'test')
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
     respond_to do |format|
       format.html do
+        puts "HTML FORMAT", @service.ai
+        render partial: 'service_general_info', layout: '/layouts/panel'
+      end
+      format.js do
+        puts "JS FORMAT", @service.ai
         render partial: 'service_general_info', layout: '/layouts/panel'
       end
     end
-    # redirect_to admin_service_path(@service)
   end
 
   private
