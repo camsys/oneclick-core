@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
         post 'sign_in' => 'sessions#create'
+        post 'sign_out' => 'sessions#destroy'
         delete 'sign_out' => 'sessions#destroy'
       end
 
