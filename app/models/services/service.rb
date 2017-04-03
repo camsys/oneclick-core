@@ -4,6 +4,7 @@ class Service < ApplicationRecord
   mount_uploader :logo, LogoUploader
   include ScheduleHelper
   include ScopeHelper
+  include Commentable
 
   ### ASSOCIATIONS ###
   has_many :itineraries
@@ -13,6 +14,7 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :purposes
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
+
 
   ### VALIDATIONS ###
   validates_presence_of :name, :type

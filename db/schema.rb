@@ -47,6 +47,16 @@ ActiveRecord::Schema.define(version: 20170403152858) do
     t.index ["name", "state"], name: "index_cities_on_name_and_state", using: :btree
   end
 
+  create_table "comments", force: :cascade do |t|
+    t.text     "comment"
+    t.string   "locale"
+    t.string   "commentable_type"
+    t.integer  "commentable_id"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id", using: :btree
+  end
+
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
