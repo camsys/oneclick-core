@@ -21,6 +21,8 @@ class Admin::ServicesController < Admin::AdminController
   # If JSON is requested, search geography tables based on passed param
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
+    @service.build_comments # Builds a comment for each available locale
+    puts "COMMENT COUNT", @service.comments.count
 
     respond_to do |format|
       format.html
@@ -36,6 +38,8 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
+    puts "SERVICE PARAMS", service_params.ai
+
     @service.update_attributes(service_params)
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
@@ -62,7 +66,9 @@ class Admin::ServicesController < Admin::AdminController
     params[:service] = params.delete :paratransit if params.has_key? :paratransit
 
     # Construct permitted parameters array based on Service Type
-    permitted_params = [:name, :type, :logo, :url, :email, :phone]
+    permitted_params = [:name, :type, :logo, :url, :email, :phone,
+      comments_attributes: [:id, :comment, :locale]
+    ]
     permitted_params += transit_params if service_type == "Transit"
     permitted_params += paratransit_params if service_type == "Paratransit"
     permitted_params += taxi_params if service_type == "Taxi"
