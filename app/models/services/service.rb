@@ -24,7 +24,8 @@ class Service < ApplicationRecord
 
   ## Primary Scopes ##
   scope :available_for, -> (trip) do
-    available_by_geography_for(trip)
+    available_for_purpose_for(trip)
+    .available_by_geography_for(trip)
     .available_for_user(trip.user)
     .available_by_time_for(trip)
   end
@@ -33,6 +34,7 @@ class Service < ApplicationRecord
   scope :taxi_services, -> { where(type: "Taxi") }
 
   ## Secondary Scopes ##
+  scope :available_for_purpose_for, -> (trip) { trip.purpose ? available_by_purpose(trip.purpose) : all }
   scope :available_for_user, -> (user) { user ? accepts_eligibility_of(user).accommodates(user) : all }
   scope :available_by_time_for, -> (trip) { available_by_schedule_for(trip) }
   scope :available_by_geography_for, -> (trip) do
@@ -60,6 +62,11 @@ class Service < ApplicationRecord
     where( id: no_schedules | with_matching_schedule(trip) )
   end
 
+  # find services available by a trips purpose
+  scope :available_by_purpose, -> (purpose) do
+    where(id: no_purposes | with_matching_purpose(purpose))
+  end
+
   # available_by_geography_for scopes
   scope :available_by_start_or_end_area_for, -> (trip) do
     # no start_or_end_area, or start_or_end_area contains origin OR destination
@@ -73,7 +80,7 @@ class Service < ApplicationRecord
   # Builds instance methods for determining if record falls within given scope
   build_instance_scopes :available_for,
     :available_for_user, :available_by_time_for, :available_by_geography_for,
-    :accommodates, :accepts_eligibility_of,
+    :accommodates, :accepts_eligibility_of, :available_by_purpose_for,
     :available_by_schedule_for,
     :available_by_start_or_end_area_for, :available_by_trip_within_area_for
 
@@ -133,6 +140,11 @@ class Service < ApplicationRecord
     includes(:schedules).where(schedules: {id: nil}).pluck(:id)
   end
 
+  # Returns IDs of Services with no purposes set
+  def self.no_purposes
+    includes(:purposes).where(purposes: {id: nil}).pluck(:id)  
+  end
+
   # Returns IDs of Services with a schedule that includes the trip time
   def self.with_matching_schedule(trip)
     joins(:schedules).where(schedules: {
@@ -140,6 +152,11 @@ class Service < ApplicationRecord
       start_time: 0..trip.secs,
       end_time: trip.secs..DAY_LENGTH
     }).pluck(:id)
+  end
+
+  # Returns IDs of Services with a purpose that includes the trip's purpose
+  def self.with_matching_purpose(purpose)
+    joins(:purposes).where(purposes: {code: purpose.code}) #Surely we can do this without comparing codes
   end
 
   # Returns IDs of Services with no region of given association type
