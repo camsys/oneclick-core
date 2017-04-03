@@ -9,8 +9,6 @@
 
 // For GeoRecipe ingredient display
 .btn.ingredient-container {
-  padding-right: 0px;
-  margin: 4px;
 
   &.County {
     @include unit-box($brand-primary-pastel);
@@ -42,6 +40,10 @@
     .delete-geography {
       @include custom-btn-link($brand-danger);
     }
+  }
+
+  label {
+    margin-left: 8px;
   }
 
 }
