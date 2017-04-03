@@ -5,6 +5,7 @@ RSpec.describe Trip, type: :model do
   it { should have_many(:itineraries).dependent(:destroy) }
   it { should belong_to(:origin).class_name('Waypoint').dependent(:destroy) }
   it { should belong_to(:destination).class_name('Waypoint').dependent(:destroy) }
+  it { should belong_to(:purpose) }
 
   let(:itinerary) { create(:transit_itinerary) }
 

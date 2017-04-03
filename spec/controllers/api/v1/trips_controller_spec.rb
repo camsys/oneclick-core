@@ -7,13 +7,16 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_basic.json"))}
   let(:walk_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_walk.json"))}
+  let(:plan_paratransit_call_without_purpose) {JSON.parse(File.read("spec/files/sample_plan_call_without_purpose.json"))}
+  let(:plan_paratransit_call_with_purpose) {JSON.parse(File.read("spec/files/sample_plan_call_with_purpose.json"))}
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary)}
   let(:user) { trip.user }
   let(:hacker) { create(:english_speaker) }
   let(:trip_planner) { TripPlanner.new(trip, trip_types: []) }
-
   let!(:eligibility) { FactoryGirl.create :eligibility }
+  let!(:paratransit_service) { FactoryGirl.create(:paratransit_service, :medical_only, :no_geography) }
+  let!(:metallica_concert) { FactoryGirl.create(:metallica_concert) }
 
   # Stub trip planner methods
   before(:each) do
@@ -157,7 +160,22 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(itinerary.selecting_trip).to eq(nil)
   end
 
+  it 'plans a trip without a trip purpose' do
+    request.headers.merge!(request_headers) # Send user email and token headers
+    post :create, params: plan_paratransit_call_without_purpose
+    response_body = JSON.parse(response.body)
+    trip_id = response_body['trip_id'].to_i
+    expect(response).to be_success
+    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(true) 
+  end
 
+  it 'plans a trip with a trip purpose' do
+    post :create, params: plan_paratransit_call_with_purpose
+    response_body = JSON.parse(response.body)
+    trip_id = response_body['trip_id'].to_i
+    expect(response).to be_success
+    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(false) 
+  end
 
   # it 'sends back itineraries for multiple trips' do
   #   # Stub out trip creation because itinerary planning happens in TripPlanner
