@@ -22,7 +22,6 @@ class Admin::ServicesController < Admin::AdminController
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     @service.build_comments # Builds a comment for each available locale
-    puts "COMMENT COUNT", @service.comments.count
 
     respond_to do |format|
       format.html
@@ -38,8 +37,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
-    puts "SERVICE PARAMS", service_params.ai
-
     @service.update_attributes(service_params)
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
