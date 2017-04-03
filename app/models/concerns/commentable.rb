@@ -2,7 +2,10 @@ module Commentable
 
   # Set up commentable association for including class
   def self.included(base)
-    base.has_many :comments, as: :commentable
+    base.has_many :comments,
+      -> { order(:locale) }, # alphabetize by locale
+      as: :commentable, # polymorphic
+      dependent: :destroy # destroy comments on model destruction
     base.accepts_nested_attributes_for :comments
   end
 
