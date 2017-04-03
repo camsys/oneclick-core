@@ -1,19 +1,24 @@
 =content_for :header do
   General Info
 
-=f.input :name
--# CUSTOM FIELD FOR LOGO
-.form-group.file.optional
-  .col-sm-1
-    %img{ src: @service.logo.thumb.url}
-  =f.label :logo, class: "control-label col-sm-2"
-  .col-sm-9
-    .input-group.col-xs-12
-      =f.input_field :logo, class: "form-control file optional", type: "file"
-=f.input :url
-=f.input :phone
-=f.input :email
+=simple_form_for @service,
+  url: admin_service_path,
+  remote: true, data: {type: :html},
+  html: {class: 'form-horizontal', multipart: true, method: :put },
+  authenticity_token: true do |f|
+  =f.input :name
+  -# CUSTOM FIELD FOR LOGO
+  .form-group.file.optional
+    .col-sm-1
+      %img{ src: @service.logo.thumb.url}
+    =f.label :logo, class: "control-label col-sm-2"
+    .col-sm-9
+      .input-group.col-xs-12
+        =f.input_field :logo, class: "form-control file optional", type: "file"
+  =f.input :url
+  =f.input :phone
+  =f.input :email
 
-=content_for :footer do
-  -# = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
-  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
+-# =content_for :footer do
+-#   -# = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
+-#   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'

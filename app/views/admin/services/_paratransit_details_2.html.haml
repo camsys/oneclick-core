@@ -30,13 +30,8 @@
   .col-sm-8
     = map(center: { latlng: [42, -71], zoom: 5 })
 
-=content_for :footer do
-  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
-
 :javascript
   $(document).ready(function() {
-
-    var app = window.app = {};
 
     M.drawMaps([
       #{@service.trip_within_area && @service.trip_within_area.geom_to_array},

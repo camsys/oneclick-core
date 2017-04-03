@@ -1,4 +1,4 @@
-.panel.panel-default
+.panel.panel-default.form-container
   .panel-heading
     %h4
       =yield_content :header
@@ -12,4 +12,6 @@
       -if content_for?(:footer)
         =yield_content :footer
       -else
-        = f.button :submit, "OK"
+        -# = f.button :submit, "Submit", class: "btn btn-primary", role: 'button'
+        .btn.btn-primary.panel-form-submit Submit
+        .btn.btn-danger.panel-form-cancel Cancel

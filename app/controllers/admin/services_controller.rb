@@ -41,7 +41,12 @@ class Admin::ServicesController < Admin::AdminController
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
-    redirect_to admin_service_path(@service)
+    respond_to do |format|
+      format.html do
+        render partial: 'service_general_info', layout: '/layouts/panel'
+      end
+    end
+    # redirect_to admin_service_path(@service)
   end
 
   private

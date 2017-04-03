@@ -1,4 +1,3 @@
-
 // The M object holds utility methods for mapping and manipulating geographies
 var M = {
 

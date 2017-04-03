@@ -21,10 +21,8 @@
 :javascript
   $(document).ready(function() {
 
-    var app = window.app = {};
-
     M.drawMaps([
-      #{@service.trip_within_area && @service.trip_within_area.geom_to_array},
+      #{@service.trip_within_area && @service.trip_within_area.geom_to_array}
     ]);
 
     new M.Recipe({

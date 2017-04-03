@@ -6,6 +6,3 @@
     =comment_form.input :id, wrapper_html: {class: "hidden"}
     =comment_form.input :locale, wrapper_html: {class: "hidden"}
     =comment_form.input :comment, label: "Comment (#{comment_form.object.locale})"
-
-=content_for :footer do
-  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
