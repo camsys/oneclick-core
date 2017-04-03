@@ -23,6 +23,14 @@ FactoryGirl.define do
       name "Test Paratransit Service"
       type "Paratransit"
 
+      trait :no_geography do
+        after(:create) do |s|
+          s.start_or_end_area = nil
+          s.trip_within_area = nil
+          s.save
+        end
+      end
+
       trait :accommodating do
         after(:create) do |s|
           s.accommodations << create(:wheelchair)
@@ -46,6 +54,12 @@ FactoryGirl.define do
       trait :with_micro_schedules do
         after(:create) do |s|
           s.schedules << FactoryGirl.create(:micro_schedule)
+        end
+      end
+
+      trait :medical_only do 
+        after(:create) do |s|
+          s.purposes << create(:purpose)
         end
       end
 

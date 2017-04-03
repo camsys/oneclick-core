@@ -9,6 +9,7 @@ module Api
         # Create an array of strong trip parameters based on itinerary_request sent
         trips_request = params[:itinerary_request] || []
         trips_params = trips_request.map do |trip|
+          purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
           trip_params(ActionController::Parameters.new({
             trip: {
               origin_attributes: {
@@ -20,7 +21,7 @@ module Api
               trip_time: trip[:trip_time].to_datetime,
               arrive_by: (trip[:departure_type] == "arrive"),
               user_id: @traveler && @traveler.id,
-              purpose_id: Purpose.find_by(code: params[:trip_purpose] || params[:purpose]).id
+              purpose_id: purpose ? purpose.id : nil
             }
           }))
         end
