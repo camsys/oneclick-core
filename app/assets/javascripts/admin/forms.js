@@ -5,8 +5,8 @@ function FormHandler(form) {
   this.form = $(form); // JQuery object for Form
   this.formEl = this.form.get(0); // Reference to form's DOM element
   this.formContainer = this.form.closest('.form-container');
-  this.submitButton = this.formContainer.find('.panel-form-submit');
-  this.cancelButton = this.formContainer.find('.panel-form-cancel');
+  this.submitButton = this.formContainer.find('.form-submit');
+  this.cancelButton = this.formContainer.find('.form-reset');
   this.inputs = this.form.find(':input');
 
   // Callbacks
@@ -36,9 +36,7 @@ FormHandler.prototype = {
     });
 
     // On any change to form inputs, set form to dirty
-    this.inputs.on("change keypress", function() {
-      fh.dirty();
-    });
+    this.watch(this.inputs);
 
     // On Successful Form Submit, Replace form with response HTML.
     this.form.on("ajax:success", function(evt, data, status, xhr) {
@@ -48,7 +46,18 @@ FormHandler.prototype = {
 
   },
 
-  // Form has been changed
+  // Watch for change on passed elements
+  watch: function(elements) {
+    var fh = this;
+
+    elements.on("change keypress", function() {
+      fh.dirty();
+    });
+
+    return elements;
+  },
+
+  // Form has been changed; may be different from model in database
   dirty: function() {
     this.isDirty = true;
     this.enableButtons();

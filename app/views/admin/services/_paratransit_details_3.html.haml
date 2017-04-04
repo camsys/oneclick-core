@@ -12,6 +12,7 @@
   -form_obj = f
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  =f.input :schedules, input_html: {id: 'schedules-list', value: @service.schedules.to_json}
 
   -# Build a schedule row for each weekday
   -(0..6).each do |d|
@@ -21,8 +22,9 @@
         %label.col-sm-2.schedule-row-label
           %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
             =Date::DAYNAMES[d]
-        .col-sm-10.schedule-row-body-wrapper
-          =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
+        .col-sm-10
+          %span.schedule-row-body-wrapper
+            -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
           .btn.add-schedule
             %span.text-muted add schedule
             %span.text-muted.glyphicon.glyphicon-plus
@@ -32,25 +34,76 @@
 
     var fh = new FormHandler($('#{form_selector_from_id}'));
 
-    // Helper object keeps track of default schedule values
-    var defaultSchedule = {
-      startTime: 6 * 3600,
-      endTime: 20 * 3600
-    };
+    var sch = scheduleHelper = {
+      schedules: [],
+      schedulesList: $('#schedules-list'),
+      defaultSchedule: {
+        startTime: 6 * 3600,
+        endTime: 20 * 3600
+      },
+      addSchedule: function(schedule, container) {
+        // Render partial for new schedule form
+        container.append('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: form_obj, schedules: new_sched}}');
+
+        // Update it with appropriate values
+        var scheduleDiv = container.find('.schedule-body').last();
+        scheduleDiv.find('input.day').val(schedule.day);
+        scheduleDiv.find('select.start-time').val(schedule.startTime);
+        scheduleDiv.find('select.end-time').val(schedule.endTime);
+
+        // Set it up with click handlers
+        scheduleDiv.find('.delete-schedule').click(deleteSchedule);
+        scheduleDiv.find('select.start-time').change(updateDefaultStartTime);
+        scheduleDiv.find('select.end-time').change(updateDefaultEndTime);
+
+        // Have the FormHandler watch it for changes, plus trigger change event for the new schedule
+        fh.watch(scheduleDiv).trigger('change');
+      },
+      load: function() {
+        this.schedules = JSON.parse(this.schedulesList.val());
+      },
+      dump: function() {
+        this.schedulesList.val(JSON.stringify(this.schedules));
+      }
+    }
+
+    sch.load();
+    sch.dump();
 
     // Delete schedule function for click handlers
     var deleteSchedule = function() {
       var parent = $(this).parents('.schedule-body');
-      parent.find('input.destroy').val(true);
+      parent.find('input.destroy').val(true).trigger('change');
       parent.addClass('hidden');
     };
 
     // Update Default start or end time
     var updateDefaultStartTime = function() {
-      defaultSchedule.startTime = $(this).val();
+      sch.defaultSchedule.startTime = $(this).val();
     }
     var updateDefaultEndTime = function() {
-      defaultSchedule.endTime = $(this).val();
+      sch.defaultSchedule.endTime = $(this).val();
+    }
+
+    // Add a new schedule div
+    var addSchedule = function(container, schedule) {
+
+      // Render partial for new schedule form
+      container.append('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: form_obj, schedules: new_sched}}');
+
+      // Update it with appropriate values
+      var scheduleDiv = container.find('.schedule-body').last();
+      scheduleDiv.find('input.day').val(schedule.day);
+      scheduleDiv.find('select.start-time').val(schedule.startTime);
+      scheduleDiv.find('select.end-time').val(schedule.endTime);
+
+      // Set it up with click handlers
+      scheduleDiv.find('.delete-schedule').click(deleteSchedule);
+      scheduleDiv.find('select.start-time').change(updateDefaultStartTime);
+      scheduleDiv.find('select.end-time').change(updateDefaultEndTime);
+
+      // Have the FormHandler watch it for changes, plus trigger change event for the new schedule
+      fh.watch(scheduleDiv).trigger('change');
     }
 
     // Click handler for marking schedules for deletion
@@ -61,22 +114,15 @@
     $('select.end-time').change(updateDefaultEndTime);
 
     // Click handler for adding new schedules
-    $('.add-schedule').click(function(e) {
+    $('.add-schedule').click(function() {
       var parent = $(this).parents('.schedule-row-wrapper');
+      var container = parent.find('.schedule-row-body-wrapper');
       var scheduleDay = parent.data().day;
-
-      // Build partial for new schedule form
-      $(this).before('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: form_obj, schedules: new_sched}}');
-
-      // Update it with appropriate values
-      var newSchedule = parent.find('.schedule-body').last();
-      newSchedule.find('input.day').val(scheduleDay);
-      newSchedule.find('select.start-time').val(defaultSchedule.startTime);
-      newSchedule.find('select.end-time').val(defaultSchedule.endTime);
-
-      // Set it up with click handlers
-      newSchedule.find('.delete-schedule').click(deleteSchedule);
-      newSchedule.find('select.start-time').change(updateDefaultStartTime);
-      newSchedule.find('select.end-time').change(updateDefaultEndTime);
+      var newSchedule = {
+        day: scheduleDay,
+        startTime: sch.defaultSchedule.startTime,
+        endTime: sch.defaultSchedule.endTime
+      }
+      sch.addSchedule(newSchedule, container);
     });
   });
