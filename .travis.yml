@@ -9,9 +9,9 @@ before_script:
 - psql -U postgres -c "create extension postgis"
 
 script:
-- bundle exec /usr/bin/env RAILS_ENV=test rake db:drop 
-- bundle exec /usr/bin/env RAILS_ENV=test rake db:create 
-- bundle exec /usr/bin/env RAILS_ENV=test rake db:setup
+#- bundle exec /usr/bin/env RAILS_ENV=test rake db:drop 
+#- bundle exec /usr/bin/env RAILS_ENV=test rake db:create 
+- bundle exec /usr/bin/env RAILS_ENV=test rake db:reset
 - bundle exec rspec spec
 
 notifications:
