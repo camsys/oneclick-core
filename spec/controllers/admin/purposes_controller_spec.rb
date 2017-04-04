@@ -24,9 +24,6 @@ RSpec.describe Admin::PurposesController, type: :controller do
   end
 
   it 'creates a new purpose' do
-    # Clean up any old purposes
-    Purpose.delete_all
-
     sign_in admin
     params = {purpose: {code: 'Test purPOSE'}}
     post :create, params: params, format: :js
@@ -43,9 +40,6 @@ RSpec.describe Admin::PurposesController, type: :controller do
   end
 
   it 'creates and destroys a purpose' do 
-    # Clean up any old purposes
-    Purpose.delete_all
-    
     sign_in admin
     params = {purpose: {code: 'Test DeLEte& purpose22'}}
     post :create, params: params, format: :js

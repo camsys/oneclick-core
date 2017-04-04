@@ -33,11 +33,6 @@ RSpec.describe Service, type: :model do
   let(:service_without_schedules) { create(:paratransit_service) }
   let(:service_with_micro_schedules) { create(:paratransit_service, :with_micro_schedules) }
 
-  # For Purpose Testing
-  let(:medical_service) { create(:paratransit_service, :medical_only, :no_geography) }
-  let(:all_purpose_service) { create(:paratransit_service, :no_geography) }
-  let(:metallica_trip) { create(:trip, :going_to_see_metallica) }
-
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
   let!(:wheelchair) { FactoryGirl.create :wheelchair }
@@ -153,12 +148,5 @@ RSpec.describe Service, type: :model do
     expect(service_with_micro_schedules.available_by_schedule_for?(weekend_trip)).to be false
   end
 
-  it 'should be available for trips based on purpose' do
-    expect(all_purpose_service.available_for? metallica_trip).to eq(true)
-  end
-
-  it 'should be (un)available for trips based on purpose' do
-    expect(medical_service.available_for? metallica_trip).to eq(false)
-  end
 
 end

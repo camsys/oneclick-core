@@ -33,9 +33,6 @@ FactoryGirl.define do
       trip_time DateTime.new(2020, 7, 13, 3, 30) # Sunday, 11pm EST
     end
 
-    trait :going_to_see_metallica do |t|
-      purpose FactoryGirl.create(:metallica_concert)
-    end
 
   end
 end
