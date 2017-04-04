@@ -2,7 +2,7 @@
   General Info
 
 =simple_form_for @service,
-  url: admin_service_path, remote: true, authenticity_token: true,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: 'edit-service-general', multipart: true, method: :put } do |f|
   =f.input :name
   -# CUSTOM FIELD FOR LOGO
@@ -16,7 +16,10 @@
   =f.input :url
   =f.input :phone
   =f.input :email
+  %input.hidden{name: "partial_path", type: "text", value: self.instance_variable_get(:@virtual_path) }
 
--# =content_for :footer do
--#   -# = f.submit "OK", class: 'btn action-button btn-primary', role: 'button'
--#   = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('form#edit-service-general'));
+  });

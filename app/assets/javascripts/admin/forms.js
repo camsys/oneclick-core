@@ -4,6 +4,7 @@ function FormHandler(form) {
   console.log("NEW FORM HANDLER");
   this.form = $(form);
   this._container = this.form.closest('.form-container');
+  // this._contents = this.form.find('.panel');
   this._submitButton = this._container.find('.panel-form-submit');
   this._cancelButton = this._container.find('.panel-form-cancel');
   this._addSubmitHandler();
@@ -13,20 +14,27 @@ function FormHandler(form) {
 
 FormHandler.prototype = {
   _addSubmitHandler: function() {
+    console.log("ADDING SUBMIT HANDLER");
     var fh = this;
     this._submitButton.click(function() {
+      console.log("SUBMITTING FORM");
       fh.form.submit();
     });
   },
   _addAJAXHandler: function() {
     var fh = this;
     console.log("adding AJAX handler to ", fh.form);
-    this.form.on("ajax:complete", function(xhr, status) {
-      console.log("AJAX SUCCESSFUL", xhr);
-      // fh._container.replaceWith(xhr.responseText);
+    this.form.on("ajax:success", function(evt, data, status, xhr) {
+      console.log("AJAX SUCCESSFUL");
+      fh._container.replaceWith(xhr.responseText);
+      new FormHandler($(this));
     });
+    // this.form.on("ajax:complete", function(xhr, status) {
+    //   console.log("AJAX COMPLETE");
+    //   // fh._container.replaceWith(xhr.responseText);
+    // });
     // this.form.on("ajax:remotipartComplete", function(e, data){
-    //   console.log("REMOTIPART COMPLETE", data);
+    //   console.log("REMOTIPART COMPLETE");
     // });
   },
   _addCancelHandler: function() {

@@ -37,8 +37,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
-    puts "REMOTIPART?", remotipart_submitted?
-
     @service.update_attributes(service_params)
     @service.update_attributes(url: 'test')
     error_msgs = @service.errors.messages.values
@@ -47,7 +45,7 @@ class Admin::ServicesController < Admin::AdminController
     respond_to do |format|
       format.html do
         puts "HTML FORMAT", @service.ai
-        render partial: 'service_general_info', layout: '/layouts/panel'
+        render template: params[:partial_path], layout: '/layouts/_panel'
       end
       format.js do
         puts "JS FORMAT", @service.ai

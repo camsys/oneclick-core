@@ -2,7 +2,7 @@
   Comments
 
 =simple_form_for @service,
-  url: admin_service_path, remote: true, authenticity_token: true,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', multipart: true, method: :put } do |f|
   -@service.comments.each do |comment|
     =f.simple_fields_for "comments_attributes[]", comment do |comment_form|
