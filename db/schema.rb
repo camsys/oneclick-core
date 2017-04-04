@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170403141157) do
+ActiveRecord::Schema.define(version: 20170403152858) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -139,6 +139,13 @@ ActiveRecord::Schema.define(version: 20170403141157) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "purposes_services", id: false, force: :cascade do |t|
+    t.integer "service_id", null: false
+    t.integer "purpose_id", null: false
+    t.index ["purpose_id"], name: "index_purposes_services_on_purpose_id", using: :btree
+    t.index ["service_id"], name: "index_purposes_services_on_service_id", using: :btree
+  end
+
   create_table "regions", force: :cascade do |t|
     t.text     "recipe"
     t.geometry "geom",       limit: {:srid=>0, :type=>"multi_polygon"}
@@ -210,8 +217,10 @@ ActiveRecord::Schema.define(version: 20170403141157) do
     t.datetime "trip_time"
     t.boolean  "arrive_by"
     t.integer  "selected_itinerary_id"
+    t.integer  "purpose_id"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
+    t.index ["purpose_id"], name: "index_trips_on_purpose_id", using: :btree
     t.index ["selected_itinerary_id"], name: "index_trips_on_selected_itinerary_id", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
   end
@@ -285,6 +294,7 @@ ActiveRecord::Schema.define(version: 20170403141157) do
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
+  add_foreign_key "trips", "purposes"
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"

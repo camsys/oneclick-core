@@ -15,6 +15,8 @@
   = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
     =render partial: 'paratransit_details_1', layout: '/layouts/panel', locals: {f: f}
   = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
+    =render partial: 'purpose_picker', layout: '/layouts/panel', locals: {f: f}
+  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
     =render partial: 'paratransit_details_2', layout: '/layouts/panel', locals: {f: f}
   = simple_form_for @service, url: admin_service_path, wrapper: :inline_input_group, html: {class: 'form-inline', multipart: true, method: :put }, authenticity_token: true do |f|
     =render partial: 'paratransit_details_3', layout: '/layouts/panel', locals: {f: f}
