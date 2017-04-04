@@ -4,6 +4,8 @@
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
   =f.input :name
   -# CUSTOM FIELD FOR LOGO
   .form-group.file.optional
@@ -16,11 +18,9 @@
   =f.input :url
   =f.input :phone
   =f.input :email
-  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
 
 :javascript
   $(document).ready(function() {
-    console.log("FORM SELECTOR: ", '#{form_selector_from_id}');
     new FormHandler($('#{form_selector_from_id}'));
   });

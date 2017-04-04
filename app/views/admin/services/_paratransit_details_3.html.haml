@@ -3,23 +3,34 @@
 
 -# For use in building new schedule forms
 -new_sched = @service.schedules.build
+-form_obj = nil # Set this in the form so we can pass it later in JS
 
--# Build a schedule row for each weekday
--(0..6).each do |d|
-  -day_scheds = @service.schedules.by_day(d).for_display
-  .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold', data: {day: d}}
-    .row.panel-body
-      %label.col-sm-2.schedule-row-label
-        %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
-          =Date::DAYNAMES[d]
-      .col-sm-10.schedule-row-body-wrapper
-        =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-        .btn.add-schedule
-          %span.text-muted add schedule
-          %span.text-muted.glyphicon.glyphicon-plus
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  wrapper: :inline_input_group,
+  html: {class: 'form-inline', id: form_id_from_path, multipart: true, method: :put } do |f|
+  -form_obj = f
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+
+  -# Build a schedule row for each weekday
+  -(0..6).each do |d|
+    -day_scheds = @service.schedules.by_day(d).for_display
+    .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold', data: {day: d}}
+      .row.panel-body
+        %label.col-sm-2.schedule-row-label
+          %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
+            =Date::DAYNAMES[d]
+        .col-sm-10.schedule-row-body-wrapper
+          =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
+          .btn.add-schedule
+            %span.text-muted add schedule
+            %span.text-muted.glyphicon.glyphicon-plus
 
 :javascript
   $(document).ready(function() {
+
+    var fh = new FormHandler($('#{form_selector_from_id}'));
 
     // Helper object keeps track of default schedule values
     var defaultSchedule = {
@@ -55,7 +66,7 @@
       var scheduleDay = parent.data().day;
 
       // Build partial for new schedule form
-      $(this).before('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched}}');
+      $(this).before('#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: form_obj, schedules: new_sched}}');
 
       // Update it with appropriate values
       var newSchedule = parent.find('.schedule-body').last();
@@ -68,6 +79,4 @@
       newSchedule.find('select.start-time').change(updateDefaultStartTime);
       newSchedule.find('select.end-time').change(updateDefaultEndTime);
     });
-
-
   });

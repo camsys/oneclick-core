@@ -1,73 +1,80 @@
-console.log("FORM HELPER CALLED");
-
+// FormHandler handles setup and re-rendering of remote forms
 function FormHandler(form) {
-  console.log("NEW FORM HANDLER");
-  this.form = $(form);
-  this._container = this.form.closest('.form-container');
-  // this._contents = this.form.find('.panel');
-  this._submitButton = this._container.find('.panel-form-submit');
-  this._cancelButton = this._container.find('.panel-form-cancel');
-  this._addSubmitHandler();
-  this._addAJAXHandler();
-  this._addCancelHandler();
+
+  // Element References
+  this.form = $(form); // JQuery object for Form
+  this.formEl = this.form.get(0); // Reference to form's DOM element
+  this.formContainer = this.form.closest('.form-container');
+  this.submitButton = this.formContainer.find('.panel-form-submit');
+  this.cancelButton = this.formContainer.find('.panel-form-cancel');
+  this.inputs = this.form.find(':input');
+
+  // Callbacks
+  this.onResetCallback = false;
+
+  // Set up form on initialization
+  this.clean(); // Form has not yet been altered from its original state
+  this.addHandlers();
 }
 
 FormHandler.prototype = {
-  _addSubmitHandler: function() {
-    console.log("ADDING SUBMIT HANDLER");
+  addHandlers: function() {
     var fh = this;
-    this._submitButton.click(function() {
-      console.log("SUBMITTING FORM");
+
+    // On submit button click, submit form.
+    this.submitButton.click(function(e) {
       fh.form.submit();
     });
-  },
-  _addAJAXHandler: function() {
-    var fh = this;
-    console.log("adding AJAX handler to ", fh.form);
+
+    // On cancel button click, reset form to original state and set to clean
+    this.cancelButton.click(function() {
+      fh.formEl.reset();
+      if(fh.onResetCallback) {
+        fh.onResetCallback();
+      }
+      fh.clean();
+    });
+
+    // On any change to form inputs, set form to dirty
+    this.inputs.on("change keypress", function() {
+      fh.dirty();
+    });
+
+    // On Successful Form Submit, Replace form with response HTML.
     this.form.on("ajax:success", function(evt, data, status, xhr) {
-      console.log("AJAX SUCCESSFUL");
-      fh._container.replaceWith(xhr.responseText);
-      new FormHandler($(this));
+      fh.formContainer.replaceWith(xhr.responseText);
+      new FormHandler($(this)); // Reset form with new handlers
     });
-    // this.form.on("ajax:complete", function(xhr, status) {
-    //   console.log("AJAX COMPLETE");
-    //   // fh._container.replaceWith(xhr.responseText);
-    // });
-    // this.form.on("ajax:remotipartComplete", function(e, data){
-    //   console.log("REMOTIPART COMPLETE");
-    // });
+
   },
-  _addCancelHandler: function() {
-    var fh = this;
-    this._cancelButton.click(function() {
-      console.log("CANCEL BUTTON CLICKED");
-    });
+
+  // Form has been changed
+  dirty: function() {
+    this.isDirty = true;
+    this.enableButtons();
+  },
+
+  // Form has not been changed; matches model in database
+  clean: function() {
+    this.isDirty = false;
+    this.disableButtons();
+  },
+
+  // Disables submit and cancel buttons
+  disableButtons: function() {
+    this.submitButton.addClass('disabled');
+    this.cancelButton.addClass('disabled');
+  },
+
+  // Enables submit and cancel buttons
+  enableButtons: function() {
+    this.submitButton.removeClass('disabled');
+    this.cancelButton.removeClass('disabled');
+  },
+
+  // Set onReset Callback
+  onReset: function(callback) {
+    this.onResetCallback = callback;
   }
-}
 
-// FormHelper constructor function
-function FormHelper() {
-  console.log("Initializing FormHelper...");
-  console.log("IDENTIFYING FORMS", $('form'));
-
-  // Identify all the forms on the page, and set each one up with click, AJAX handlers, etc.
-  this.forms = $('form').map(function(i, f) {
-    new FormHandler(f);
-  });
-  // Set up cancel buttons for each form
-}
-
-FormHelper.prototype = {
-
-
-  //
-  // // Handle Form Submit
-  // .on("ajax:success", function(evt, data, status, xhr) {
-  //   if(thisForm.newService && xhr.status === 200) {
-  //     $('#services-menu').replaceWith(xhr.responseText); // Refresh the whole menu on successful create
-  //   } else {
-  //     $(this).replaceWith(xhr.responseText); // Re-render just this form
-  //     thisForm.setReadOnly(xhr.status !== 206); // Set to read-only unless there were errors
-  //   }
-  // });
 }

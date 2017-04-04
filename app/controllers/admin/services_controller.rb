@@ -44,12 +44,10 @@ class Admin::ServicesController < Admin::AdminController
 
     respond_to do |format|
       format.html do
-        puts "HTML FORMAT", @service.ai
         render template: params[:partial_path], layout: '/layouts/_panel'
       end
       format.js do
-        puts "JS FORMAT", @service.ai
-        render partial: 'service_general_info', layout: '/layouts/panel'
+        render template: params[:partial_path], layout: '/layouts/_panel'
       end
     end
   end
