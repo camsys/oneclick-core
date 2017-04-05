@@ -1,0 +1,14 @@
+=content_for :header do
+  Accommodations
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  = f.association :accommodations, label_method: :code, as: :check_boxes
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });

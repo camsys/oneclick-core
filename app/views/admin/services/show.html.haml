@@ -1,24 +1,18 @@
 =content_for :title do
   = "Editing #{@service.type} Service: #{@service.name}"
 
--# = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
--#   =render partial: 'service_general_info', layout: '/layouts/panel', locals: {f: f}
--# = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
 =render partial: 'service_general_info', layout: '/layouts/panel'
 =render partial: 'service_comments', layout: '/layouts/panel'
 
 -case @service.type
 -when 'Transit'
-  =render partial: 'transit_details_1', layout: '/layouts/panel'
+  =render partial: 'transit_details', layout: '/layouts/panel'
 -when 'Paratransit'
-  =render partial: 'paratransit_details_1', layout: '/layouts/panel'
-  =render partial: 'purpose_picker', layout: '/layouts/panel'
-  =render partial: 'paratransit_details_2', layout: '/layouts/panel'
-  =render partial: 'paratransit_details_3', layout: '/layouts/panel'
+  =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel'
+  =render partial: 'paratransit_purposes', layout: '/layouts/panel'
+  =render partial: 'paratransit_service_areas', layout: '/layouts/panel'
+  =render partial: 'paratransit_schedules', layout: '/layouts/panel'
 -when 'Taxi'
-  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
-    =render partial: 'taxi_details_1', layout: '/layouts/panel', locals: {f: f}
-  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
-    =render partial: 'taxi_details_2', layout: '/layouts/panel', locals: {f: f}
-  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
-    =render partial: 'taxi_details_3', layout: '/layouts/panel', locals: {f: f}
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel'
+  =render partial: 'taxi_details', layout: '/layouts/panel'
+  =render partial: 'taxi_service_area', layout: '/layouts/panel'
