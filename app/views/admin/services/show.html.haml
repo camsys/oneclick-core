@@ -11,9 +11,8 @@
 -when 'Transit'
   =render partial: 'transit_details_1', layout: '/layouts/panel'
 -when 'Paratransit'
-  = simple_form_for @service, url: admin_service_path, html: {class: 'form-horizontal', multipart: true, method: :put }, authenticity_token: true do |f|
-    =render partial: 'purpose_picker', layout: '/layouts/panel', locals: {f: f}
   =render partial: 'paratransit_details_1', layout: '/layouts/panel'
+  =render partial: 'purpose_picker', layout: '/layouts/panel'
   =render partial: 'paratransit_details_2', layout: '/layouts/panel'
   =render partial: 'paratransit_details_3', layout: '/layouts/panel'
 -when 'Taxi'

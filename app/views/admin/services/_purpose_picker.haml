@@ -1,7 +1,14 @@
 =content_for :header do
   Purposes
 
-= f.association :purposes, label_method: :code, as: :check_boxes
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-=content_for :footer do
-  = f.button :submit, "OK", class: "btn action-button btn-primary", role: 'button'
+  = f.association :purposes, label_method: :code, as: :check_boxes
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });

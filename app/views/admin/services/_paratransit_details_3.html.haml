@@ -3,14 +3,13 @@
 
 -# For use in building new schedule forms
 -new_sched = @service.schedules.build
--form_obj = nil # Set this in the form so we can pass it later in JS
 -schedules_json = @service.schedules.for_display.to_json
 
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   wrapper: :inline_input_group,
   html: {class: 'form-inline schedule-week-container', id: form_id_from_path, multipart: true, method: :put } do |f|
-  -form_obj = f
+  -# -form_obj = f
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   -# Build a schedule row for each weekday
@@ -28,28 +27,29 @@
             %span.text-muted add schedule
             %span.text-muted.glyphicon.glyphicon-plus
 
-:javascript
-  $(document).ready(function() {
+  -# Script nested under form so it can reference it in ScheduleHelper call
+  :javascript
+    $(document).ready(function() {
 
-    var fh = new FormHandler($('#{form_selector_from_id}'));
-    var sch = new ScheduleHelper(
-      '#{schedules_json}',
-      $('.schedule-week-container'),
-      '#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: form_obj, schedules: new_sched}}'
-    );
+      var fh = new FormHandler($('#{form_selector_from_id}'));
+      var sch = new ScheduleHelper(
+        '#{schedules_json}',
+        $('.schedule-week-container'),
+        '#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched}}'
+      );
 
-    // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
-    fh.watch($('.schedule-week-container'));
+      // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
+      fh.watch($('.schedule-week-container'));
 
-    // Reset the schedule divs on form reset
-    fh.onReset(function() {
-      sch.reset();
+      // Reset the schedule divs on form reset
+      fh.onReset(function() {
+        sch.reset();
+      });
+
+      // Click handler for adding new schedules
+      $('.add-schedule').click(function() {
+        var day = $(this).siblings('.schedule-day-container').data().day;
+        sch.addSchedule(day).trigger('change');
+      });
+
     });
-
-    // Click handler for adding new schedules
-    $('.add-schedule').click(function() {
-      var day = $(this).siblings('.schedule-day-container').data().day;
-      sch.addSchedule(day).trigger('change');
-    });
-
-  });
