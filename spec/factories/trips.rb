@@ -34,7 +34,7 @@ FactoryGirl.define do
     end
 
     trait :going_to_see_metallica do |t|
-      purpose FactoryGirl.create(:metallica_concert)
+      association :purpose, factory: :metallica_concert
     end
 
   end
