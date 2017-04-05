@@ -42,12 +42,21 @@ class Admin::ServicesController < Admin::AdminController
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
-    respond_to do |format|
-      format.html do
-        render template: params[:partial_path], layout: '/layouts/_panel'
+    # If a partial_path parameter is set, serve back that partial
+    if params[:partial_path]
+      respond_to do |format|
+        format.html do
+          render template: params[:partial_path], layout: '/layouts/_panel'
+        end
+        format.js do
+          render template: params[:partial_path], layout: '/layouts/_panel'
+        end
       end
-      format.js do
-        render template: params[:partial_path], layout: '/layouts/_panel'
+    else
+      respond_to do |format|
+        format.html do
+          redirect_to admin_service_path(@service)
+        end
       end
     end
   end
