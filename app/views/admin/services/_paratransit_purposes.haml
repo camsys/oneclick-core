@@ -1,17 +1,12 @@
 =content_for :header do
-  Comments
+  Purposes
 
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  -@service.comments.each do |comment|
-    =f.simple_fields_for "comments_attributes[]", comment do |comment_form|
-      =comment_form.input :id, wrapper_html: {class: "hidden"}
-      =comment_form.input :locale, wrapper_html: {class: "hidden"}
-      =comment_form.input :comment, label: "Comment (#{comment_form.object.locale})"
-
+  = f.association :purposes, label_method: :code, as: :check_boxes
 
 :javascript
   $(document).ready(function() {

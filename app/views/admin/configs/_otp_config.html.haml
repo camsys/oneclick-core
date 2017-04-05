@@ -1,6 +1,16 @@
 =content_for :header do
   = "Set Location of OpenTripPlanner Server"
 
-= f.input :value, required:true,
-          label: "URL of the Open Trip Planner Server",
-          as: :string
+=simple_form_for @open_trip_planner,
+  url: set_open_trip_planner_admin_configs_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: 'patch' },
+  authenticity_token: true do |f|
+
+  = f.input :value, required:true,
+    label: "URL of the Open Trip Planner Server",
+    as: :string
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });

@@ -38,10 +38,27 @@ class Admin::ServicesController < Admin::AdminController
 
   def update
     @service.update_attributes(service_params)
+    @service.update_attributes(url: 'test')
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
-    redirect_to admin_service_path(@service)
+    # If a partial_path parameter is set, serve back that partial
+    if params[:partial_path]
+      respond_to do |format|
+        format.html do
+          render template: params[:partial_path], layout: '/layouts/_panel'
+        end
+        format.js do
+          render template: params[:partial_path], layout: '/layouts/_panel'
+        end
+      end
+    else
+      respond_to do |format|
+        format.html do
+          redirect_to admin_service_path(@service)
+        end
+      end
+    end
   end
 
   private

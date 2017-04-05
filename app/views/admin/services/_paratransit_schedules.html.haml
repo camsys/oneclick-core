@@ -1,0 +1,55 @@
+=content_for :header do
+  Schedules
+
+-# For use in building new schedule forms
+-new_sched = @service.schedules.build
+-schedules_json = @service.schedules.for_display.to_json
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  wrapper: :inline_input_group,
+  html: {class: 'form-inline schedule-week-container', id: form_id_from_path, multipart: true, method: :put } do |f|
+  -# -form_obj = f
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  -# Build a schedule row for each weekday
+  -(0..6).each do |d|
+    -day_scheds = @service.schedules.by_day(d).for_display
+    .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold'}
+      .row.panel-body
+        %label.col-sm-2.schedule-row-label
+          %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
+            =Date::DAYNAMES[d]
+        .col-sm-10
+          %span.schedule-day-container{data: {day: d}}
+            -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
+          .btn.add-schedule
+            %span.text-muted add schedule
+            %span.text-muted.glyphicon.glyphicon-plus
+
+  -# Script nested under form so it can reference it in ScheduleHelper call
+  :javascript
+    $(document).ready(function() {
+
+      var fh = new FormHandler($('#{form_selector_from_id}'));
+      var sch = new ScheduleHelper(
+        '#{schedules_json}',
+        $('.schedule-week-container'),
+        '#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched}}'
+      );
+
+      // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
+      fh.watch($('.schedule-week-container'));
+
+      // Reset the schedule divs on form reset
+      fh.onReset(function() {
+        sch.reset();
+      });
+
+      // Click handler for adding new schedules
+      $('.add-schedule').click(function() {
+        var day = $(this).siblings('.schedule-day-container').data().day;
+        sch.addSchedule(day).trigger('change');
+      });
+
+    });

@@ -10,7 +10,11 @@
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
       input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
-    =sched_form.input :id, wrapper_html: {class: 'hidden'}, input_html: {name: input_name(f, :schedules, :id)}
-    =sched_form.input :_destroy, wrapper_html: {class: 'hidden'}, input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: false}
+    =sched_form.input :id,
+      wrapper_html: {class: 'hidden'},
+      input_html: {name: input_name(f, :schedules, :id), class: 'id'}
+    =sched_form.input :_destroy,
+      wrapper_html: {class: 'hidden'},
+      input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: false}
     .btn.btn-link.delete-schedule
       %span.glyphicon.glyphicon-remove

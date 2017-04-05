@@ -1,4 +1,3 @@
-
 // The M object holds utility methods for mapping and manipulating geographies
 var M = {
 
@@ -32,6 +31,7 @@ var M = {
     this._ingredientLabelTag = params.ingredientLabelTag;
     this.ingredients = [];
     this._load();
+    this.originalIngredients = this.ingredients.slice(); // Set original ingredients to a duplicate of ingredients, once loaded
     this._init();
     this._dump();
   }
@@ -78,9 +78,18 @@ M.Recipe.prototype = {
 
   // Dumps instance variables to page form
   _dump: function() {
-    var that = this;
-    this._recipe.val(JSON.stringify(this.ingredients));
+    var oldRecipe = this._recipe.val();
+    var newRecipe = JSON.stringify(this.ingredients);
+    this._recipe.val(newRecipe);
+
+    // Trigger change event if recipe has changed
+    if(oldRecipe !== newRecipe) {
+      this._recipe.trigger('change');
+    }
+
+    // Refresh the display with new ingredient label divs
     this._display.empty();
+    var that = this;
     this.ingredients.forEach(function(ingredient, i) {
       that._make_label(ingredient, i);
     });
@@ -110,5 +119,11 @@ M.Recipe.prototype = {
       that.ingredients.splice(i, 1);
       that._dump();
     });
+  },
+
+  // Resets recipe form to its original state
+  reset: function() {
+    this.ingredients = this.originalIngredients.slice();
+    this._dump();
   }
 };

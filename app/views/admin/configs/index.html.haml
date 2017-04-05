@@ -1,8 +1,5 @@
 =content_for :title do
   Configuration
 
-= simple_form_for @open_trip_planner, url: set_open_trip_planner_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-  =render partial: 'otp_config', layout: '/layouts/panel', locals: {f: f}
-
-= simple_form_for @tff_api_key, url: set_tff_api_key_admin_configs_path, html: {class: 'form-horizontal', multipart: true, method: 'patch' }, authenticity_token: true do |f|
-  =render partial: 'tff_api_key', layout: '/layouts/panel', locals: {f: f}
+=render partial: 'otp_config', layout: '/layouts/panel'
+=render partial: 'tff_api_key', layout: '/layouts/panel'
