@@ -37,7 +37,7 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    unless trip_type.in? [:walk, :car, :bicycle] 
+    unless trip_type.in? [:walk, :car, :bicycle]
       trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
@@ -71,7 +71,11 @@ class TripPlanner
     @errors << response if response[:error]
 
     @available_services[:paratransit].map do |service|
-      Itinerary.new(service: service, trip_type: :paratransit, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
+      Itinerary.new(
+        service: service,
+        trip_type: :paratransit,
+        cost: 0,
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
     end
   end
 

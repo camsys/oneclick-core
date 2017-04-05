@@ -38,6 +38,12 @@ class OTPAmbassador
     return itineraries[0]["duration"] if itineraries[0]
   end
 
+  def get_distance(trip_type)
+    return 0 if errors(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
+    return extract_distance(itineraries[0]) if itineraries[0]
+  end
+
   def get_request_url(request_type)
     @otp.plan_url(format_trip_as_otp_request(request_type))
   end
@@ -112,7 +118,7 @@ class OTPAmbassador
     end
   end
 
-  # OTP returns car and bicycle time as walk time 
+  # OTP returns car and bicycle time as walk time
   def get_walk_time otp_itin, trip_type
     if trip_type.in? [:car, :bicycle]
       return 0
@@ -132,6 +138,14 @@ class OTPAmbassador
     otp_itin['fare']['fare'] &&
     otp_itin['fare']['fare']['regular'] &&
     otp_itin['fare']['fare']['regular']['cents'].to_f/100.0
+  end
+
+  # Extracts total distance from OTP itinerary
+  # default conversion factor is for converting meters to miles
+  def extract_distance(otp_itin, trip_type=:drive, conversion_factor=0.000621371)
+    otp_itin["legs"] &&
+    otp_itin["legs"][0] &&
+    otp_itin["legs"][0]["distance"] * conversion_factor
   end
 
   # Processes and unpacks an OTP multi_plan responses hash

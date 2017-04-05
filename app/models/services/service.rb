@@ -1,12 +1,13 @@
 class Service < ApplicationRecord
 
-  ### Includes ###
+  ### INCLUDES ###
   mount_uploader :logo, LogoUploader
   include ScheduleHelper
   include ScopeHelper
   include Commentable
 
-  ### ASSOCIATIONS ###
+  ### ATTRIBUTES & ASSOCIATIONS ###
+  serialize :fare_details
   has_many :itineraries
   has_many :schedules
   has_and_belongs_to_many :accommodations
@@ -14,7 +15,6 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :purposes
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
-
 
   ### VALIDATIONS ###
   validates_presence_of :name, :type
@@ -144,7 +144,7 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services with no purposes set
   def self.no_purposes
-    includes(:purposes).where(purposes: {id: nil}).pluck(:id)  
+    includes(:purposes).where(purposes: {id: nil}).pluck(:id)
   end
 
   # Returns IDs of Services with a schedule that includes the trip time
