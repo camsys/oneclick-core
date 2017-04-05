@@ -1,6 +1,16 @@
 =content_for :header do
   = "Taxi Fare Finder Config"
 
-= f.input :value, required:true,
-          label: "API Key for Taxi Fare Finder",
-          as: :string
+=simple_form_for @tff_api_key,
+  url: set_tff_api_key_admin_configs_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: 'patch' },
+  authenticity_token: true do |f|
+
+  =f.input :value, required:true,
+            label: "API Key for Taxi Fare Finder",
+            as: :string
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });
