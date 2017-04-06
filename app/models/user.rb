@@ -44,6 +44,11 @@ class User < ApplicationRecord
     end
   end
 
+  # Check to see if the user is an Admin
+  def admin?
+    self.has_role? :admin
+  end
+
   ### Update Profle from API Call ###
   
   def update_profile params 
