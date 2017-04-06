@@ -11,7 +11,7 @@ class HTTPRequestBundler
 
   # Add an HTTP request to the bundler, for later processing
   def add(label, url, action=:get)
-    @requests[:label] = {
+    @requests[label] = {
       request: EM::HttpRequest.new(url),
       action: action
     }

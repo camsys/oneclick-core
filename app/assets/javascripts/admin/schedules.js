@@ -2,7 +2,6 @@
 
 // Takes JSON of the schedules, a JQuery reference to the containing div, and HTML for a blank schedule
 function ScheduleHelper(schedulesJSON, containerDiv, scheduleTemplate, options) {
-  console.log("INITIALIZING SCHEDULEHELPER");
   this.originalSchedules = JSON.parse(schedulesJSON);
   this.container = containerDiv;
   this.template = scheduleTemplate;

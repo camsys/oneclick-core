@@ -1,5 +1,5 @@
 class OTPAmbassador
-  attr_reader :otp, :trip, :trip_types, :responses, :http_request_bundler
+  attr_reader :otp, :trip, :trip_types, :http_request_bundler
 
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
@@ -18,7 +18,6 @@ class OTPAmbassador
     @http_request_bundler = http_request_bundler
     @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     @otp = OTPService.new(Config.open_trip_planner)
-    @responses = {}
 
     # add http calls to bundler based on trip and modes
     prepare_http_requests.each do |request|

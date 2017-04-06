@@ -1,6 +1,6 @@
 module FareHelper
 
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
+  VALID_STRUCTURES = [nil, :flat, :mileage, :zone, :taxi_fare_finder]
 
   # Helper class for calculating trip fares
   class FareCalculator
@@ -11,12 +11,14 @@ module FareHelper
       @fare_structure = fare_structure
       @fare_details = fare_details
       @trip = trip
-      @router = options[:router] || nil
-      @trip_type = options[:trip_type] || :paratransit
+      @http_request_bundler = options[:http_bundler] || HTTPRequestBundler.new
+      @router = options[:router]
+      @taxi_ambassador = options[:taxi_ambassador]
     end
 
     # Calculate the fare based on the passed trip and the fare_structure/details
     def calculate
+      return no_fare if @fare_structure.nil?
       self.send("calculate_#{@fare_structure}")
     end
 
@@ -27,16 +29,36 @@ module FareHelper
 
     # Calculates a mileage-based fare
     def calculate_mileage
-      @fare_details[:base] +
-      @fare_details[:mileage_rate] * @router.get_distance(@trip_type)
+      @router = @router || default_router
+      return (@fare_details[:base] +
+        @fare_details[:mileage_rate] * @router.get_distance(@fare_details[:trip_type]))
     end
 
+    # Calculates fare by making a call to TaxiFareFinder
     def calculate_taxi_fare_finder
-      0
+      @taxi_ambassador = @taxi_ambassador || default_taxi_ambassador
+      return @taxi_ambassador.fare(@fare_details[:taxi_fare_finder_city])
     end
 
     def calculate_zone
       0
+    end
+
+    private
+
+    # Default result if no fare_structure is set
+    def no_fare
+      nil
+    end
+
+    # Builds a default OTPAmbassador if no router is provided
+    def default_router
+      OTPAmbassador.new(@trip, [@fare_details[:trip_type]], @http_request_bundler)
+    end
+
+    # Builds a default Taxi Fare Finder Ambassaor if no Taxi Ambassador is provided
+    def default_taxi_ambassador
+      TFFAmbassador.new(@trip, @http_request_bundler, cities: [@fare_details[:taxi_fare_finder_city]])
     end
   end
 

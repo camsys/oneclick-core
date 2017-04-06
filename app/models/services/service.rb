@@ -5,6 +5,7 @@ class Service < ApplicationRecord
   include ScheduleHelper
   include ScopeHelper
   include Commentable
+  include FareHelper
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
@@ -100,14 +101,18 @@ class Service < ApplicationRecord
   # INSTANCE METHODS #
   ####################
 
+  # Calculates fare for passed trip, based on service's fare_structure and fare_details
+  def fare_for(trip, options={})
+    FareCalculator.new(fare_structure, fare_details, trip, options).calculate
+  end
+
   # OVERWRITE
   # Builds geographic associations.
   def build_geographies
     nil
   end
 
-
-  # Silently filters out schedule params that don't meet criteria
+  # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
   end

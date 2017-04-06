@@ -4,6 +4,7 @@
 # APIs.
 
 class TripPlanner
+
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle]
 
@@ -23,7 +24,7 @@ class TripPlanner
 
     # External API Ambassadors
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
-    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @available_services[:taxi], @http_request_bundler)
+    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -70,12 +71,13 @@ class TripPlanner
     response = @router.get_itineraries(:paratransit)
     @errors << response if response[:error]
 
-    @available_services[:paratransit].map do |service|
+    @available_services[:paratransit].map do |svc|
       Itinerary.new(
-        service: service,
+        service: svc,
         trip_type: :paratransit,
-        cost: 0,
-        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
+        cost: svc.fare_for(@trip, router: @router),
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+      )
     end
   end
 
@@ -84,8 +86,13 @@ class TripPlanner
     response = @router.get_itineraries(:taxi)
     @errors << response if response[:error]
 
-    @available_services[:taxi].map do |service|
-      Itinerary.new(service: service, trip_type: :taxi, cost: @taxi_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
+    @available_services[:taxi].map do |svc|
+      Itinerary.new(
+        service: svc,
+        trip_type: :taxi,
+        cost: svc.fare_for(@trip, router: @router, taxi_ambassador: @taxi_ambassador),
+        transit_time: @router.get_duration(:taxi)
+      )
     end
   end
 
