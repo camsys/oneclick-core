@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   devise_for :users
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
+  root "admin/admin#index"
+
   namespace :api do
     match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
 
@@ -56,6 +58,9 @@ Rails.application.routes.draw do
 
   #Admin Views
   namespace :admin do
+
+    get '/' => 'admin#index'
+
     resources :users, :only => [:index]
 
     resources :configs, :only => [:index] do
