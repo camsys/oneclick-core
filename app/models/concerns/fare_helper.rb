@@ -1,6 +1,7 @@
 module FareHelper
 
-  VALID_STRUCTURES = [nil, :flat, :mileage, :zone, :taxi_fare_finder]
+  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
+  PERMITTED_FARE_PARAMS = [:base_fare, :mileage_rate, :trip_type, :taxi_fare_finder_city]
 
   # Helper class for calculating trip fares
   class FareCalculator
@@ -22,16 +23,19 @@ module FareHelper
       self.send("calculate_#{@fare_structure}")
     end
 
+    private
+
     # Calculates a flat fare
     def calculate_flat
-      @fare_details[:base]
+      @fare_details[:base_fare]
     end
 
     # Calculates a mileage-based fare
     def calculate_mileage
       @router = @router || default_router
-      return (@fare_details[:base] +
-        @fare_details[:mileage_rate] * @router.get_distance(@fare_details[:trip_type]))
+      puts "CALCULATING MILEAGE", @fare_details[:base_fare].class, @fare_details[:mileage_rate].class, @router.get_distance(@fare_details[:trip_type].to_sym).class
+      return (@fare_details[:base_fare] +
+        @fare_details[:mileage_rate] * @router.get_distance(@fare_details[:trip_type].to_sym))
     end
 
     # Calculates fare by making a call to TaxiFareFinder
@@ -43,8 +47,6 @@ module FareHelper
     def calculate_zone
       0
     end
-
-    private
 
     # Default result if no fare_structure is set
     def no_fare
@@ -77,12 +79,14 @@ module FareHelper
       self.send("valid_#{@fare_structure}?")
     end
 
+    private
+
     def valid_flat?
-      @fare_details.has_key?(:base) && @fare_details[:base].is_a?(Numeric)
+      @fare_details.has_key?(:base_fare) && @fare_details[:base_fare].is_a?(Numeric)
     end
 
     def valid_mileage?
-      (@fare_details.has_key?(:base) && @fare_details[:base].is_a?(Numeric)) &&
+      (@fare_details.has_key?(:base_fare) && @fare_details[:base_fare].is_a?(Numeric)) &&
       (@fare_details.has_key?(:mileage_rate) && @fare_details[:mileage_rate].is_a?(Numeric))
     end
 
@@ -94,6 +98,47 @@ module FareHelper
       true
     end
 
+  end
+
+  # Packages fare params properly
+  class FareParamPackager
+    def initialize(params)
+      @params = params
+      @fare_structure = @params[:fare_structure]
+      @base_fare = @params.delete(:base_fare).to_f
+      @mileage_rate = @params.delete(:mileage_rate).to_f
+      @trip_type = @params.delete(:trip_type).underscore.to_sym
+      @taxi_fare_finder_city = @params.delete(:taxi_fare_finder_city)
+    end
+
+    # Creates a fare_details parameter key based on the fare_structure
+    def package
+      self.send("package_#{@fare_structure}")
+      return @params
+    end
+
+    private
+
+    def package_flat
+      @params[:fare_details] = {
+        base_fare: @base_fare
+      }
+    end
+
+    def package_mileage
+      # @params.merge(base_fare: @base_fare, mileage_rate: @mileage_rate)
+      @params[:fare_details] = {
+        base_fare: @base_fare,
+        mileage_rate: @mileage_rate,
+        trip_type: @trip_type
+      }
+    end
+
+    def package_taxi_fare_finder
+      @params[:fare_details] = {
+        taxi_fare_finder_city: @taxi_fare_finder_city
+      }
+    end
   end
 
 end

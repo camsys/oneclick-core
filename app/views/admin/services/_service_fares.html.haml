@@ -1,0 +1,50 @@
+=content_for :header do
+  Fares
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  =f.input :fare_structure, input_html: {class: 'fare-structure'}, collection: FareHelper::VALID_STRUCTURES
+
+  -fare_details = @service.fare_details || {}
+
+  -# FLAT
+  .fare-inputs.flat-fare.hidden
+    =f.input :base_fare, input_html: {value: fare_details[:base_fare]}
+
+  -# MILEAGE
+  .fare-inputs.mileage-fare.hidden
+    =f.input :base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+    =f.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
+    =f.input :trip_type, as: :hidden,
+      input_html: {value: @service.type}
+
+  -# TFF
+  .fare-inputs.taxi_fare_finder-fare.hidden
+    =f.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
+
+:javascript
+  $(document).ready(function() {
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+
+    // JQuery reference to fare structure selector element
+    var fareStructureInput = $('.fare-structure');
+
+    // Show appropriate fare inputs and hide all others
+    var showFareInputs = function() {
+      var fareStructure = fareStructureInput.val();
+      $('.fare-inputs').addClass('hidden');
+      $('.fare-inputs.' + fareStructure + '-fare').removeClass('hidden');
+    };
+
+    // On page load, show proper fare inputs
+    showFareInputs();
+
+    // Show correct fare inputs when a new structure is selected.
+    fareStructureInput.change(showFareInputs);
+
+    // Show correct fare inputs when form is reset
+    fh.onReset(showFareInputs);
+  });
