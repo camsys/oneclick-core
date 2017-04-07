@@ -2,6 +2,7 @@ module FareHelper
 
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
   PERMITTED_FARE_PARAMS = [:base_fare, :mileage_rate, :trip_type, :taxi_fare_finder_city]
+  TRIP_TYPES = Trip::TRIP_TYPES
 
   # Helper class for calculating trip fares
   class FareCalculator
@@ -65,37 +66,67 @@ module FareHelper
   end
 
   # Validates fare_structure and fare_details
-  class FareValidator
-    attr_reader :fare_structure, :fare_details
+  class FareValidator < ActiveModel::Validator
 
-    # Initialize with a fare_structure and fare_details
-    def initialize(fare_structure, fare_details)
-      @fare_structure = fare_structure
-      @fare_details = fare_details
-    end
-
-    def valid?
-      VALID_STRUCTURES.include?(@fare_structure.to_sym) &&
-      self.send("valid_#{@fare_structure}?")
+    def validate(record)
+      return if record.fare_structure.nil?
+      if validate_fare_structure(record) && validate_fare_details(record)
+        self.send("validate_#{record.fare_structure}", record)
+      end
     end
 
     private
 
-    def valid_flat?
-      @fare_details.has_key?(:base_fare) && @fare_details[:base_fare].is_a?(Numeric)
+    def validate_fare_structure(record)
+      if VALID_STRUCTURES.include?(record.fare_structure.underscore.to_sym)
+        return true
+      else
+        record.errors.add(:fare_structure, "Must select a valid fare structure")
+        return false
+      end
     end
 
-    def valid_mileage?
-      (@fare_details.has_key?(:base_fare) && @fare_details[:base_fare].is_a?(Numeric)) &&
-      (@fare_details.has_key?(:mileage_rate) && @fare_details[:mileage_rate].is_a?(Numeric))
+    def validate_fare_details(record)
+      if record.fare_details.is_a?(Hash)
+        return true
+      else
+        record.errors.add(:fare_details, "Fare details must be a hash")
+        return false
+      end
     end
 
-    def valid_zone?
-      true
+    def validate_flat(record)
+      validate_fare_details_key(record, :base_fare, :numeric)
     end
 
-    def valid_taxi_fare_finder?
-      true
+    def validate_mileage(record)
+      validate_fare_details_key(record, :base_fare, :numeric)
+      validate_fare_details_key(record, :mileage_rate, :numeric)
+      validate_fare_details_key(record, :trip_type, :symbol)
+      unless TRIP_TYPES.include?(record.fare_details[:trip_type])
+        record.errors.add(:fare_details, "Must have a valid trip_type")
+      end
+    end
+
+    def validate_zone(record)
+      return true
+    end
+
+    def validate_taxi_fare_finder(record)
+      validate_fare_details_key(record, :taxi_fare_finder_city, :string)
+    end
+
+    def validate_fare_details_key(record, key, class_name)
+
+      unless record.fare_details.has_key?(key)
+        record.errors.add(:fare_details, "Must have a #{key}")
+      end
+
+      class_ref = class_name.to_s.classify.constantize
+      unless record.fare_details[key].is_a?(class_ref)
+        record.errors.add(:fare_details, "#{key} must be a #{class_name}")
+      end
+
     end
 
   end
@@ -138,6 +169,10 @@ module FareHelper
       @params[:fare_details] = {
         taxi_fare_finder_city: @taxi_fare_finder_city
       }
+    end
+
+    def package_zone
+      return true
     end
   end
 

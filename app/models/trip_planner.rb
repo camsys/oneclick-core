@@ -6,8 +6,7 @@
 class TripPlanner
 
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle]
-
+  TRIP_TYPES = Trip::TRIP_TYPES
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
   # Initialize with a Trip object, and an options hash
