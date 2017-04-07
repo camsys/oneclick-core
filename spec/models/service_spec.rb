@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
+  before(:all) { create(:otp_config) }
+  before(:all) { create(:tff_config) }
 
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
   it { should have_many(:itineraries) }
@@ -37,6 +39,10 @@ RSpec.describe Service, type: :model do
   let(:medical_service) { create(:paratransit_service, :medical_only, :no_geography) }
   let(:all_purpose_service) { create(:paratransit_service, :no_geography) }
   let(:metallica_trip) { create(:trip, :going_to_see_metallica) }
+
+  # For Fares testing
+  let(:flat_fare_service) { create(:taxi_service, :flat_fare) }
+  let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
 
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
@@ -160,5 +166,30 @@ RSpec.describe Service, type: :model do
   it 'should be (un)available for trips based on purpose' do
     expect(medical_service.available_for? metallica_trip).to eq(false)
   end
+
+  it 'should calculate flat fares' do
+    # flat fare
+    expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:base_fare])
+  end
+
+  it 'should calculate mileage fares' do
+    mileage_otp_response = {
+      "plan" => {
+        "itineraries" => [
+          {
+            "legs" => [
+              "distance" => 1609.34
+            ]
+          }
+        ]
+      }
+    }
+    hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
+    puts mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)
+    # fc = FactoryGirl.create(:fare_calculator, options: {http_request_bundler: hrb})
+    # puts "FC!", fc.calculate
+  end
+
+  it 'should calculate taxi fare finder fares'
 
 end

@@ -19,7 +19,7 @@ class TripPlanner
     @available_services = identify_available_services
 
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
-    @http_request_bundler = options[:http_bundler] || HTTPRequestBundler.new
+    @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
 
     # External API Ambassadors
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)

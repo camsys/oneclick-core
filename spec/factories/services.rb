@@ -57,7 +57,7 @@ FactoryGirl.define do
         end
       end
 
-      trait :medical_only do 
+      trait :medical_only do
         after(:create) do |s|
           s.purposes << create(:purpose)
         end
@@ -76,6 +76,16 @@ FactoryGirl.define do
       type "Taxi"
       taxi_fare_finder_id "Boston"
       trip_within_area nil
+    end
+
+    trait :flat_fare do
+      fare_structure :flat
+      fare_details { { base_fare: 5.0 } }
+    end
+
+    trait :mileage_fare do
+      fare_structure :mileage
+      fare_details { { base_fare: 0, mileage_rate: 5.0, trip_type: :taxi } }
     end
 
   end

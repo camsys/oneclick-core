@@ -13,7 +13,7 @@ module FareHelper
       @fare_structure = fare_structure
       @fare_details = fare_details
       @trip = trip
-      @http_request_bundler = options[:http_bundler] || HTTPRequestBundler.new
+      @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
       @router = options[:router]
       @taxi_ambassador = options[:taxi_ambassador]
     end
@@ -34,7 +34,6 @@ module FareHelper
     # Calculates a mileage-based fare
     def calculate_mileage
       @router = @router || default_router
-      puts "CALCULATING MILEAGE", @fare_details[:base_fare].class, @fare_details[:mileage_rate].class, @router.get_distance(@fare_details[:trip_type].to_sym).class
       return (@fare_details[:base_fare] +
         @fare_details[:mileage_rate] * @router.get_distance(@fare_details[:trip_type].to_sym))
     end
@@ -117,16 +116,13 @@ module FareHelper
     end
 
     def validate_fare_details_key(record, key, class_name)
-
       unless record.fare_details.has_key?(key)
         record.errors.add(:fare_details, "Must have a #{key}")
       end
-
       class_ref = class_name.to_s.classify.constantize
       unless record.fare_details[key].is_a?(class_ref)
         record.errors.add(:fare_details, "#{key} must be a #{class_name}")
       end
-
     end
 
   end
@@ -136,10 +132,10 @@ module FareHelper
     def initialize(params)
       @params = params
       @fare_structure = @params[:fare_structure]
-      @base_fare = @params.delete(:base_fare).to_f
-      @mileage_rate = @params.delete(:mileage_rate).to_f
-      @trip_type = @params.delete(:trip_type).underscore.to_sym
-      @taxi_fare_finder_city = @params.delete(:taxi_fare_finder_city)
+      @base_fare = @params[:fare_details].delete(:base_fare).to_f
+      @mileage_rate = @params[:fare_details].delete(:mileage_rate).to_f
+      @trip_type = @params[:fare_details].delete(:trip_type).to_s.underscore.to_sym
+      @taxi_fare_finder_city = @params[:fare_details].delete(:taxi_fare_finder_city)
     end
 
     # Creates a fare_details parameter key based on the fare_structure
