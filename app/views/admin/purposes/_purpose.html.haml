@@ -1,7 +1,7 @@
 =content_for :header do
   =purpose.code
 
-='This panel will be used to show more information about this purpose in the future.  E.g., Number of trips using it.  What the relevant translations are for this purpose etc.'
+= render :partial => 'shared/translations', :locals => { :type => "purpose", code: purpose.code }
 
 =content_for :footer do
   =button_to 'Delete', admin_purpose_path(purpose), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}

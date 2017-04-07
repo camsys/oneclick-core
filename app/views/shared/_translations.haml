@@ -1,0 +1,18 @@
+-I18n.available_locales.each do |locale|
+  .h3
+    =locale
+  .row
+    .div.col-md-3
+      ="#{type}_#{code}_name"
+    .div.col-md-9
+      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_name")
+  .row
+    .div.col-md-3
+      ="#{type}_#{code}_note"
+    .div.col-md-9
+      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_note")
+  .row
+    .div.col-md-3
+      ="#{type}_#{code}_question"
+    .div.col-md-9
+      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_question")
