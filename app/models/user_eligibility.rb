@@ -12,8 +12,9 @@ class UserEligibility < ApplicationRecord
   def api_hash
   	{
   	  code: self.eligibility.code, 
-  	  name: SimpleTranslationEngine.translate(self.user.locale.name, "#{self.eligibility.code.to_s}_name"), 
-  	  note: SimpleTranslationEngine.translate(self.user.locale.name, "#{self.eligibility.code.to_s}_note"),
+  	  name: SimpleTranslationEngine.translate(self.user.locale.name, "eligibility_#{self.eligibility.code.to_s}_name"), 
+      note: SimpleTranslationEngine.translate(self.user.locale.name, "eligibility_#{self.eligibility.code.to_s}_note"),
+      question: SimpleTranslationEngine.translate(self.user.locale.name, "eligibility_#{self.eligibility.code.to_s}_question"),
   	  value: self.value 
   	}
   end
