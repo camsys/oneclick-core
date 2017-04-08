@@ -14,4 +14,9 @@ class Eligibility < ApplicationRecord
   ### Callbacks ###
   before_save :snake_casify
 
+  # To Label is used by SimpleForm to Get the Label
+  def to_label locale=:en
+    SimpleTranslationEngine.translate(locale, "eligibility_#{self.code}_name")
+  end
+
 end

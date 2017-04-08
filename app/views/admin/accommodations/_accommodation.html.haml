@@ -1,7 +1,7 @@
 =content_for :header do
   =accommodation.code
 
-='This panel will be used to show more information about this eligibilty in the future.  E.g., Number of services using it.  Number of travelers who have answered the question.  What the relevant translations are for this eligibility E.g, Question, Note, Name etc.'
+= render :partial => 'shared/translations', :locals => { object: accommodation }
 
 =content_for :footer do
   =button_to 'Delete', admin_accommodation_path(accommodation), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}

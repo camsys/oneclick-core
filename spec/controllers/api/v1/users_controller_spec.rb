@@ -83,8 +83,9 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     # It should be over_65 and the value should be true
     expect(parsed_response["characteristics"].first['code']).to eq('over_65')
     expect(parsed_response["characteristics"].first['value']).to eq(true)
-    expect(parsed_response["characteristics"].first['name']).to eq('missing key over_65_name') # Just make sure we are making the call to get a name
-    expect(parsed_response["characteristics"].first['note']).to eq('missing key over_65_note') # Just make sure we are making the call to get a note
+    expect(parsed_response["characteristics"].first['name']).to eq('missing key eligibility_over_65_name') # Just make sure we are making the call to get a name
+    expect(parsed_response["characteristics"].first['note']).to eq('missing key eligibility_over_65_note') # Just make sure we are making the call to get a note
+    expect(parsed_response["characteristics"].first['question']).to eq('missing key eligibility_over_65_question') # Just make sure we are making the call to get a question
 
     # It should NOT be a veteran
     expect(parsed_response["characteristics"].last['code']).to eq('veteran')
@@ -118,8 +119,9 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
     # gotta have that Jacuzzi
     expect(jacuzzi_entry['code']).to eq('jacuzzi')
-    expect(jacuzzi_entry['name']).to eq('missing key jacuzzi_name') # Just make sure we are making the call to get a name
-    expect(jacuzzi_entry['note']).to eq('missing key jacuzzi_note') # Just make sure we are making the call to get a note
+    expect(jacuzzi_entry['name']).to eq('missing key accommodation_jacuzzi_name') # Just make sure we are making the call to get a name
+    expect(jacuzzi_entry['note']).to eq('missing key accommodation_jacuzzi_note') # Just make sure we are making the call to get a note
+    expect(jacuzzi_entry['question']).to eq('missing key accommodation_jacuzzi_question') # Just make sure we are making the call to get a question
   end 
 
   it 'updates basic attributes for a user' do

@@ -10,8 +10,9 @@ RSpec.describe Accommodation, type: :model do
 
   it 'returns an api_hash' do
     expect(wheelchair.api_hash[:code]).to eq(wheelchair.code)
-    expect(wheelchair.api_hash[:note]).to eq('missing key ' + wheelchair.code + '_note')
-    expect(wheelchair.api_hash[:name]).to eq('missing key ' + wheelchair.code + '_name')
+    expect(wheelchair.api_hash[:note]).to eq('missing key accommodation_' + wheelchair.code + '_note')
+    expect(wheelchair.api_hash[:name]).to eq('missing key accommodation_' + wheelchair.code + '_name')
+    expect(wheelchair.api_hash[:question]).to eq('missing key accommodation_' + wheelchair.code + '_question')
   end
 
 end

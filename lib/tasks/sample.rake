@@ -31,6 +31,9 @@ namespace :db do
 
       eligs.each do |elig|
         Eligibility.where(code: elig[:code]).first_or_create!(elig)
+        tk = TranslationKey.where(name: 'eligibility_' + elig[:code] + '_name').first_or_create 
+        locale = Locale.find_by(name: "en")
+        Translation.where(locale: locale, translation_key: tk, value: elig[:code].titleize).first_or_create
       end
     end
 
@@ -46,6 +49,9 @@ namespace :db do
 
       accs.each do |acc|
         Accommodation.where(code: acc[:code]).first_or_create!(acc)
+        tk = TranslationKey.where(name: 'accommodation_' + acc[:code] + '_name').first_or_create 
+        locale = Locale.find_by(name: "en")
+        Translation.where(locale: locale, translation_key: tk, value: acc[:code].titleize).first_or_create
       end
     end
 
@@ -55,6 +61,9 @@ namespace :db do
       purps = [{code: "grocery"}, {code: "medical"}, {code: 'shopping'}]
       purps.each do |purp|
         Purpose.where(code: purp[:code]).first_or_create!(purp)
+        tk = TranslationKey.where(name: 'purpose_' + purp[:code] + '_name').first_or_create 
+        locale = Locale.find_by(name: "en")
+        Translation.where(locale: locale, translation_key: tk, value: purp[:code].titleize).first_or_create
       end
     end
 

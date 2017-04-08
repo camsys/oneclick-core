@@ -10,8 +10,9 @@ RSpec.describe UserEligibility, type: :model do
 
   it 'returns an api_hash' do
     expect(user_eligibility.api_hash[:code]).to eq(user_eligibility.eligibility.code)
-    expect(user_eligibility.api_hash[:note]).to eq('missing key ' + user_eligibility.eligibility.code + '_note')
-    expect(user_eligibility.api_hash[:name]).to eq('missing key ' + user_eligibility.eligibility.code + '_name')
+    expect(user_eligibility.api_hash[:note]).to eq('missing key eligibility_' + user_eligibility.eligibility.code + '_note')
+    expect(user_eligibility.api_hash[:name]).to eq('missing key eligibility_' + user_eligibility.eligibility.code + '_name')
+    expect(user_eligibility.api_hash[:question]).to eq('missing key eligibility_' + user_eligibility.eligibility.code + '_question')
     expect(user_eligibility.api_hash[:value]).to eq(true)
   end
 end

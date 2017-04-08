@@ -30,15 +30,17 @@ RSpec.describe User, type: :model do
   it 'returns the eligibilities_hash' do
   	expect(english_traveler.eligibilities_hash.count).to eq(2)
   	expect(english_traveler.eligibilities_hash.first[:code]).to eq('over_65')
-  	expect(english_traveler.eligibilities_hash.first[:name]).to eq('missing key over_65_name')
-  	expect(english_traveler.eligibilities_hash.first[:note]).to eq('missing key over_65_note')
+  	expect(english_traveler.eligibilities_hash.first[:name]).to eq('missing key eligibility_over_65_name')
+    expect(english_traveler.eligibilities_hash.first[:note]).to eq('missing key eligibility_over_65_note')
+    expect(english_traveler.eligibilities_hash.first[:question]).to eq('missing key eligibility_over_65_question')
   end
 
   it 'returns the accommodations_hash' do
   	expect(english_traveler.accommodations_hash.count).to eq(2)
   	expect(english_traveler.accommodations_hash.first[:code]).to eq('wheelchair')
-  	expect(english_traveler.accommodations_hash.first[:name]).to eq('missing key wheelchair_name')
-  	expect(english_traveler.accommodations_hash.first[:note]).to eq('missing key wheelchair_note')
+  	expect(english_traveler.accommodations_hash.first[:name]).to eq('missing key accommodation_wheelchair_name')
+    expect(english_traveler.accommodations_hash.first[:note]).to eq('missing key accommodation_wheelchair_note')
+    expect(english_traveler.accommodations_hash.first[:question]).to eq('missing key accommodation_wheelchair_question')
   end
 
   it 'updates basic attributes' do 
