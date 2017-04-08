@@ -3,16 +3,16 @@
     =locale
   .row
     .div.col-md-3
-      ="#{type}_#{code}_name"
+      ="#{object.class.name.downcase}_#{object.code}_name"
     .div.col-md-9
-      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_name")
+      =SimpleTranslationEngine.translate(locale, "#{object.class.name.downcase}_#{object.code}_name")
   .row
     .div.col-md-3
-      ="#{type}_#{code}_note"
+      ="#{object.class.name.downcase}_#{object.code}_note"
     .div.col-md-9
-      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_note")
+      =SimpleTranslationEngine.translate(locale, "#{object.class.name.downcase}_#{object.code}_note")
   .row
     .div.col-md-3
-      ="#{type}_#{code}_question"
+      ="#{object.class.name.downcase}_#{object.code}_question"
     .div.col-md-9
-      =SimpleTranslationEngine.translate(locale, "#{type}_#{code}_question")
+      =SimpleTranslationEngine.translate(locale, "#{object.class.name.downcase}_#{object.code}_question")
