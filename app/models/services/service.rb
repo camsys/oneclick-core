@@ -113,6 +113,13 @@ class Service < ApplicationRecord
     FareCalculator.new(fare_structure, fare_details, trip, options).calculate
   end
 
+  # Looks up the appropriate row and column in the service's fare table, returning nil if it doesn't exist
+  def fare_table_lookup(from, to)
+    return nil unless fare_details && fare_details[:fare_table]
+    return nil unless fare_details[:fare_table][from]
+    fare_details[:fare_table][from][to]
+  end
+
   # Returns the origin fare zone code for the passed trip
   def origin_zone_code(trip)
     zone = origin_zone(trip).first

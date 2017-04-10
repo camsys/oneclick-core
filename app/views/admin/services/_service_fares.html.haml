@@ -28,17 +28,20 @@
     %table.table
       %tr
         %th Fare Zone Table
-        -@service.fare_zones.each do |fz|
+        -@service.fare_zones.each do |fz_c|
           %td
             %span="to "
-            %b="#{fz.code.upcase}"
-      -@service.fare_zones.each do |fz|
+            %b="#{fz_c.code.upcase}"
+      -@service.fare_zones.each do |fz_r|
         %tr
           %td
             %span="from "
-            %b="#{fz.code.upcase}"
-          -@service.fare_zones.each do |fz|
-            %td=0
+            %b="#{fz_r.code.upcase}"
+          -@service.fare_zones.each do |fz_c|
+            %td
+              =f.input :fare_table,
+                as: :float, label: false,
+                input_html: {value: @service.fare_table_lookup(fz_r.code, fz_c.code), class: 'fare-table-input'}
 
   -# TFF
   .fare-inputs.taxi_fare_finder-fare.hidden
