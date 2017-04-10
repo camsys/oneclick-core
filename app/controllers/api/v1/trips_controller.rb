@@ -69,17 +69,18 @@ module Api
       def cancel
         bookingcancellation_request = params[:bookingcancellation_request] || []
         # At the moment, this only handles unselecting itineraries.  True cancelling is not yet supported.
-        results = {}
+        results = []
         bookingcancellation_request.each do |bc|
           itinerary = Itinerary.find_by(id: bc[:itinerary_id].to_i)
           if @traveler.owns? itinerary
             itinerary.unselect
-            results[itinerary.id] = true
+            #results[itinerary.id] = true
+            results.append({trip_id: itinerary.trip.id, itinerary_id: bc[:itinerary_id], success: true, confirmation_id: nil})
           else
-            results[bc[:itinerary_id]] = false
+            results.append({trip_id: nil, itinerary_id: bc[:itinerary_id], success: false, confirmation_id: nil})
           end
         end
-        render status: 200, json: results
+        render status: 200, json: {cancellation_results: results}
       end
 
       private
