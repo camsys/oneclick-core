@@ -43,6 +43,7 @@ RSpec.describe Service, type: :model do
   # For Fares testing
   let(:flat_fare_service) { create(:taxi_service, :flat_fare) }
   let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
+  let(:tff_fare_service) { create(:taxi_service, :taxi_fare_finder_fare) }
 
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
@@ -173,23 +174,24 @@ RSpec.describe Service, type: :model do
   end
 
   it 'should calculate mileage fares' do
-    mileage_otp_response = {
-      "plan" => {
-        "itineraries" => [
-          {
-            "legs" => [
-              "distance" => 1609.34
-            ]
-          }
-        ]
-      }
-    }
+    trip_distance = 1000 # in meters
+    trip_dist_mi = trip_distance * 0.000621371 # in miles
+    base_fare = mileage_fare_service.fare_details[:base_fare]
+    mileage_rate = mileage_fare_service.fare_details[:mileage_rate]
+    mileage_otp_response = { "plan" => { "itineraries" => [ {
+      "legs" => [ "distance" => trip_distance ]
+    } ] } }
+    # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
     hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
-    puts mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)
-    # fc = FactoryGirl.create(:fare_calculator, options: {http_request_bundler: hrb})
-    # puts "FC!", fc.calculate
+    expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(base_fare + mileage_rate * trip_dist_mi)
   end
 
-  it 'should calculate taxi fare finder fares'
+  it 'should calculate taxi fare finder fares' do
+    fare = 10.0
+    tff_response = { 'metered_fare' => fare, 'status' => 'OK' }
+    # Make an object double for HTTPRequestBundler that sends back dummy TFF responses
+    hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
+    expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
+  end
 
 end

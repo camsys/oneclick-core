@@ -88,6 +88,11 @@ FactoryGirl.define do
       fare_details { { base_fare: 0, mileage_rate: 5.0, trip_type: :taxi } }
     end
 
+    trait :taxi_fare_finder_fare do
+      fare_structure :taxi_fare_finder
+      fare_details { { taxi_fare_finder_city: "Boston" } }
+    end
+
   end
 
 end
