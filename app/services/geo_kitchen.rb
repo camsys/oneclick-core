@@ -163,7 +163,6 @@ module GeoKitchen
   # Validates input arrays for GeoRecipe from_array method
   class GeoRecipeValidator < ActiveModel::EachValidator
     def validate_each(record, attribute, value)
-      puts "VALIDATING GEORECIPE", record, attribute, value
       unless value.is_a?(Array)
         record.errors.add(attribute, "GeoRecipe #{value} must be an array.")
       else
