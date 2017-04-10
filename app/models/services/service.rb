@@ -6,6 +6,7 @@ class Service < ApplicationRecord
   include ScopeHelper
   include Commentable
   include FareHelper
+  include GeoKitchen
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
@@ -22,7 +23,6 @@ class Service < ApplicationRecord
   ### VALIDATIONS ###
   validates_presence_of :name, :type
   validates_with FareValidator # For validating fare_structure and fare_details
-
 
   ##########
   # SCOPES #
@@ -106,7 +106,33 @@ class Service < ApplicationRecord
 
   # Calculates fare for passed trip, based on service's fare_structure and fare_details
   def fare_for(trip, options={})
+    if fare_structure == "zone"
+      options[:origin_zone] = origin_zone_code(trip)
+      options[:destination_zone] = destination_zone_code(trip)
+    end
     FareCalculator.new(fare_structure, fare_details, trip, options).calculate
+  end
+
+  # Returns the origin fare zone code for the passed trip
+  def origin_zone_code(trip)
+    zone = origin_zone(trip).first
+    zone ? zone.code : nil
+  end
+
+  # Returns the origin fare zone for the passed trip
+  def origin_zone(trip)
+    fare_zones.where(region: Region.origin_for(trip))
+  end
+
+  # Returns the destination fare zone code for the passed trip
+  def destination_zone_code(trip)
+    zone = destination_zone(trip).first
+    zone ? zone.code : nil
+  end
+
+  # Returns the destination fare zone for the passed trip
+  def destination_zone(trip)
+    fare_zones.where(region: Region.destination_for(trip))
   end
 
   # OVERWRITE

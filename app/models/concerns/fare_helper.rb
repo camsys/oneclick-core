@@ -1,4 +1,5 @@
 module FareHelper
+  include GeoKitchen
 
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
   PERMITTED_FARE_PARAMS = [:base_fare, :mileage_rate, :trip_type, :taxi_fare_finder_city]
@@ -16,6 +17,7 @@ module FareHelper
       @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
       @router = options[:router]
       @taxi_ambassador = options[:taxi_ambassador]
+      @origin_zone, @destination_zone = options[:origin_zone], options[:destination_zone]
     end
 
     # Calculate the fare based on the passed trip and the fare_structure/details
@@ -45,8 +47,14 @@ module FareHelper
     end
 
     def calculate_zone
-      # Find out which zone trip origin and destination fall in
-      # Look up fare in fare_details
+      fare_table = @fare_details[:fare_table]
+
+      # Return no_fare if zone codes aren't accounted for in fare_table
+      return no_fare unless fare_table.has_key?(@origin_zone)
+      return no_fare unless fare_table[@origin_zone].has_key?(@destination_zone)
+
+      # Look up fare in the fare_table by origin and destination zone codes
+      fare_table[@origin_zone][@destination_zone]
     end
 
     # Default result if no fare_structure is set
@@ -109,7 +117,31 @@ module FareHelper
     end
 
     def validate_zone(record)
-      return true
+      has_keys =  validate_fare_details_key(record, :fare_zones, :hash) &&
+                  validate_fare_details_key(record, :fare_table, :hash)
+      if has_keys
+        fare_zones = record.fare_details[:fare_zones]
+        fare_table = record.fare_details[:fare_table]
+
+        unless fare_table.keys == fare_zones.keys
+          record.errors.add(:fare_details, "fare_table must have a row for each zone code")
+        end
+
+        unless fare_table.values.all?{|v| v.is_a?(Hash)}
+          record.errors.add(:fare_details, "fare_table rows must all be hashes")
+        end
+
+        unless fare_table.values.all?{|v| v.keys == fare_zones.keys}
+          record.errors.add(:fare_details, "fare_table rows must contain all zone codes")
+        end
+
+        # all fare_zone values must be valid GeoRecipes
+        grv = GeoKitchen::GeoRecipeValidator.new(attributes: [:fare_details])
+        fare_zones.values.each do |zone|
+          grv.validate_each(record, :fare_details, zone)
+        end
+
+      end
     end
 
     def validate_taxi_fare_finder(record)
@@ -117,13 +149,17 @@ module FareHelper
     end
 
     def validate_fare_details_key(record, key, class_name)
+      valid = true
       unless record.fare_details.has_key?(key)
         record.errors.add(:fare_details, "Must have a #{key}")
+        valid = false
       end
       class_ref = class_name.to_s.classify.constantize
       unless record.fare_details[key].is_a?(class_ref)
         record.errors.add(:fare_details, "#{key} must be a #{class_name}")
+        valid = false
       end
+      return valid
     end
 
   end
