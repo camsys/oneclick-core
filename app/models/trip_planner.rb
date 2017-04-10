@@ -5,7 +5,7 @@
 
 class TripPlanner
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :drive, :bicycle]
+  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle]
 
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
@@ -37,7 +37,7 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    unless trip_type.in? [:walk, :drive, :bicycle] 
+    unless trip_type.in? [:walk, :car, :bicycle] 
       trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
@@ -57,8 +57,8 @@ class TripPlanner
     build_fixed_itineraries :walk
   end
 
-  def build_drive_itineraries
-    build_fixed_itineraries :drive
+  def build_car_itineraries
+    build_fixed_itineraries :car
   end
 
   def build_bicycle_itineraries

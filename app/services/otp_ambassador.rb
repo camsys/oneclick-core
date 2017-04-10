@@ -4,10 +4,10 @@ class OTPAmbassador
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
     transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
-    paratransit:  { label: :otp_drive,    modes: "CAR" },
-    taxi:         { label: :otp_drive,    modes: "CAR" },
+    paratransit:  { label: :otp_car,    modes: "CAR" },
+    taxi:         { label: :otp_car,    modes: "CAR" },
     walk:         { label: :otp_walk,     modes: "WALK"},
-    drive:        { label: :otp_drive,    modes: "CAR"},
+    car:          { label: :otp_car,    modes: "CAR"},
     bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"}
   }
 
@@ -103,18 +103,18 @@ class OTPAmbassador
     }
   end
 
-  # OTP Lists Drive and Walk as having 0 transit time
+  # OTP Lists Car and Walk as having 0 transit time
   def get_transit_time(otp_itin, trip_type)
-    if trip_type.in? [:drive, :bicycle]
+    if trip_type.in? [:car, :bicycle]
       return otp_itin["walkTime"]
     else
       return otp_itin["transitTime"]
     end
   end
 
-  # OTP returns drive and bicycle time as walk time 
+  # OTP returns car and bicycle time as walk time 
   def get_walk_time otp_itin, trip_type
-    if trip_type.in? [:drive, :bicycle]
+    if trip_type.in? [:car, :bicycle]
       return 0
     else
       return otp_itin["walkTime"]
