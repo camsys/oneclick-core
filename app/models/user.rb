@@ -11,6 +11,7 @@ class User < ApplicationRecord
 
   ### Scopes ###
   scope :staff, -> { User.with_role(:admin) }
+  scope :admins, -> { User.with_role(:admin) }
 
   ### Associations ###
   has_many :trips
