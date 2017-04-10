@@ -9,6 +9,10 @@ class User < ApplicationRecord
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
 
+  ### Scopes ###
+  scope :staff, -> { User.with_role(:admin) }
+  scope :admins, -> { User.with_role(:admin) }
+
   ### Associations ###
   has_many :trips
   has_and_belongs_to_many :accommodations
@@ -27,6 +31,7 @@ class User < ApplicationRecord
   validates :email, uniqueness: true
 
   ### Instance Methods ###
+
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first 

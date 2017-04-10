@@ -61,7 +61,7 @@ Rails.application.routes.draw do
 
     get '/' => 'admin#index'
 
-    resources :users, :only => [:index]
+    resources :users, :only => [:index, :create, :destroy]
 
     resources :configs, :only => [:index] do
       collection do
