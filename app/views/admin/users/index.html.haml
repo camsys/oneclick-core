@@ -10,6 +10,8 @@
       Email
     %th
       Last Signed In
+    %th
+      
   -@staff.each do |member|
     %tr
       %td
@@ -21,7 +23,8 @@
       %td
         -unless member.last_sign_in_at.nil?
           =member.last_sign_in_at.strftime("%a, %e %b %Y %H:%M:%S %z").in_time_zone
-
+      %td
+        =button_to 'Delete', admin_user_path(member), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
 
 = simple_form_for @new_user, url: admin_users_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_user', layout: '/layouts/new_record_panel', locals: {f: f}

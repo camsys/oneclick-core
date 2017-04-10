@@ -18,7 +18,12 @@ class Admin::UsersController < Admin::AdminController
       flash[:danger] = new_user.errors.first.join(' ') unless new_user.errors.empty?
       redirect_to admin_users_path #TODO: This will cause the form to be reset, we don't want that
     end
+  end
 
+  def destroy
+    @user = User.find(params[:id])
+    @user.destroy
+    redirect_to admin_users_path
   end
 
   private
