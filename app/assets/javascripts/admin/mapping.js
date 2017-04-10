@@ -30,6 +30,8 @@ var M = {
     this._searchPath = params.searchPath;
     this._ingredientLabelTag = params.ingredientLabelTag;
     this.ingredients = [];
+
+    console.log("RECIPE INITIALIZED", params, this._recipe.val());
     this._load();
     this.originalIngredients = this.ingredients.slice(); // Set original ingredients to a duplicate of ingredients, once loaded
     this._init();

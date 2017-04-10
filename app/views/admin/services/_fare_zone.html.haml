@@ -1,0 +1,17 @@
+.fare-zone-container
+  =render partial: 'admin/services/region_builder',
+    locals: { region_name: "fare_zone_#{fare_zone.code}",
+              label_text: "Zone #{fare_zone.code.upcase}"}
+  =f.simple_fields_for :region, fare_zone.region do |fzr|
+    =fzr.input :recipe, as: :hidden, input_html: { value: fare_zone.region.recipe.to_json, id: "fare-zone-#{fare_zone.code}-recipe" }
+
+
+:javascript
+  $(document).ready(function() {
+    var recipe = new M.Recipe({
+      fieldName: 'fare-zone-#{fare_zone.code}',
+      recipeForm: 'fare-zone-#{fare_zone.code}-recipe',
+      searchPath: '#{admin_service_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
+    });
+  });

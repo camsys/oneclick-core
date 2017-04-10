@@ -169,10 +169,10 @@ module FareHelper
     def initialize(params)
       @params = params
       @fare_structure = @params[:fare_structure]
-      @base_fare = @params[:fare_details].delete(:base_fare).to_f
-      @mileage_rate = @params[:fare_details].delete(:mileage_rate).to_f
-      @trip_type = @params[:fare_details].delete(:trip_type).to_s.underscore.to_sym
-      @taxi_fare_finder_city = @params[:fare_details].delete(:taxi_fare_finder_city)
+      @base_fare = transfer_param(:base_fare) {|p| p.to_f}
+      @mileage_rate = transfer_param(:mileage_rate) {|p| p.to_f}
+      @trip_type = transfer_param(:trip_type) {|p| p.to_s.underscore.to_sym }
+      @taxi_fare_finder_city = transfer_param(:taxi_fare_finder_city) { |p| p }
     end
 
     # Creates a fare_details parameter key based on the fare_structure
@@ -182,6 +182,11 @@ module FareHelper
     end
 
     private
+
+    # Delete and process a param if it exists, or return nil if not
+    def transfer_param(param, &block)
+      @params[param] ? yield(@params.delete(param)) : nil
+    end
 
     def package_flat
       @params[:fare_details] = {

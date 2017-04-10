@@ -21,6 +21,25 @@
     =f.input :trip_type, as: :hidden,
       input_html: {value: @service.type}
 
+  -# ZONE
+  .fare-inputs.zone-fare.hidden
+    -@service.fare_zones.each do |fz|
+      =render partial: 'admin/services/fare_zone', locals: {f: f, fare_zone: fz}
+    %table.table
+      %tr
+        %th Fare Zone Table
+        -@service.fare_zones.each do |fz|
+          %td
+            %span="to "
+            %b="#{fz.code.upcase}"
+      -@service.fare_zones.each do |fz|
+        %tr
+          %td
+            %span="from "
+            %b="#{fz.code.upcase}"
+          -@service.fare_zones.each do |fz|
+            %td=0
+
   -# TFF
   .fare-inputs.taxi_fare_finder-fare.hidden
     =f.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
@@ -47,4 +66,5 @@
 
     // Show correct fare inputs when form is reset
     fh.onReset(showFareInputs);
+
   });

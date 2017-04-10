@@ -1,0 +1,23 @@
+-# Takes local variables: region_name and message
+-region_name = local_assigns[:region_name] || "region"
+-region_name_kebab = region_name.dasherize
+-region_name_snake = region_name.underscore
+-label_text = local_assigns[:label_text] || ""
+
+.form-group.string.optional.region-builder-label-container{class: region_name_kebab}
+  .col-sm-12
+    %label.control-label.text.optional{for: region_name_kebab + '-input'}
+      =label_text
+.well.well-sm
+  -# .ingredient-input
+  -#   .input-group.col-sm-12
+  -#     %input.form-control.string.optional{type: 'text', id: region_name_kebab + '-input'}
+  -#   .dropdown{style: 'position:absolute; z-index:500', id: region_name_kebab + '-results'}
+  %span.ingredients-container{ id: region_name_kebab + '-display'}
+  .add-ingredient
+    -# %span.text-muted add ingredient
+    .ingredient-input
+      .input-group
+        %input.form-control.string.optional{type: 'text', id: region_name_kebab + '-input', placeholder: 'add a region'}
+      .dropdown{style: 'position:absolute; z-index:500', id: region_name_kebab + '-results'}
+    -# .text-muted.glyphicon.glyphicon-plus

@@ -28,3 +28,9 @@
   @include unit-box($color);
   border-style: dashed;
 }
+
+@mixin subtle-input {
+  border: none;
+  background-color: transparentize(white, 0.6);
+  box-shadow: none;
+}

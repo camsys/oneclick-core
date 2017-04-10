@@ -47,3 +47,30 @@
   }
 
 }
+
+.add-ingredient {
+  @include dashed-unit-box($gray-paler);
+
+  padding: 6px;
+
+  span + span {
+    margin-left: 10px;
+  }
+
+  .ingredient-input {
+    padding: 0;
+
+    input {
+      height: 34px;
+      @include subtle-input
+    }
+  }
+  // .glyphicon-plus {
+  //   line-height: 30px;
+  // }
+}
+
+
+.region-builder-label-container {
+  margin-bottom: 5px;
+}
