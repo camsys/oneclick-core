@@ -14,6 +14,8 @@ RSpec.describe Region, type: :model do
   let(:reverse_trip) { create(:trip, origin: way_out_point, destination: waypoint) }
 
   it { should respond_to :recipe, :geom }
+  it { should have_many(:fare_zones) }
+  it { should have_many(:fare_zone_services).through(:fare_zones) }
 
   it 'should have a multi_polygon for a geom value' do
     expect(region.geom).to be_a RGeo::Geos::CAPIMultiPolygonImpl
