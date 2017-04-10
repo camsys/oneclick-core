@@ -45,7 +45,8 @@ module FareHelper
     end
 
     def calculate_zone
-      0
+      # Find out which zone trip origin and destination fall in
+      # Look up fare in fare_details
     end
 
     # Default result if no fare_structure is set
@@ -153,7 +154,6 @@ module FareHelper
     end
 
     def package_mileage
-      # @params.merge(base_fare: @base_fare, mileage_rate: @mileage_rate)
       @params[:fare_details] = {
         base_fare: @base_fare,
         mileage_rate: @mileage_rate,

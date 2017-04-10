@@ -16,6 +16,8 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :purposes
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
+  has_many :fare_zones
+  has_many :fare_zone_regions, through: :fare_zones, source: :region
 
   ### VALIDATIONS ###
   validates_presence_of :name, :type
