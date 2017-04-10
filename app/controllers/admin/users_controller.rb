@@ -11,7 +11,14 @@ class Admin::UsersController < Admin::AdminController
   	role = Role.find_by(id: roles)
   	new_user = User.create(user_params)
   	role ? new_user.roles << role : nil
-  	redirect_to admin_users_path
+  	if new_user.errors.empty?
+      flash[:success] = 'Created ' + new_user.email
+      redirect_to admin_users_path
+    else
+      flash[:danger] = new_user.errors.first.join(' ') unless new_user.errors.empty?
+      redirect_to admin_users_path #TODO: This will cause the form to be reset, we don't want that
+    end
+
   end
 
   private
