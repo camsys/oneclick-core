@@ -141,7 +141,7 @@ class OTPAmbassador
 
   # Extracts total distance from OTP itinerary
   # default conversion factor is for converting meters to miles
-  def extract_distance(otp_itin, trip_type=:drive, conversion_factor=0.000621371)
+  def extract_distance(otp_itin, trip_type=:car, conversion_factor=0.000621371)
     otp_itin["legs"] &&
     otp_itin["legs"][0] &&
     otp_itin["legs"][0]["distance"] * conversion_factor

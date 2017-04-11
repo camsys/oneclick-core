@@ -14,7 +14,7 @@ class Trip < ApplicationRecord
 
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :drive, :bicycle]
+  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle]
 
   ### INSTANCE METHODS ###
 
