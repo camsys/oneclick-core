@@ -17,4 +17,10 @@
       searchPath: '#{admin_service_path}',
       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
     });
+
+    // Create a fareZoneRecipes array if it doesn't exist yet
+    if(!M.recipes.fareZoneRecipes) {
+      M.recipes.fareZoneRecipes = [];
+    }
+    M.recipes.fareZoneRecipes.push(recipe); // Add this recipe to the fareZoneRecipes array
   });

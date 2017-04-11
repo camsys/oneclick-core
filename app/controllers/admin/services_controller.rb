@@ -88,7 +88,6 @@ class Admin::ServicesController < Admin::AdminController
 
     # Construct permitted parameters array based on Service Type
     permitted_params = base_permitted_params
-    permitted_params += FareParamPermitter.new(params[:service]).permit
     permitted_params += transit_params if service_type == "Transit"
     permitted_params += paratransit_params if service_type == "Paratransit"
     permitted_params += taxi_params if service_type == "Taxi"
@@ -117,7 +116,7 @@ class Admin::ServicesController < Admin::AdminController
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
-    ]
+    ] + FareParamPermitter.new(params[:service]).permit
   end
 
   def taxi_params

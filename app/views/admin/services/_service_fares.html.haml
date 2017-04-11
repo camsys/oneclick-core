@@ -54,7 +54,12 @@
     // Show correct fare inputs when a new structure is selected.
     fareStructureInput.change(showFareInputs);
 
-    // Show correct fare inputs when form is reset
-    fh.onReset(showFareInputs);
+    // Form reset callback
+    fh.onReset(function() {
+      showFareInputs(); // Show correct fare inputs when form is reset
+      M.recipes.fareZoneRecipes.forEach(function(r) {
+        r.reset(); // Reset each fare zone recipe
+      });
+    });
 
   });

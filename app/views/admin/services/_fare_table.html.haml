@@ -19,7 +19,3 @@
           %input.form-control.numeric.float{ type: 'number',
             value: @service.fare_table_lookup(fz_r.code, fz_c.code),
             name: input_name_for(@service, :fare_details, :fare_table, fz_r.code, fz_c.code) }
-          -# =f.input :fare_table,
-          -#   as: :float, label: false,
-          -#   input_html: { value: @service.fare_table_lookup(fz_r.code, fz_c.code),
-          -#                 class: 'fare-table-input'}
