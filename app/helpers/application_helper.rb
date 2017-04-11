@@ -13,6 +13,11 @@ module ApplicationHelper
     name
   end
 
+  # Constructs an form input name based on a model and an arbitrary list of nested attributes
+  def input_name_for(object, *attributes)
+    object.class.name.underscore + attributes.map{|att| "[#{att.to_s}]"}.join
+  end
+
   ###
   # Helpers for handling naming and rendering of remote form partials
   def partial_path

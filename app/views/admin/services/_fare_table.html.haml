@@ -1,0 +1,25 @@
+-# Fare Zone Table
+%table.table.fare-table
+  -# Header Row
+  %tr
+    %th Fare Zone Table
+    -@service.fare_zones.each do |fz_c|
+      %td
+        %span="to "
+        %b="#{fz_c.code.upcase}"
+  -# From Zone Rows
+  -@service.fare_zones.each do |fz_r|
+    %tr
+      %td
+        %span="from "
+        %b="#{fz_r.code.upcase}"
+      -# To Zone Columns
+      -@service.fare_zones.each do |fz_c|
+        %td
+          %input.form-control.numeric.float{ type: 'number',
+            value: @service.fare_table_lookup(fz_r.code, fz_c.code),
+            name: input_name_for(@service, :fare_details, :fare_table, fz_r.code, fz_c.code) }
+          -# =f.input :fare_table,
+          -#   as: :float, label: false,
+          -#   input_html: { value: @service.fare_table_lookup(fz_r.code, fz_c.code),
+          -#                 class: 'fare-table-input'}

@@ -38,9 +38,12 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
+    puts "BEFORE PERMITTING PARAMS", params.ai
+    # puts "AFTER PERMITTING PARAMS", service_params.ai
 
     @service.update_attributes(service_params)
     error_msgs = @service.errors.messages.values
+    puts "ERRORS", @service.errors.ai
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
     # If a partial_path parameter is set, serve back that partial
@@ -85,6 +88,7 @@ class Admin::ServicesController < Admin::AdminController
 
     # Construct permitted parameters array based on Service Type
     permitted_params = base_permitted_params
+    permitted_params += FareParamPermitter.new(params[:service]).permit
     permitted_params += transit_params if service_type == "Transit"
     permitted_params += paratransit_params if service_type == "Paratransit"
     permitted_params += taxi_params if service_type == "Taxi"
@@ -97,8 +101,6 @@ class Admin::ServicesController < Admin::AdminController
     [
       :name, :type, :logo,
       :url, :email, :phone,
-      :fare_structure,
-      fare_details: PERMITTED_FARE_PARAMS,
       comments_attributes: [:id, :comment, :locale]
     ]
   end

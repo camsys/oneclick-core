@@ -2,7 +2,6 @@ module FareHelper
   include GeoKitchen
 
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
-  PERMITTED_FARE_PARAMS = [:base_fare, :mileage_rate, :trip_type, :taxi_fare_finder_city]
   TRIP_TYPES = Trip::TRIP_TYPES
 
   # Helper class for calculating trip fares
@@ -104,7 +103,7 @@ module FareHelper
     end
 
     def validate_flat(record)
-      validate_fare_details_key(record, :base_fare, :numeric)
+      # validate_fare_details_key(record, :base_fare, :numeric)
     end
 
     def validate_mileage(record)
@@ -164,15 +163,45 @@ module FareHelper
 
   end
 
-  # Packages fare params properly
+  # Permits proper Fare Params based on fare_structure
+  class FareParamPermitter
+
+    def initialize(params)
+      @params = params
+    end
+
+    def permit
+      return [] unless @params.has_key?(:fare_structure)
+      [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")]
+    end
+
+    def permit_flat
+      [:base_fare]
+    end
+
+    def permit_mileage
+      [:base_fare, :mileage_rate, :trip_type]
+    end
+
+    def permit_zone
+      zones = @params[:fare_details][:fare_zones].keys.map{|k| k.to_sym}
+      zone_recipes = zones.map {|z| { z => [:model, attributes: [:name, :state]]} }
+      zone_grid = zones.map { |z| { z => zones } }
+      [fare_zones: zone_recipes, fare_table: zone_grid]
+    end
+
+    def permit_taxi_fare_finder
+      [:taxi_fare_finder_city]
+    end
+
+  end
+
+  # Packages fare params as the proper serialized data type
   class FareParamPackager
     def initialize(params)
       @params = params
-      @fare_structure = @params[:fare_structure]
-      @base_fare = transfer_param(:base_fare) {|p| p.to_f}
-      @mileage_rate = transfer_param(:mileage_rate) {|p| p.to_f}
-      @trip_type = transfer_param(:trip_type) {|p| p.to_s.underscore.to_sym }
-      @taxi_fare_finder_city = transfer_param(:taxi_fare_finder_city) { |p| p }
+      @fare_structure = params[:fare_structure]
+      @fare_details = params[:fare_details]
     end
 
     # Creates a fare_details parameter key based on the fare_structure
@@ -183,33 +212,37 @@ module FareHelper
 
     private
 
-    # Delete and process a param if it exists, or return nil if not
-    def transfer_param(param, &block)
-      @params[param] ? yield(@params.delete(param)) : nil
+    # Helper method, converts a param in place with passed block
+    def convert_param(key, base_param=@fare_details, &block)
+      base_param[key] = yield(base_param[key])
     end
 
     def package_flat
-      @params[:fare_details] = {
-        base_fare: @base_fare
-      }
+      convert_param(:base_fare) { |v| v.to_f }
     end
 
     def package_mileage
-      @params[:fare_details] = {
-        base_fare: @base_fare,
-        mileage_rate: @mileage_rate,
-        trip_type: @trip_type
-      }
+      convert_param(:base_fare) { |v| v.to_f }
+      convert_param(:mileage_rate) { |v| v.to_f }
+      convert_param(:trip_type) { |v| v.underscore.to_sym }
     end
 
     def package_taxi_fare_finder
-      @params[:fare_details] = {
-        taxi_fare_finder_city: @taxi_fare_finder_city
-      }
+      return true
     end
 
     def package_zone
-      return true
+      # Parse each fare_zone recipe into an array
+      @fare_details[:fare_zones].each_key do |zone|
+        convert_param(zone, @fare_details[:fare_zones]) {|v| JSON.parse(v) unless v.is_a?(Array) }
+      end
+
+      # Go through the table and convert fare values to floats
+      @fare_details[:fare_table].each_key do |zone_r|
+        @fare_details[:fare_table][zone_r].each_key do |zone_c|
+          convert_param(zone_c, @fare_details[:fare_table][zone_r]) {|v| v.to_f }
+        end
+      end
     end
   end
 

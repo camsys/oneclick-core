@@ -10,48 +10,29 @@
 
   -fare_details = @service.fare_details || {}
 
-  -# FLAT
-  .fare-inputs.flat-fare.hidden
-    =f.input :base_fare, input_html: {value: fare_details[:base_fare]}
+  -# FLAT (& MILEAGE)
+  .fare-inputs.flat-fare.mileage-fare.hidden
+    =f.fields_for :fare_details do |fd|
+      =fd.input :base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
 
-  -# MILEAGE
+  -# MILEAGE ONLY
   .fare-inputs.mileage-fare.hidden
-    =f.input :base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
-    =f.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
-    =f.input :trip_type, as: :hidden,
-      input_html: {value: @service.type}
+    =f.fields_for :fare_details do |fd|
+      =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
+      =fd.input :trip_type, input_html: {value: @service.type}
 
   -# ZONE
   .fare-inputs.zone-fare.hidden
     -# Fare Zone Region Builders
-    -@service.fare_zones.each do |fz|
-      =render partial: 'admin/services/fare_zone', locals: {f: f, fare_zone: fz}
-
-    -# Fare Zone Table
-    %table.table
-      -# Header Row
-      %tr
-        %th Fare Zone Table
-        -@service.fare_zones.each do |fz_c|
-          %td
-            %span="to "
-            %b="#{fz_c.code.upcase}"
-      -# From Zone Rows
-      -@service.fare_zones.each do |fz_r|
-        %tr
-          %td
-            %span="from "
-            %b="#{fz_r.code.upcase}"
-          -# To Zone Columns
-          -@service.fare_zones.each do |fz_c|
-            %td
-              =f.input :fare_table,
-                as: :float, label: false,
-                input_html: {value: @service.fare_table_lookup(fz_r.code, fz_c.code), class: 'fare-table-input'}
+    =f.fields_for :fare_details do |fd|
+      -@service.fare_zones.each do |fz|
+        =render partial: 'admin/services/fare_zone', locals: {f: fd, fare_zone: fz}
+      =render partial: 'admin/services/fare_table', locals: {f: fd}
 
   -# TFF
   .fare-inputs.taxi_fare_finder-fare.hidden
-    =f.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
+    =f.fields_for :fare_details do |fd|
+      =fd.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
 
 :javascript
   $(document).ready(function() {

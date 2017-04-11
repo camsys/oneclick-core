@@ -3,7 +3,10 @@
     locals: { region_name: "fare_zone_#{fare_zone.code}",
               label_text: "Zone #{fare_zone.code.upcase}"}
   =f.simple_fields_for :region, fare_zone.region do |fzr|
-    =fzr.input :recipe, as: :hidden, input_html: { value: fare_zone.region.recipe.to_json, id: "fare-zone-#{fare_zone.code}-recipe" }
+    =fzr.input :recipe, as: :hidden,
+      input_html: { value: fare_zone.region.recipe.to_json,
+                    id: "fare-zone-#{fare_zone.code}-recipe",
+                    name: input_name_for(@service, :fare_details, :fare_zones, fare_zone.code)}
 
 
 :javascript
