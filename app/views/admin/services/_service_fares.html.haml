@@ -23,20 +23,26 @@
 
   -# ZONE
   .fare-inputs.zone-fare.hidden
+    -# Fare Zone Region Builders
     -@service.fare_zones.each do |fz|
       =render partial: 'admin/services/fare_zone', locals: {f: f, fare_zone: fz}
+
+    -# Fare Zone Table
     %table.table
+      -# Header Row
       %tr
         %th Fare Zone Table
         -@service.fare_zones.each do |fz_c|
           %td
             %span="to "
             %b="#{fz_c.code.upcase}"
+      -# From Zone Rows
       -@service.fare_zones.each do |fz_r|
         %tr
           %td
             %span="from "
             %b="#{fz_r.code.upcase}"
+          -# To Zone Columns
           -@service.fare_zones.each do |fz_c|
             %td
               =f.input :fare_table,
