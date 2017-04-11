@@ -1,3 +1,20 @@
+// SERVICE FARES STYLING
+
+@import 'mixins';
+@import 'variables';
+
 .fare-table-input {
   max-width: 60px;
+}
+
+.add-fare-zone {
+  @include dashed-unit-box($gray-paler);
+
+  padding: 24px;
+  margin: 10px 0 50px;
+  width: 100%;
+
+  span {
+    margin-left: 20px;
+  }
 }

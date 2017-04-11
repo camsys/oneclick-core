@@ -3,6 +3,8 @@
 @import 'mixins';
 @import 'variables';
 
+$ingredient-height: 48px;
+
 #map {
   height: 350px;
 }
@@ -48,9 +50,14 @@
 
 }
 
+.well.ingredient-container {
+  padding-bottom: 0;
+}
+
 .add-ingredient {
   @include dashed-unit-box($gray-paler);
 
+  height: $ingredient-height;
   padding: 6px;
 
   span + span {
@@ -70,7 +77,13 @@
   // }
 }
 
-
 .region-builder-label-container {
   margin-bottom: 5px;
+}
+
+.delete-region {
+  height: $ingredient-height;
+  font-size: 22pt;
+
+  @include custom-btn-link($gray-pale);
 }
