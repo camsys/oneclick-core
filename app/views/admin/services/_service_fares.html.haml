@@ -1,6 +1,9 @@
 =content_for :header do
   Fares
 
+-fd_js = nil
+-new_fz = @service.fare_zones.build
+
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
@@ -25,12 +28,14 @@
   .fare-inputs.zone-fare.hidden
     -# Fare Zone Region Builders
     =f.fields_for :fare_details do |fd|
-      -@service.fare_zones.each do |fz|
-        =render partial: 'admin/services/fare_zone', locals: {f: fd, fare_zone: fz}
+      -fd_js = fd
+      .fare-zones-container
+        -# -@service.fare_zones.each do |fz|
+          -# =render partial: 'admin/services/fare_zone', locals: {f: fd, fare_zone: fz}
       .btn.add-fare-zone
-        %span.text-muted add a new fare zone
-        %span.text-muted.glyphicon.glyphicon-plus
-      =render partial: 'admin/services/fare_table', locals: {f: fd}
+        %span.text-muted.pull-left add a new fare zone
+        %span.text-muted.glyphicon.glyphicon-plus.pull-right
+      -# =render partial: 'admin/services/fare_table', locals: {f: fd}
 
   -# TFF
   .fare-inputs.taxi_fare_finder-fare.hidden
@@ -39,6 +44,12 @@
 
 :javascript
   $(document).ready(function() {
+    new FareZoneHelper(
+      '#{@service.fare_details[:fare_zones].to_json}',
+      $('.fare-zones-container'),
+      '#{escape_javascript render partial: "admin/services/fare_zone", locals: {f: fd_js} }'
+    );
+
     var fh = new FormHandler($('#{form_selector_from_id}'));
 
     // JQuery reference to fare structure selector element
@@ -63,6 +74,11 @@
       M.recipes.fareZoneRecipes.forEach(function(r) {
         r.reset(); // Reset each fare zone recipe
       });
+    });
+
+    // Add new fare zone click handler
+    $('.add-fare-zone').click(function() {
+      console.log("ADD FARE ZONE!");
     });
 
   });

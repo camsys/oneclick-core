@@ -10,11 +10,18 @@
 .add-fare-zone {
   @include dashed-unit-box($gray-paler);
 
-  padding: 24px;
+  font-size: 14pt;
+  padding: 25px 20px 25px 40px;
   margin: 10px 0 50px;
   width: 100%;
 
   span {
     margin-left: 20px;
   }
+
+  .glyphicon {
+    font-size: 20pt;
+    margin-bottom: 4px;
+  }
+
 }
