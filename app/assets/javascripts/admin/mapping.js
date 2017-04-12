@@ -59,6 +59,7 @@ M.Recipe.prototype = {
   },
   _select: function(e, ui) {
     this.ingredients.push(ui.item.value);
+    this._input.val(''); // Clear the input after selection
     this._dump();
     return false;
   },
