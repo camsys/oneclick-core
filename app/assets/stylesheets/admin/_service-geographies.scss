@@ -72,12 +72,9 @@ $ingredient-height: 48px;
       @include subtle-input
     }
   }
-  // .glyphicon-plus {
-  //   line-height: 30px;
-  // }
 }
 
-.region-builder-label-container {
+.region-label-container {
   margin-bottom: 5px;
 }
 
@@ -86,4 +83,8 @@ $ingredient-height: 48px;
   font-size: 22pt;
 
   @include custom-btn-link($gray-pale);
+}
+
+#fare-table-label {
+  margin-bottom: 5px;
 }

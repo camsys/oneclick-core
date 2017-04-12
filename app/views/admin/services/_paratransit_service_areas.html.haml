@@ -7,13 +7,13 @@
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   =render partial: 'admin/services/region_builder',
-    locals: { region_name: 'start_or_end_area', label_text: "All trips must start OR end in this area:"}
+    locals: { wrapper_id: 'start-or-end-area', label_text: "All trips must start OR end in this area:"}
   =f.simple_fields_for :start_or_end_area do |r|
     =r.input :recipe, as: :hidden,
       input_html: { value: @service.start_or_end_area.recipe.to_json }
 
   =render partial: 'admin/services/region_builder',
-    locals: { region_name: 'trip_within_area', label_text: "All trips must start AND end within this area:"}
+    locals: { wrapper_id: 'trip-within-area', label_text: "All trips must start AND end within this area:"}
   =f.simple_fields_for :trip_within_area do |r|
     =r.input :recipe, as: :hidden,
       input_html: { value: @service.trip_within_area.recipe.to_json }
@@ -34,15 +34,15 @@
     ]);
 
     var startOrEndAreaRecipe = new M.Recipe({
-      fieldName: 'start-or-end-area',
-      recipeForm: 'paratransit_start_or_end_area_attributes_recipe',
+      container: $('#start-or-end-area'),
+      recipeInput: $('#paratransit_start_or_end_area_attributes_recipe'),
       searchPath: '#{admin_service_path}',
       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
     });
 
     var tripWithinAreaRecipe = new M.Recipe({
-      fieldName: 'trip-within-area',
-      recipeForm: 'paratransit_trip_within_area_attributes_recipe',
+      container: $('#trip-within-area'),
+      recipeInput: $('#paratransit_trip_within_area_attributes_recipe'),
       searchPath: '#{admin_service_path}',
       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
     });

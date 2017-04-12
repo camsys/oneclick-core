@@ -2,7 +2,7 @@ class FareZone < ApplicationRecord
 
   ### ASSOCIATIONS ###
   belongs_to :service
-  belongs_to :region
+  belongs_to :region, dependent: :destroy
 
   ### INSTANCE METHODS ###
 

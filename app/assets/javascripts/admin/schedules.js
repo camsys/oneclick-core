@@ -59,7 +59,6 @@ ScheduleHelper.prototype = {
   deleteSchedule: function() {
     var parent = $(this).parents('.schedule-body');
     parent.find('input.destroy').val(true).trigger('change');
-    console.log("DESTROY SET", parent, parent.find('input.destroy').val());
     parent.addClass('hidden');
   },
 

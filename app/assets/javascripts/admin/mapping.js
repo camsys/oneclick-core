@@ -23,12 +23,11 @@ var M = {
 
   // Recipe object factory for manipulating recipe model data
   Recipe: function(params) {
-    this._input = $('#' + params.fieldName + '-input');
-    this._results = $('#' + params.fieldName + '-results');
-    this._display = $('#' + params.fieldName + '-display');
-    this._recipe = $('#' + params.recipeForm);
-    this._ingredient_selector = '.' + params.fieldName + '-ingredient';
-    this._ingredient = $(this._ingredient_selector);
+    this.container = params.container;
+    this._input = this.container.find('.region-input');
+    this._results = this.container.find('.region-results');
+    this._display = this.container.find('.region-display');
+    this._recipe = params.recipeInput;
     this._searchPath = params.searchPath;
     this._ingredientLabelTag = params.ingredientLabelTag;
     this.ingredients = [];

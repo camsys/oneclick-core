@@ -233,17 +233,127 @@ module FareHelper
 
     def package_zone
       # Parse each fare_zone recipe into an array
-      @fare_details[:fare_zones].each_key do |zone|
-        convert_param(zone, @fare_details[:fare_zones]) {|v| JSON.parse(v) unless v.is_a?(Array) }
+      zone_codes = @fare_details[:fare_zones].keys
+      zone_codes.each do |zone_code|
+        convert_param(zone_code, @fare_details[:fare_zones]) {|v| JSON.parse(v) unless v.is_a?(Array) }
       end
 
-      # Go through the table and convert fare values to floats
-      @fare_details[:fare_table].each_key do |zone_r|
-        @fare_details[:fare_table][zone_r].each_key do |zone_c|
-          convert_param(zone_c, @fare_details[:fare_table][zone_r]) {|v| v.to_f }
+      # Build a new fare_table, using the new zone codes, and copy over results
+      # from the old table as floats
+      new_table = Hash[zone_codes.map{|zc_from| [zc_from, Hash[zone_codes.map { |zc_to| [zc_to, 0.0] }]]}]
+
+      # Go through the table, adding and deleting zone code keys as necessary,
+      # and convert fare values to floats
+      @fare_details[:fare_table].keys.each do |zc_from|
+        if(zone_codes.include?(zc_from))
+          @fare_details[:fare_table][zc_from].keys.each do |zc_to|
+            if(zone_codes.include?(zc_to))
+              new_table[zc_from][zc_to] = @fare_details[:fare_table][zc_from][zc_to].to_f
+            end
+          end
         end
       end
+
+      # Swap out the old table with the new
+      convert_param(:fare_table) { |_| new_table }
     end
+  end
+
+  # Instance methods for services that have zone fares
+  module ZoneFareable
+
+    # Add scopes and associations to including class
+    def self.included(base)
+      base.class_eval do
+        has_many :fare_zones, -> { order(:code) }
+        has_many :necessary_fare_zones, -> (svc) { where(code: svc.zone_codes )}, class_name: 'FareZone'
+        has_many :unnecessary_fare_zones, -> (svc) { where.not(code: svc.zone_codes )}, class_name: 'FareZone'
+        has_many :fare_zone_regions, through: :fare_zones, source: :region
+        has_many :necessary_fare_zone_regions, through: :necessary_fare_zones, source: :region
+        has_many :unnecessary_fare_zone_regions, through: :unnecessary_fare_zones, source: :region
+        validates_with FareValidator # For validating fare_structure and fare_details
+        before_save :build_fare_zones, if: :zone_fare_changed?
+      end
+    end
+
+    # Returns the service's fare zones that do NOT have codes included in the fare details
+    def unnecessary_fare_zones
+      fare_zones.where.not(code: zone_codes)
+    end
+
+    # Returns true if service has a zone fare
+    def zone_fare?
+      fare_structure == "zone"
+    end
+
+    # Returns true if zone fare structure set and fare details have changed
+    def zone_fare_changed?
+      zone_fare? && fare_details_changed?
+    end
+
+    # Returns the list of zone codes from the service's fare details
+    def zone_codes
+      zone_recipes.keys.map{ |zc| zc.to_sym }
+    end
+
+    # Returns the zone recipe hash from the service's fare details
+    def zone_recipes
+      Hash[fare_details[:fare_zones].sort].with_indifferent_access
+    end
+
+    # Returns the zone fare table from the service's fare details
+    def zone_table
+      Hash[fare_details[:fare_table].sort].with_indifferent_access
+    end
+
+    # Looks up the appropriate row and column in the service's fare table, returning nil if it doesn't exist
+    def fare_table_lookup(from, to)
+      return nil unless fare_details && fare_details[:fare_table]
+      return nil unless fare_details[:fare_table][from]
+      fare_details[:fare_table][from][to]
+    end
+
+    # Returns the origin fare zone code for the passed trip
+    def origin_zone_code(trip)
+      zone = origin_zone(trip).first
+      zone ? zone.code : nil
+    end
+
+    # Returns the origin fare zone for the passed trip
+    def origin_zone(trip)
+      fare_zones.where(region: Region.origin_for(trip))
+    end
+
+    # Returns the destination fare zone code for the passed trip
+    def destination_zone_code(trip)
+      zone = destination_zone(trip).first
+      zone ? zone.code : nil
+    end
+
+    # Returns the destination fare zone for the passed trip
+    def destination_zone(trip)
+      fare_zones.where(region: Region.destination_for(trip))
+    end
+
+    # Build fare zone records based on the list of zone codes and recipes in the fare_details
+    def build_fare_zones
+
+      # Destroy fare zones that don't match zone code list
+      unnecessary_fare_zones.destroy_all
+
+      # Create new fare zones for codes not included in the necessary fare zones
+      new_zone_codes = zone_codes - necessary_fare_zones.pluck(:code).map(&:to_sym)
+      new_fzs = new_zone_codes.map do |zc|
+        fare_zones.build(code: zc, region: Region.new(recipe: zone_recipes[zc].to_json))
+      end
+
+      # Update the recipes on regions that are already created
+      necessary_fare_zones.each do |fz|
+        fz.region.update_attributes(recipe: zone_recipes[fz.code].to_json)
+      end
+
+    end
+
   end
 
 end

@@ -1,33 +1,6 @@
 .fare-zone-container{data: {code: ''}}
-  =render partial: 'admin/services/region_builder',
-    locals: { region_name: "fare_zone" }
+  =render partial: 'admin/services/region_builder', locals: { can_be_deleted: true }
   =f.simple_fields_for :region do |fzr|
     =fzr.input :recipe, as: :hidden,
-      input_html: { class: 'recipe-input', value: [] }
-
--# .fare-zone-container
--#   =render partial: 'admin/services/region_builder',
--#     locals: { region_name: "fare_zone_#{code}",
--#               label_text: "Zone #{code.upcase}"}
--#   =f.simple_fields_for :region, fare_zone.region do |fzr|
--#     =fzr.input :recipe, as: :hidden,
--#       input_html: { value: fare_zone.region.recipe.to_json,
--#                     id: "fare-zone-#{code}-recipe",
--#                     name: input_name_for(@service, :fare_details, :fare_zones, code)}
--#
--#
--# :javascript
--#   $(document).ready(function() {
--#     var recipe = new M.Recipe({
--#       fieldName: 'fare-zone-#{fare_zone.code}',
--#       recipeForm: 'fare-zone-#{fare_zone.code}-recipe',
--#       searchPath: '#{admin_service_path}',
--#       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
--#     });
--#
--#     // Create a fareZoneRecipes array if it doesn't exist yet
--#     if(!M.recipes.fareZoneRecipes) {
--#       M.recipes.fareZoneRecipes = [];
--#     }
--#     M.recipes.fareZoneRecipes.push(recipe); // Add this recipe to the fareZoneRecipes array
--#   });
+      input_html: { class: 'recipe-input', value: [],
+        name: input_name_for(@service, :fare_details, :fare_zones) }

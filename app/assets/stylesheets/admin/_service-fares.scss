@@ -3,8 +3,14 @@
 @import 'mixins';
 @import 'variables';
 
-.fare-table-input {
-  max-width: 60px;
+#fare-zones-table {
+  td {
+    min-width: 60px;
+  }
+
+  .fare-table-input {
+    max-width: 60px;
+  }
 }
 
 .add-fare-zone {
@@ -22,6 +28,20 @@
   .glyphicon {
     font-size: 20pt;
     margin-bottom: 4px;
+  }
+
+}
+
+#table-replacer {
+  @include dashed-unit-box($gray-paler);
+
+  font-size: 14pt;
+  padding: 60px 20px;
+  margin: 10px 0 20px;
+  width: 100%;
+
+  div {
+    text-align: center;
   }
 
 }

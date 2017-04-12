@@ -6,6 +6,7 @@ class Service < ApplicationRecord
   include ScopeHelper
   include Commentable
   include FareHelper
+  include FareHelper::ZoneFareable
   include GeoKitchen
 
   ### ATTRIBUTES & ASSOCIATIONS ###
@@ -17,12 +18,9 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :purposes
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
-  has_many :fare_zones
-  has_many :fare_zone_regions, through: :fare_zones, source: :region
 
-  ### VALIDATIONS ###
+  ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type
-  validates_with FareValidator # For validating fare_structure and fare_details
 
   ##########
   # SCOPES #
@@ -111,35 +109,6 @@ class Service < ApplicationRecord
       options[:destination_zone] = destination_zone_code(trip)
     end
     FareCalculator.new(fare_structure, fare_details, trip, options).calculate
-  end
-
-  # Looks up the appropriate row and column in the service's fare table, returning nil if it doesn't exist
-  def fare_table_lookup(from, to)
-    return nil unless fare_details && fare_details[:fare_table]
-    return nil unless fare_details[:fare_table][from]
-    fare_details[:fare_table][from][to]
-  end
-
-  # Returns the origin fare zone code for the passed trip
-  def origin_zone_code(trip)
-    zone = origin_zone(trip).first
-    zone ? zone.code : nil
-  end
-
-  # Returns the origin fare zone for the passed trip
-  def origin_zone(trip)
-    fare_zones.where(region: Region.origin_for(trip))
-  end
-
-  # Returns the destination fare zone code for the passed trip
-  def destination_zone_code(trip)
-    zone = destination_zone(trip).first
-    zone ? zone.code : nil
-  end
-
-  # Returns the destination fare zone for the passed trip
-  def destination_zone(trip)
-    fare_zones.where(region: Region.destination_for(trip))
   end
 
   # OVERWRITE

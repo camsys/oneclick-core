@@ -38,12 +38,9 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
-    puts "BEFORE PERMITTING PARAMS", params.ai
-    # puts "AFTER PERMITTING PARAMS", service_params.ai
 
     @service.update_attributes(service_params)
     error_msgs = @service.errors.messages.values
-    puts "ERRORS", @service.errors.ai
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
     # If a partial_path parameter is set, serve back that partial
