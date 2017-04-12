@@ -38,7 +38,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def update
-
     @service.update_attributes(service_params)
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
@@ -121,6 +120,6 @@ class Admin::ServicesController < Admin::AdminController
       {accommodation_ids: []},
       :taxi_fare_finder_id,
       trip_within_area_attributes: [:recipe]
-    ]
+    ] + FareParamPermitter.new(params[:service]).permit
   end
 end

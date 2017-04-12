@@ -4,7 +4,7 @@ RSpec.describe TripPlanner do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
-  let!(:taxi) { FactoryGirl.create :taxi_service }
+  let!(:taxi) { create(:taxi_service) }
 
   # Mock an HTTP Request Bundler with stubbed methods
 
@@ -49,7 +49,6 @@ RSpec.describe TripPlanner do
     expect(itins).to be_an(Array)
     expect(itins.count).to be(1)
     expect(itins.first['trip_type']).to eq('taxi')
-    expect(itins.first['cost']).to eq(10)
   end
 
   it 'plans a trip, populating it with itineraries' do

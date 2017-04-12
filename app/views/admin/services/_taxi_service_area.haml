@@ -6,16 +6,10 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  .form-group.string.optional.trip-within-area
-    %label.col-sm-6.control-label.text.optional{for: 'taxi_trip_within_area'} All trips must start AND end within this area:
-    .col-sm-4
-      .input-group.col-sm-12
-        %input#trip-within-area-input.form-control.string.optional{type: 'text'}
-      #trip-within-area-results.dropdown{style: 'position:absolute; z-index:499'}
-  .well#trip-within-area-display
+  =render partial: 'admin/services/region_builder',
+    locals: { wrapper_id: 'trip-within-area', label_text: "All trips must start AND end within this area:"}
   =f.simple_fields_for :trip_within_area do |r|
-    =r.input :recipe,
-      wrapper_html: {class: 'hidden'},
+    =r.input :recipe, as: :hidden,
       input_html: { value: @service.trip_within_area.recipe.to_json }
 
   = map(center: { latlng: [42, -71], zoom: 5 })
@@ -30,8 +24,8 @@
     ]);
 
     var tripWithinAreaRecipe = new M.Recipe({
-      fieldName: 'trip-within-area',
-      recipeForm: 'taxi_trip_within_area_attributes_recipe',
+      container: $('#trip-within-area'),
+      recipeInput: $('#taxi_trip_within_area_attributes_recipe'),
       searchPath: '#{admin_service_path}',
       ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
     });

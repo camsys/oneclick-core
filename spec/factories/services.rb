@@ -74,7 +74,6 @@ FactoryGirl.define do
     factory :taxi_service, parent: :service, class: 'Taxi' do
       name "Taxi Test Service"
       type "Taxi"
-      taxi_fare_finder_id "Boston"
       trip_within_area nil
     end
 

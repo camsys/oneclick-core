@@ -172,6 +172,7 @@ module FareHelper
 
     def permit
       return [] unless @params.has_key?(:fare_structure)
+      puts [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")].ai
       [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")]
     end
 
@@ -184,10 +185,14 @@ module FareHelper
     end
 
     def permit_zone
+      permitted_params = []
       zones = @params[:fare_details][:fare_zones].keys.map{|k| k.to_sym}
       zone_recipes = zones.map {|z| { z => [:model, attributes: [:name, :state]]} }
       zone_grid = zones.map { |z| { z => zones } }
-      [fare_zones: zone_recipes, fare_table: zone_grid]
+      [
+        fare_zones: (zone_recipes.empty? ? [{}] : zone_recipes),
+        fare_table: (zone_grid.empty? ? [{}] : zone_grid)
+      ]
     end
 
     def permit_taxi_fare_finder
@@ -232,6 +237,10 @@ module FareHelper
     end
 
     def package_zone
+      # Create the necessary fare_details keys if they don't exist
+      @fare_details[:fare_zones] = {} unless @fare_details.has_key?(:fare_zones)
+      @fare_details[:fare_table] = {} unless @fare_details.has_key?(:fare_table)
+
       # Parse each fare_zone recipe into an array
       zone_codes = @fare_details[:fare_zones].keys
       zone_codes.each do |zone_code|
@@ -256,6 +265,8 @@ module FareHelper
 
       # Swap out the old table with the new
       convert_param(:fare_table) { |_| new_table }
+
+      puts "PACKAGED PARAMS", @fare_details.ai
     end
   end
 
@@ -298,11 +309,13 @@ module FareHelper
 
     # Returns the zone recipe hash from the service's fare details
     def zone_recipes
+      return {} unless zone_fare?
       Hash[fare_details[:fare_zones].sort].with_indifferent_access
     end
 
     # Returns the zone fare table from the service's fare details
     def zone_table
+      return {} unless zone_fare?
       Hash[fare_details[:fare_table].sort].with_indifferent_access
     end
 
