@@ -17,7 +17,11 @@ module Api
       def trip_token; nil end
       def accommodations; [] end
       def characteristics; [] end
-      def purposes; [] end
+
+      # Get a list of relevant purposes
+      def purposes
+        object.purposes.uniq.collect{ |p| {name: p.name, code: p.code}}
+      end
 
     end
 
