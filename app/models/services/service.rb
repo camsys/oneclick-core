@@ -136,7 +136,7 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services with at least one eligibility requirement met by user
   def self.with_met_eligibilities(user)
-    joins(:eligibilities).where(eligibilities: {code: user.eligibilities.pluck(:code)}).pluck(:id)
+    joins(:eligibilities).where(eligibilities: {code: user.confirmed_eligibilities.pluck(:code)}).pluck(:id)
   end
 
   # Returns all services that provide a given accommodation
