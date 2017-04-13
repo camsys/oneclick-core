@@ -3,7 +3,7 @@ module Api
 
     class TripSerializer < ActiveModel::Serializer
 
-      attributes  :trip_id, :trip_token, :user_id, :arrive_by, :trip_time,
+      attributes  :id, :trip_id, :trip_token, :user_id, :arrive_by, :trip_time,
                   :accommodations, :characteristics, :purposes
       has_many :itineraries
       belongs_to :origin
@@ -17,7 +17,11 @@ module Api
       def trip_token; nil end
       def accommodations; [] end
       def characteristics; [] end
-      def purposes; [] end
+
+      # Get a list of relevant purposes
+      def purposes
+        object.purposes.uniq.collect{ |p| {name: p.name, code: p.code}}
+      end
 
     end
 
