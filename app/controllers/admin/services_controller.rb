@@ -1,6 +1,7 @@
 class Admin::ServicesController < Admin::AdminController
 
   include GeoKitchen
+  include FareHelper
 
   before_action :find_service, except: [:create, :index]
 
@@ -38,7 +39,6 @@ class Admin::ServicesController < Admin::AdminController
 
   def update
     @service.update_attributes(service_params)
-    @service.update_attributes(url: 'test')
     error_msgs = @service.errors.messages.values
     flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
 
@@ -79,16 +79,25 @@ class Admin::ServicesController < Admin::AdminController
     params[:service] = params.delete :taxi if params.has_key? :taxi
     params[:service] = params.delete :paratransit if params.has_key? :paratransit
 
+    # Package fare params if fare_structure key is present
+    FareParamPackager.new(params[:service]).package if params[:service].has_key?(:fare_structure)
+
     # Construct permitted parameters array based on Service Type
-    permitted_params = [:name, :type, :logo, :url, :email, :phone,
-      comments_attributes: [:id, :comment, :locale]
-    ]
+    permitted_params = base_permitted_params
     permitted_params += transit_params if service_type == "Transit"
     permitted_params += paratransit_params if service_type == "Paratransit"
     permitted_params += taxi_params if service_type == "Taxi"
 
     # Permit the allowed parameters
   	params.require(:service).permit(permitted_params)
+  end
+
+  def base_permitted_params
+    [
+      :name, :type, :logo,
+      :url, :email, :phone,
+      comments_attributes: [:id, :comment, :locale]
+    ]
   end
 
   def transit_params
@@ -103,14 +112,13 @@ class Admin::ServicesController < Admin::AdminController
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
-    ]
+    ] + FareParamPermitter.new(params[:service]).permit
   end
 
   def taxi_params
     [
       {accommodation_ids: []},
-      :taxi_fare_finder_id,
       trip_within_area_attributes: [:recipe]
-    ]
+    ] + FareParamPermitter.new(params[:service]).permit
   end
 end

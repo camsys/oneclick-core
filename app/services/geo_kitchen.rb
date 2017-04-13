@@ -159,4 +159,33 @@ module GeoKitchen
     end
 
   end
+
+  # Validates input arrays for GeoRecipe from_array method
+  class GeoRecipeValidator < ActiveModel::EachValidator
+    def validate_each(record, attribute, value)
+      unless value.is_a?(Array)
+        record.errors.add(attribute, "GeoRecipe #{value} must be an array.")
+      else
+        value.each {|ingredient| validate_ingredient(record, attribute, ingredient)}
+      end
+    end
+
+    def validate_ingredient(record, attribute, value)
+      unless value.is_a?(Hash)
+        record.errors.add(attribute, "GeoIngredient #{value} must be a hash.")
+      else
+        unless value.has_key?(:model)
+          record.errors.add(attribute, "GeoIngredient #{value} must include a :model key.")
+        end
+
+        unless value.has_key?(:attributes)
+          record.errors.add(attribute, "GeoIngredient #{value} must include an :attributes key.")
+        else
+          unless value[:attributes].is_a?(Hash)
+            record.errors.add(attribute, "GeoIngredient #{value}'s attributes must be a hash.")
+          end
+        end
+      end
+    end
+  end
 end

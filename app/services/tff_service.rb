@@ -20,7 +20,9 @@ class TFFService
 
   # Unpacks the TFF response into a useful hash.
   def unpack_response(response_body)
-    if response_body['status'] != 'OK'
+    if response_body.nil?
+      return {code: 500, status: 'Error', message: "No Taxi Fare Finder response available"}
+    elsif response_body['status'] != 'OK'
       return {code: 500, status: response_body['status'], message: response_body['explanation']}
     else
       return {code: 200, status: "Success", fare: response_body['metered_fare']}

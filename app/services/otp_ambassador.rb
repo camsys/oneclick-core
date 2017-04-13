@@ -1,5 +1,5 @@
 class OTPAmbassador
-  attr_reader :otp, :trip, :trip_types, :responses, :http_request_bundler
+  attr_reader :otp, :trip, :trip_types, :http_request_bundler
 
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
@@ -18,7 +18,6 @@ class OTPAmbassador
     @http_request_bundler = http_request_bundler
     @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     @otp = OTPService.new(Config.open_trip_planner)
-    @responses = {}
 
     # add http calls to bundler based on trip and modes
     prepare_http_requests.each do |request|
@@ -36,6 +35,12 @@ class OTPAmbassador
     return 0 if errors(trip_type)
     itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
     return itineraries[0]["duration"] if itineraries[0]
+  end
+
+  def get_distance(trip_type)
+    return 0 if errors(trip_type)
+    itineraries = ensure_response(trip_type)["plan"]["itineraries"] || []
+    return extract_distance(itineraries[0]) if itineraries[0]
   end
 
   def get_request_url(request_type)
@@ -112,7 +117,7 @@ class OTPAmbassador
     end
   end
 
-  # OTP returns car and bicycle time as walk time 
+  # OTP returns car and bicycle time as walk time
   def get_walk_time otp_itin, trip_type
     if trip_type.in? [:car, :bicycle]
       return 0
@@ -132,6 +137,14 @@ class OTPAmbassador
     otp_itin['fare']['fare'] &&
     otp_itin['fare']['fare']['regular'] &&
     otp_itin['fare']['fare']['regular']['cents'].to_f/100.0
+  end
+
+  # Extracts total distance from OTP itinerary
+  # default conversion factor is for converting meters to miles
+  def extract_distance(otp_itin, trip_type=:car, conversion_factor=0.000621371)
+    otp_itin["legs"] &&
+    otp_itin["legs"][0] &&
+    otp_itin["legs"][0]["distance"] * conversion_factor
   end
 
   # Processes and unpacks an OTP multi_plan responses hash

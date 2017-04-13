@@ -2,7 +2,6 @@
 
 // Takes JSON of the schedules, a JQuery reference to the containing div, and HTML for a blank schedule
 function ScheduleHelper(schedulesJSON, containerDiv, scheduleTemplate, options) {
-  console.log("INITIALIZING SCHEDULEHELPER");
   this.originalSchedules = JSON.parse(schedulesJSON);
   this.container = containerDiv;
   this.template = scheduleTemplate;
@@ -60,7 +59,6 @@ ScheduleHelper.prototype = {
   deleteSchedule: function() {
     var parent = $(this).parents('.schedule-body');
     parent.find('input.destroy').val(true).trigger('change');
-    console.log("DESTROY SET", parent, parent.find('input.destroy').val());
     parent.addClass('hidden');
   },
 

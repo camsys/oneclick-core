@@ -1,0 +1,21 @@
+-# Takes local variables: region_name, label_text
+-wrapper_id = local_assigns[:wrapper_id] || ""
+-wrapper_class = local_assigns[:wrapper_class] || ""
+-label_text = local_assigns[:label_text] || ""
+-can_be_deleted = local_assigns[:can_be_deleted] || false
+
+.region-builder-container{ id: wrapper_id, class: wrapper_class }
+  .form-group.string.optional.region-label-container
+    .col-sm-12
+      %label.control-label.text.optional
+        =label_text
+  .well.well-sm.ingredient-container
+    -if can_be_deleted
+      .delete-region.pull-right.btn.btn-link
+        %span.glyphicon.glyphicon-remove
+    %span.ingredients-container.region-display
+    .add-ingredient
+      .ingredient-input
+        .input-group
+          %input.form-control.string.optional.region-input{type: 'text', placeholder: 'add a region'}
+        .dropdown.region-results{style: 'position:absolute; z-index:500'}

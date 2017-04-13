@@ -1,6 +1,7 @@
 class Paratransit < Service
   accepts_nested_attributes_for :start_or_end_area, :trip_within_area
   accepts_nested_attributes_for :schedules, reject_if: :reject_schedule?, allow_destroy: true
+  accepts_nested_attributes_for :fare_zones
 
   ### INSTANCE METHODS ###
 

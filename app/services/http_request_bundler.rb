@@ -5,14 +5,13 @@ class HTTPRequestBundler
   attr_reader :requests, :responses
 
   def initialize
-    @requests = []
+    @requests = {}
     @responses = nil
   end
 
   # Add an HTTP request to the bundler, for later processing
   def add(label, url, action=:get)
-    @requests << {
-      label: label,
+    @requests[label] = {
       request: EM::HttpRequest.new(url),
       action: action
     }
@@ -30,8 +29,8 @@ class HTTPRequestBundler
     return false if @requests.empty?
     EM.run do
       multi = EM::MultiRequest.new
-      @requests.each_with_index do |request, i|
-        multi.add request[:label], request[:request].send(request[:action])
+      @requests.each do |label, body|
+        multi.add label, body[:request].send(body[:action])
       end
 
       multi.callback do

@@ -1,0 +1,88 @@
+=content_for :header do
+  Fares
+
+-fd_js = nil # For passing the form object to partial call in JS, below
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  =f.input :fare_structure, input_html: {class: 'fare-structure'}, collection: FareHelper::VALID_STRUCTURES
+
+  -fare_details = @service.fare_details || {}
+
+  -# FLAT (& MILEAGE)
+  .fare-inputs.flat-fare.mileage-fare.hidden
+    =f.fields_for :fare_details do |fd|
+      =fd.input :base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+
+  -# MILEAGE ONLY
+  .fare-inputs.mileage-fare.hidden
+    =f.fields_for :fare_details do |fd|
+      =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
+      =fd.input :trip_type, input_html: {value: @service.type}
+
+  -# ZONE
+  .fare-inputs.zone-fare.hidden
+    -# Fare Zone Region Builders
+    =f.fields_for :fare_details do |fd|
+      -fd_js = fd # Set proxy variable so that it can be passed to javascript, below
+      #fare-zones-container
+        -# FareZoneHelper dynamically renders fare zone divs in here
+      .btn.add-fare-zone
+        %span.text-muted.pull-left add a new fare zone
+        %span.text-muted.glyphicon.glyphicon-plus.pull-right
+      %label#fare-table-label.control-label Fare Zone Table
+      =render partial: 'admin/services/fare_table', locals: {f: fd, table: @service.zone_table }
+
+  -# TFF
+  .fare-inputs.taxi_fare_finder-fare.hidden
+    =f.fields_for :fare_details do |fd|
+      =fd.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
+
+:javascript
+  $(document).ready(function() {
+
+    // Create a FormHandler to handle submit and cancel events
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+
+    // Create a FareZoneHelper to dynamically build fare zone divs
+    var fzh = new FareZoneHelper(
+      '#{@service.zone_recipes.to_json}',
+      $('#fare-zones-container'),
+      $('#fare-zones-table'),
+      '#{escape_javascript render partial: "admin/services/fare_zone", locals: {f: fd_js} }',
+      {
+        searchPath: '#{admin_service_path}',
+        ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}',
+        formHandler: fh,
+        tableReplacer: $('#table-replacer')
+      }
+    );
+
+    // Handle toggling between different fare structures:
+
+    var fareStructureInput = $('.fare-structure'); // JQuery reference to fare structure selector element
+    // Show appropriate fare inputs and hide all others
+    var showFareInputs = function() {
+      var fareStructure = fareStructureInput.val();
+      $('.fare-inputs').addClass('hidden');
+      $('.fare-inputs.' + fareStructure + '-fare').removeClass('hidden');
+    };
+    showFareInputs(); // On page load, show proper fare inputs
+    fareStructureInput.change(showFareInputs); // Show correct fare inputs when a new structure is selected.
+
+    // Form reset callback
+    fh.onReset(function() {
+      showFareInputs(); // Show correct fare inputs when form is reset
+      fzh.reset(); // Rest the fare zone form
+      fzh.showTable();
+    });
+
+    // Add new fare zone click handler
+    $('.add-fare-zone').click(function() {
+      fzh.addFareZone();
+    });
+
+  });

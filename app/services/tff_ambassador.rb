@@ -1,25 +1,29 @@
 class TFFAmbassador
 
-  attr_accessor :trip, :fares, :services, :http_request_bundler
+  attr_accessor :trip, :fares, :cities, :http_request_bundler
 
-  # Initialize with a trip and an array of trip types
-  def initialize(trip, services, http_request_bundler)
+  # Initialize with a trip an HTTP request bundler, and list of services or cities
+  def initialize(trip, http_request_bundler, options={})
     @trip = trip
     @tff = TFFService.new(Config.tff_api_key)
-    @services = services
+    @services = options[:services] || []
+    @cities = options[:cities] || []
+    @cities = (@cities + cities_from_services(@services)).uniq
     @fares = {}
     @http_request_bundler = http_request_bundler
 
     # add http calls to bundler based on services
     prepare_http_requests.each do |request|
       @http_request_bundler.add(request[:label], request[:url], request[:action])
-    end if @services
+    end if @cities
   end
 
-  # Get the Fare for a Single Service.
+  # Get the Fare for a Single Service or City
   # First Check to see if we already called TFF.
-  def fare service
-    city_label = city_to_label(service.taxi_fare_finder_id)
+  def fare service_or_city
+    tff_city = service_or_city.is_a?(Service) ? tff_city_for(service_or_city) : service_or_city
+    return nil unless tff_city
+    city_label = city_to_label(tff_city)
     return @fares[city_label] if @fares[city_label]
 
     fare = retrieve_fare(city_label)
@@ -45,20 +49,26 @@ class TFFAmbassador
     end
   end
 
-  # Go through every taxi service in the trip and set the fare.
-  def set_taxi_fares
-    @trip.itineraries.taxi_itineraries.each do |itin|
-      itin.cost = fare(itin.service)
-      itin.save
-    end
-  end
+  # # Go through every taxi service in the trip and set the fare.
+  # def set_taxi_fares
+  #   @trip.itineraries.taxi_itineraries.each do |itin|
+  #     itin.cost = fare(itin.service)
+  #     itin.save
+  #   end
+  # end
 
   private
 
+  # Pulls city codes from services
+  def cities_from_services(services)
+    services.map do |svc|
+      svc.fare_details && svc.fare_details[:taxi_fare_finder_city]
+    end.compact
+  end
+
   # Prepares HTTP requests based on available services, to pass to HTTP Request Bundler
   def prepare_http_requests
-    cities = @services.map { |s| s.taxi_fare_finder_id }.uniq
-    cities.map do |city|
+    @cities.map do |city|
       {
         label: city_to_label(city),
         url: get_request_url(city),
@@ -69,7 +79,13 @@ class TFFAmbassador
 
   # Converts a TFF city code into a symbol for labeling
   def city_to_label(city)
-    ("tff_" + city).parameterize.underscore.to_sym
+    ("tff_" + city.to_s).parameterize.underscore.to_sym
+  end
+
+  # Gets a service's TFF city if it's set, or returns nil if not
+  def tff_city_for(service)
+    return nil unless service.fare_structure == "taxi_fare_finder"
+    service.fare_details && service.fare_details[:taxi_fare_finder_city]
   end
 
 end

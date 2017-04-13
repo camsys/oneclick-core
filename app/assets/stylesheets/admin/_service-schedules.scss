@@ -21,9 +21,7 @@
   @include unit-box($brand-info-pastel);
 
   .schedule-form-group .schedule-input {
-    border: none;
-    background-color: transparentize(white, 0.8);
-    box-shadow: none;
+    @include subtle-input;
     padding-right: 0px;
     font-weight: bold;
   }

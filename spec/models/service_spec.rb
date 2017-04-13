@@ -1,13 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
+  before(:all) { create(:otp_config) }
+  before(:all) { create(:tff_config) }
 
-  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
+  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :fare_structure, :fare_details }
   it { should have_many(:itineraries) }
   it { should have_many(:schedules) }
   it { should have_many(:comments).dependent(:destroy) }
   it { should have_and_belong_to_many :accommodations }
   it { should have_and_belong_to_many :eligibilities }
+  it { should have_many(:fare_zones) }
+  it { should have_many(:fare_zone_regions).through(:fare_zones) }
 
   let(:service) { create(:service) }
   let(:transit) { create(:transit_service) }
@@ -38,6 +42,11 @@ RSpec.describe Service, type: :model do
   let(:all_purpose_service) { create(:paratransit_service, :no_geography) }
   let(:metallica_trip) { create(:trip, :going_to_see_metallica) }
 
+  # For Fares testing
+  let(:flat_fare_service) { create(:taxi_service, :flat_fare) }
+  let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
+  let(:tff_fare_service) { create(:taxi_service, :taxi_fare_finder_fare) }
+
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
   let!(:wheelchair) { FactoryGirl.create :wheelchair }
@@ -63,7 +72,6 @@ RSpec.describe Service, type: :model do
   it 'taxi service should be a Taxi and have appropriate attributes' do
     expect(taxi).to be
     expect(taxi).to be_a(Taxi)
-    expect(taxi.taxi_fare_finder_id).to be
   end
 
   it 'should be available to users if it has all necessary accommodations' do
@@ -159,6 +167,32 @@ RSpec.describe Service, type: :model do
 
   it 'should be (un)available for trips based on purpose' do
     expect(medical_service.available_for? metallica_trip).to eq(false)
+  end
+
+  it 'should calculate flat fares' do
+    # flat fare
+    expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:base_fare])
+  end
+
+  it 'should calculate mileage fares' do
+    trip_distance = 1000 # in meters
+    trip_dist_mi = trip_distance * 0.000621371 # in miles
+    base_fare = mileage_fare_service.fare_details[:base_fare]
+    mileage_rate = mileage_fare_service.fare_details[:mileage_rate]
+    mileage_otp_response = { "plan" => { "itineraries" => [ {
+      "legs" => [ "distance" => trip_distance ]
+    } ] } }
+    # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
+    hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
+    expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((base_fare + mileage_rate * trip_dist_mi).round(2))
+  end
+
+  it 'should calculate taxi fare finder fares' do
+    fare = 10.0
+    tff_response = { 'metered_fare' => fare, 'status' => 'OK' }
+    # Make an object double for HTTPRequestBundler that sends back dummy TFF responses
+    hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
+    expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
   end
 
 end

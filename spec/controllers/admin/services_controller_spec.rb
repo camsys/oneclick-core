@@ -70,15 +70,15 @@ RSpec.describe Admin::ServicesController, type: :controller do
      attrs = attributes_for(:taxi_service)
      params = {taxi: attrs}
      count = Taxi.count
-  
+
      post :create, params: params
-  
+
      # test for the 302 status-code (redirect)
      expect(response).to have_http_status(302)
 
      # Confirm that a new service was created
      expect(Taxi.count).to eq(count + 1)
-  
+
      # Confirm that the most recently created service matches the parameters sent
      @service = Taxi.last
      attributes_match = attrs.all? { |att| attrs[att] == @service[att] }
@@ -133,6 +133,34 @@ RSpec.describe Admin::ServicesController, type: :controller do
     expect(old_start_or_end_area).not_to eq(new_start_or_end_area)
   end
 
+  it "updates a service's fare information" do
+    # Hash with indifferent access containing sample params for various fare structures
+    fare_details_params = {
+      flat: { base_fare: 5.0 },
+      mileage: { base_fare: 2, mileage_rate: 1.0, trip_type: :taxi },
+      taxi_fare_finder: { taxi_fare_finder_city: 'Boston' }
+    }.with_indifferent_access
+
+    # For each fare structure type, test service update
+    [:flat, :mileage, :taxi_fare_finder].each do |fare_structure|
+      old_fare_structure = service.fare_structure
+      old_fare_details = service.fare_details
+      update_params = {
+        id: service.id,
+        service: {
+          fare_structure: fare_structure,
+          fare_details: fare_details_params[fare_structure]
+        }
+      }
+      put :update, params: update_params
+      expect(response).to have_http_status(302) # should redirect on success
+      service.reload
+      expect(old_fare_structure).not_to eq(service.fare_structure) # should have changed fare_structure
+      expect(old_fare_details).not_to eq(service.fare_details) # should have changed fare_details
+      expect(service.fare_details).to eq(fare_details_params[fare_structure]) # fare_details should match params
+    end
+  end
+
   it 'allows search of geographies via show action' do
     county = create(:county)
     city = create(:city)
@@ -152,7 +180,6 @@ RSpec.describe Admin::ServicesController, type: :controller do
     get :show, format: :json, params: {id: service.id, term: zipcode.name}
     response_body = JSON.parse(response.body)
     expect(response_body.length).to be > 0
-
   end
 
 end

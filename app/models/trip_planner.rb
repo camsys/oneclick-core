@@ -4,9 +4,9 @@
 # APIs.
 
 class TripPlanner
-  # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle]
 
+  # Constant list of trip types that can be planned.
+  TRIP_TYPES = Trip::TRIP_TYPES
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
 
   # Initialize with a Trip object, and an options hash
@@ -19,11 +19,11 @@ class TripPlanner
     @available_services = identify_available_services
 
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
-    @http_request_bundler = options[:http_bundler] || HTTPRequestBundler.new
+    @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
 
     # External API Ambassadors
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
-    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @available_services[:taxi], @http_request_bundler)
+    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -37,7 +37,7 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    unless trip_type.in? [:walk, :car, :bicycle] 
+    unless trip_type.in? [:walk, :car, :bicycle]
       trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
@@ -70,8 +70,13 @@ class TripPlanner
     response = @router.get_itineraries(:paratransit)
     @errors << response if response[:error]
 
-    @available_services[:paratransit].map do |service|
-      Itinerary.new(service: service, trip_type: :paratransit, transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier)
+    @available_services[:paratransit].map do |svc|
+      Itinerary.new(
+        service: svc,
+        trip_type: :paratransit,
+        cost: svc.fare_for(@trip, router: @router),
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+      )
     end
   end
 
@@ -80,8 +85,13 @@ class TripPlanner
     response = @router.get_itineraries(:taxi)
     @errors << response if response[:error]
 
-    @available_services[:taxi].map do |service|
-      Itinerary.new(service: service, trip_type: :taxi, cost: @taxi_ambassador.fare(service), transit_time: @router.get_duration(:taxi))
+    @available_services[:taxi].map do |svc|
+      Itinerary.new(
+        service: svc,
+        trip_type: :taxi,
+        cost: svc.fare_for(@trip, router: @router, taxi_ambassador: @taxi_ambassador),
+        transit_time: @router.get_duration(:taxi)
+      )
     end
   end
 

@@ -1,0 +1,23 @@
+-# Fare Zone Table
+%table.table#fare-zones-table
+  -# Header Row
+  %tr
+    %th
+    -table.keys.each do |to_zone|
+      %td
+        %span="to "
+        %b="#{to_zone.upcase}"
+  -# From Zone Rows
+  -table.keys.each do |from_zone|
+    %tr
+      %td
+        %span="from "
+        %b="#{from_zone.upcase}"
+      -# To Zone Columns
+      -table.keys.each do |to_zone|
+        %td
+          %input.form-control.numeric.float{ type: 'number',
+            value: table[from_zone][to_zone],
+            name: input_name_for(@service, :fare_details, :fare_table, from_zone, to_zone) }
+#table-replacer.hidden
+  .text-muted click submit or cancel to edit fare zone table

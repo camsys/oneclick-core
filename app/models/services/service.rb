@@ -1,12 +1,16 @@
 class Service < ApplicationRecord
 
-  ### Includes ###
+  ### INCLUDES ###
   mount_uploader :logo, LogoUploader
   include ScheduleHelper
   include ScopeHelper
   include Commentable
+  include FareHelper
+  include FareHelper::ZoneFareable
+  include GeoKitchen
 
-  ### ASSOCIATIONS ###
+  ### ATTRIBUTES & ASSOCIATIONS ###
+  serialize :fare_details
   has_many :itineraries
   has_many :schedules
   has_and_belongs_to_many :accommodations
@@ -15,10 +19,8 @@ class Service < ApplicationRecord
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
-
-  ### VALIDATIONS ###
+  ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type
-
 
   ##########
   # SCOPES #
@@ -100,14 +102,22 @@ class Service < ApplicationRecord
   # INSTANCE METHODS #
   ####################
 
+  # Calculates fare for passed trip, based on service's fare_structure and fare_details
+  def fare_for(trip, options={})
+    if fare_structure == "zone"
+      options[:origin_zone] = origin_zone_code(trip)
+      options[:destination_zone] = destination_zone_code(trip)
+    end
+    FareCalculator.new(fare_structure, fare_details, trip, options).calculate
+  end
+
   # OVERWRITE
   # Builds geographic associations.
   def build_geographies
     nil
   end
 
-
-  # Silently filters out schedule params that don't meet criteria
+  # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
   end
@@ -144,7 +154,7 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services with no purposes set
   def self.no_purposes
-    includes(:purposes).where(purposes: {id: nil}).pluck(:id)  
+    includes(:purposes).where(purposes: {id: nil}).pluck(:id)
   end
 
   # Returns IDs of Services with a schedule that includes the trip time
