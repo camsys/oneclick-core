@@ -16,6 +16,12 @@ FactoryGirl.define do
       end
     end
 
+    factory :trip_with_paratransit_itins do
+      after(:create) do |trip|
+        create(:paratransit_itinerary, trip: trip)
+      end
+    end
+
     trait :weekday_day do
       # puts "TIME ZONE: ", Time.zone.to_s
       trip_time DateTime.new(2020, 7, 14, 17) # Tuesday, 12pm EST

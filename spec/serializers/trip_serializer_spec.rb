@@ -1,8 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe TripSerializer, type: :serializer do
-  let(:trip) { create(:trip_with_itins)}
-  let(:trip_serializer) { TripSerializer.new(trip)}
+RSpec.describe Api::V1::TripSerializer, type: :serializer do
+  let(:trip) { create(:trip_with_paratransit_itins)}
+  let(:trip_serializer) { Api::V1::TripSerializer.new(trip)}
   let(:trip_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(trip_serializer).to_json) }
 
   it 'faithfully serializes trips' do
@@ -13,6 +13,7 @@ RSpec.describe TripSerializer, type: :serializer do
     expect(trip_serialization["origin"]).to be
     expect(trip_serialization["destination"]).to be
     expect(trip_serialization["itineraries"].count).to be > 0
+    expect(trip_serialization["purposes"]).to eq([{"name"=>"missing key purpose_medical_name", "code"=>"medical"}])
   end
 
 end
