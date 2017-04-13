@@ -19,7 +19,6 @@ class HTTPRequestBundler
 
   # Return the HTTP request response, based on the label used when passing in the request
   def response(label)
-    puts "GETTING RESPONSE"
     make_calls unless @responses
     return nil unless @responses
     @responses[:successes][label] || @responses[:errors][label]
@@ -27,7 +26,6 @@ class HTTPRequestBundler
 
   # Make all of the HTTP requests that have been added to the bundler
   def make_calls
-    puts "MAKING CALLS"
     return false if @requests.empty?
     EM.run do
       multi = EM::MultiRequest.new

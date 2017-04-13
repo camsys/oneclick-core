@@ -22,7 +22,7 @@ module FareHelper
     # Calculate the fare based on the passed trip and the fare_structure/details
     def calculate
       return no_fare if @fare_structure.nil?
-      self.send("calculate_#{@fare_structure}").to_f.round(2)
+      self.send("calculate_#{@fare_structure}").to_f.round(2) # Send back a float rounded to 2 decimal places
     end
 
     private
@@ -172,7 +172,6 @@ module FareHelper
 
     def permit
       return [] unless @params.has_key?(:fare_structure)
-      puts [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")].ai
       [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")]
     end
 
@@ -266,7 +265,6 @@ module FareHelper
       # Swap out the old table with the new
       convert_param(:fare_table) { |_| new_table }
 
-      puts "PACKAGED PARAMS", @fare_details.ai
     end
   end
 
