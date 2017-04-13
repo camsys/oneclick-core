@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170410125833) do
+ActiveRecord::Schema.define(version: 20170413132419) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -196,7 +196,6 @@ ActiveRecord::Schema.define(version: 20170410125833) do
     t.string   "phone"
     t.integer  "start_or_end_area_id"
     t.integer  "trip_within_area_id"
-    t.string   "taxi_fare_finder_id"
     t.string   "fare_structure"
     t.text     "fare_details"
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree

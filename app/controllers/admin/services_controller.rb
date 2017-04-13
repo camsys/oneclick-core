@@ -118,7 +118,6 @@ class Admin::ServicesController < Admin::AdminController
   def taxi_params
     [
       {accommodation_ids: []},
-      :taxi_fare_finder_id,
       trip_within_area_attributes: [:recipe]
     ] + FareParamPermitter.new(params[:service]).permit
   end

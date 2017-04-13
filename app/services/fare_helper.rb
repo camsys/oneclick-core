@@ -22,7 +22,7 @@ module FareHelper
     # Calculate the fare based on the passed trip and the fare_structure/details
     def calculate
       return no_fare if @fare_structure.nil?
-      self.send("calculate_#{@fare_structure}")
+      self.send("calculate_#{@fare_structure}").to_f.round(2)
     end
 
     private

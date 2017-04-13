@@ -4,7 +4,7 @@ RSpec.describe Service, type: :model do
   before(:all) { create(:otp_config) }
   before(:all) { create(:tff_config) }
 
-  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :taxi_fare_finder_id }
+  it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :fare_structure, :fare_details }
   it { should have_many(:itineraries) }
   it { should have_many(:schedules) }
   it { should have_many(:comments).dependent(:destroy) }
@@ -72,7 +72,6 @@ RSpec.describe Service, type: :model do
   it 'taxi service should be a Taxi and have appropriate attributes' do
     expect(taxi).to be
     expect(taxi).to be_a(Taxi)
-    expect(taxi.taxi_fare_finder_id).to be
   end
 
   it 'should be available to users if it has all necessary accommodations' do
