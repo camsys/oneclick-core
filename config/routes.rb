@@ -67,6 +67,7 @@ Rails.application.routes.draw do
       collection do
         patch 'set_open_trip_planner'
         patch 'set_tff_api_key'
+        patch 'set_uber_token'
       end
     end
 
