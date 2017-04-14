@@ -19,6 +19,10 @@ module Api
       failed_auth_response unless authentication_successful?
     end
 
+    def allow_authentication
+      render status: 200, json: {} unless authentication_successful?
+    end
+
     # DEPRECATE THIS? #
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
     def handle_options_request
