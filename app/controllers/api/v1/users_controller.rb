@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApiController
-      skip_before_action :authenticate_user_from_token!, only: [:get_guest_token]
+      before_action :require_authentication, except: [:get_guest_token]
 
       def profile
         render json: @traveler.profile_hash
