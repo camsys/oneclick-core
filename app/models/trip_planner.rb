@@ -75,7 +75,7 @@ class TripPlanner
         service: svc,
         trip_type: :paratransit,
         cost: svc.fare_for(@trip, router: @router),
-        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
       )
     end
   end
