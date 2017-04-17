@@ -30,7 +30,6 @@ module Api
       def external_info; nil end
       def hidden; false end
       def is_bookable; false end
-      def logo_url; nil end
       def map_image; nil end
       def match_score; nil end
       def missing_accommodations; "" end
@@ -50,7 +49,6 @@ module Api
       def server_message; nil end
       def server_status; 200 end
       def service_bookable; false end
-      def service_comments; {} end
       def time_mismatch; false end
       def too_early; false end
       def too_late; false end
@@ -95,6 +93,16 @@ module Api
 
       def url
         object.service && object.service.url
+      end
+
+      def service_comments
+        return {} unless object.service
+        Hash[object.service.comments.map {|c| [c.locale, c.comment]}]
+      end
+
+      def logo_url
+        return nil unless object.service && object.service.logo
+        ActionController::Base.helpers.asset_path(object.service.logo.thumb.url.to_s)
       end
 
     end
