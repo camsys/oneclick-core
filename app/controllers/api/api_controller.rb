@@ -12,15 +12,14 @@ module Api
     #
     # Use before_action :require_authentication to require authentication,
     # and respond with a 401 if it fails.
+    #
+    # To perform an action only if authentication was successful, use the
+    # authentication_successful? boolean method.
     ##################################
 
     # Renders a 401 failure response if authentication was not successful
     def require_authentication
       failed_auth_response unless authentication_successful?
-    end
-
-    def allow_authentication
-      render status: 200, json: {} unless authentication_successful?
     end
 
     # DEPRECATE THIS? #
