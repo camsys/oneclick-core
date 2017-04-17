@@ -280,7 +280,6 @@ module FareHelper
         has_many :fare_zone_regions, through: :fare_zones, source: :region
         has_many :necessary_fare_zone_regions, through: :necessary_fare_zones, source: :region
         has_many :unnecessary_fare_zone_regions, through: :unnecessary_fare_zones, source: :region
-        validates_with FareValidator # For validating fare_structure and fare_details
         before_save :build_fare_zones, if: :zone_fare_changed?
       end
     end

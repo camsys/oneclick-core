@@ -31,6 +31,8 @@ class Itinerary < ApplicationRecord
 
   # Calculates start and end time based on arrive_by, trip_time, and duration
   def calculate_start_and_end_time
+    return false if trip.nil?
+
     if self.start_time.nil?
       self.start_time = trip.arrive_by ? trip.trip_time - duration : trip.trip_time
     end

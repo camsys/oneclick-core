@@ -20,7 +20,7 @@
   -# MILEAGE ONLY
   .fare-inputs.mileage-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
+      =fd.input :mileage_rate, as: :hidden, input_html: {value: fare_details[:mileage_rate]}
       =fd.input :trip_type, input_html: {value: @service.type}
 
   -# ZONE

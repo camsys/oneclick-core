@@ -21,6 +21,7 @@ class Service < ApplicationRecord
 
   ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type
+  validates_with FareValidator # For validating fare_structure and fare_details
 
   ##########
   # SCOPES #
