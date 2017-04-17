@@ -62,11 +62,11 @@ module Api
       # ACTUAL METHODS
 
       def end_location
-        object.trip.destination
+        location_hash(object.trip.destination)
       end
 
       def start_location
-        object.trip.origin
+        location_hash(object.trip.origin)
       end
 
       def json_legs
@@ -103,6 +103,19 @@ module Api
       def logo_url
         return nil unless object.service && object.service.logo
         ActionController::Base.helpers.asset_path(object.service.logo.thumb.url.to_s)
+      end
+
+      private
+
+      def location_hash(waypoint)
+        {
+          geometry: {
+            location: {
+              lat: waypoint.lat,
+              lng: waypoint.lng
+            }
+          }
+        }
       end
 
     end
