@@ -45,6 +45,7 @@ RSpec.describe Service, type: :model do
   # For Fares testing
   let(:flat_fare_service) { create(:taxi_service, :flat_fare) }
   let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
+  let(:zone_fare_service) { create(:paratransit_service, :zone_fare) }
   let(:tff_fare_service) { create(:taxi_service, :taxi_fare_finder_fare) }
 
   # Creating 'seed' data for this spec file
@@ -170,7 +171,6 @@ RSpec.describe Service, type: :model do
   end
 
   it 'should calculate flat fares' do
-    # flat fare
     expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:base_fare])
   end
 
@@ -185,6 +185,10 @@ RSpec.describe Service, type: :model do
     # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
     hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
     expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((base_fare + mileage_rate * trip_dist_mi).round(2))
+  end
+
+  it 'should calculate zone fares' do
+    puts "ZONE FARE SERVICE", zone_fare_service.ai
   end
 
   it 'should calculate taxi fare finder fares' do

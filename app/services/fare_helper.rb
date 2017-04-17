@@ -119,8 +119,8 @@ module FareHelper
       has_keys =  validate_fare_details_key(record, :fare_zones, :hash) &&
                   validate_fare_details_key(record, :fare_table, :hash)
       if has_keys
-        fare_zones = record.fare_details[:fare_zones]
-        fare_table = record.fare_details[:fare_table]
+        fare_zones = record.fare_details[:fare_zones] || record.fare_details["fare_zones"]
+        fare_table = record.fare_details[:fare_table] || record.fare_details["fare_table"]
 
         unless fare_table.keys == fare_zones.keys
           record.errors.add(:fare_details, "fare_table must have a row for each zone code")
