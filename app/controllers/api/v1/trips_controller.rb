@@ -100,8 +100,9 @@ module Api
       end
 
       # Removes "mode_" from the start of mode code string
+      # Also lets mode_ride_hailing act as an alias for mode_uber
       def demodeify(string)
-        string.sub("mode_", "")
+        string.sub("mode_", "").sub("ride_hailing","uber")
       end
 
     end

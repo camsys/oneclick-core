@@ -49,14 +49,6 @@ class TFFAmbassador
     end
   end
 
-  # # Go through every taxi service in the trip and set the fare.
-  # def set_taxi_fares
-  #   @trip.itineraries.taxi_itineraries.each do |itin|
-  #     itin.cost = fare(itin.service)
-  #     itin.save
-  #   end
-  # end
-
   private
 
   # Pulls city codes from services

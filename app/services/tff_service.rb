@@ -1,4 +1,3 @@
-
 class TFFService
 
   attr_accessor :api_key

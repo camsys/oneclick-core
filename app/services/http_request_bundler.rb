@@ -10,10 +10,11 @@ class HTTPRequestBundler
   end
 
   # Add an HTTP request to the bundler, for later processing
-  def add(label, url, action=:get)
+  def add(label, url, action=:get, headers={})
     @requests[label] = {
-      request: EM::HttpRequest.new(url),
-      action: action
+      url: url,
+      action: action,
+      headers: headers
     }
   end
 
@@ -30,7 +31,12 @@ class HTTPRequestBundler
     EM.run do
       multi = EM::MultiRequest.new
       @requests.each do |label, body|
-        multi.add label, body[:request].send(body[:action])
+        case body[:action]
+        when :get
+          multi.add label, EM::HttpRequest.new(body[:url]).get(head: body[:headers])
+        when :post
+          multi.add label, EM::HttpRequest.new(body[:url]).post(head: body[:headers])
+        end
       end
 
       multi.callback do
@@ -39,6 +45,7 @@ class HTTPRequestBundler
         return @responses
       end
     end
+
   end
 
   private

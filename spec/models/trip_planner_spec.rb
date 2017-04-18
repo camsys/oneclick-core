@@ -5,6 +5,7 @@ RSpec.describe TripPlanner do
   before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
   let!(:taxi) { create(:taxi_service) }
+  let!(:uber) { create(:uber_service) }
 
   # Mock an HTTP Request Bundler with stubbed methods
 

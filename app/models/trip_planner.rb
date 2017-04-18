@@ -41,6 +41,7 @@ class TripPlanner
     # Set up external API ambassadors for route finding and fare calculation
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
     @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
+    @uber_ambassador = options[:uber_ambassador] || UberAmbassador.new(@trip, @http_request_bundler)
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
@@ -92,6 +93,9 @@ class TripPlanner
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
+    if Taxi.count == 0
+      return nil
+    end
     response = @router.get_itineraries(:taxi)
     @errors << response if response[:error]
 
@@ -101,6 +105,24 @@ class TripPlanner
         trip_type: :taxi,
         cost: svc.fare_for(@trip, router: @router, taxi_ambassador: @taxi_ambassador),
         transit_time: @router.get_duration(:taxi)
+      )
+    end
+  end
+
+  # Builds an uber itinerary populates transit_time based on OTP response
+  def build_uber_itineraries
+    if Uber.count == 0
+      return nil
+    end
+    response = @router.get_itineraries(:uber)
+    @errors << response if response[:error]
+
+    @available_services[:uber].map do |svc|
+      Itinerary.new(
+        service: svc,
+        trip_type: :uber,
+        cost: @uber_ambassador.cost('uberX'),
+        transit_time: @router.get_duration(:uber)
       )
     end
   end

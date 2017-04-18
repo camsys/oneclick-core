@@ -3,6 +3,7 @@ class Admin::ConfigsController < Admin::AdminController
   def index
     @open_trip_planner = Config.where(key: 'open_trip_planner').first_or_initialize
     @tff_api_key = Config.where(key: 'tff_api_key').first_or_initialize
+    @uber_token = Config.where(key: 'uber_token').first_or_initialize
   end
 
   def set_open_trip_planner
@@ -11,6 +12,10 @@ class Admin::ConfigsController < Admin::AdminController
 
   def set_tff_api_key
     set_config params, 'tff_api_key'  
+  end
+
+  def set_uber_token
+    set_config params, 'uber_token'
   end
 
   def set_config params, key
