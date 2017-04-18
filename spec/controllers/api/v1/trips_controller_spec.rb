@@ -17,6 +17,8 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let!(:eligibility) { FactoryGirl.create :eligibility }
   let!(:paratransit_service) { FactoryGirl.create(:paratransit_service, :medical_only, :no_geography) }
   let!(:metallica_concert) { FactoryGirl.create(:metallica_concert) }
+  let!(:past_trip) { create(:trip, user: user, trip_time: DateTime.now.in_time_zone - 5.days)}
+  let!(:future_trip) { create(:trip, user: user, trip_time: DateTime.now.in_time_zone + 5.days)}
 
   # Stub trip planner methods
   before(:each) do
@@ -175,6 +177,51 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     trip_id = response_body['trip_id'].to_i
     expect(response).to be_success
     expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(false)
+  end
+
+  it 'returns past trips for user' do
+    request.headers.merge!(request_headers)
+    get :past_trips
+
+    response_body = JSON.parse(response.body)
+    expect(response).to be_success
+
+    # the past trip should be in the list of responses
+    past_trip_ids = response_body.map {|t| t['id']}
+    expect(past_trip_ids.include?(past_trip.id)).to be true
+  end
+
+  it 'returns future trips for user' do
+    request.headers.merge!(request_headers)
+    get :future_trips
+
+    response_body = JSON.parse(response.body)
+    expect(response).to be_success
+
+    # the past trip should be in the list of responses
+    future_trip_ids = response_body.map {|t| t['id']}
+    expect(future_trip_ids.include?(future_trip.id)).to be true
+  end
+
+  it 'does not return past or future trips if not authenticated' do
+    get :future_trips
+    expect(response).to have_http_status(401)
+    get :past_trips
+    expect(response).to have_http_status(401)
+  end
+
+  it 'limits past and future request results to max_results parameter' do
+    request.headers.merge!(request_headers)
+
+    get :past_trips, params: {max_results: 0}
+    response_body = JSON.parse(response.body)
+    expect(response).to be_success
+    expect(response_body.count).to eq(0)
+
+    get :future_trips, params: {max_results: 0}
+    response_body = JSON.parse(response.body)
+    expect(response).to be_success
+    expect(response_body.count).to eq(0)
   end
 
   # it 'sends back itineraries for multiple trips' do

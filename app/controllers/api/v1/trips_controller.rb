@@ -1,7 +1,21 @@
 module Api
   module V1
     class TripsController < ApiController
-      before_action :require_authentication, only: [:select, :cancel]
+      before_action :require_authentication, only: [:past_trips, :future_trips, :select, :cancel, :index]
+
+      # GET trips/past_trips
+      # Returns past trips associated with logged in user, limit by max_results param
+      def past_trips
+        past_trips_hash = @traveler.trips.past.limit(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        render status: 200, json: { "trips" => past_trips_hash}
+      end
+
+      # GET trips/future_trips
+      # Returns future trips associated with logged in user, limit by max_results param
+      def future_trips
+        future_trips_hash = @traveler.trips.future.limit(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        render status: 200, json: {trips: future_trips_hash}
+      end
 
       # POST trips/, POST itineraries/plan
       def create
@@ -103,6 +117,65 @@ module Api
       # Also lets mode_ride_hailing act as an alias for mode_uber
       def demodeify(string)
         string.sub("mode_", "").sub("ride_hailing","uber")
+      end
+
+      # Serializes trips in the hash format demanded by the past_trips and future_trips
+      # calls (i.e. the My Trips section of the UI)
+      def my_trips_hash(trip)
+
+        trip_hash = {}
+        itin_hash = {}
+        service_hash = {
+          service_name: ""
+        }
+
+        # Trip attributes
+        trip_hash = {
+          trip_id: trip.id,
+          origin: MyTripsWaypointSerializer.new(trip.origin).to_hash,
+          destination: MyTripsWaypointSerializer.new(trip.destination).to_hash
+        }
+
+        # Itinerary Attributes
+        itinerary = trip.selected_itinerary
+        if itinerary
+          itin_hash = {
+            arrival: itinerary.end_time.iso8601,
+            booking_confirmation: nil, # itinerary.booking_confirmation
+            comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
+            cost: itinerary.cost.to_f,
+            departure: itinerary.start_time.iso8601,
+            duration: itinerary.duration,
+            fare: itinerary.cost.to_f,
+            id: itinerary.id,
+            json_legs: itinerary.legs,
+            mode: itinerary.trip_type.nil? ? nil : "mode_#{itinerary.trip_type.to_s}",
+            product_id: nil, #itinerary.product_id,
+            status: nil, # DEPRECATE?
+            transfers: nil, #itinerary.transfers, # DEPRECATE?
+            transit_time: itinerary.transit_time,
+            wait_time: nil, #itinerary.wait_time, # WAIT TIME?
+            walk_distance: nil, #itinerary.walk_distance, # DEPRECATE?
+            walk_time: itinerary.walk_time
+          }
+
+          # Service Attributes
+          svc = itinerary.service
+          if svc
+            service_hash = {
+              logo_url: svc.logo ? ActionController::Base.helpers.asset_path(svc.logo.thumb.url.to_s) : nil,
+              phone: svc.phone,
+              service_comments: svc.comments.map{|c| [c.locale, c.comment]}.to_h,
+              service_name: svc.name,
+              url: svc.url
+            }
+          end
+
+        end
+
+        return {
+          "0" => trip_hash.merge(itin_hash).merge(service_hash)
+        }
       end
 
     end
