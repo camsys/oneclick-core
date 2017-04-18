@@ -9,14 +9,14 @@ FactoryGirl.define do
     lng -71.081818
     name "Cambridge Systematics"
 
-    factory :waypoint_1 do
+    factory :waypoint_02139 do
       zip "02139"
       lat 42.365047
       lng -71.103359
       name "Central Square"
     end
 
-    factory :waypoint_2 do
+    factory :waypoint_02140 do
       street_number "100"
       route "Cambridgepark Drive"
       city "Cambridge"

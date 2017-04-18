@@ -1,8 +1,7 @@
 module Api
   module V1
     class TripsController < ApiController
-      skip_before_action :authenticate_user_from_token!, except: [:select, :cancel]
-      before_action :authenticate_user_if_token_present, except: [:select, :cancel] 
+      before_action :require_authentication, only: [:select, :cancel]
 
       # POST trips/, POST itineraries/plan
       def create

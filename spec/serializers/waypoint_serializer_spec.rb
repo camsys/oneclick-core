@@ -1,12 +1,11 @@
 require 'rails_helper'
 
-RSpec.describe WaypointSerializer, type: :serializer do
+RSpec.describe Api::V1::WaypointSerializer, type: :serializer do
   let(:waypoint) { create(:waypoint)}
-  let(:waypoint_serializer) { WaypointSerializer.new(waypoint)}
+  let(:waypoint_serializer) { Api::V1::WaypointSerializer.new(waypoint)}
   let(:waypoint_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(waypoint_serializer).to_json) }
 
-  it 'faithfully serializes trips' do
-    expect(waypoint_serialization["id"]).to eq(waypoint.id)
+  it 'faithfully serializes waypoints' do
     expect(waypoint_serialization["name"]).to eq(waypoint.name)
     expect(waypoint_serialization["street_number"]).to eq(waypoint.street_number)
     expect(waypoint_serialization["route"]).to eq(waypoint.route)

@@ -5,6 +5,8 @@ Rails.application.routes.draw do
   root "admin/admin#index"
 
   namespace :api do
+
+    # DEPRECATE THIS?
     match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
 
     namespace :v1 do

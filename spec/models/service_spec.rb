@@ -46,7 +46,13 @@ RSpec.describe Service, type: :model do
   # For Fares testing
   let(:flat_fare_service) { create(:taxi_service, :flat_fare) }
   let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
+  let(:zone_fare_service) { create(:paratransit_service, :zone_fare) }
   let(:tff_fare_service) { create(:taxi_service, :taxi_fare_finder_fare) }
+  let(:trip_ab) { trip_1 }
+  let(:trip_ba) { trip_1_flipped }
+  let(:trip_aa) { create(:trip, origin: create(:waypoint_02139), destination: create(:waypoint_02139))}
+  let(:trip_bb) { create(:trip, origin: create(:waypoint_02140), destination: create(:waypoint_02140))}
+
 
   # Creating 'seed' data for this spec file
   let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
@@ -171,7 +177,6 @@ RSpec.describe Service, type: :model do
   end
 
   it 'should calculate flat fares' do
-    # flat fare
     expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:base_fare])
   end
 
@@ -186,6 +191,26 @@ RSpec.describe Service, type: :model do
     # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
     hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
     expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((base_fare + mileage_rate * trip_dist_mi).round(2))
+  end
+
+  it 'should calculate zone fares' do
+    fare_table = zone_fare_service.fare_details[:fare_table]
+
+    # trip from a to a should have fare 1.0
+    expect(zone_fare_service.fare_for(trip_aa)).to eq(fare_table[:a][:a])
+
+    # trip from a to b should have fare 2.0
+    expect(zone_fare_service.fare_for(trip_ab)).to eq(fare_table[:a][:b])
+
+    # trip from b to a should have fare 3.0
+    expect(zone_fare_service.fare_for(trip_ba)).to eq(fare_table[:b][:a])
+
+    # trip from b to b should have fare 4.0
+    expect(zone_fare_service.fare_for(trip_bb)).to eq(fare_table[:b][:b])
+
+    # trip from a to elsewhere should have fare nil
+    expect(zone_fare_service.fare_for(trip_2)).to eq(FareHelper::NO_FARE)
+
   end
 
   it 'should calculate taxi fare finder fares' do

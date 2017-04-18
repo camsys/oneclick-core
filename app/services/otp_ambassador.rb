@@ -130,7 +130,7 @@ class OTPAmbassador
   # Extracts cost from OTP itinerary
   def extract_cost(otp_itin, trip_type)
     # OTP returns a nil cost for walk trips.  nil means unknown, so it should be zero instead
-    if trip_type.in? [:walk, :bicycle]
+    if trip_type.in? [:walk, :bicycle, :car]
       return 0.0
     end
 

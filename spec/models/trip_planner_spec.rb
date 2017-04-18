@@ -5,6 +5,7 @@ RSpec.describe TripPlanner do
   before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
   let!(:taxi) { create(:taxi_service) }
+  let!(:uber) { create(:uber_service) }
 
   # Mock an HTTP Request Bundler with stubbed methods
 
@@ -27,6 +28,8 @@ RSpec.describe TripPlanner do
   let(:trip_planner) do
     TripPlanner.new(trip, modes: ['transit', 'paratransit', 'taxi'], router: otp, taxi_ambassador: tff)
   end
+
+  before(:each) { trip_planner.prepare_for_plan_call } # Needed so building itineraries works out of plan call context
 
   it 'should have trip, options, otp, and errors attributes' do
     expect(trip_planner).to respond_to(:trip, :options, :router, :errors)
