@@ -8,7 +8,8 @@ class OTPAmbassador
     taxi:         { label: :otp_car,    modes: "CAR" },
     walk:         { label: :otp_walk,     modes: "WALK"},
     car:          { label: :otp_car,    modes: "CAR"},
-    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"}
+    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"},
+    uber:         { label: :otp_car,    modes: "CAR"}
   }
 
   # Initialize with a trip and an array of trip types

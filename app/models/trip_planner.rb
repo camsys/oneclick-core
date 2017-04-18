@@ -37,8 +37,8 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    unless trip_type.in? [:walk, :car, :bicycle]
-      trip_type.to_s.classify.constantize.available_for(@trip)
+    unless trip_type.in? [:walk, :car, :bicycle, :uber]  #Derek puts change this so that Uber has a service
+       trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
 
@@ -93,6 +93,19 @@ class TripPlanner
         transit_time: @router.get_duration(:taxi)
       )
     end
+  end
+
+  # Builds an uber itinerary populates transit_time based on OTP response
+  def build_uber_itineraries
+    response = @router.get_itineraries(:uber)
+    @errors << response if response[:error]
+
+    Itinerary.new(
+        service: nil,
+        trip_type: :uber,
+        cost: 100,#svc.fare_for(@trip, router: @router, taxi_ambassador: @taxi_ambassador),
+        transit_time: @router.get_duration(:uber)
+    )
   end
 
   # Generic OTP Call
