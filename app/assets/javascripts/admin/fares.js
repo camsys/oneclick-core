@@ -1,7 +1,6 @@
 // Helper for building zone-based fare structures
 function FareZoneHelper(fareZonesJSON, containerDiv, tableDiv, fareZoneTemplate, options) {
   this.originalFareZones = JSON.parse(fareZonesJSON);
-  this.codes = Object.keys(this.originalFareZones);
   this.container = containerDiv;
   this.table = tableDiv;
   this.template = fareZoneTemplate;
@@ -17,6 +16,7 @@ FareZoneHelper.prototype = {
 
   // Renders all fare zones as divs
   _init: function() {
+    this.codes = Object.keys(this.originalFareZones);
     var fzh = this;
     var zones = this.originalFareZones;
     Object.keys(zones).forEach(function(code){
