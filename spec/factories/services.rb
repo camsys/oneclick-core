@@ -77,6 +77,12 @@ FactoryGirl.define do
       trip_within_area nil
     end
 
+    factory :uber_service, parent: :service, class: 'Uber' do
+      name "UberX"
+      type "Uber"
+      trip_within_area nil
+    end
+
     trait :flat_fare do
       fare_structure :flat
       fare_details { { base_fare: 5.0 } }

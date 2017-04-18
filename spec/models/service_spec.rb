@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Service, type: :model do
   before(:all) { create(:otp_config) }
   before(:all) { create(:tff_config) }
+  before(:all) { create(:uber_token) }
 
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id, :fare_structure, :fare_details }
   it { should have_many(:itineraries) }

@@ -29,5 +29,10 @@ FactoryGirl.define do
       key "tff_api_key"
       value "test" #"SIefr5akieS5"
     end
+
+    factory :uber_token do 
+      key "uber_token"
+      value "test"
+    end
   end
 end
