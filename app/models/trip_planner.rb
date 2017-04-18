@@ -24,6 +24,7 @@ class TripPlanner
     # External API Ambassadors
     @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
     @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
+    @uber_ambassador = options[:uber_ambassador] || UberAmbassador.new(@trip, @http_request_bundler)
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -104,7 +105,7 @@ class TripPlanner
       Itinerary.new(
         service: svc,
         trip_type: :uber,
-        cost: 100, #Derek puts this is where the Uber API call is needed
+        cost: @uber_ambassador.cost('uberX'),
         transit_time: @router.get_duration(:uber)
       )
     end
