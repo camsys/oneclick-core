@@ -140,18 +140,18 @@ module Api
         itinerary = trip.selected_itinerary
         if itinerary
           itin_hash = {
-            arrival: itinerary.end_time.iso8601,
+            arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
             booking_confirmation: nil, # itinerary.booking_confirmation
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
-            departure: itinerary.start_time.iso8601,
+            departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
             duration: itinerary.duration,
             fare: itinerary.cost.to_f,
             id: itinerary.id,
             json_legs: itinerary.legs,
             mode: itinerary.trip_type.nil? ? nil : "mode_#{itinerary.trip_type.to_s}",
             product_id: nil, #itinerary.product_id,
-            status: nil, # DEPRECATE?
+            status: "active", # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?
             transit_time: itinerary.transit_time,
             wait_time: nil, #itinerary.wait_time, # WAIT TIME?
@@ -173,8 +173,10 @@ module Api
 
         end
 
+        combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
+
         return {
-          "0" => trip_hash.merge(itin_hash).merge(service_hash)
+          "0" => combined_hash
         }
       end
 
