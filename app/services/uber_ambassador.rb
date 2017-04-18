@@ -1,6 +1,6 @@
 class UberAmbassador
 
-  attr_accessor :trip, :fares, :cities, :http_request_bundler
+  attr_accessor :trip, :http_request_bundler
 
   # Initialize with a trip an HTTP request bundler, and list of services or cities
   def initialize(trip, http_request_bundler)
