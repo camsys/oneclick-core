@@ -3,6 +3,7 @@ module FareHelper
 
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
   TRIP_TYPES = Trip::TRIP_TYPES
+  NO_FARE = nil
 
   # Helper class for calculating trip fares
   class FareCalculator
@@ -21,11 +22,18 @@ module FareHelper
 
     # Calculate the fare based on the passed trip and the fare_structure/details
     def calculate
-      return no_fare if @fare_structure.nil?
-      self.send("calculate_#{@fare_structure}").to_f.round(2) # Send back a float rounded to 2 decimal places
+      return NO_FARE if @fare_structure.nil?
+      return format_fare(self.send("calculate_#{@fare_structure}"))
     end
 
     private
+
+    # Formats a fare as as a float rounded to two decimals unless it's no_fare
+    def format_fare(fare)
+      return fare if fare == NO_FARE
+      return fare.to_f.round(2) # Send back a float rounded to 2 decimal places
+    end
+
 
     # Calculates a flat fare
     def calculate_flat
@@ -49,16 +57,11 @@ module FareHelper
       fare_table = @fare_details[:fare_table]
 
       # Return no_fare if zone codes aren't accounted for in fare_table
-      return no_fare unless fare_table.has_key?(@origin_zone)
-      return no_fare unless fare_table[@origin_zone].has_key?(@destination_zone)
+      return NO_FARE unless fare_table.has_key?(@origin_zone)
+      return NO_FARE unless fare_table[@origin_zone].has_key?(@destination_zone)
 
       # Look up fare in the fare_table by origin and destination zone codes
       fare_table[@origin_zone][@destination_zone]
-    end
-
-    # Default result if no fare_structure is set
-    def no_fare
-      nil
     end
 
     # Builds a default OTPAmbassador if no router is provided
@@ -148,6 +151,7 @@ module FareHelper
     end
 
     def validate_fare_details_key(record, key, class_name)
+      key = key.to_sym
       valid = true
       unless record.fare_details.has_key?(key)
         record.errors.add(:fare_details, "Must have a #{key}")

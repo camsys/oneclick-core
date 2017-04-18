@@ -97,7 +97,7 @@ FactoryGirl.define do
             "a" => [{"model"=>"Zipcode", "attributes"=>{"name"=>"02139"}}],
             "b" => [{"model"=>"Zipcode", "attributes"=>{"name"=>"02140"}}]
           },
-          "fare_table" => {
+          fare_table: {
             "a" => {"a"=>1.0, "b"=>2.0},
             "b"=>{"a"=>3.0, "b"=>4.0}
           }

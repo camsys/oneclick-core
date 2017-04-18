@@ -8,7 +8,7 @@ RSpec.describe Region, type: :model do
     Zipcode.find_by(name: "02139")
   ] }
   let!(:region) { create(:combined_region) }
-  let(:waypoint) { create(:waypoint_1) }
+  let(:waypoint) { create(:waypoint_02139) }
   let(:way_out_point) { create(:way_out_point) }
   let(:trip) { create(:trip, origin: waypoint, destination: way_out_point) }
   let(:reverse_trip) { create(:trip, origin: way_out_point, destination: waypoint) }
