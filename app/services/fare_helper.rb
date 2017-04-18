@@ -28,7 +28,7 @@ module FareHelper
 
     private
 
-    # Formats a fare as as a float rounded to two decimals unless it's no_fare
+    # Formats a fare as as a float rounded to two decimals unless it's NO_FARE
     def format_fare(fare)
       return fare if fare == NO_FARE
       return fare.to_f.round(2) # Send back a float rounded to 2 decimal places
@@ -56,7 +56,7 @@ module FareHelper
     def calculate_zone
       fare_table = @fare_details[:fare_table]
 
-      # Return no_fare if zone codes aren't accounted for in fare_table
+      # Return NO_FARE if zone codes aren't accounted for in fare_table
       return NO_FARE unless fare_table.has_key?(@origin_zone)
       return NO_FARE unless fare_table[@origin_zone].has_key?(@destination_zone)
 
