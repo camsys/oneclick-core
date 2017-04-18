@@ -89,46 +89,46 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(response_body["itineraries"].count).to be > 0
   end
 
-  it 'cannot select an itinerary because you are not logged in' do 
+  it 'cannot select an itinerary because you are not logged in' do
     post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
-    expect(response).to have_http_status(302)
+    expect(response).to have_http_status(401)
   end
 
-  it 'cannot select an itinerary because you do not own the itinerary' do 
+  it 'cannot select an itinerary because you do not own the itinerary' do
     # Make sure that our itinerary has a trip
     itinerary.trip = trip
-    itinerary.save 
+    itinerary.save
 
     sign_in hacker
     request.headers['X-User-Token'] = hacker.authentication_token
     request.headers['X-User-Email'] = hacker.email
     post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
-    itinerary.reload 
+    itinerary.reload
     expect(itinerary.selecting_trip).to eq(nil)
   end
 
-  it 'selects an itinerary' do 
+  it 'selects an itinerary' do
     # Make sure that our itinerary has a trip and that our trip has a user
     trip.user = user
     trip.save
     itinerary.trip = trip
-    itinerary.save 
+    itinerary.save
 
     sign_in user
     request.headers['X-User-Token'] = user.authentication_token
     request.headers['X-User-Email'] = user.email
     post :select, params: { "select_itineraries": [ {"itinerary_id": itinerary.id} ] }
-    itinerary.reload 
+    itinerary.reload
     expect(itinerary.selecting_trip).to eq(trip)
   end
 
-  it 'cannot cancel an itinerary because you do not own the itinerary' do 
+  it 'cannot cancel an itinerary because you do not own the itinerary' do
     # Make sure that our itinerary has a trip
     trip.user = user
     trip.save
     itinerary.trip = trip
-    itinerary.save 
-    itinerary.select 
+    itinerary.save
+    itinerary.select
     itinerary.reload
 
     expect(itinerary.selecting_trip).to eq(trip)
@@ -137,17 +137,17 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     request.headers['X-User-Token'] = hacker.authentication_token
     request.headers['X-User-Email'] = hacker.email
     post :cancel, params: { "bookingcancellation_request": [ {"itinerary_id": itinerary.id} ] }
-    itinerary.reload 
+    itinerary.reload
     expect(itinerary.selecting_trip).to eq(trip)
   end
 
-  it 'cancels a trip' do 
+  it 'cancels a trip' do
     # Make sure that our itinerary has a trip
     trip.user = user
     trip.save
     itinerary.trip = trip
-    itinerary.save 
-    itinerary.select 
+    itinerary.save
+    itinerary.select
     itinerary.reload
 
     expect(itinerary.selecting_trip).to eq(trip)
@@ -156,7 +156,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     request.headers['X-User-Token'] = user.authentication_token
     request.headers['X-User-Email'] = user.email
     post :cancel, params: { "bookingcancellation_request": [ {"itinerary_id": itinerary.id} ] }
-    itinerary.reload 
+    itinerary.reload
     expect(itinerary.selecting_trip).to eq(nil)
   end
 
@@ -166,7 +166,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     response_body = JSON.parse(response.body)
     trip_id = response_body['trip_id'].to_i
     expect(response).to be_success
-    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(true) 
+    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(true)
   end
 
   it 'plans a trip with a trip purpose' do
@@ -174,7 +174,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     response_body = JSON.parse(response.body)
     trip_id = response_body['trip_id'].to_i
     expect(response).to be_success
-    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(false) 
+    expect(paratransit_service.available_for?(Trip.find(trip_id))).to eq(false)
   end
 
   # it 'sends back itineraries for multiple trips' do

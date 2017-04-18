@@ -34,14 +34,14 @@ class User < ApplicationRecord
 
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
-    self.preferred_locale || Locale.find_by(name: "en") || Locale.first 
+    self.preferred_locale || Locale.find_by(name: "en") || Locale.first
   end
 
-  # Check to see if this user owns the object 
+  # Check to see if this user owns the object
   def owns? object
     case object.class.name
     when "Trip"
-      return self == object.user 
+      return self == object.user
     when "Itinerary"
       return self == object.trip.user
     else
@@ -55,13 +55,13 @@ class User < ApplicationRecord
   end
 
   ### Update Profle from API Call ###
-  
-  def update_profile params 
-    update_basic_attributes params[:attributes] unless params[:attributes].nil? 
-    update_eligibilities params[:characteristics] unless params[:characteristics].nil? 
-    update_accommodations params[:accommodations] unless params[:accommodations].nil? 
+
+  def update_profile params
+    update_basic_attributes params[:attributes] unless params[:attributes].nil?
+    update_eligibilities params[:characteristics] unless params[:characteristics].nil?
+    update_accommodations params[:accommodations] unless params[:accommodations].nil?
     return true
-  end  
+  end
 
   def update_basic_attributes params
     params.each do |key, value|
@@ -71,11 +71,11 @@ class User < ApplicationRecord
         when :last_name
           self.last_name = value
         when :email
-          self.email = value    
+          self.email = value
         when :lang
-          self.preferred_locale = Locale.find_by(name: value) || self.locale  
-        when :preferred_trip_types, :preferred_modes  
-          self.preferred_trip_types = value 
+          self.preferred_locale = Locale.find_by(name: value) || self.locale
+        when :preferred_trip_types, :preferred_modes
+          self.preferred_trip_types = value
       end
     end
     self.save
@@ -87,7 +87,7 @@ class User < ApplicationRecord
       if eligibility
         ue = self.user_eligibilities.where(eligibility: eligibility).first_or_create
         ue.value = value.to_bool
-        ue.save 
+        ue.save
       end
     end
   end
@@ -98,44 +98,15 @@ class User < ApplicationRecord
       accommodation = Accommodation.find_by(code: code)
       if accommodation
         user_accommodations.delete(accommodation)
-        if value.to_bool 
+        if value.to_bool
           user_accommodations << accommodation
         end
       end
     end
 
-    self.accommodations = user_accommodations 
+    self.accommodations = user_accommodations
 
   end
 
-  ### Hash Methods ###
-  # Return Profile as a Hash
-  def profile_hash
-    hash = {email: email, first_name: first_name, last_name: last_name}
-    hash[:lang] = preferred_locale.nil? ? nil : preferred_locale.name
-    hash[:characteristics] = eligibilities_hash
-    hash[:accommodations] = accommodations_hash
-    #TODO: Rename this to Trip Types (will break API V1)
-    hash[:preferred_modes] = preferred_trip_types
-    return hash 
-  end
-
-  # Return Eligbilities as a Hash
-  def eligibilities_hash
-    eligibilities = []
-    self.user_eligibilities.each do |user_eligibility|
-      eligibilities << user_eligibility.api_hash
-    end
-    return eligibilities
-  end
-
-  # Return Accommodations as a Hash
-  def accommodations_hash
-    accommodations = []
-    self.accommodations.each do |accommodation|
-      accommodations << accommodation.api_hash(self.locale)
-    end
-    return accommodations
-  end
 
 end

@@ -1,28 +1,28 @@
 module Api
   class ApiController < ApplicationController
     protect_from_forgery prepend: true
-    acts_as_token_authentication_handler_for User, fallback: :exception
+    acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
     attr_reader :traveler
-    skip_before_action :authenticate_user_from_token!, only: [:handle_options_request]
 
-    ###
-    # By default, will attempt to authenticate_user_from_token! before controller actions.
-    #   If this fails it will return a 401 error.
-    # For actions that do not require authentication, you can skip_before_action :authenticate_user_from_token!
-    # For actions that do not REQUIRE authentication but can still handle it,
-    #   skip_before_action :authenticate_user_from_token! and before_action :authenticate_user_if_token_present
-    ###
+    ### TOKEN AUTHENTICATION NOTES ###
+    # By default: Will attempt to authenticate user and set @traveler if
+    # X-User-Email and X-User-Token headers are passed, but will not throw
+    # an error if authentication fails.
+    #
+    # Use before_action :require_authentication to require authentication,
+    # and respond with a 401 if it fails.
+    #
+    # To perform an action only if authentication was successful, use the
+    # authentication_successful? boolean method.
+    ##################################
 
-    # Checks if authentication headers were sent. If so, attempts to authenticate user. If not, returns false but allows action to continue.
-    def authenticate_user_if_token_present
-      if request.headers['X-User-Email'] && request.headers['X-User-Token']
-        authenticate_user_from_token!
-      else
-        return false
-      end
+    # Renders a 401 failure response if authentication was not successful
+    def require_authentication
+      failed_auth_response unless authentication_successful?
     end
 
+    # DEPRECATE THIS? #
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
     def handle_options_request
       head(:ok) if request.request_method == "OPTIONS"
@@ -30,13 +30,15 @@ module Api
 
     private
 
+    # Actions to take after successfully authenticated a user token.
+    # This is run automatically on successful token authentication
+    def after_successful_token_authentication
+      @traveler = current_api_user  # Sets the @traveler variable to the current api user
+    end
+
     # Finds the User associated with auth headers.
     def current_api_user
-      if auth_headers
-        return User.find_by(auth_headers)
-      else
-        return nil
-      end
+      auth_headers ? User.find_by(auth_headers) : nil
     end
 
     # Returns a hash of authentication headers, or false if not present
@@ -49,14 +51,14 @@ module Api
       end
     end
 
-    # Sets the @traveler variable to the current api user
-    def set_traveler
-      @traveler = current_api_user
+    # Renders a failed user auth response
+    def failed_auth_response
+      render status: 401, json: { message: "Valid user email and token must be present."}
     end
 
-    # Actions to take after successfully authenticated a user token.
-    def after_successful_token_authentication
-      set_traveler
+    # Returns true if authentication has successfully completed
+    def authentication_successful?
+      !!@traveler
     end
 
   end

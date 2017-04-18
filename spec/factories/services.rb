@@ -84,12 +84,30 @@ FactoryGirl.define do
 
     trait :mileage_fare do
       fare_structure :mileage
-      fare_details { { base_fare: 0, mileage_rate: 5.0, trip_type: :taxi } }
+      fare_details do
+        { base_fare: 0, mileage_rate: 5.0, trip_type: :taxi }.with_indifferent_access
+      end
+    end
+
+    trait :zone_fare do
+      fare_structure :zone
+      fare_details do
+        {
+          fare_zones: {
+            "a" => [{"model"=>"Zipcode", "attributes"=>{"name"=>"02139"}}],
+            "b" => [{"model"=>"Zipcode", "attributes"=>{"name"=>"02140"}}]
+          },
+          fare_table: {
+            "a" => {"a"=>1.0, "b"=>2.0},
+            "b"=>{"a"=>3.0, "b"=>4.0}
+          }
+        }.with_indifferent_access
+      end
     end
 
     trait :taxi_fare_finder_fare do
       fare_structure :taxi_fare_finder
-      fare_details { { taxi_fare_finder_city: "Boston" } }
+      fare_details { { taxi_fare_finder_city: "Boston" }.with_indifferent_access }
     end
 
   end

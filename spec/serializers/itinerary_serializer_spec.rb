@@ -32,4 +32,5 @@ RSpec.describe ItinerarySerializer, type: :serializer do
     expect(paratransit_serialization["service"]).to eq(paratransit_service_serialization)
   end
 
+
 end
