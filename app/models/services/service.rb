@@ -36,6 +36,7 @@ class Service < ApplicationRecord
   scope :transit_services, -> { where(type: "Transit") }
   scope :paratransit_services, -> { where(type: "Paratransit") }
   scope :taxi_services, -> { where(type: "Taxi") }
+  scope :uber_services, -> { where(type: "Uber") }
 
   ## Secondary Scopes ##
   scope :available_for_purpose_for, -> (trip) { trip.purpose ? available_by_purpose(trip.purpose) : all }
@@ -94,7 +95,7 @@ class Service < ApplicationRecord
   #################
 
   ### CONSTANTS ###
-  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi']
+  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber']
 
 
 

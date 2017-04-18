@@ -37,7 +37,7 @@ class TripPlanner
   end
 
   def get_available_services(trip_type)
-    unless trip_type.in? [:walk, :car, :bicycle, :uber]  #Derek puts change this so that Uber has a service
+    unless trip_type.in? [:walk, :car, :bicycle]
        trip_type.to_s.classify.constantize.available_for(@trip)
     end
   end
@@ -100,12 +100,14 @@ class TripPlanner
     response = @router.get_itineraries(:uber)
     @errors << response if response[:error]
 
-    Itinerary.new(
-        service: nil,
+    @available_services[:uber].map do |svc|
+      Itinerary.new(
+        service: svc,
         trip_type: :uber,
-        cost: 100,#svc.fare_for(@trip, router: @router, taxi_ambassador: @taxi_ambassador),
+        cost: 100, #Derek puts this is where the Uber API call is needed
         transit_time: @router.get_duration(:uber)
-    )
+      )
+    end
   end
 
   # Generic OTP Call
