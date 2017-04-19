@@ -187,7 +187,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(response).to be_success
 
     # the past trip should be in the list of responses
-    past_trip_ids = response_body.map {|t| t['id']}
+    past_trip_ids = response_body["trips"].map {|t| t['0']['trip_id']}
     expect(past_trip_ids.include?(past_trip.id)).to be true
   end
 
@@ -199,7 +199,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(response).to be_success
 
     # the past trip should be in the list of responses
-    future_trip_ids = response_body.map {|t| t['id']}
+    future_trip_ids = response_body["trips"].map {|t| t['0']['trip_id']}
     expect(future_trip_ids.include?(future_trip.id)).to be true
   end
 
@@ -216,12 +216,12 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     get :past_trips, params: {max_results: 0}
     response_body = JSON.parse(response.body)
     expect(response).to be_success
-    expect(response_body.count).to eq(0)
+    expect(response_body["trips"].count).to eq(0)
 
     get :future_trips, params: {max_results: 0}
     response_body = JSON.parse(response.body)
     expect(response).to be_success
-    expect(response_body.count).to eq(0)
+    expect(response_body["trips"].count).to eq(0)
   end
 
   # it 'sends back itineraries for multiple trips' do
