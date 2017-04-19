@@ -28,6 +28,9 @@ class Service < ApplicationRecord
   # SCOPES #
   ##########
 
+  ## Default Scope ##
+  # where.not(archived: true) # set in Archivable module
+
   ## Primary Scopes ##
   scope :available_for, -> (trip) do
     available_for_purpose_for(trip)
