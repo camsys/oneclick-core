@@ -10,7 +10,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def destroy
-    @service.destroy
+    @service.archive # Makes service invisible in default scope
     redirect_to admin_services_path
   end
 
@@ -128,7 +128,7 @@ class Admin::ServicesController < Admin::AdminController
     [
       {accommodation_ids: []},
       trip_within_area_attributes: [:recipe]
-    ] 
+    ]
   end
 
 
