@@ -43,7 +43,10 @@ Rails.application.routes.draw do
       end
 
       resources :trips, only: [:create]
+      get 'trips/past_trips' => 'trips#past_trips'
+      get 'trips/future_trips' => 'trips#future_trips'
 
+      # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'

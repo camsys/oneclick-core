@@ -17,6 +17,14 @@ class Trip < ApplicationRecord
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber]
 
+  ### SCOPES ###
+
+  # Past trips have trip time before now, ordered from last to first; future
+  # trips have trip time now and forward, ordered from first to last.
+  scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
+  scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
+
+
   ### INSTANCE METHODS ###
 
   def unselect

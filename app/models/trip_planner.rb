@@ -78,6 +78,8 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
+    return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
+
     response = @router.get_itineraries(:paratransit)
     @errors << response if response[:error]
 
@@ -93,9 +95,8 @@ class TripPlanner
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
-    if Taxi.count == 0
-      return nil
-    end
+    return [] unless @available_services[:taxi] # Return an empty array if no taxi services are available
+
     response = @router.get_itineraries(:taxi)
     @errors << response if response[:error]
 
@@ -111,9 +112,8 @@ class TripPlanner
 
   # Builds an uber itinerary populates transit_time based on OTP response
   def build_uber_itineraries
-    if Uber.count == 0
-      return nil
-    end
+    return [] unless @available_services[:uber] # Return an empty array if no taxi services are available
+
     response = @router.get_itineraries(:uber)
     @errors << response if response[:error]
 
