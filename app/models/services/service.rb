@@ -11,8 +11,8 @@ class Service < ApplicationRecord
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
-  has_many :itineraries
-  has_many :schedules
+  has_many :itineraries, dependent: :nullify
+  has_many :schedules, dependent: :destroy
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes
