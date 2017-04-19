@@ -112,9 +112,8 @@ class TripPlanner
 
   # Builds an uber itinerary populates transit_time based on OTP response
   def build_uber_itineraries
-    if Uber.count == 0
-      return nil
-    end
+    return [] unless @available_services[:uber] # Return an empty array if no taxi services are available
+
     response = @router.get_itineraries(:uber)
     @errors << response if response[:error]
 
