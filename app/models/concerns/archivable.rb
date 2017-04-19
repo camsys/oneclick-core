@@ -45,7 +45,7 @@ module Archivable
 
     # Restores all records in a collection
     def restore_all
-      all.update_all(archived: false)
+      all.include_archived.update_all(archived: false)
     end
 
   end
