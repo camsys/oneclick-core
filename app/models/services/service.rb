@@ -2,12 +2,13 @@ class Service < ApplicationRecord
 
   ### INCLUDES ###
   mount_uploader :logo, LogoUploader
-  include ScheduleHelper
-  include ScopeHelper
+  include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include Commentable
   include FareHelper
   include FareHelper::ZoneFareable
   include GeoKitchen
+  include ScheduleHelper
+  include ScopeHelper
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
