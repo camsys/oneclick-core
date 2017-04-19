@@ -29,7 +29,6 @@ class User < ApplicationRecord
   ### Validations ###
   validates :email, presence: true
   validates :email, uniqueness: true
-  validates_presence_of :password_confirmation
 
   ### Instance Methods ###
 
