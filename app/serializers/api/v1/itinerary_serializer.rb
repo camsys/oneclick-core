@@ -62,10 +62,12 @@ module Api
       # ACTUAL METHODS
 
       def end_location
+        return nil unless object.trip
         location_hash(object.trip.destination)
       end
 
       def start_location
+        return nil unless object.trip
         location_hash(object.trip.origin)
       end
 

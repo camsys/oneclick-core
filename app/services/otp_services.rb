@@ -211,12 +211,12 @@ module OTPServices
 
   # Wrapper class for OTP Itineraries
   class OTPItinerary
+    attr_accessor :itinerary
 
     # Pass an OTP itinerary hash (e.g. parsed JSON) to initialize
     def initialize(itinerary)
       itinerary = JSON.parse(itinerary) if itinerary.is_a?(String)
       @itinerary = itinerary.with_indifferent_access
-      @legs = @itinerary['legs'] || []
     end
 
     # Allows you to access the itinerary with [key] method
@@ -233,27 +233,27 @@ module OTPServices
       @itinerary['fare']['fare']['regular']['cents'].to_f/100.0
     end
 
+    # Getter method for itinerary's legs
     def legs
-      @legs
+      @itinerary['legs'] || []
     end
 
     # Returns first instance of an attribute from the legs, or the first leg if
     # no attribute is passed
     def first_leg(attribute=nil)
       return pluck_from_legs(attribute).first if attribute
-      @legs.first || {}
+      legs.first || {}
     end
 
     # Returns an array of all non-nil instances of the given value in the legs
     def pluck_from_legs(attribute)
-      @legs.pluck(attribute).compact
+      legs.pluck(attribute).compact
     end
 
     # Sums up an attribute across all legs, ignoring nil and non-numeric values
     def sum_legs_by(attribute)
       pluck_from_legs(attribute).select{|i| i.is_a?(Numeric)}.reduce(&:+)
     end
-
 
   end
 
