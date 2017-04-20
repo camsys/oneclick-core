@@ -128,6 +128,12 @@ class Service < ApplicationRecord
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
   end
 
+  # Returns a full logo url. By default, sends thumbnail version.
+  def full_logo_url(version=:thumb)
+    logo_version = version.nil? ? logo : logo.send(version)
+    ActionController::Base.helpers.asset_path(logo_version.url.to_s)
+  end
+
   ###################
   private # PRIVATE #
   ###################

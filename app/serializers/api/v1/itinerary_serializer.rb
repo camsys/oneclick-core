@@ -104,7 +104,7 @@ module Api
 
       def logo_url
         return nil unless object.service && object.service.logo
-        ActionController::Base.helpers.asset_path(object.service.logo.thumb.url.to_s)
+        object.service.full_logo_url
       end
 
       private

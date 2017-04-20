@@ -112,30 +112,36 @@ class OTPAmbassador
 
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
   def translate_itinerary(otp_itin, trip_type)
-    start_time = Time.at(otp_itin["startTime"].to_i/1000).in_time_zone
-    end_time = Time.at(otp_itin["endTime"].to_i/1000).in_time_zone
-    walk_time = get_walk_time(otp_itin, trip_type)
-    transit_time = get_transit_time(otp_itin, trip_type)
-    cost = extract_cost(otp_itin, trip_type)
-    legs = otp_itin["legs"]
-    svc = get_associated_service(otp_itin)
+    associate_legs_with_services(otp_itin)
+    service_id = otp_itin.first_leg('serviceId')
     return {
-      start_time: start_time,
-      end_time: end_time,
-      transit_time: transit_time,
-      walk_time: walk_time,
-      cost: cost,
-      legs: legs,
+      start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
+      end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
+      transit_time: get_transit_time(otp_itin, trip_type),
+      walk_time: get_walk_time(otp_itin, trip_type),
+      cost: extract_cost(otp_itin, trip_type),
+      legs: otp_itin.legs,
       trip_type: trip_type, #TODO: Make this smarter
-      service_id: svc ? svc.id : nil
+      service_id: service_id
     }
   end
 
-  # Associate a service with an OTP itinerary
-  def get_associated_service(otp_itin)
+  # Modifies OTP Itin's legs, inserting information about 1-Click services
+  def associate_legs_with_services(otp_itin)
+    otp_itin.legs = otp_itin.legs.map do |leg|
+      svc = get_associated_service_for(leg)
+      leg['serviceId'] = svc ? svc.id : nil
+      leg['serviceName'] = svc ? svc.name : (leg['agencyName'] || leg['agencyId'])
+      leg['serviceFareInfo'] = svc ? svc.url : nil  # Should point to service's fare_info_url, but we don't have that yet
+      leg['serviceLogoUrl'] = svc ? svc.full_logo_url : nil
+      leg
+    end
+  end
+
+  def get_associated_service_for(leg)
     svc = nil
-    gtfs_agency_id = otp_itin.first_leg('agencyId')
-    gtfs_agency_name = otp_itin.first_leg('agencyName')
+    gtfs_agency_id = leg['agencyId']
+    gtfs_agency_name = leg['agencyName']
 
     # Search for service by gtfs attributes only if they're not nil
     svc ||= Service.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id

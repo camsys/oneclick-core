@@ -238,6 +238,11 @@ module OTPServices
       @itinerary['legs'] || []
     end
 
+    # Setter method for itinerary's legs
+    def legs=(new_legs)
+      @itinerary['legs'] = new_legs
+    end
+
     # Returns first instance of an attribute from the legs, or the first leg if
     # no attribute is passed
     def first_leg(attribute=nil)
