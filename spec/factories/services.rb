@@ -68,7 +68,7 @@ FactoryGirl.define do
     factory :transit_service, parent: :service, class: 'Transit' do
       name "Test Transit Service"
       type "Transit"
-      gtfs_agency_id "mbta"
+      gtfs_agency_id "1"
     end
 
     factory :taxi_service, parent: :service, class: 'Taxi' do
