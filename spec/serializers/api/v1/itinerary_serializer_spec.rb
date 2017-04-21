@@ -17,7 +17,9 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
     )
   end
 
-  pending 'faithfully serializes itineraries'
+  it 'faithfully serializes itineraries' do
+    
+  end
 
   # pending 'faithfully serializes transit itineraries' do
   #   expect(transit_serialization["id"]).to eq(transit_itinerary.id)
