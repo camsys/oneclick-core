@@ -5,6 +5,7 @@ module Api
       skip_before_action :verify_signed_out_user
       prepend_before_filter :require_no_authentication, :only => [:create ]
       include Devise::Controllers::Helpers
+      include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers
 
       # clear_respond_to
       respond_to :json
