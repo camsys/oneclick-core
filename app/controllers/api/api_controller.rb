@@ -5,6 +5,9 @@ module Api
     respond_to :json
     attr_reader :traveler
 
+    # Catches server errors so that response can be rendered as JSON with proper headers, etc.
+    rescue_from Exception, with: :api_error_response
+
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
     # X-User-Email and X-User-Token headers are passed, but will not throw
@@ -29,6 +32,14 @@ module Api
     end
 
     private
+
+    # Rescues 500 errors and renders them properly as JSON response
+    def api_error_response(exception)
+      response = {
+        error: { type: exception.class.name, message: exception.message }
+      }
+      render status: 500, json: response
+    end
 
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication
