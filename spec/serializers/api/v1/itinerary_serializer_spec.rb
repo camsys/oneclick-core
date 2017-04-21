@@ -17,28 +17,30 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
     )
   end
 
-  pending 'faithfully serializes transit itineraries' do
-    expect(transit_serialization["id"]).to eq(transit_itinerary.id)
-    expect(transit_serialization["cost"]).to eq(transit_itinerary.cost)
-    expect(transit_serialization["walk_time"]).to eq(transit_itinerary.walk_time)
-    expect(transit_serialization["transit_time"]).to eq(transit_itinerary.transit_time)
-    expect(transit_serialization["start_time"].to_datetime).to eq(transit_itinerary.start_time)
-    expect(transit_serialization["end_time"].to_datetime).to eq(transit_itinerary.end_time)
-    expect(transit_serialization["legs"]).to eq(transit_itinerary.legs)
-  end
+  pending 'faithfully serializes itineraries'
 
-  pending 'faithfully serializes paratransit itineraries' do
-    expect(paratransit_serialization["service_id"]).to be
-    expect(paratransit_serialization["service_id"]).to eq(paratransit_service_serialization)
-  end
-
-  pending 'faithfully serializes taxi itineraries'
-
-  pending 'faithfully serializes walk itineraries'
-
-  pending 'faithfully serializes car itineraries'
-
-  pending 'faithfully serializes bicycle itineraries'
+  # pending 'faithfully serializes transit itineraries' do
+  #   expect(transit_serialization["id"]).to eq(transit_itinerary.id)
+  #   expect(transit_serialization["cost"]).to eq(transit_itinerary.cost)
+  #   expect(transit_serialization["walk_time"]).to eq(transit_itinerary.walk_time)
+  #   expect(transit_serialization["transit_time"]).to eq(transit_itinerary.transit_time)
+  #   expect(transit_serialization["start_time"].to_datetime).to eq(transit_itinerary.start_time)
+  #   expect(transit_serialization["end_time"].to_datetime).to eq(transit_itinerary.end_time)
+  #   expect(transit_serialization["legs"]).to eq(transit_itinerary.legs)
+  # end
+  #
+  # pending 'faithfully serializes paratransit itineraries' do
+  #   expect(paratransit_serialization["service_id"]).to be
+  #   expect(paratransit_serialization["service_id"]).to eq(paratransit_service_serialization)
+  # end
+  #
+  # pending 'faithfully serializes taxi itineraries'
+  #
+  # pending 'faithfully serializes walk itineraries'
+  #
+  # pending 'faithfully serializes car itineraries'
+  #
+  # pending 'faithfully serializes bicycle itineraries'
 
 
 end
