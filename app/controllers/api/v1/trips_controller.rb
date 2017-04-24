@@ -57,14 +57,10 @@ module Api
           # walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
 
-        puts "TRIP PARAMS", trips_params.ai
-
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
-        puts "TRIPS", @trips.ai
 
         @trips.each do |trip|
-          puts "TRIP", trip.errors.ai
           TripPlanner.new(trip, options).plan
         end
 
