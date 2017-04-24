@@ -4,7 +4,7 @@ module Api
     acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
     attr_reader :traveler
-    # include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers. Comment out this line to see full stack trace in logs.
+    include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
