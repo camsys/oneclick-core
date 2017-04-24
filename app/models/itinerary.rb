@@ -2,6 +2,7 @@ class Itinerary < ApplicationRecord
   belongs_to :trip
   belongs_to :service
   has_one :selecting_trip, foreign_key: "selected_itinerary_id", class_name: "Trip"
+  has_one :uber_extension, dependent: :destroy
 
   serialize :legs
 

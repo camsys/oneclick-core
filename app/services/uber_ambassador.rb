@@ -24,7 +24,8 @@ class UberAmbassador
   end
 
   def cost product="uberX"
-    return @uber_api_service.price(product, @http_request_bundler.response(:uber_prices))[:price]
+    result = @uber_api_service.price(product, @http_request_bundler.response(:uber_prices))
+    return result[:price], result[:product_id]
   end  
 
 end
