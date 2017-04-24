@@ -13,6 +13,9 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
 
+  ### VALIDATIONS ###
+  validates_presence_of :origin, :destination
+
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber]

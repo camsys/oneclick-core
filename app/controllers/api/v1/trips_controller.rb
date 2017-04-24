@@ -20,35 +20,41 @@ module Api
       # POST trips/, POST itineraries/plan
       def create
         # Create an array of strong trip parameters based on itinerary_request sent
-        trips_request = params[:itinerary_request] || []
-        trips_params = trips_request.map do |trip|
-          purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
-          trip_params(ActionController::Parameters.new({
-            trip: {
-              origin_attributes: {
-                google_place_attributes: trip[:start_location].to_json
-              },
-              destination_attributes: {
-                google_place_attributes: trip[:end_location].to_json
-              },
-              trip_time: trip[:trip_time].to_datetime,
-              arrive_by: (trip[:departure_type] == "arrive"),
-              user_id: @traveler && @traveler.id,
-              purpose_id: purpose ? purpose.id : nil
-            }
-          }))
+        api_v1_params = params[:itinerary_request]
+        api_v2_params = params[:trips]
+        trips_params = {}
+        if api_v1_params # This is doing it the old way
+          trips_params = api_v1_params.map do |trip|
+            purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
+            start_location = trip_location_to_google_hash(trip[:start_location])
+            end_location = trip_location_to_google_hash(trip[:end_location])
+            trip_params(ActionController::Parameters.new({
+              trip: {
+                origin_attributes: start_location,
+                destination_attributes: end_location,
+                trip_time: trip[:trip_time].to_datetime,
+                arrive_by: (trip[:departure_type] == "arrive"),
+                user_id: @traveler && @traveler.id,
+                purpose_id: purpose ? purpose.id : nil
+              }
+            }))
+          end
+        elsif api_v2_params # This is doing it the right way
+          trips_params = params[:trips].map {|t| trip_params(t) }
+        else # For creating a single trip
+          trips_params = [trip_params(params)]
         end
 
         # Hash of options parameters sent
         options = {
-          user_profile: params[:user_profile],
-          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
-          trip_token: params[:trip_token],
-          optimize: params[:optimize],
-          max_walk_miles: params[:max_walk_miles],
-          max_bike_miles: params[:max_bike_miles], # Miles
-          max_walk_seconds: params[:max_walk_seconds], # Seconds
-          walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
+          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES
+          # user_profile: params[:user_profile],
+          # trip_token: params[:trip_token],
+          # optimize: params[:optimize],
+          # max_walk_miles: params[:max_walk_miles],
+          # max_bike_miles: params[:max_bike_miles], # Miles
+          # max_walk_seconds: params[:max_walk_seconds], # Seconds
+          # walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
 
         # Create one or more trips based on requests sent.
@@ -96,7 +102,7 @@ module Api
         render status: 200, json: {cancellation_results: results}
       end
 
-      private
+      protected
 
       def trip_params(parameters)
         parameters.require(:trip).permit(
@@ -178,6 +184,11 @@ module Api
         return {
           "0" => combined_hash
         }
+      end
+
+      # Builds a location hash out of the location param, packaging it as a google place hash
+      def trip_location_to_google_hash(location)
+        { google_place_attributes: location.to_json }
       end
 
     end
