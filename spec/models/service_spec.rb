@@ -13,6 +13,8 @@ RSpec.describe Service, type: :model do
   it { should have_and_belong_to_many :eligibilities }
   it { should have_many(:fare_zones) }
   it { should have_many(:fare_zone_regions).through(:fare_zones) }
+  it { should belong_to(:start_or_end_area).dependent(:destroy)}
+  it { should belong_to(:trip_within_area).dependent(:destroy)}
 
   let(:service) { create(:service) }
   let(:transit) { create(:transit_service) }

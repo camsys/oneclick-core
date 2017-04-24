@@ -54,12 +54,12 @@ module Api
         # :too_early,                 # DEPRECATE?
         # :too_late,                  # DEPRECATE?
         # :transfers,                 # DEPRECATE?
-        :transit_time,              # not needed in call
+        # :transit_time,              # not needed in call
         # :trip_part_id,              # DEPRECATE?
         # :trip_type,                 # front end uses returned_mode_code?
         :url,                         # should be called service_url probably, or really nested in a service object
         :user_registered,           # BOOKING
-        :wait_time,                 # not needed in call
+        # :wait_time,                 # not needed in call
         :walk_distance,
         :walk_time
 
@@ -116,6 +116,10 @@ module Api
         location_hash(object.trip.destination)
       end
 
+      def end_time
+        object.end_time && object.end_time.iso8601
+      end
+
       def json_legs
         object.legs
       end
@@ -133,11 +137,6 @@ module Api
         object.trip_type.nil? ? nil : "mode_#{object.trip_type.to_s}"
       end
 
-      def service_comments
-        return {} unless object.service
-        Hash[object.service.comments.map {|c| [c.locale, c.comment]}]
-      end
-
       def schedule
         return [] unless object.service && object.service.schedules
         object.service.schedules.map do |schedule|
@@ -149,6 +148,15 @@ module Api
         end
       end
 
+      def service_comments
+        return {} unless object.service
+        Hash[object.service.comments.map {|c| [c.locale, c.comment]}]
+      end
+
+      def service_id
+        object.service && object.service.id
+      end
+
       def service_name
         object.service && object.service.name
       end
@@ -156,6 +164,10 @@ module Api
       def start_location
         return nil unless object.trip
         location_hash(object.trip.origin)
+      end
+
+      def start_time
+        object.start_time && object.start_time.iso8601
       end
 
       def url
@@ -168,8 +180,8 @@ module Api
         {
           geometry: {
             location: {
-              lat: waypoint.lat,
-              lng: waypoint.lng
+              lat: waypoint.lat.to_f,
+              lng: waypoint.lng.to_f
             }
           }
         }
