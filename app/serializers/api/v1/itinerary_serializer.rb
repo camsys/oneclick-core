@@ -41,7 +41,6 @@ module Api
       def negotiated_pu_window_end; nil end
       def order_xml; nil end
       def prebooking_questions; [] end
-      def product_id; nil end
       def ride_count; nil end
       def schedule; [] end
       def segment_index; 0 end
@@ -60,6 +59,10 @@ module Api
 
 
       # ACTUAL METHODS
+
+      def product_id
+        object.uber_extension ? object.uber_extension.product_id : nil
+      end
 
       def end_location
         location_hash(object.trip.destination)

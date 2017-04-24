@@ -2,7 +2,7 @@ class UberAmbassador
 
   attr_accessor :trip, :http_request_bundler
 
-  # Initialize with a trip an HTTP request bundler, and list of services or cities
+  # Initialize with a trip an HTTP request bundler, and list of services or citiesI
   def initialize(trip, http_request_bundler)
     @trip = trip
     @uber_api_service = UberApiService.new(Config.uber_token)
@@ -24,7 +24,8 @@ class UberAmbassador
   end
 
   def cost product="uberX"
-    return @uber_api_service.price(product, @http_request_bundler.response(:uber_prices))[:price]
+    result = @uber_api_service.price(product, @http_request_bundler.response(:uber_prices))
+    return result[:price], result[:product_id]
   end  
 
 end

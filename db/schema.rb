@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170413132419) do
+ActiveRecord::Schema.define(version: 20170424154009) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -233,6 +233,14 @@ ActiveRecord::Schema.define(version: 20170413132419) do
     t.index ["purpose_id"], name: "index_trips_on_purpose_id", using: :btree
     t.index ["selected_itinerary_id"], name: "index_trips_on_selected_itinerary_id", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
+  end
+
+  create_table "uber_extensions", force: :cascade do |t|
+    t.string   "product_id"
+    t.integer  "itinerary_id"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.index ["itinerary_id"], name: "index_uber_extensions_on_itinerary_id", using: :btree
   end
 
   create_table "user_eligibilities", force: :cascade do |t|

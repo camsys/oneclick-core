@@ -17,10 +17,8 @@ class TripPlanner
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
     @available_services = nil
-
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
-
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -117,14 +115,25 @@ class TripPlanner
     response = @router.get_itineraries(:uber)
     @errors << response if response[:error]
 
-    @available_services[:uber].map do |svc|
+    cost, product_id = @uber_ambassador.cost('uberX')
+    new_itineraries = @available_services[:uber].map do |svc|
       Itinerary.new(
         service: svc,
         trip_type: :uber,
-        cost: @uber_ambassador.cost('uberX'),
+        cost: cost,
         transit_time: @router.get_duration(:uber)
       )
     end
+
+    new_itineraries.map do |itin|
+      UberExtension.new(
+        itinerary: itin,
+        product_id: product_id
+      )
+    end
+
+    new_itineraries
+
   end
 
   # Generic OTP Call
