@@ -2,60 +2,107 @@ module Api
   module V1
 
     class ItinerarySerializer < ActiveModel::Serializer
-      attributes  :accommodation_mismatch, :bookable, :cost, :cost_comments,
-                  :count, :date_mismatch, :discounts, :duration, :duration_estimated,
-                  :end_location, :end_time, :external_info, :hidden, :id,
-                  :is_bookable, :json_legs, :legs, :logo_url, :map_image,
-                  :match_score, :missing_accommodations, :missing_information,
-                  :missing_information_text, :mode_id, :negotiated_do_time,
-                  :negotiated_pu_time, :negotiated_pu_window_end,
-                  :negotiated_pu_window_start, :order_xml,
-                  :phone, :prebooking_questions, :product_id,
-                  :returned_mode_code, :ride_count, :schedule, :segment_index,
-                  :selected, :server_message, :server_status, :service_bookable,
-                  :service_comments, :service_id, :service_name,
-                  :start_location, :start_time, :time_mismatch, :too_early,
-                  :too_late, :transfers, :transit_time, :trip_part_id, :trip_type,
-                  :url, :user_registered, :wait_time, :walk_distance, :walk_time
+
+      include ScheduleHelper
+
+      attributes :cost,
+        # :accommodation_mismatch,    # DEPRECATE?
+        # :bookable,                  # DEPRECATE?
+        # :cost_comments,             # DEPRECATE?
+        # :count,                     # DEPRECATE?
+        # :date_mismatch,             # DEPRECATE?
+        :discounts,                 # BOOKING
+        :duration,
+        # :duration_estimated,        # DEPRECATE?
+        :end_location,
+        :end_time,
+        # :external_info,             # DEPRECATE?
+        # :hidden,                    # DEPRECATE? possibly used
+        :id,
+        # :is_bookable,               # DEPRECATE?
+        :json_legs,
+        # :legs,                      # front end uses json_legs
+        :logo_url,
+        # :map_image,                 # DEPRECATE?
+        # :match_score,               # DEPRECATE?
+        # :missing_accommodations,    # DEPRECATE?
+        # :missing_information,       # DEPRECATE?
+        # :missing_information_text,  # DEPRECATE?
+        # :mode_id,                   # DEPRECATE?
+        # :negotiated_do_time,        # DEPRECATE?
+        # :negotiated_pu_time,        # DEPRECATE?
+        # :negotiated_pu_window_end,  # DEPRECATE?
+        # :negotiated_pu_window_start,# DEPRECATE?
+        # :order_xml,                 # DEPRECATE?
+        :phone,
+        :prebooking_questions,      # BOOKING
+        :product_id,
+        :returned_mode_code,
+        # :ride_count,                # DEPRECATE?
+        :schedule,
+        :segment_index,
+        # :selected,                  # DEPRECATE?
+        # :server_message,            # DEPRECATE?
+        # :server_status,             # DEPRECATE?
+        :service_bookable,          # BOOKING
+        :service_comments,
+        :service_id,
+        :service_name,
+        :start_location,
+        :start_time,
+        # :time_mismatch,             # DEPRECATE?
+        # :too_early,                 # DEPRECATE?
+        # :too_late,                  # DEPRECATE?
+        # :transfers,                 # DEPRECATE?
+        # :transit_time,              # not needed in call
+        # :trip_part_id,              # DEPRECATE?
+        # :trip_type,                 # front end uses returned_mode_code?
+        :url,                         # should be called service_url probably, or really nested in a service object
+        :user_registered,           # BOOKING
+        # :wait_time,                 # not needed in call
+        :walk_distance,
+        :walk_time
 
 
-      # FILL IN THESE METHODS AS NEEDED TO MAKE API WORK
-      def accommodation_mismatch; false end
-      def bookable; false end
-      def cost_comments; nil end
-      def count; nil end
-      def date_mismatch; false end
+      # STUB METHODS FOR DEPRECATED ATTRIBUTES
+      # def accommodation_mismatch; false end
+      # def bookable; false end
+      # def cost_comments; nil end
+      # def count; nil end
+      # def date_mismatch; false end
       def discounts; nil end
-      def duration_estimated; true end
-      def external_info; nil end
-      def hidden; false end
-      def is_bookable; false end
-      def map_image; nil end
-      def match_score; nil end
-      def missing_accommodations; "" end
-      def missing_information; false end
-      def missing_information_text; nil end
-      def negotiated_pu_time; nil end
-      def negotiated_do_time; nil end
-      def negotiated_pu_window_start; nil end
-      def negotiated_pu_window_end; nil end
-      def order_xml; nil end
+      # def duration_estimated; true end
+      # def external_info; nil end
+      # def hidden; false end
+      # def is_bookable; false end
+      # def map_image; nil end
+      # def match_score; nil end
+      # def missing_accommodations; "" end
+      # def missing_information; false end
+      # def missing_information_text; nil end
+      # def mode_id; nil end
+      # def negotiated_pu_time; nil end
+      # def negotiated_do_time; nil end
+      # def negotiated_pu_window_start; nil end
+      # def negotiated_pu_window_end; nil end
+      # def order_xml; nil end
       def prebooking_questions; [] end
-      def ride_count; nil end
-      def schedule; [] end
-      def segment_index; 0 end
-      def selected; nil end
-      def server_message; nil end
-      def server_status; 200 end
+      def product_id; nil end
+      # def ride_count; nil end
+      # def schedule; [] end
+      def segment_index; 0 end # Always 0 for one-way trips
+      # def selected; nil end
+      # def server_message; nil end
+      # def server_status; 200 end
       def service_bookable; false end
-      def time_mismatch; false end
-      def too_early; false end
-      def too_late; false end
-      def transfers; nil end
-      def trip_part_id; nil end
+      # def time_mismatch; false end
+      # def too_early; false end
+      # def too_late; false end
+      # def transfers; nil end
+      # def trip_part_id; nil end
       def user_registered; false end
-      def wait_time; 0 end
-      def walk_distance; nil end
+      # def wait_time; 0 end
+      # def walk_distance; nil end
 
 
       # ACTUAL METHODS
@@ -69,35 +116,36 @@ module Api
         location_hash(object.trip.destination)
       end
 
-      def start_location
-        return nil unless object.trip
-        location_hash(object.trip.origin)
+      def end_time
+        object.end_time && object.end_time.iso8601
       end
 
       def json_legs
         object.legs
       end
 
-      # Update to pull from Itinerary trip_type child class?
-      def mode_id
-        (object.legs.nil? || object.legs.empty?) ? 2 : 1
-      end
-
-      def returned_mode_code
-        object.trip_type.nil? ? nil : "mode_#{object.trip_type.to_s}"
-      end
-
-      # Service fields
-      def service_name
-        object.service && object.service.name
+      def logo_url
+        return nil unless object.service && object.service.logo
+        object.service.full_logo_url
       end
 
       def phone
         object.service && object.service.phone
       end
 
-      def url
-        object.service && object.service.url
+      def returned_mode_code
+        object.trip_type.nil? ? nil : "mode_#{object.trip_type.to_s}"
+      end
+
+      def schedule
+        return [] unless object.service && object.service.schedules
+        object.service.schedules.map do |schedule|
+          {
+            day: Date::DAYNAMES[schedule.day],
+            start: [schedule_time_to_string(schedule.start_time)],
+            end: [schedule_time_to_string(schedule.end_time)]
+          }
+        end
       end
 
       def service_comments
@@ -105,9 +153,25 @@ module Api
         Hash[object.service.comments.map {|c| [c.locale, c.comment]}]
       end
 
-      def logo_url
-        return nil unless object.service && object.service.logo
-        object.service.full_logo_url
+      def service_id
+        object.service && object.service.id
+      end
+
+      def service_name
+        object.service && object.service.name
+      end
+
+      def start_location
+        return nil unless object.trip
+        location_hash(object.trip.origin)
+      end
+
+      def start_time
+        object.start_time && object.start_time.iso8601
+      end
+
+      def url
+        object.service && object.service.url
       end
 
       private
@@ -116,8 +180,8 @@ module Api
         {
           geometry: {
             location: {
-              lat: waypoint.lat,
-              lng: waypoint.lng
+              lat: waypoint.lat.to_f,
+              lng: waypoint.lng.to_f
             }
           }
         }

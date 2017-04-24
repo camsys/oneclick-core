@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170424154009) do
+ActiveRecord::Schema.define(version: 20170424195259) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -107,8 +107,8 @@ ActiveRecord::Schema.define(version: 20170424154009) do
   end
 
   create_table "itineraries", force: :cascade do |t|
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
     t.integer  "trip_id"
     t.datetime "start_time"
     t.datetime "end_time"
@@ -118,6 +118,8 @@ ActiveRecord::Schema.define(version: 20170424154009) do
     t.float    "cost"
     t.integer  "service_id"
     t.string   "trip_type"
+    t.float    "walk_distance"
+    t.integer  "wait_time"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
   end

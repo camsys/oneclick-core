@@ -119,6 +119,8 @@ class OTPAmbassador
       end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
       transit_time: get_transit_time(otp_itin, trip_type),
       walk_time: get_walk_time(otp_itin, trip_type),
+      wait_time: get_wait_time(otp_itin),
+      walk_distance: get_walk_distance(otp_itin),
       cost: extract_cost(otp_itin, trip_type),
       legs: otp_itin.legs,
       trip_type: trip_type, #TODO: Make this smarter
@@ -165,6 +167,15 @@ class OTPAmbassador
     else
       return otp_itin["walkTime"]
     end
+  end
+
+  # Returns waiting time from an OTP itinerary
+  def get_wait_time otp_itin
+    return otp_itin["waitingTime"]
+  end
+
+  def get_walk_distance otp_itin
+    return otp_itin["walkDistance"]
   end
 
   # Extracts cost from OTP itinerary
