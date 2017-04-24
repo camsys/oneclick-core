@@ -26,8 +26,8 @@ module Api
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
-            start_location = trip_location_to_hash(trip[:start_location])
-            end_location = trip_location_to_hash(trip[:end_location])
+            start_location = trip_location_to_google_hash(trip[:start_location])
+            end_location = trip_location_to_google_hash(trip[:end_location])
             trip_params(ActionController::Parameters.new({
               trip: {
                 origin_attributes: start_location,
@@ -57,14 +57,10 @@ module Api
           # walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
 
-        puts "TRIP PARAMS", trips_params.ai
-
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
-        puts "TRIPS", @trips.ai
 
         @trips.each do |trip|
-          puts "TRIP", trip.errors.ai
           TripPlanner.new(trip, options).plan
         end
 
