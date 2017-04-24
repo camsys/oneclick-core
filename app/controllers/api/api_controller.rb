@@ -4,6 +4,7 @@ module Api
     acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
     attr_reader :traveler
+    include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -28,7 +29,7 @@ module Api
       head(:ok) if request.request_method == "OPTIONS"
     end
 
-    private
+    protected
 
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication

@@ -185,8 +185,8 @@ ActiveRecord::Schema.define(version: 20170424154009) do
   end
 
   create_table "services", force: :cascade do |t|
-    t.datetime "created_at",           null: false
-    t.datetime "updated_at",           null: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
     t.string   "type"
     t.string   "name"
     t.string   "gtfs_agency_id"
@@ -198,6 +198,8 @@ ActiveRecord::Schema.define(version: 20170424154009) do
     t.integer  "trip_within_area_id"
     t.string   "fare_structure"
     t.text     "fare_details"
+    t.boolean  "archived",             default: false
+    t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
@@ -219,13 +221,13 @@ ActiveRecord::Schema.define(version: 20170424154009) do
   end
 
   create_table "trips", force: :cascade do |t|
-    t.datetime "created_at",            null: false
-    t.datetime "updated_at",            null: false
+    t.datetime "created_at",                                            null: false
+    t.datetime "updated_at",                                            null: false
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
-    t.datetime "trip_time"
-    t.boolean  "arrive_by"
+    t.datetime "trip_time",             default: '2017-04-21 18:12:00'
+    t.boolean  "arrive_by",             default: false
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree

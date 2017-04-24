@@ -221,4 +221,22 @@ RSpec.describe Service, type: :model do
     expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
   end
 
+  it { should respond_to :archived }
+
+  it 'should be archivable' do
+    services = [service, taxi, paratransit, transit]
+
+    expect(Service.all.pluck(:id)).to include(service.id)
+    service.archive
+    expect(Service.all.pluck(:id)).not_to include(service.id)
+    service.restore
+    expect(Service.all.pluck(:id)).to include(service.id)
+
+    service_count = Service.count
+    Service.archive_all
+    expect(Service.count).to eq(0)
+    Service.restore_all
+    expect(Service.count).to eq(service_count)
+  end
+
 end

@@ -65,10 +65,12 @@ module Api
       end
 
       def end_location
+        return nil unless object.trip
         location_hash(object.trip.destination)
       end
 
       def start_location
+        return nil unless object.trip
         location_hash(object.trip.origin)
       end
 
@@ -105,7 +107,7 @@ module Api
 
       def logo_url
         return nil unless object.service && object.service.logo
-        ActionController::Base.helpers.asset_path(object.service.logo.thumb.url.to_s)
+        object.service.full_logo_url
       end
 
       private

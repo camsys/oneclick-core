@@ -53,10 +53,17 @@ class TripPlanner
 
   # Calls the requisite trip_type itineraries method
   def build_itineraries(trip_type)
+    catch_errors(trip_type)
     self.send("build_#{trip_type}_itineraries")
   end
 
-  # Builds transit itineraries, using OTP by default
+  # Catches errors associated with a trip type and saves them in @errors
+  def catch_errors(trip_type)
+    errors = @router.errors(trip_type)
+    @errors << errors if errors
+  end
+
+  # # # Builds transit itineraries, using OTP by default
   def build_transit_itineraries
     build_fixed_itineraries :transit
   end
@@ -74,10 +81,17 @@ class TripPlanner
     build_fixed_itineraries :bicycle
   end
 
+  # # Build transit itineraries by associating OTP itineraries with transit service info
+  # def build_transit_itineraries
+  #   itineraries = @router.get_associated_itineraries(:transit)
+  #   puts "BUILDING TRANSIT", itineraries.pluck(:service_id).ai
+  #
+  #   itineraries.map {|i| Itinerary.new(i)}
+  # end
+
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
-    response = @router.get_itineraries(:paratransit)
-    @errors << response if response[:error]
+    return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
     @available_services[:paratransit].map do |svc|
       Itinerary.new(
@@ -91,12 +105,7 @@ class TripPlanner
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
   def build_taxi_itineraries
-    if Taxi.count == 0
-      return nil
-    end
-    response = @router.get_itineraries(:taxi)
-    @errors << response if response[:error]
-
+    return [] unless @available_services[:taxi] # Return an empty array if no taxi services are available
     @available_services[:taxi].map do |svc|
       Itinerary.new(
         service: svc,
@@ -109,11 +118,7 @@ class TripPlanner
 
   # Builds an uber itinerary populates transit_time based on OTP response
   def build_uber_itineraries
-    if Uber.count == 0
-      return nil
-    end
-    response = @router.get_itineraries(:uber)
-    @errors << response if response[:error]
+    return [] unless @available_services[:uber] # Return an empty array if no taxi services are available
 
     cost, product_id = @uber_ambassador.cost('uberX')
     new_itineraries = @available_services[:uber].map do |svc|
@@ -138,15 +143,7 @@ class TripPlanner
 
   # Generic OTP Call
   def build_fixed_itineraries trip_type
-    response = @router.get_itineraries(trip_type)
-    if response[:error]
-      @errors << response
-      return []
-    elsif response[:itineraries]
-      return response[:itineraries].map {|i| Itinerary.new(i)}
-    else
-      return []
-    end
+    @router.get_itineraries(trip_type).map {|i| Itinerary.new(i)}
   end
 
 end

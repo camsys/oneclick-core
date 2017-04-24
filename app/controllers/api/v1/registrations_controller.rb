@@ -2,11 +2,13 @@ module Api
   module V1
     class RegistrationsController < Devise::RegistrationsController
       respond_to :json
+      include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers
 
       # POST sign_up
       def create
         @user = User.new(sign_up_params)
-        if @user.save
+        # check for presence of password_confirmation before attempting to save user
+        if params[:password_confirmation] && @user.save
           render status: 200, json: {
             message: "User #{@user.email} successfully registered.",
             email: @user.email,
