@@ -8,7 +8,6 @@ module ApiErrorCatcher
 
   # Rescues 500 errors and renders them properly as JSON response
   def api_error_response(exception)
-    exception.backtrace.each { |line| logger.error line }
     response = {
       error: { type: exception.class.name, message: exception.message }
     }
