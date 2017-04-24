@@ -15,7 +15,9 @@ class Itinerary < ApplicationRecord
 
   # Duration virtual attribute sums all trip_time attributes
   def duration # (in seconds)
-    (walk_time || 0) + (transit_time || 0) #+ wait_time
+    walk_time.to_i +
+    transit_time.to_i +
+    wait_time.to_i
   end
 
   def select

@@ -54,12 +54,12 @@ module Api
         # :too_early,                 # DEPRECATE?
         # :too_late,                  # DEPRECATE?
         # :transfers,                 # DEPRECATE?
-        # :transit_time,              # DEPRECATE?
+        :transit_time,              # not needed in call
         # :trip_part_id,              # DEPRECATE?
         # :trip_type,                 # front end uses returned_mode_code?
         :url,                         # should be called service_url probably, or really nested in a service object
         :user_registered,           # BOOKING
-        # :wait_time,                 # DEPRECATE?
+        :wait_time,                 # not needed in call
         :walk_distance,
         :walk_time
 
@@ -160,10 +160,6 @@ module Api
 
       def url
         object.service && object.service.url
-      end
-
-      def walk_distance
-        0
       end
 
       private
