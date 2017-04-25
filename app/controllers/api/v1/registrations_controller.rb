@@ -2,7 +2,7 @@ module Api
   module V1
     class RegistrationsController < Devise::RegistrationsController
       respond_to :json
-      include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers
+      include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
       # POST sign_up
       def create
@@ -15,10 +15,9 @@ module Api
             authentication_token: @user.authentication_token
           }
         else
-          render status: 422, json: {
-            message: "User #{@user.email} could not be created.",
-            errors: @user.errors.messages
-          }
+          @user.errors.add(:password_confirmation, "can't be blank") unless params[:password_confirmation]
+          render status: 422,
+            json: json_response(:fail, data: {user: @user.errors})
         end
 
       end

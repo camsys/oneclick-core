@@ -4,7 +4,7 @@ module Api
     acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
     attr_reader :traveler
-    include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
+    include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -26,6 +26,7 @@ module Api
     # DEPRECATE THIS? #
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
     def handle_options_request
+      puts "HANDLING OPTIONS REQUEST"
       head(:ok) if request.request_method == "OPTIONS"
     end
 
@@ -54,7 +55,8 @@ module Api
 
     # Renders a failed user auth response
     def failed_auth_response
-      render status: 401, json: { message: "Valid user email and token must be present."}
+      render status: 401,
+        json: json_response(:fail, data: {user: "Valid user email and token must be present."})
     end
 
     # Returns true if authentication has successfully completed
