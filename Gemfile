@@ -43,6 +43,7 @@ gem 'jquery-ui-rails'
 ### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
 gem 'active_model_serializers', '~> 0.10.0'
+gem 'rack-cors', require: 'rack/cors'
 ############################################
 
 ### USER AUTH ##############################

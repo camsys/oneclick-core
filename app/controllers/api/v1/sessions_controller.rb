@@ -5,7 +5,7 @@ module Api
       skip_before_action :verify_signed_out_user
       prepend_before_filter :require_no_authentication, :only => [:create ]
       include Devise::Controllers::Helpers
-      include ApiErrorCatcher # Catches 500 errors and sends back JSON with headers
+      include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
       # clear_respond_to
       respond_to :json
@@ -24,9 +24,8 @@ module Api
             email: @user.email
           }
         else
-          render status: 401, json: {
-            message: "Please enter a valid email address and password"
-          }
+          render status: 401,
+            json: json_response(:fail, data: {user: "Please enter a valid email address and password"})
         end
         return
 
@@ -42,7 +41,8 @@ module Api
           sign_out(@user)
           render status: 200, json: { message: 'User successfully signed out.'}
         else
-          render status: 401, json: { error: 'Please provide a valid token.' }
+          render status: 401,
+            json: json_response(:fail, data: {user: 'Please provide a valid token.' })
         end
       end
 
