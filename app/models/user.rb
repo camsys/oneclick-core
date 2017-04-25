@@ -108,5 +108,14 @@ class User < ApplicationRecord
 
   end
 
+  # Returns
+  def trip_waypoints
+    
+  end
+
+  # Returns the x most recent places from trips planned by the user.
+  def recent_waypoints(count)
+  end
+
 
 end

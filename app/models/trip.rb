@@ -42,4 +42,9 @@ class Trip < ApplicationRecord
     trip_time.in_time_zone.seconds_since_midnight
   end
 
+  # Send back the origin and destination of the trip
+  def waypoints
+    Waypoint.where(id: [origin_id, destination_id])
+  end
+
 end
