@@ -3,7 +3,7 @@ module Api
 
     class TripSerializer < ActiveModel::Serializer
 
-      attributes  :id, :trip_id, :trip_token, :user_id, :arrive_by, :trip_time,
+      attributes  :id, :trip_id, :user_id, :arrive_by, :trip_time,
                   :accommodations, :characteristics, :purposes
       has_many :itineraries
       belongs_to :origin
@@ -14,7 +14,7 @@ module Api
       end
 
       # FILL IN THESE METHODS AS NEEDED TO MAKE API WORK
-      def trip_token; nil end
+      # def trip_token; nil end # DEPRECATE?
       def accommodations; [] end
       def characteristics; [] end
 
