@@ -23,10 +23,8 @@ module Api
       failed_auth_response unless authentication_successful?
     end
 
-    # DEPRECATE THIS? #
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
     def handle_options_request
-      puts "HANDLING OPTIONS REQUEST"
       head(:ok) if request.request_method == "OPTIONS"
     end
 

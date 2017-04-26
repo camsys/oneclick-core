@@ -24,20 +24,17 @@ module OneclickCore
     config.autoload_paths += %W(#{config.root}/app/models/services)
 
     # Set default CORS settings
-    # config.action_dispatch.default_headers = {
-    #   'Access-Control-Allow-Origin' => '*',
-    #   'Access-Control-Allow-Methods' => 'POST, PUT, DELETE, GET, OPTIONS',
-    #   'Access-Control-Request-Method' => '*',
-    #   'Access-Control-Allow-Headers' => 'Origin, X-Requested-With,
-    #     Content-Type, Accept, Authorization, X-User-Token, X-User-Email'
-    # }
     config.middleware.insert_before 0, Rack::Cors do
       allow do
-        origins '*'
+        origins '*' # /http:\/\/localhost:(\d*)/
         resource '*',
-          headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Token, X-User-Email',
+          # headers: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
+          #   'Authorization', 'X-User-Token', 'X-User-Email',
+          #   'Access-Control-Request-Headers', 'Access-Control-Request-Method'
+          # ],
+          headers: :any, # fixes CORS errors on OPTIONS requests
           methods: [:get, :post, :put, :delete, :options]
-      end
+        end
     end
 
     # Sends back appropriate JSON 400 response if a bad JSON request is sent.

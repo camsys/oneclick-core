@@ -26,9 +26,10 @@ module Api
 
       end
 
-      # STUBBED method for communication with UI
       def recent
-        render status: 200, json: {}
+        count = params[:count] || 20
+        recent_places = authentication_successful? ? @traveler.recent_waypoints(count) : []
+        render status: 200, json: {places: WaypointSerializer.collection_serialize(recent_places) }
       end
 
       # STUBBED method for communication with UI

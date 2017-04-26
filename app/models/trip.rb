@@ -26,6 +26,18 @@ class Trip < ApplicationRecord
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
 
+  ### CLASS METHODS ###
+
+  # Returns a collection of the waypoints (origins and destinations) associated with a trips collection
+  def self.waypoints
+    Waypoint.where(id: ods)
+  end
+
+  # Returns a list of the origin and destination ids associated with a trips collection
+  def self.ods
+    pluck(:origin_id, :destination_id).flatten.compact.uniq
+  end
+
 
   ### INSTANCE METHODS ###
   def unselect

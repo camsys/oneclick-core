@@ -108,5 +108,20 @@ class User < ApplicationRecord
 
   end
 
+  # Returns the user's (count) past trips, in descending order of trip time
+  def past_trips(count=nil)
+    trips.past.limit(count)
+  end
+
+  # Returns the user's (count) future trips, in descending order of trip time
+  def future_trips(count=nil)
+    trips.future.limit(count)
+  end
+
+  # Returns the (count) most recent places from trips planned by the user.
+  def recent_waypoints(count=nil)
+    trips.waypoints.order(created_at: :desc).limit(count)
+  end
+
 
 end
