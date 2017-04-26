@@ -6,14 +6,14 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.trips.past.limit(params[:max_results] || 10).map {|t| my_trips_hash(t)}
-        render status: 200, json: { "trips" => past_trips_hash}
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        render status: 200, json: {trips: past_trips_hash}
       end
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.trips.future.limit(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
       end
 
@@ -138,8 +138,8 @@ module Api
         # Trip attributes
         trip_hash = {
           trip_id: trip.id,
-          origin: MyTripsWaypointSerializer.new(trip.origin).to_hash,
-          destination: MyTripsWaypointSerializer.new(trip.destination).to_hash
+          origin: WaypointSerializer.new(trip.origin).to_hash,
+          destination: WaypointSerializer.new(trip.destination).to_hash
         }
 
         # Itinerary Attributes

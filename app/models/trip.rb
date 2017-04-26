@@ -26,6 +26,18 @@ class Trip < ApplicationRecord
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
 
+  ### CLASS METHODS ###
+
+  # Returns a collection of the waypoints (origins and destinations) associated with a trips collection
+  def self.waypoints
+    Waypoint.where(id: ods)
+  end
+
+  # Returns a list of the origin and destination ids associated with a trips collection
+  def self.ods
+    pluck(:origin_id, :destination_id).flatten.compact.uniq
+  end
+
 
   ### INSTANCE METHODS ###
   def unselect
@@ -40,11 +52,6 @@ class Trip < ApplicationRecord
   # Wrapper method returns seconds since midnight of trip time in local time zone
   def secs
     trip_time.in_time_zone.seconds_since_midnight
-  end
-
-  # Send back the origin and destination of the trip
-  def waypoints
-    Waypoint.where(id: [origin_id, destination_id])
   end
 
 end

@@ -28,8 +28,8 @@ module Api
 
       def recent
         count = params[:count] || 20
-        recent_places = authentication_successful ? @traveler.recent_waypoints(count) : []
-        render status: 200, json: { places: recent_places }
+        recent_places = authentication_successful? ? @traveler.recent_waypoints(count) : []
+        render status: 200, json: {places: WaypointSerializer.collection_serialize(recent_places) }
       end
 
       # STUBBED method for communication with UI
