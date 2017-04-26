@@ -33,10 +33,10 @@ module OneclickCore
     # }
     config.middleware.insert_before 0, Rack::Cors do
       allow do
-        origins '*'
+        origins /http:\/\/localhost:(\d*)/
         resource '*',
-          headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Token, X-User-Email',
-          methods: [:get, :post, :put, :delete, :options]
+          headers: :any, #'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-User-Token, X-User-Email',
+          methods: [:get, :post, :put, :delete, :options, :head, :patch]
       end
     end
 

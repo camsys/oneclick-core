@@ -8,6 +8,8 @@ Rails.application.routes.draw do
 
     # DEPRECATE THIS?
     match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
+    # match '*path', via: [:options], to: lambda {|_| [204, {'Content-Type' => 'text/plain'}, []]}
+
 
     namespace :v1 do
 
