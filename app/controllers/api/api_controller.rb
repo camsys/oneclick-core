@@ -28,6 +28,11 @@ module Api
       head(:ok) if request.request_method == "OPTIONS"
     end
 
+    # Sends back a 404 error for bad routes
+    def no_route
+      render status: 404, json: json_response(:error, message: "Route does not exist")
+    end
+
     protected
 
     # Actions to take after successfully authenticated a user token.

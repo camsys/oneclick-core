@@ -29,6 +29,8 @@ module JsonResponseHelper
       render status: 500, json: json_response(:error, error_response)
     end
 
+
+
   end
 
   # For catching JSON parser errors when client sends an invalid JSON request

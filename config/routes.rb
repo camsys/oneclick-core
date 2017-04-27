@@ -6,7 +6,6 @@ Rails.application.routes.draw do
 
   namespace :api do
 
-    # DEPRECATE THIS?
     match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
     # match '*path', via: [:options], to: lambda {|_| [204, {'Content-Type' => 'text/plain'}, []]}
 
@@ -60,6 +59,11 @@ Rails.application.routes.draw do
         post 'sign_up' => 'registrations#create'
       end
     end #v2
+
+    # Any unknown route should get a 404 response back
+    # match '*a', via: [:get], to: lambda {|_| [404, {"Content-Type" => "application/json; charset=utf-8"}, ['']]}
+    match '*a', via: :all, controller: 'api', action: 'no_route'
+
 
   end #api
 
