@@ -8,6 +8,7 @@ class TripPlanner
   # Constant list of trip types that can be planned.
   TRIP_TYPES = Trip::TRIP_TYPES
   attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
+  attr_reader :relevant_purposes, :relevant_accommodations, :relevant_eligibilities
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
@@ -44,11 +45,14 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   def available_services
-    Service.where(type: @trip_types.map do |tt| # Only return services that match the requested trip types
+    available_by_geography_and_time = Service.where(type: @trip_types.map do |tt| # Only return services that match the requested trip types
       tt.to_s.classify
-    end).available_for(@trip).group_by do |svc| # Group available services by type
-      svc.type.underscore.to_sym
-    end
+    end).available_for_time_and_geography(@trip)
+
+    #Append this to the end to get the grouping
+    #group_by do |svc| # Group available services by type
+    #  svc.type.underscore.to_sym
+    #end
   end
 
   # Calls the requisite trip_type itineraries method
