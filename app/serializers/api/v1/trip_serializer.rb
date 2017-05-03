@@ -15,12 +15,16 @@ module Api
 
       # FILL IN THESE METHODS AS NEEDED TO MAKE API WORK
       # def trip_token; nil end # DEPRECATE?
-      def accommodations; [] end
-      def characteristics; [] end
+      def accommodations
+        object.relevant_accommodations.collect{ |acc| {name: acc.name, code: acc.code, note: acc.note}}
+      end
+      def characteristics
+        object.relevant_eligibilites.collect{ |elig| {name: elig.name, code: elig.code, note: elig.note}}
+      end
 
       # Get a list of relevant purposes
       def purposes
-        object.purposes.uniq.collect{ |p| {name: p.name, code: p.code}}
+        object.relevant_purposes.collect{ |tp| {name: tp.name, code: tp.code}}
       end
 
     end

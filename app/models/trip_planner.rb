@@ -20,6 +20,7 @@ class TripPlanner
     @available_services = nil
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
+    @relevant_eligibilities = @relevant_purposes = @relevant_accommodations = []
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -45,14 +46,21 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   def available_services
+    
+    # First find all the services that are available for your time and locations
     available_by_geography_and_time = Service.where(type: @trip_types.map do |tt| # Only return services that match the requested trip types
       tt.to_s.classify
     end).available_for_time_and_geography(@trip)
 
-    #Append this to the end to get the grouping
-    #group_by do |svc| # Group available services by type
-    #  svc.type.underscore.to_sym
-    #end
+    # Pull out the relevant purposes, eligbilities, and accommodations of these services
+    @relevant_purposes = (available_by_geography_and_time.collect { |service| service.purposes }).flatten.uniq
+    @relevant_eligibilities = (available_by_geography_and_time.collect { |service| service.eligibilities }).flatten.uniq
+    @relevant_accommodations = (available_by_geography_and_time.collect { |service| service.accommodations }).flatten.uniq
+
+    # Now finish filtering by purpose, eligibility, and
+    available_by_geography_and_time.available_for_purpose_and_user(@trip).group_by do |svc| # Group available services by type
+      svc.type.underscore.to_sym
+    end
   end
 
   # Calls the requisite trip_type itineraries method
