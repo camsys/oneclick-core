@@ -13,7 +13,7 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
 
-  attr_accessor :relevant_purposes, :relevant_eligibilites, :relevant_accommodations
+  attr_accessor :relevant_purposes, :relevant_eligibilities, :relevant_accommodations
 
   ### VALIDATIONS ###
   validates_presence_of :origin, :destination

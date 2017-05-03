@@ -64,7 +64,7 @@ module Api
           trip_planner = TripPlanner.new(trip, options)
           trip_planner.plan
           trip.relevant_purposes = trip_planner.relevant_purposes
-          trip.relevant_eligibilites = trip_planner.relevant_eligibilities
+          trip.relevant_eligibilities = trip_planner.relevant_eligibilities
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
 

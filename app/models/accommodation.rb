@@ -27,13 +27,18 @@ class Accommodation < ApplicationRecord
     SimpleTranslationEngine.translate(locale, "accommodation_#{self.code}_note")
   end
 
+  def question locale=:en
+    SimpleTranslationEngine.translate(locale, "accommodation_#{self.code}_question")
+  end
+
   ### Hash Methods ###
+  # Should probably move to serializer
   def api_hash locale=Locale.first
   	{
   	  code: self.code, 
-  	  name: SimpleTranslationEngine.translate(locale.name, "accommodation_#{self.code.to_s}_name"), 
-      note: SimpleTranslationEngine.translate(locale.name, "accommodation_#{self.code.to_s}_note"),
-      question: SimpleTranslationEngine.translate(locale.name, "accommodation_#{self.code.to_s}_question")
+  	  name: self.name(locale.name),
+      note: self.note(locale.name),
+      question: self.question(locale.name)
   	}
   end
 end

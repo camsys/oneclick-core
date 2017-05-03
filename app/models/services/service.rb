@@ -32,6 +32,11 @@ class Service < ApplicationRecord
   # where.not(archived: true) # set in Archivable module
 
   ## Primary Scopes ##
+  scope :available_for, -> (trip) do
+    available_for_time_and_geography(trip)
+    .available_for_purpose_and_user(trip)
+  end
+
   scope :available_for_time_and_geography, -> (trip) do 
     available_by_time_for(trip) #Filter First
     .available_by_geography_for(trip) #Filter Second
