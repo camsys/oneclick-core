@@ -13,7 +13,7 @@ class Purpose < ApplicationRecord
   def to_label locale=:en
   	SimpleTranslationEngine.translate(locale, "purpose_#{self.code}_name")
   end
-
+  
   def name locale=:en
     SimpleTranslationEngine.translate(locale, "purpose_#{self.code}_name")
   end

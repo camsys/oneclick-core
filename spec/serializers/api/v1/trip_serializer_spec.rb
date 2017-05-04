@@ -13,7 +13,24 @@ RSpec.describe Api::V1::TripSerializer, type: :serializer do
     expect(trip_serialization["origin"]).to be
     expect(trip_serialization["destination"]).to be
     expect(trip_serialization["itineraries"].count).to be > 0
-    expect(trip_serialization["purposes"]).to eq([{"name"=>"missing key purpose_medical_name", "code"=>"medical"}])
+
+    #derek
+    #expect(trip_serialization["purposes"]).to eq([{"name"=>"missing key purpose_medical_name", "code"=>"medical"}])
+  end
+
+  # no purposes will be present because the trip was not run through the trip planner
+  it 'serializes purposes' do 
+    expect(trip_serialization['purposes']).to eq([])
+  end
+
+  # no eligibilities will be present because the trip was not run through the trip planner
+  it 'serializes eligibilities' do 
+    expect(trip_serialization['characteristics']).to eq([])
+  end
+
+  # no accommodations will be present because the trip was not run through the trip planner
+  it 'serializes accommodations' do 
+    expect(trip_serialization['accommodations']).to eq([])
   end
 
 end

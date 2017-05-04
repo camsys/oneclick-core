@@ -33,11 +33,20 @@ class Service < ApplicationRecord
 
   ## Primary Scopes ##
   scope :available_for, -> (trip) do
-    available_for_purpose_for(trip)
-    .available_by_geography_for(trip)
-    .available_for_user(trip.user)
-    .available_by_time_for(trip)
+    available_for_time_and_geography(trip)
+    .available_for_purpose_and_user(trip)
   end
+
+  scope :available_for_time_and_geography, -> (trip) do 
+    available_by_time_for(trip) #Filter First
+    .available_by_geography_for(trip) #Filter Second
+  end
+    
+  scope :available_for_purpose_and_user, -> (trip) do
+    available_for_purpose_for(trip) #Filter Last
+    .available_for_user(trip.user) #Filter Last
+  end
+
   scope :transit_services, -> { where(type: "Transit") }
   scope :paratransit_services, -> { where(type: "Paratransit") }
   scope :taxi_services, -> { where(type: "Taxi") }
