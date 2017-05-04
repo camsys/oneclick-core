@@ -86,6 +86,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     post :create, params: plan_call_params
     response_body = JSON.parse(response.body)
 
+    puts response_body.ai
     expect(response).to be_success
     expect(response_body["itineraries"]).to be
     expect(response_body["itineraries"].count).to be > 0
@@ -222,6 +223,18 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     response_body = JSON.parse(response.body)
     expect(response).to be_success
     expect(response_body["trips"].count).to eq(0)
+  end
+
+  it 'returns relevant purposes' do 
+    expect(10).to eq(1)
+  end
+
+  it 'retuns relevant accommodations' do 
+    expect(10).to eq(1)
+  end
+
+  it 'returns relevant eligibilities' do
+    expect(10).to eq(1)
   end
 
   # it 'sends back itineraries for multiple trips' do
