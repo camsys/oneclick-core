@@ -4,10 +4,13 @@ RSpec.describe TripPlanner do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
-  let!(:paratransit) { create(:paratransit_service) }
+  let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
   let!(:transit) { create(:transit_service)}
+  let(:strict_paratransit) { create(:paratransit_service, :medical_only, :strict) }
+  let(:accommodating_paratransit) { create(:paratransit_service, :medical_only, :accommodating) }
+
 
   # OTP RESPONSES
   let!(:otp_responses) { {
@@ -111,6 +114,24 @@ RSpec.describe TripPlanner do
     itins.each do |itin|
       expect(itin['service_id']).to be_nil
     end
+  end
+
+  it 'should find relevant purposes' do
+    paratransit_tp.available_services
+    expect(paratransit_tp.relevant_purposes).to eq(Purpose.where(code: "medical"))
+  end
+
+  it 'should find relevant eligibilities' do
+    strict_paratransit
+    paratransit_tp.available_services
+    expect(paratransit_tp.relevant_eligibilities).to eq(Eligibility.where(code: "over_65"))
+  end
+
+  it 'should find relevant accommodations' do
+    strict_paratransit
+    accommodating_paratransit
+    paratransit_tp.available_services
+    expect(paratransit_tp.relevant_accommodations).to eq(accommodating_paratransit.accommodations)
   end
 
 end

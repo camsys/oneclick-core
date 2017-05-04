@@ -20,5 +20,10 @@ FactoryGirl.define do
       transit_time 2336
     end
 
+    factory :strict_and_accommodating_paratransit_itinerary do
+      service {create(:paratransit_service, :medical_only, :strict, :accommodating, :with_schedules, :with_comments)}
+      transit_time 2336
+    end
+
   end
 end

@@ -18,16 +18,19 @@ RSpec.describe Api::V1::TripSerializer, type: :serializer do
     #expect(trip_serialization["purposes"]).to eq([{"name"=>"missing key purpose_medical_name", "code"=>"medical"}])
   end
 
+  # no purposes will be present because the trip was not run through the trip planner
   it 'serializes purposes' do 
-    expect(10).to eq(1)
+    expect(trip_serialization['purposes']).to eq([])
   end
 
-  it 'serializes purposes' do 
-    expect(10).to eq(1)
+  # no eligibilities will be present because the trip was not run through the trip planner
+  it 'serializes eligibilities' do 
+    expect(trip_serialization['characteristics']).to eq([])
   end
 
-  it 'serializes purposes' do 
-    expect(10).to eq(1)
+  # no accommodations will be present because the trip was not run through the trip planner
+  it 'serializes accommodations' do 
+    expect(trip_serialization['accommodations']).to eq([])
   end
 
 end
