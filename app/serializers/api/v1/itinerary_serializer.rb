@@ -134,6 +134,9 @@ module Api
       end
 
       def returned_mode_code
+        if object.trip_type == "uber" 
+          return "mode_ride_hailing"
+        end
         object.trip_type.nil? ? nil : "mode_#{object.trip_type.to_s}"
       end
 
