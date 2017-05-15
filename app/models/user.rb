@@ -8,6 +8,9 @@ class User < ApplicationRecord
 
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
+  csv_serializable
+  csv_serializable
+
 
   ### Scopes ###
   scope :staff, -> { User.with_role(:admin) }
@@ -30,11 +33,13 @@ class User < ApplicationRecord
   validates :email, presence: true
   validates :email, uniqueness: true
 
-  ### Instance Methods ###
-  def as_csv(options={})
-    attributes.slice('first_name', 'last_name')
-  end
+  
+  ### Class Methods ###
 
+
+  
+  ### Instance Methods ###
+  
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first
