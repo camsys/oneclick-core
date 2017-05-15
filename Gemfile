@@ -31,6 +31,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'redis', '~> 3.0'
 ############################################
 
+
 ### Internal Views #########################
 gem 'awesome_print'
 gem 'haml-rails'
@@ -40,11 +41,13 @@ gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 ############################################
 
+
 ### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
 gem 'active_model_serializers', '~> 0.10.0'
 gem 'rack-cors', require: 'rack/cors'
 ############################################
+
 
 ### USER AUTH ##############################
 # Use ActiveModel has_secure_password
@@ -55,10 +58,12 @@ gem 'cancancan'
 gem 'rolify'
 ############################################
 
+
 ### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
 ############################################
+
 
 ### FILE UPLOAD ############################
 gem 'carrierwave', '~> 1.0'
@@ -66,6 +71,7 @@ gem 'mini_magick' # For resizing images
 gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
 ############################################
+
 
 ### GEOSPATIAL #############################
 gem 'rgeo'
@@ -76,9 +82,11 @@ gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps
 ############################################
 
+
 ### ASYNCHRONOUS API CALLS (e.g. to OTP) ###
 gem 'em-http-request'
 ############################################
+
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

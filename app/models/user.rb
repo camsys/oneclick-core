@@ -31,6 +31,9 @@ class User < ApplicationRecord
   validates :email, uniqueness: true
 
   ### Instance Methods ###
+  def as_csv(options={})
+    attributes.slice('first_name', 'last_name')
+  end
 
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
