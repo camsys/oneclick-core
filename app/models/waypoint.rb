@@ -5,5 +5,18 @@ class Waypoint < Place
   def trip
     trip_as_origin || trip_as_destination
   end
-
+  
+  # Returns a full formatted address string
+  def address
+    [
+      [street_number, route].compact.join(' '),
+      city,
+      [state, zip].compact.join(' ')
+    ].compact.join(', ')
+  end
+  
+  def to_s
+    address
+  end
+  
 end

@@ -8,17 +8,24 @@ class Admin::ReportsController < Admin::AdminController
     @users = User.all
     
     respond_to do |format|
-      format.csv { send_data @users.to_csv(attributes: user_csv_attributes) }
+      format.csv { send_data @users.to_csv }
     end
   end
   
-  def user_csv_attributes
-    [
-      :email,
-      :first_name,
-      :last_name,
-      :eligibilities
-    ]
+  def trips
+    @trips = Trip.all
+    
+    respond_to do |format|
+      format.csv { send_data @trips.to_csv }
+    end
   end
-  
+
+  def services
+    @services = Service.all
+    
+    respond_to do |format|
+      format.csv { send_data @services.to_csv }
+    end
+  end
+
 end

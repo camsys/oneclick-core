@@ -14,6 +14,7 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :destination
 
   attr_accessor :relevant_purposes, :relevant_eligibilities, :relevant_accommodations
+  write_to_csv with: Admin::TripsReportCSVWriter
 
   ### VALIDATIONS ###
   validates_presence_of :origin, :destination

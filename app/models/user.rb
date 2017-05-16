@@ -5,12 +5,11 @@ class User < ApplicationRecord
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
+  write_to_csv with: Admin::UsersReportCSVWriter
+
 
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
-  csv_serializable
-  csv_serializable
-
 
   ### Scopes ###
   scope :staff, -> { User.with_role(:admin) }
