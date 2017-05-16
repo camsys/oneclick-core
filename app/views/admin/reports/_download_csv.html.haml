@@ -10,18 +10,18 @@
     collection: ['Trips', 'Users', 'Services'], 
     label: "Report Type"
   
-  =f.input :from_date, required: false,
-    input_html: {class: 'datepicker'}, 
-    as: :string, label: "From Date"
-    
-  =f.input :to_date, required: false,
-    input_html: {class: 'datepicker'}, 
-    as: :string, label: "To Date"
+  -# =f.input :from_date, required: false,
+  -#   input_html: {class: 'datepicker'}, 
+  -#   as: :string, label: "From Date"
+  -#   
+  -# =f.input :to_date, required: false,
+  -#   input_html: {class: 'datepicker'}, 
+  -#   as: :string, label: "To Date"
     
     
 :javascript
   $(document).ready(function() {
     new FormHandler($('#{form_selector_from_id}'));
     
-    $('.datepicker').datepicker();
+    // $('.datepicker').datepicker();
   });

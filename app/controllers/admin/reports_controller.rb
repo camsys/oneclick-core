@@ -5,7 +5,10 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def download_csv
-    download_url = self.send("#{params[:download_csv][:table_name].downcase}_admin_reports_path") + ".csv"
+    params = download_csv_params
+    table_name = params[:table_name].downcase
+    
+    download_url = self.send("#{table_name}_admin_reports_path") + ".csv"
     
     redirect_to download_url
   end
@@ -32,6 +35,12 @@ class Admin::ReportsController < Admin::AdminController
     respond_to do |format|
       format.csv { send_data @services.to_csv }
     end
+  end
+  
+  protected
+  
+  def download_csv_params
+    params.require(:download_csv).permit(:table_name, :from_date, :to_date)
   end
 
 end
