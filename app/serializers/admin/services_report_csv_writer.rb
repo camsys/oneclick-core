@@ -3,6 +3,8 @@ module Admin
     
     columns :name, :type, :accommodations, :eligibilities, :purposes,
             :start_or_end_area, :trip_within_area
+    associations :accommodations, :eligibilities, :purposes, 
+            :start_or_end_area, :trip_within_area
         
     def accommodations(service)
       service.accommodations.pluck(:code).join(', ')

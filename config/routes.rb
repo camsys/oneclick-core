@@ -95,6 +95,7 @@ Rails.application.routes.draw do
     
     resources :reports, only: [:index] do
       collection do
+        post 'download_csv'
         get 'users'
         get 'trips'
         get 'services'

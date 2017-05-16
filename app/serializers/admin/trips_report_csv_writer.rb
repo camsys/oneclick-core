@@ -4,6 +4,7 @@ module Admin
     columns :trip_time, :traveler, :arrive_by, :purpose,
             :orig_addr, :orig_lat, :orig_lng,
             :dest_addr, :dest_lat, :dest_lng
+    associations :origin, :destination, :user
 
     def traveler(trip)
       trip.user && trip.user.email

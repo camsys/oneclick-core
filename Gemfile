@@ -39,6 +39,7 @@ gem 'simple_form'
 gem 'bootstrap-sass', '~> 3.2.0'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
+gem 'bootstrap-datepicker-rails'
 ############################################
 
 

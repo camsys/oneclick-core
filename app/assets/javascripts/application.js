@@ -18,3 +18,4 @@
 //= require_tree .
 //= require leaflet
 //= require jquery-ui
+//= require bootstrap-datepicker

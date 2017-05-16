@@ -1,0 +1,27 @@
+=content_for :header do
+  Download Report Tables
+
+=simple_form_for :download_csv,
+  url: download_csv_admin_reports_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
+  authenticity_token: true do |f|
+  
+  =f.input :table_name, required: true, 
+    collection: ['Trips', 'Users', 'Services'], 
+    label: "Report Type"
+  
+  =f.input :from_date, required: false,
+    input_html: {class: 'datepicker'}, 
+    as: :string, label: "From Date"
+    
+  =f.input :to_date, required: false,
+    input_html: {class: 'datepicker'}, 
+    as: :string, label: "To Date"
+    
+    
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+    
+    $('.datepicker').datepicker();
+  });

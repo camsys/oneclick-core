@@ -4,6 +4,12 @@ class Admin::ReportsController < Admin::AdminController
     puts "REPORTS INDEX"
   end
   
+  def download_csv
+    download_url = self.send("#{params[:download_csv][:table_name].downcase}_admin_reports_path") + ".csv"
+    
+    redirect_to download_url
+  end
+  
   def users
     @users = User.all
     
