@@ -1,7 +1,7 @@
 class Admin::ReportsController < Admin::AdminController
   
   def index
-    puts "REPORTS INDEX"
+    @csv_download_tables = ['Trips', 'Users', 'Services']
   end
   
   def download_csv

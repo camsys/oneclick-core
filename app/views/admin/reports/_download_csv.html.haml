@@ -7,7 +7,7 @@
   authenticity_token: true do |f|
   
   =f.input :table_name, required: true, 
-    collection: ['Trips', 'Users', 'Services'], 
+    collection: @csv_download_tables, 
     label: "Report Type"
   
   -# =f.input :from_date, required: false,
