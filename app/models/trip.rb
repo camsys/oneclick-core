@@ -23,11 +23,22 @@ class Trip < ApplicationRecord
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber]
 
+
   ### SCOPES ###
+
+  # Return trips before or after a given date and time
+  scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }
+  scope :to_datetime, -> (datetime) { datetime ? where('trip_time <= ?', datetime) : all }
+  
+  # Rounds to beginning or end of day.
+  scope :from_date, -> (date) { date ? from_datetime(date.in_time_zone.beginning_of_day) : all }
+  scope :to_date, -> (date) { date ? to_datetime(date.in_time_zone.end_of_day) : all }
+
   # Past trips have trip time before now, ordered from last to first; future
   # trips have trip time now and forward, ordered from first to last.
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
+
 
   ### CLASS METHODS ###
 

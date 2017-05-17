@@ -1,8 +1,13 @@
 class Admin::ReportsController < Admin::AdminController
   
+  CSV_DOWNLOAD_TABLES = ['Trips', 'Users', 'Services']
+  DASHBOARDS = ['Planned Trips']
+  GROUPINGS = [:day, :week, :month, :quarter, :year]
+  
   def index
-    @csv_download_tables = ['Trips', 'Users', 'Services']
-    @dashboards = ['Planned Trips']
+    @csv_download_tables = CSV_DOWNLOAD_TABLES
+    @dashboards = DASHBOARDS
+    @groupings = GROUPINGS
   end
   
   
@@ -11,14 +16,18 @@ class Admin::ReportsController < Admin::AdminController
   def dashboard
     params = dashboard_params
     dashboard_name = params[:dashboard_name].parameterize.underscore
-    
-    dashboard_url = self.send("#{dashboard_name}_dashboard_admin_reports_path")
-    
-    redirect_to dashboard_url
+    action_name = dashboard_name + "_dashboard"
+    filters = params.except(:dashboard_name)
+
+    redirect_to({controller: 'reports', action: action_name}.merge(filters))
   end
   
   def planned_trips_dashboard
-    @trips = Trip.all
+    @grouping = params[:grouping]
+    @from_date = params[:from_date].blank? ? nil : Date.parse(params[:from_date])
+    @to_date = params[:to_date].blank? ? nil : Date.parse(params[:to_date])
+
+    @trips = Trip.from_date(@from_date).to_date(@to_date)
   end
   
 
@@ -64,7 +73,7 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def dashboard_params
-    params.require(:dashboard).permit(:dashboard_name)
+    params.require(:dashboard).permit(:dashboard_name, :from_date, :to_date, :grouping)
   end
 
 end

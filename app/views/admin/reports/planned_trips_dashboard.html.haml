@@ -1,4 +1,5 @@
 =content_for :title do
   Planned Trips Dashboard
   
-= column_chart @trips.group_by_month(:trip_time).count, title: "Trips Planned by Month"
+= column_chart  @trips.send("group_by_#{@grouping}", :trip_time).count, 
+                title: "Trips Planned by #{@grouping.titleize}"
