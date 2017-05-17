@@ -1,0 +1,62 @@
+=content_for :header do
+  Dashboards
+
+=simple_form_for :dashboard,
+  url: dashboard_admin_reports_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
+  authenticity_token: true do |f|
+  
+  =f.input :dashboard_name, required: true, 
+    collection: @dashboards, 
+    label: "Select Dashboard"
+  
+  -# DATE RANGE SELECTORS
+  .dashboard-options.planned-trips.hidden
+    =f.input :from_date, required: false,
+      input_html: {class: 'datepicker'}, 
+      as: :string, label: "From Date"
+    =f.input :to_date, required: false,
+      input_html: {class: 'datepicker'}, 
+      as: :string, label: "To Date"
+    =f.input :grouping,
+      collection: @groupings, include_blank: false,
+      label: "Group By"
+      
+  
+
+=content_for :footer do
+  .btn.btn-primary.dashboard-form-submit View Dashboard
+    
+    
+:javascript
+  $(document).ready(function() {
+  
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+        
+    // Hides all dashboard options and then shows the relevant ones.
+    var showDashboardOptions = function(dashboard) {
+      $('.dashboard-options').addClass('hidden');
+      if(dashboard) {
+        var dashboardOptionsSelector = '.' + dashboard.toLowerCase().replace(' ', '-');
+        $(dashboardOptionsSelector).removeClass('hidden');
+      }
+    }
+    
+    // Show dashboard options on document ready if a dashboard is selected.
+    var initialDashboard = $('select#dashboard_dashboard_name').val();
+    showDashboardOptions(initialDashboard);
+    
+    // Show appropriate dashboard options when a new dashboard is selected.
+    $('select#dashboard_dashboard_name').change(function() {
+      var dashboard = $(this).val();
+      showDashboardOptions(dashboard);
+    });
+    
+    // Form Submit handler
+    $('.dashboard-form-submit').click(function() {
+      if($('select#dashboard_dashboard_name').val() !== "") {
+        $('form#form-dashboards').submit();
+      }
+    });
+    
+  });
