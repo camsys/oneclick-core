@@ -17,7 +17,7 @@ class Admin::ReportsController < Admin::AdminController
     params = dashboard_params
     dashboard_name = params[:dashboard_name].parameterize.underscore
     action_name = dashboard_name + "_dashboard"
-    filters = params.except(:dashboard_name)
+    filters = params.except(:dashboard_name).to_h # Explicitly convert params to hash to avoid deprecation warning
 
     redirect_to({controller: 'reports', action: action_name}.merge(filters))
   end
