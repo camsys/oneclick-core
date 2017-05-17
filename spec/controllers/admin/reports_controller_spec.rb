@@ -13,7 +13,7 @@ RSpec.describe Admin::ReportsController, type: :controller do
       post :download_csv, params: params
 
       # The response should be a re-direct
-      expect(response).to redirect_to('/admin/reports/users.csv')
+      expect(response).to redirect_to('/admin/reports/users_table.csv')
     end
     
     it 'redirects to Trips report download page' do
@@ -21,7 +21,7 @@ RSpec.describe Admin::ReportsController, type: :controller do
       post :download_csv, params: params
 
       # The response should be a re-direct
-      expect(response).to redirect_to('/admin/reports/trips.csv')
+      expect(response).to redirect_to('/admin/reports/trips_table.csv')
     end
     
     it 'redirects to Services report download page' do
@@ -29,7 +29,7 @@ RSpec.describe Admin::ReportsController, type: :controller do
       post :download_csv, params: params
 
       # The response should be a re-direct
-      expect(response).to redirect_to('/admin/reports/services.csv')
+      expect(response).to redirect_to('/admin/reports/services_table.csv')
     end
     
     it 'downloads a Users report CSV file with a row for each user' do

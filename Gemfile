@@ -40,6 +40,8 @@ gem 'bootstrap-sass', '~> 3.2.0'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
+gem 'chartkick' # For google charts
+gem 'groupdate' # Extends chartkick functionality
 ############################################
 
 

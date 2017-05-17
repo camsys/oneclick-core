@@ -95,10 +95,13 @@ Rails.application.routes.draw do
     
     resources :reports, only: [:index] do
       collection do
-        post 'download_csv'
-        get 'users'
-        get 'trips'
-        get 'services'
+        post 'dashboard'
+        get 'planned_trips_dashboard'
+        
+        post 'download_csv'        
+        get 'users_table'
+        get 'trips_table'
+        get 'services_table'
       end
     end
 

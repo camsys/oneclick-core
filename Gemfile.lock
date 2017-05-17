@@ -77,6 +77,7 @@ GEM
       mime-types (>= 1.16)
     case_transform (0.2)
       activesupport
+    chartkick (2.2.4)
     coffee-rails (4.2.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.2.x)
@@ -254,6 +255,8 @@ GEM
     formatador (0.2.5)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
+    groupdate (3.2.0)
+      activesupport (>= 3)
     haml (4.0.7)
       tilt
     haml-rails (0.9.0)
@@ -440,12 +443,14 @@ DEPENDENCIES
   byebug
   cancancan
   carrierwave (~> 1.0)
+  chartkick
   coffee-rails (~> 4.2)
   dbf
   devise
   em-http-request
   factory_girl_rails
   fog
+  groupdate
   haml-rails
   jbuilder (~> 2.5)
   jquery-rails

@@ -19,3 +19,5 @@
 //= require leaflet
 //= require jquery-ui
 //= require bootstrap-datepicker
+//= require Chart.bundle
+//= require chartkick
