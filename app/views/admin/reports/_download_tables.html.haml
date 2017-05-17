@@ -1,0 +1,57 @@
+=content_for :header do
+  Download Report Tables
+
+=simple_form_for :download_table,
+  url: download_table_admin_reports_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
+  authenticity_token: true do |f|
+  
+  =f.input :table_name, required: true, 
+    collection: @download_tables, 
+    label: "Select Report Type"
+  
+  -# DATE RANGE SELECTORS
+  .table-download-options.trips.hidden
+    =f.input :from_date, required: false,
+      input_html: {class: 'datepicker'}, 
+      as: :string, label: "From Date"
+    =f.input :to_date, required: false,
+      input_html: {class: 'datepicker'}, 
+      as: :string, label: "To Date"
+
+    
+=content_for :footer do
+  .btn.btn-primary.download-table-form-submit Download Table File
+    
+:javascript
+  $(document).ready(function() {
+
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+        
+    // Hides all table options and then shows the relevant ones.
+    var showTableDownloadOptions = function(table) {
+      $('.table-download-options').addClass('hidden');
+      if(table) {
+        var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
+        $(tableDownloadOptionsSelector).removeClass('hidden');
+      }
+    }
+    
+    // Show table options on document ready if a table is selected.
+    var initialTable = $('select#download_table_table_name').val();
+    showTableDownloadOptions(initialTable);
+    
+    // Show appropriate table options when a new table is selected.
+    $('select#download_table_table_name').change(function() {
+      var table = $(this).val();
+      showTableDownloadOptions(table);
+    });
+  
+    // Form Submit handler
+    $('.download-table-form-submit').click(function() {
+      if($('select#download_table_table_name').val() !== "") {
+        $('form#form-download-tables').submit();
+      }
+    });
+
+  });

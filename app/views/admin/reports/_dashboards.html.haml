@@ -36,26 +36,27 @@
     // Hides all dashboard options and then shows the relevant ones.
     var showDashboardOptions = function(dashboard) {
       $('.dashboard-options').addClass('hidden');
-      var dashboardOptionsSelector = '.' + dashboard.toLowerCase().replace(' ', '-');
-      $(dashboardOptionsSelector).removeClass('hidden');
+      if(dashboard) {
+        var dashboardOptionsSelector = '.' + dashboard.toLowerCase().replace(' ', '-');
+        $(dashboardOptionsSelector).removeClass('hidden');
+      }
     }
     
     // Show dashboard options on document ready if a dashboard is selected.
     var initialDashboard = $('select#dashboard_dashboard_name').val();
-    if(initialDashboard) {
-      showDashboardOptions(initialDashboard);
-    }
+    showDashboardOptions(initialDashboard);
+    
+    // Show appropriate dashboard options when a new dashboard is selected.
+    $('select#dashboard_dashboard_name').change(function() {
+      var dashboard = $(this).val();
+      showDashboardOptions(dashboard);
+    });
     
     // Form Submit handler
     $('.dashboard-form-submit').click(function() {
       if($('select#dashboard_dashboard_name').val() !== "") {
         $('form#form-dashboards').submit();
       }
-    });
-    
-    // Show appropriate dashboard options when a new dashboard is selected.
-    $('select#dashboard_dashboard_name').change(function() {
-      showDashboardOptions($(this).val());
     });
     
   });

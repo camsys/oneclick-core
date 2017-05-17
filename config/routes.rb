@@ -98,7 +98,7 @@ Rails.application.routes.draw do
         post 'dashboard'
         get 'planned_trips_dashboard'
         
-        post 'download_csv'        
+        post 'download_table'        
         get 'users_table'
         get 'trips_table'
         get 'services_table'
