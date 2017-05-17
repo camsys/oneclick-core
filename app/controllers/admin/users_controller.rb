@@ -3,7 +3,7 @@ class Admin::UsersController < Admin::AdminController
   def index
     @staff = User.staff.order(:last_name, :first_name, :email)
     @new_user= User.new 
-    @roles = Role.all 
+    @roles = Role.all
   end
 
   def create

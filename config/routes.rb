@@ -92,6 +92,15 @@ Rails.application.routes.draw do
     resources :accommodations, :only => [:index, :destroy, :create]
     resources :purposes, :only => [:index, :destroy, :create]
     resources :services, :only => [:index, :destroy, :create, :show, :update]
+    
+    resources :reports, only: [:index] do
+      collection do
+        post 'download_csv'
+        get 'users'
+        get 'trips'
+        get 'services'
+      end
+    end
 
     get 'geographies' => 'geographies#index'
     post 'counties' => 'geographies#upload_counties'

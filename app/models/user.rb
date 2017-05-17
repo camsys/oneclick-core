@@ -5,6 +5,8 @@ class User < ApplicationRecord
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
+  write_to_csv with: Admin::UsersReportCSVWriter
+
 
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
@@ -30,8 +32,13 @@ class User < ApplicationRecord
   validates :email, presence: true
   validates :email, uniqueness: true
 
-  ### Instance Methods ###
+  
+  ### Class Methods ###
 
+
+  
+  ### Instance Methods ###
+  
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first

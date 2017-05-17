@@ -9,6 +9,7 @@ class Service < ApplicationRecord
   include GeoKitchen
   include ScheduleHelper
   include ScopeHelper
+  write_to_csv with: Admin::ServicesReportCSVWriter
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
@@ -116,6 +117,10 @@ class Service < ApplicationRecord
   ####################
   # INSTANCE METHODS #
   ####################
+  
+  def as_csv(options={})
+    attributes.slice('name')
+  end
 
   # Calculates fare for passed trip, based on service's fare_structure and fare_details
   def fare_for(trip, options={})
