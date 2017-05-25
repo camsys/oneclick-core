@@ -64,6 +64,9 @@ class User < ApplicationRecord
   ### Update Profle from API Call ###
 
   def update_profile params
+    if params.blank?
+      return true
+    end
     update_basic_attributes params[:attributes] unless params[:attributes].nil?
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
     update_accommodations params[:accommodations] unless params[:accommodations].nil?
