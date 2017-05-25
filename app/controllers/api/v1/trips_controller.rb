@@ -47,8 +47,8 @@ module Api
 
         # Hash of options parameters sent
         options = {
-          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES
-          # user_profile: params[:user_profile],
+          trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
+          user_profile: params[:user_profile]
           # trip_token: params[:trip_token],
           # optimize: params[:optimize],
           # max_walk_miles: params[:max_walk_miles],
@@ -56,6 +56,11 @@ module Api
           # max_walk_seconds: params[:max_walk_seconds], # Seconds
           # walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
+
+        #Update the user's profile before planning the trip.
+        if @traveler
+          @traveler.update_profile(options[:user_profile])
+        end
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
