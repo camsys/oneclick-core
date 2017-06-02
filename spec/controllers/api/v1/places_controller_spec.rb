@@ -2,8 +2,6 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::PlacesController, type: :controller do
   let!(:landmark) { create :landmark }
-  # This line is necessary to get Devise scoped tests to work.
-  before(:each) { @request.env["devise.mapping"] = Devise.mappings[:user] }
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let!(:trip) { create :trip }
   let(:user) { trip.user }

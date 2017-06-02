@@ -7,8 +7,8 @@ module Api
       # POST /api/v1/feedbacks
       # Create a feedback for the logged in user
       def create
-        feedback = @traveler.feedbacks.build(feedback_params)
-        if feedback.save
+        feedback = @traveler.feedbacks.build(feedback_params) # Builds a feedback belonging to the logged-in user
+        if feedback.save # Render a success response only if feedback saves successfully
           render(success_response(message: "Feedback successfully created"))
         else
           render(fail_response(errors: feedback.errors.to_h))

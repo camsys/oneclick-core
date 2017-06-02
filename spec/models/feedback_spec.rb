@@ -1,5 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Feedback, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  
+  it { should respond_to :comment, :rating }
+  it { should belong_to(:user) }
+  it { should belong_to(:feedbackable)}
+  
 end
