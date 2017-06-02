@@ -42,6 +42,8 @@ Rails.application.routes.draw do
           get  'all'
         end
       end
+      
+      resources :feedbacks, only: [:create]
 
       resources :trips, only: [:create]
       get 'trips/past_trips' => 'trips#past_trips'
