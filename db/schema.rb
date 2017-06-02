@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170424195259) do
+ActiveRecord::Schema.define(version: 20170602145339) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,6 +104,18 @@ ActiveRecord::Schema.define(version: 20170424195259) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["service_id", "region_id"], name: "index_fare_zones_on_service_id_and_region_id", using: :btree
+  end
+
+  create_table "feedbacks", force: :cascade do |t|
+    t.string   "feedbackable_type"
+    t.integer  "feedbackable_id"
+    t.integer  "user_id"
+    t.integer  "rating"
+    t.text     "comment"
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+    t.index ["feedbackable_type", "feedbackable_id"], name: "index_feedbacks_on_feedbackable_type_and_feedbackable_id", using: :btree
+    t.index ["user_id"], name: "index_feedbacks_on_user_id", using: :btree
   end
 
   create_table "itineraries", force: :cascade do |t|

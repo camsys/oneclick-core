@@ -21,6 +21,7 @@ class User < ApplicationRecord
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
   has_many :user_eligibilities, dependent: :destroy
   has_many :eligibilities, through: :user_eligibilities
+  has_many :feedbacks
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'

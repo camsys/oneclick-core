@@ -9,12 +9,14 @@ class Service < ApplicationRecord
   include GeoKitchen
   include ScheduleHelper
   include ScopeHelper
+  include Feedbackable
   write_to_csv with: Admin::ServicesReportCSVWriter
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
   has_many :itineraries, dependent: :nullify
   has_many :schedules, dependent: :destroy
+  has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes
