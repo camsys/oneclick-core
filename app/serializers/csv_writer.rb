@@ -23,8 +23,8 @@ class CSVWriter
     # define a default one that calls that method on the passed record.
     cols.each do |col_name|
       unless method_defined?(col_name)
-        define_method(col_name) do |record|
-          record.send(col_name)
+        define_method(col_name) do
+          @record.send(col_name)
         end
       end
     end
@@ -72,7 +72,8 @@ class CSVWriter
       # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
         batch.all.each do |record|
-          csv << self.row_from(record)
+          @record = record  # Set record instance variable to the current record from the batch
+          csv << self.write_row
         end
       end
     end
@@ -91,9 +92,9 @@ class CSVWriter
     records.all.includes(self.class.associated_tables)
   end
     
-  # Builds a CSV row for one record
-  def row_from(record)
-    headers.keys.map{ |h| self.send(h, record) }
+  # Builds a CSV row for the current record
+  def write_row
+    headers.keys.map{ |h| self.send(h) }
   end
   
 end

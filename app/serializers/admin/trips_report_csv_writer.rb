@@ -7,40 +7,40 @@ module Admin
             :selected_trip_type
     associations :origin, :destination, :user, :selected_itinerary
 
-    def traveler(trip)
-      trip.user && trip.user.email
+    def traveler
+      @record.user && @record.user.email
     end
 
-    def purpose(trip)
-      trip.purpose && trip.purpose.code
+    def purpose
+      @record.purpose && @record.purpose.code
     end
     
-    def orig_addr(trip)
-      trip.origin && trip.origin.address
+    def orig_addr
+      @record.origin && @record.origin.address
     end
     
-    def orig_lat(trip)
-      trip.origin && trip.origin.lat
+    def orig_lat
+      @record.origin && @record.origin.lat
     end
     
-    def orig_lng(trip)
-      trip.origin && trip.origin.lng
+    def orig_lng
+      @record.origin && @record.origin.lng
     end
     
-    def dest_addr(trip)
-      trip.destination && trip.destination.address
+    def dest_addr
+      @record.destination && @record.destination.address
     end
 
-    def dest_lat(trip)
-      trip.destination && trip.destination.lat
+    def dest_lat
+      @record.destination && @record.destination.lat
     end
     
-    def dest_lng(trip)
-      trip.destination && trip.destination.lng
+    def dest_lng
+      @record.destination && @record.destination.lng
     end
     
-    def selected_trip_type(trip)
-      trip.selected_itinerary && trip.selected_itinerary.trip_type
+    def selected_trip_type
+      @record.selected_itinerary && @record.selected_itinerary.trip_type
     end
 
   end

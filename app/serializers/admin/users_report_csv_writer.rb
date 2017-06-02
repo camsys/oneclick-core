@@ -5,24 +5,24 @@ module Admin
             :trips_planned, :language, :created_at
     associations :accommodations, :confirmed_eligibilities, :trips, :preferred_locale
     
-    def roles(user)
-      user.roles.present? ? user.roles.map {|r| r.name }.join(", ") : "traveler"
+    def roles
+      @record.roles.present? ? @record.roles.map {|r| r.name }.join(", ") : "traveler"
     end
     
-    def eligibilities(user)
-      user.confirmed_eligibilities.pluck(:code).join(', ')
+    def eligibilities
+      @record.confirmed_eligibilities.pluck(:code).join(', ')
     end
     
-    def accommodations(user)
-      user.accommodations.pluck(:code).join(', ')
+    def accommodations
+      @record.accommodations.pluck(:code).join(', ')
     end
     
-    def trips_planned(user)
-      user.trips.count
+    def trips_planned
+      @record.trips.count
     end
     
-    def language(user)
-      user.preferred_locale && user.preferred_locale.name
+    def language
+      @record.preferred_locale && @record.preferred_locale.name
     end
 
   end
