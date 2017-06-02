@@ -29,8 +29,10 @@ class CSVWriter
   # Configure inheriting classes by calling these methods in the class definition.
   # columns: This method is required. Must list all columns to include in the CSV.
   # associations: Optional. This will improve performance for columns that require table joins.
+  #               Use the name of the association as defined in the model.
   # header_names: Optional. Overwrite column headers with custom text.
-  ###
+  #               Use key-value pairs, like `ugly_col_name: "Pretty Column Name"`
+  ###################################
   
   # Config method for setting the columns to write to the file
   def self.columns(*cols)
