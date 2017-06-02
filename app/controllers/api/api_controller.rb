@@ -20,7 +20,7 @@ module Api
 
     # Renders a 401 failure response if authentication was not successful
     def require_authentication
-      failed_auth_response unless authentication_successful?
+      render_failed_auth_response unless authentication_successful?
     end
 
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
@@ -57,7 +57,7 @@ module Api
     end
 
     # Renders a failed user auth response
-    def failed_auth_response
+    def render_failed_auth_response
       render status: 401,
         json: json_response(:fail, data: {user: "Valid user email and token must be present."})
     end
@@ -66,6 +66,47 @@ module Api
     def authentication_successful?
       !!@traveler
     end
+    
+    
+    ### RESPONSE METHODS ###
+    # Based on JSend Specification
+    
+    # Renders a successful response, passing along a given object as data
+    def success_response(data={})
+      status = data.delete(:status) || 200
+      {
+        status: status,
+        json: {
+          status: "success",
+          data: data
+        }
+      }
+    end
+    
+    # Renders a failure response (client error), passing along a given object as data
+    def fail_response(data={})
+      status = data.delete(:status) || 400
+      {
+        status: status,
+        json: {
+          status: "fail",
+          data: data
+        }
+      }
+    end
+    
+    # Renders an error response (server error), passing along a given message
+    def error_response(message="Server Error", opts={})
+      status = opts.delete(:status) || 500
+      {
+        status: status,
+        json: {
+          status: "error",
+          message: message
+        }
+      }
+    end
+    
 
   end
 end
