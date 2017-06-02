@@ -2,7 +2,7 @@ class Admin::ReportsController < Admin::AdminController
   
   DOWNLOAD_TABLES = ['Trips', 'Users', 'Services']
   DASHBOARDS = ['Planned Trips']
-  GROUPINGS = [:day, :week, :month, :quarter, :year]
+  GROUPINGS = [:hour, :day, :week, :month, :quarter, :year]
   
   # sets @from_date and @to_date instance variables from params
   before_action :set_date_range, only: [:planned_trips_dashboard, :trips_table]
