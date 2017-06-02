@@ -1,14 +1,28 @@
 module Admin
   class UsersReportCSVWriter < CSVWriter
-    columns :email, :first_name, :last_name, :eligibilities, :accommodations
-    associations :accommodations, :confirmed_eligibilities
+    columns :email, :roles, :first_name, :last_name, 
+            :eligibilities, :accommodations,
+            :trips_planned, :language, :created_at
+    associations :accommodations, :confirmed_eligibilities, :trips, :preferred_locale
     
-    def eligibilities(user)
-      user.confirmed_eligibilities.pluck(:code).join(', ')
+    def roles
+      @record.roles.present? ? @record.roles.map {|r| r.name }.join(", ") : "traveler"
     end
     
-    def accommodations(user)
-      user.accommodations.pluck(:code).join(', ')
+    def eligibilities
+      @record.confirmed_eligibilities.pluck(:code).join(', ')
+    end
+    
+    def accommodations
+      @record.accommodations.pluck(:code).join(', ')
+    end
+    
+    def trips_planned
+      @record.trips.count
+    end
+    
+    def language
+      @record.preferred_locale && @record.preferred_locale.name
     end
 
   end

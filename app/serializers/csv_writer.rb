@@ -1,6 +1,22 @@
 # Inheritable class for writing records to CSV files
 class CSVWriter
   
+  ### HOW TO USE ###
+  # 1. Create a model-specific CSV Writer that inherits from this class.
+  # 2. Configure it using the class config methods below: list the columns,
+  #    associated tables, and custom header names.
+  # 3. Write methods for any columns that aren't simple record attributes.
+  #    These methods should have the same name as the column name defined
+  #    in the columns method. They may access the current record using the
+  #    @record instance variable, which is set for each new row to be written.
+  #    E.g. `def method_name { return @record.some_logic }`
+  # 4. In the model, configure it to use the CSV Writer by adding:
+  #    `write_to_csv with: MyModelCSVWriter`
+  #    This will allow the model to respond to `to_csv`
+  # 5. In the controller's respond_to block, download the CSV with something like:
+  #    `format.csv { send_data @records.to_csv }`
+  ##################
+  
   #################
   # CLASS METHODS #
   #################
@@ -13,8 +29,10 @@ class CSVWriter
   # Configure inheriting classes by calling these methods in the class definition.
   # columns: This method is required. Must list all columns to include in the CSV.
   # associations: Optional. This will improve performance for columns that require table joins.
+  #               Use the name of the association as defined in the model.
   # header_names: Optional. Overwrite column headers with custom text.
-  ###
+  #               Use key-value pairs, like `ugly_col_name: "Pretty Column Name"`
+  ###################################
   
   # Config method for setting the columns to write to the file
   def self.columns(*cols)
@@ -23,8 +41,8 @@ class CSVWriter
     # define a default one that calls that method on the passed record.
     cols.each do |col_name|
       unless method_defined?(col_name)
-        define_method(col_name) do |record|
-          record.send(col_name)
+        define_method(col_name) do
+          @record.send(col_name)
         end
       end
     end
@@ -72,7 +90,8 @@ class CSVWriter
       # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
         batch.all.each do |record|
-          csv << self.row_from(record)
+          @record = record  # Set record instance variable to the current record from the batch
+          csv << self.write_row
         end
       end
     end
@@ -91,9 +110,9 @@ class CSVWriter
     records.all.includes(self.class.associated_tables)
   end
     
-  # Builds a CSV row for one record
-  def row_from(record)
-    headers.keys.map{ |h| self.send(h, record) }
+  # Builds a CSV row for the current record
+  def write_row
+    headers.keys.map{ |h| self.send(h) }
   end
   
 end

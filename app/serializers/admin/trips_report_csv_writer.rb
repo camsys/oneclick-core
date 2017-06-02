@@ -3,39 +3,44 @@ module Admin
     
     columns :trip_time, :traveler, :arrive_by, :purpose,
             :orig_addr, :orig_lat, :orig_lng,
-            :dest_addr, :dest_lat, :dest_lng
-    associations :origin, :destination, :user
+            :dest_addr, :dest_lat, :dest_lng,
+            :selected_trip_type
+    associations :origin, :destination, :user, :selected_itinerary
 
-    def traveler(trip)
-      trip.user && trip.user.email
-    end
-
-    def purpose(trip)
-      trip.purpose && trip.purpose.code
-    end
-    
-    def orig_addr(trip)
-      trip.origin && trip.origin.address
-    end
-    
-    def orig_lat(trip)
-      trip.origin && trip.origin.lat
-    end
-    
-    def orig_lng(trip)
-      trip.origin && trip.origin.lng
-    end
-    
-    def dest_addr(trip)
-      trip.destination && trip.destination.address
+    def traveler
+      @record.user && @record.user.email
     end
 
-    def dest_lat(trip)
-      trip.destination && trip.destination.lat
+    def purpose
+      @record.purpose && @record.purpose.code
     end
     
-    def dest_lng(trip)
-      trip.destination && trip.destination.lng
+    def orig_addr
+      @record.origin && @record.origin.address
+    end
+    
+    def orig_lat
+      @record.origin && @record.origin.lat
+    end
+    
+    def orig_lng
+      @record.origin && @record.origin.lng
+    end
+    
+    def dest_addr
+      @record.destination && @record.destination.address
+    end
+
+    def dest_lat
+      @record.destination && @record.destination.lat
+    end
+    
+    def dest_lng
+      @record.destination && @record.destination.lng
+    end
+    
+    def selected_trip_type
+      @record.selected_itinerary && @record.selected_itinerary.trip_type
     end
 
   end
