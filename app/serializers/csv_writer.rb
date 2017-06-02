@@ -1,6 +1,22 @@
 # Inheritable class for writing records to CSV files
 class CSVWriter
   
+  ### HOW TO USE ###
+  # 1. Create a model-specific CSV Writer that inherits from this class.
+  # 2. Configure it using the class config methods below: list the columns,
+  #    associated tables, and custom header names.
+  # 3. Write methods for any columns that aren't simple record attributes.
+  #    These methods should have the same name as the column name defined
+  #    in the columns method. They may access the current record using the
+  #    @record instance variable, which is set for each new row to be written.
+  #    E.g. `def method_name { return @record.some_logic }`
+  # 4. In the model, configure it to use the CSV Writer by adding:
+  #    `write_to_csv with: MyModelCSVWriter`
+  #    This will allow the model to respond to `to_csv`
+  # 5. In the controller's respond_to block, download the CSV with something like:
+  #    `format.csv { send_data @records.to_csv }`
+  ##################
+  
   #################
   # CLASS METHODS #
   #################
