@@ -3,8 +3,9 @@ module Admin
     
     columns :trip_time, :traveler, :arrive_by, :purpose,
             :orig_addr, :orig_lat, :orig_lng,
-            :dest_addr, :dest_lat, :dest_lng
-    associations :origin, :destination, :user
+            :dest_addr, :dest_lat, :dest_lng,
+            :selected_trip_type
+    associations :origin, :destination, :user, :selected_itinerary
 
     def traveler(trip)
       trip.user && trip.user.email
@@ -36,6 +37,10 @@ module Admin
     
     def dest_lng(trip)
       trip.destination && trip.destination.lng
+    end
+    
+    def selected_trip_type(trip)
+      trip.selected_itinerary && trip.selected_itinerary.trip_type
     end
 
   end
