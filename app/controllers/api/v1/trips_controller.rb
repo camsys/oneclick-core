@@ -2,6 +2,7 @@ module Api
   module V1
     class TripsController < ApiController
       before_action :require_authentication, only: [:past_trips, :future_trips, :select, :cancel, :index]
+      before_action :current_or_guest_user, only: [:create] #If @traveler is not set, then create a guest user account
 
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
