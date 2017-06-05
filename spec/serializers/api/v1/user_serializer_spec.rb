@@ -38,5 +38,6 @@ RSpec.describe Api::V1::UserSerializer, type: :serializer do
   	expect(eng_traveler_serialization["accommodations"][0]["name"]).to eq('missing key accommodation_wheelchair_name')
     expect(eng_traveler_serialization["accommodations"][0]["note"]).to eq('missing key accommodation_wheelchair_note')
     expect(eng_traveler_serialization["accommodations"][0]["question"]).to eq('missing key accommodation_wheelchair_question')
+    expect(eng_traveler_serialization["accommodations"][0]["value"]).to eq true
   end
 end
