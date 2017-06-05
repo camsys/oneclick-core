@@ -23,6 +23,10 @@ FactoryGirl.define do
       preferred_trip_types ['transit', 'unicycle']
     end
 
+    factory :guest do 
+      email "guest_xxx@example.com"
+    end
+
     trait :needs_accommodation do
       after(:create) do |u|
         u.accommodations << create(:wheelchair)

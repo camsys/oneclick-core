@@ -38,12 +38,20 @@ module Api
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication
     def after_successful_token_authentication
-      @traveler = current_api_user  # Sets the @traveler variable to the current api user
+      @traveler = current_api_user # Sets the @traveler variable to the current api user
     end
 
     # Finds the User associated with auth headers.
     def current_api_user
       auth_headers ? User.find_by(auth_headers) : nil
+    end
+
+    # Ensure that a user object is created and loaded as @traveler
+    def current_or_guest_user
+      if @traveler.nil?
+        @traveler = create_guest_user
+      end
+      @traveler
     end
 
     # Returns a hash of authentication headers, or false if not present
@@ -107,6 +115,13 @@ module Api
       }
     end
     
+
+    def create_guest_user
+      u = User.create(first_name: "Guest", last_name: "User", email: "guest_#{Time.now.to_i}#{rand(100)}@example.com")
+      u.save!(:validate => false)
+      session[:guest_user_id] = u.id
+      u
+    end
 
   end
 end
