@@ -39,6 +39,6 @@ class Accommodation < ApplicationRecord
   	  name: self.name(locale.name),
       note: self.note(locale.name),
       question: self.question(locale.name)
-  	}
+    }
   end
 end
