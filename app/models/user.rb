@@ -62,6 +62,11 @@ class User < ApplicationRecord
     self.has_role? :admin
   end
 
+  # Check to see if the user is a guest traveler
+  def guest?
+    self.email.include? "@example.com"
+  end
+
   ### Update Profle from API Call ###
 
   def update_profile params

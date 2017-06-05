@@ -4,7 +4,7 @@ module Api
     class TripSerializer < ActiveModel::Serializer
 
       attributes  :id, :trip_id, :user_id, :arrive_by, :trip_time,
-                  :accommodations, :characteristics, :purposes
+                  :accommodations, :characteristics, :purposes, :new_guest_user
       has_many :itineraries
       belongs_to :origin
       belongs_to :destination
@@ -26,6 +26,15 @@ module Api
       # Get a list of relevant purposes
       def purposes
         object.relevant_purposes ? object.relevant_purposes.collect{ |tp| {name: tp.name, code: tp.code}} : []
+      end
+
+      # If this trip is a new guest user, return the email and token
+      def new_guest_user
+        if object.user.guest? and object.user.trips.count == 1
+          {email: object.user.email, authentication_token: object.user.authentication_token}
+        else
+          nil
+        end
       end
 
     end

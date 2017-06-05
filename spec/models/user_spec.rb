@@ -4,6 +4,7 @@ RSpec.describe User, type: :model do
 
   let!(:english_traveler) { FactoryGirl.create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
   let!(:traveler) { FactoryGirl.create :user }
+  let(:guest) { FactoryGirl.create :guest }
 
   it { should have_many :trips }
   it { should have_and_belong_to_many :accommodations }
@@ -48,5 +49,14 @@ RSpec.describe User, type: :model do
     expect(traveler.accommodations.where(code: "wheelchair").count).to eq(1)
     expect(traveler.accommodations.where(code: "jacuzzi").count).to eq(0)
   end
+
+  it 'is a guest' do
+    expect(guest.guest?).to be true
+  end
+
+  it 'is not a guest' do
+    expect(traveler.guest?).to be false
+  end
+
 
 end

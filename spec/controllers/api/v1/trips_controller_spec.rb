@@ -69,12 +69,24 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   # end
 
   it 'allows creation of trips by guest users' do
+    user_count = User.count
     post :create, params: plan_call_params
     response_body = JSON.parse(response.body)
 
     expect(response).to be_success
-    expect(response_body["user_id"]).to be_nil
+    expect(User.count).to eq(user_count+1)
+    expect(response_body["new_guest_user"]).to be
   end
+
+  it 'does not create a new guest user when a user is passed' do
+    user_count = User.count
+    request.headers.merge!(request_headers) # Send user email and token headers
+    post :create, params: plan_paratransit_call_without_purpose
+    response_body = JSON.parse(response.body)
+    expect(response).to be_success
+    expect(User.count).to eq(user_count)
+    expect(response_body["new_guest_user"]).to be_nil
+  end  
 
   it 'sends back itineraries' do
     # Stub out trip creation because itinerary planning happens in TripPlanner
