@@ -219,4 +219,14 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     expect(traveler.user_eligibilities.find_by(eligibility: over_65).value).to eq(true)
   end
 
+  it 'creates a new guest user command' do
+    user_count = User.count
+    get :get_guest_token
+    expect(response).to be_success
+    expect(User.count).to eq(user_count + 1)
+    parsed_response = JSON.parse(response.body)
+    expect(parsed_response["email"]).to be
+    expect(parsed_response["authentication_token"]).to be
+  end
+
 end
