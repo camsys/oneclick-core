@@ -50,6 +50,17 @@ RSpec.describe User, type: :model do
     expect(traveler.accommodations.where(code: "jacuzzi").count).to eq(0)
   end
 
+  #Depracated after api/v1
+  it 'updates_preferred_modes' do
+    params = {attributes: {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en"}, preferred_modes: ['recumbent_bicycle', 'roller_blades']}
+    traveler.update_profile params
+    expect(traveler.email).to eq('gpburdell@email.com')
+    expect(traveler.first_name).to eq('George')
+    expect(traveler.last_name).to eq('Burdell')
+    expect(traveler.locale).to eq(Locale.find_by(name: "en"))
+    expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
+  end
+
   it 'is a guest' do
     expect(guest.guest?).to be true
   end

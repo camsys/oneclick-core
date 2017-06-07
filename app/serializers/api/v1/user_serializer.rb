@@ -5,7 +5,7 @@ module Api
 
       attributes  :email, :first_name, :last_name,
                   :lang, :characteristics, :accommodations,
-                  :preferred_modes
+                  :preferred_modes, :preferred_trip_types
 
       # Returns name of preferred locale, or nil if not set
       def lang
@@ -26,9 +26,16 @@ module Api
         accs
       end
 
-      # Returns a list of the user's preferred trip types
+      # Returns a list of the user's preferred trip types (The old way [mode_bicycle, mode_paratransit, etc.])
+      # This format is depracated after api/v1
       def preferred_modes
-        object.preferred_trip_types
+        #Add mode_ onto the front of the mode name.  This is done to support existing API/v1 instances.  It has been depracated
+        object.preferred_trip_types.blank? ? [] : object.preferred_trip_types.map{ |m| "mode_#{m}"} 
+      end
+
+      # Returns preferred trip types (the new way [bicycle, paratransit, walk, etc.])
+      def preferred_trip_types
+        object.preferred_trip_types.blank? ? [] : object.preferred_trip_types
       end
 
     end
