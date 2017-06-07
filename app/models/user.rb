@@ -76,6 +76,7 @@ class User < ApplicationRecord
     update_basic_attributes params[:attributes] unless params[:attributes].nil?
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
     update_accommodations params[:accommodations] unless params[:accommodations].nil?
+    update_preferred_modes params[:preferred_modes] unless params[:preferred_modes].nil? #This is depracated after api/v1. Preferred Modes are updated as part of attributes
     return true
   end
 
@@ -122,6 +123,10 @@ class User < ApplicationRecord
 
     self.accommodations = user_accommodations
 
+  end
+
+  def update_preferred_modes params
+    self.preferred_trip_types = params.map{ |m| m.to_s.gsub('mode_',"")}
   end
 
   # Returns the user's (count) past trips, in descending order of trip time
