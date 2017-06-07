@@ -56,12 +56,18 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     parsed_response = JSON.parse(response.body)
     # There should be 2 preferred modes
     expect(parsed_response["preferred_modes"].count).to eq(2)
-    # transit should be preferred
-    expect('transit'.in? parsed_response["preferred_modes"]).to eq(true)
-    # unicycle should be preferred
-    expect('unicycle'.in? parsed_response["preferred_modes"]).to eq(true)
+    # transit should be preferred mode (Depracated after api/v1)
+    expect('mode_transit'.in? parsed_response["preferred_modes"]).to eq(true)
+    # transit should be preferred trip type
+    expect('transit'.in? parsed_response["preferred_trip_types"]).to eq(true)
+    # unicycle should be preferred (Depracated after api/v1)
+    expect('mode_unicycle'.in? parsed_response["preferred_modes"]).to eq(true)
+    # unicycle should be preferred trip type
+    expect('unicycle'.in? parsed_response["preferred_trip_types"]).to eq(true)
+    # it should not include car (Depracated after api/v1)
+    expect('mode_car'.in? parsed_response["preferred_modes"]).to eq(false)
     # it should not include car
-    expect('car'.in? parsed_response["preferred_modes"]).to eq(false)
+    expect('car'.in? parsed_response["preferred_trip_types"]).to eq(false)
   end
 
   it 'returns the users eligibilities' do

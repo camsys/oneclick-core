@@ -23,7 +23,8 @@ RSpec.describe Api::V1::UserSerializer, type: :serializer do
 
   it "serializes traveler's preferred language and modes" do
     expect(eng_traveler_serialization["lang"]).to eq(english_traveler.preferred_locale.name)
-    expect(eng_traveler_serialization["preferred_modes"].to_a).to eq(english_traveler.preferred_trip_types)
+    expect(eng_traveler_serialization["preferred_modes"].to_a).to eq(english_traveler.preferred_trip_types.map{ |m| "mode_#{m}"})
+    expect(eng_traveler_serialization["preferred_trip_types"].to_a).to eq(english_traveler.preferred_trip_types)
   end
 
   it 'returns the eligibilities_hash' do
