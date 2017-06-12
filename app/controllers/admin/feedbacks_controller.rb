@@ -1,7 +1,11 @@
 class Admin::FeedbacksController < Admin::AdminController
 
   def index
-    @feedbacks = Feedback.all
+    @feedbacks = Feedback.pending
+  end
+  
+  def acknowledged
+    @feedbacks = Feedback.acknowledged
   end
   
   def show

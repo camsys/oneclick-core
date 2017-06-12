@@ -8,7 +8,7 @@
 
   =static_form_group label: "Customer", value: @feedback.user
   =static_form_group label: "Subject", value: @feedback.subject
-  =static_form_group label: "Rating", value_html: rating_stars(@feedback.rating, wrapper_class: "form-control-static")
+  =static_form_group label: "Rating", value_html: @feedback.rating.present? ? rating_stars(@feedback.rating, wrapper_class: "form-control-static") : ""
   =static_form_group label: "Review", value: @feedback.review
 
 =content_for :footer do

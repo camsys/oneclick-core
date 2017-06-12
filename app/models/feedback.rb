@@ -12,6 +12,8 @@ class Feedback < ApplicationRecord
   ### SCOPES ###
   
   scope :general, -> { where(feedbackable_id: nil)}
+  scope :pending, -> { where(acknowledged: false) }
+  scope :acknowledged, -> { where(acknowledged: true) }
   
   
   ### VALIDATIONS ###
@@ -34,5 +36,16 @@ class Feedback < ApplicationRecord
   def subject
     feedbackable.try(:to_s) || default_subject
   end
+  
+  # Alias for acknowledged boolean attribute
+  def acknowledged?
+    acknowledged
+  end
+  
+  # Update acknowledged boolean to true
+  def acknowledge
+    update_attributes(acknowledged: true)
+  end
+  
   
 end
