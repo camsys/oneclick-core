@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170602145339) do
+ActiveRecord::Schema.define(version: 20170612130750) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -54,7 +54,9 @@ ActiveRecord::Schema.define(version: 20170602145339) do
     t.integer  "commentable_id"
     t.datetime "created_at",       null: false
     t.datetime "updated_at",       null: false
+    t.integer  "commenter_id"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id", using: :btree
+    t.index ["commenter_id"], name: "index_comments_on_commenter_id", using: :btree
   end
 
   create_table "configs", force: :cascade do |t|
@@ -111,7 +113,7 @@ ActiveRecord::Schema.define(version: 20170602145339) do
     t.integer  "feedbackable_id"
     t.integer  "user_id"
     t.integer  "rating"
-    t.text     "comment"
+    t.text     "review"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
     t.index ["feedbackable_type", "feedbackable_id"], name: "index_feedbacks_on_feedbackable_type_and_feedbackable_id", using: :btree
@@ -322,6 +324,7 @@ ActiveRecord::Schema.define(version: 20170602145339) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "schedules", "services"

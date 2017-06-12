@@ -3,7 +3,7 @@ class Service < ApplicationRecord
   ### INCLUDES ###
   mount_uploader :logo, LogoUploader
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
-  include Commentable
+  include Commentable # has_many :comments
   include FareHelper
   include FareHelper::ZoneFareable
   include GeoKitchen
@@ -26,6 +26,7 @@ class Service < ApplicationRecord
   ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type
   validates_with FareValidator # For validating fare_structure and fare_details
+  validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
 
   ##########
   # SCOPES #

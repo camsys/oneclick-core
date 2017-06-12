@@ -1,9 +1,10 @@
 class Feedback < ApplicationRecord
-  
-  ### ASSOCIATIONS ###
+    
+  ### INCLUDES & ASSOCIATIONS ###
   
   belongs_to :feedbackable, polymorphic: true
   belongs_to :user
+  include Commentable # has_many :comments
   
   
   ### SCOPES ###
@@ -17,5 +18,6 @@ class Feedback < ApplicationRecord
                                      greater_than_or_equal_to: 0, 
                                      less_than_or_equal_to: 5,
                                      allow_nil: true }
+  validates_comment_commenter_presence
   
 end
