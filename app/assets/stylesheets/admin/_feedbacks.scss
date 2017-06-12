@@ -1,0 +1,9 @@
+@import 'variables';
+
+.rating-stars {
+  white-space: nowrap;
+  
+  .text-muted {
+    color: $gray-pale;
+  }
+}

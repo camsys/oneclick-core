@@ -15,10 +15,7 @@
           =feedback.feedbackable.try(:name) || "General"
         %td
           -if feedback.rating.present?
-            -feedback.rating.times do
-              %span.glyphicon.glyphicon-star{"aria-hidden" => true}
-            -(5 - feedback.rating).times do
-              %span.glyphicon.glyphicon-star-empty.text-muted{"aria-hidden" => true}
+            =rating_stars(feedback.rating)
         %td
           =truncate(feedback.review, length: 50)
         %td

@@ -1,0 +1,21 @@
+=content_for :header do
+  Feedback Details
+  
+= simple_form_for @feedback, 
+    url: admin_feedback_path(@feedback), 
+    html: {class: 'form-horizontal', multipart: true, method: :post, id: form_id_from_path }, 
+    authenticity_token: true do |f|
+
+  =static_form_group label: "Customer", value: @feedback.user
+  =static_form_group label: "Subject", value: @feedback.subject
+  =static_form_group label: "Rating", value_html: rating_stars(@feedback.rating, wrapper_class: "form-control-static")
+  =static_form_group label: "Review", value: @feedback.review
+
+=content_for :footer do
+  .btn.btn-primary.form-submit Acknowledge & Comment
+  .btn.btn-danger.form-reset Cancel
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });
