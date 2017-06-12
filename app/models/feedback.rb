@@ -1,4 +1,6 @@
 class Feedback < ApplicationRecord
+  
+  DEFAULT_SUBJECT = "General"
     
   ### INCLUDES & ASSOCIATIONS ###
   
@@ -19,5 +21,18 @@ class Feedback < ApplicationRecord
                                      less_than_or_equal_to: 5,
                                      allow_nil: true }
   validates_comment_commenter_presence
+  
+  
+  ### METHODS ###
+  
+  # If no feedbackable is present, what is the feedback about?
+  def default_subject
+    DEFAULT_SUBJECT
+  end
+  
+  # Returns a description of what the feedback is about
+  def subject
+    feedbackable.try(:to_s) || default_subject
+  end
   
 end

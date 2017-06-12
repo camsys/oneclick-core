@@ -94,6 +94,7 @@ Rails.application.routes.draw do
     resources :accommodations, :only => [:index, :destroy, :create]
     resources :purposes, :only => [:index, :destroy, :create]
     resources :services, :only => [:index, :destroy, :create, :show, :update]
+    resources :feedbacks, :only => [:index, :show, :update]
     
     resources :reports, only: [:index] do
       collection do

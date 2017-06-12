@@ -1,0 +1,34 @@
+=content_for :title do
+  Customer Feedback
+
+%table.table.table-hover.feedbacks-table
+  %thead.thead-default
+    %tr
+      %th Service
+      %th Rating
+      %th Review
+      %th Customer
+  %tbody
+    -@feedbacks.each do |feedback|
+      %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
+        %td
+          =feedback.feedbackable.try(:name) || "General"
+        %td
+          -if feedback.rating.present?
+            -feedback.rating.times do
+              %span.glyphicon.glyphicon-star{"aria-hidden" => true}
+            -(5 - feedback.rating).times do
+              %span.glyphicon.glyphicon-star-empty.text-muted{"aria-hidden" => true}
+        %td
+          =truncate(feedback.review, length: 50)
+        %td
+          =feedback.user.try(:email)
+
+:javascript
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('.feedbacks-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });

@@ -1,32 +1,35 @@
 .row
-  .col-md-3.text-center
-    %h3
-      =link_to "Accommodations", admin_accommodations_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Configuration", admin_configs_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Eligibilities", admin_eligibilities_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Geographies", admin_geographies_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Landmarks", admin_landmarks_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Purposes", admin_purposes_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Reports", admin_reports_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Services", admin_services_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Staff", admin_users_path
-  .col-md-3.text-center
-    %h3
-      =link_to "Translations", simple_translation_engine.translations_path
-
+  -@admin_pages.each do |page|
+    .col-md-3.text-center
+      %h3
+        =link_to page[:label], page[:url]
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Accommodations", admin_accommodations_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Configuration", admin_configs_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Eligibilities", admin_eligibilities_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Geographies", admin_geographies_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Landmarks", admin_landmarks_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Purposes", admin_purposes_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Reports", admin_reports_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Services", admin_services_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Staff", admin_users_path
+  -# .col-md-3.text-center
+  -#   %h3
+  -#     =link_to "Translations", simple_translation_engine.translations_path

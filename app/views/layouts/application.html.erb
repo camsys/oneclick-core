@@ -32,36 +32,12 @@
             <% if current_user and current_user.admin? %>
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Utilities<span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li>
-                  <%= link_to "Accommodations", admin_accommodations_path %>
-                </li>
-                <li>
-                  <%= link_to "Configuration", admin_configs_path %>
-                </li>
-                <li>
-                  <%= link_to "Eligibilities", admin_eligibilities_path %>
-                </li>
-                <li>
-                  <%= link_to "Geographies", admin_geographies_path %>
-                </li>
-                <li>
-                  <%= link_to "Landmarks", admin_landmarks_path %>
-                </li>
-                <li>
-                  <%= link_to "Purposes", admin_purposes_path %>
-                </li>
-                <li>
-                  <%= link_to "Reports", admin_reports_path %>
-                </li>
-                <li>
-                  <%= link_to "Services", admin_services_path %>
-                </li>
-                <li>
-                  <%= link_to "Staff", admin_users_path %>
-                </li>
-                <li>
-                  <%= link_to "Translations", simple_translation_engine.translations_path %>
-                </li>
+                <%- @admin_pages.each do |page| %>
+                  <li>
+                    <%= link_to page[:label], page[:url] %>
+                  </li>
+                <% end %>
+
                 <li role="separator" class="divider"></li>
                 <li>
                   <%= link_to('Logout', destroy_user_session_path, :method => :delete) %>  

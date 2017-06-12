@@ -22,7 +22,7 @@ module Api
           :feedbackable_id,
           :feedbackable_type,
           :rating,
-          :comment
+          :review
         )
       end
       

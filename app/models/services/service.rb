@@ -121,6 +121,10 @@ class Service < ApplicationRecord
   # INSTANCE METHODS #
   ####################
   
+  def to_s
+    name
+  end
+  
   def as_csv(options={})
     attributes.slice('name')
   end
