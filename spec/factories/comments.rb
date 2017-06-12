@@ -12,5 +12,9 @@ FactoryGirl.define do
       comment "Bonjour"
       locale "fr"
     end
+    
+    trait :with_commenter do
+      commenter
+    end
   end
 end

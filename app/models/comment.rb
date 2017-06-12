@@ -9,6 +9,7 @@ class Comment < ApplicationRecord
   belongs_to :commenter, class_name: "User"
   alias_method :user, :commenter # Can user comment.user or comment.commenter
 
+
   ### VALIDATIONS ###
 
   # There should only be one comment per locale for each commentable item (OPTIONAL)
@@ -16,6 +17,7 @@ class Comment < ApplicationRecord
   
   # User commenter must be present
   validates :commenter, presence: true, if: :commentable_validates_commenter_presence
+  
   
   ### METHODS ###
   

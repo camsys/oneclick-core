@@ -1,7 +1,7 @@
 FactoryGirl.define do
   factory :feedback do
     user
-    comment "Pretty good, would use again."
+    review "Pretty good, would use again."
     rating 4
     
     factory :service_feedback do
