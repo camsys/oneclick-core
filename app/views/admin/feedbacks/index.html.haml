@@ -1,0 +1,7 @@
+=content_for :title do
+  Pending Customer Feedback
+
+=render partial: "feedbacks_table"
+
+.text-center
+  =link_to "View Acknowledged Feedback", acknowledged_admin_feedbacks_path, method: :get, class: 'btn btn-lg btn-link'

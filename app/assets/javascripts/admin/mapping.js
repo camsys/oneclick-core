@@ -1,5 +1,12 @@
 // The M object holds utility methods for mapping and manipulating geographies
 var M = {
+  
+  tileLayerUrls: {
+    osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    watercolor: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
+    toner: 'http://tile.stamen.com/toner/{z}/{x}/{y}.png',
+    cartocdn: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+  },
 
   // Colors for drawing map layers
   colors: [
@@ -10,13 +17,102 @@ var M = {
   ],
 
   recipes: {},
+  
+  // Sets up a Leaflet.js map with default settings
+  setupMap: function(divId, opts={}) {
+    var map = L.map(divId);
+    var viewCenter = opts.viewCenter || [42.355, -71.066];
+    var viewZoom = opts.viewZoom || 10;
+    var tileLayer = opts.tileLayer || 'osm';
+    
+    map.setView(viewCenter, viewZoom);
+    
+    L.tileLayer(
+      M.tileLayerUrls[tileLayer],
+      { attribution: 'Map data © OpenStreetMap contributors', maxZoom: 18 }
+    ).addTo(map);
+    
+    map.scrollWheelZoom.disable();
+    
+    return map;
+  },
+  
+  // Returns a function for building properly scaled point objects
+  buildPointScalingFunction: function(valMin, valMax, sizeMin, sizeMax) {
+    return function(value) {
+      console.log("BUILDING SCALED POINT FOR", value);
+      console.log("BASED ON: ", valMin, valMax, sizeMin, sizeMax);
+      var size = ( (sizeMax - sizeMin) / (valMax - valMin) ) * (value - valMin) + sizeMin;
+      
+      return new L.Point(size, size);
+    }
+  },
+  
+  // Draws scaled circles on the passed map, based on the dataset provided.
+  // Dataset must be an array of objects with a label, value, and point key
+  drawScaledCircles: function(mapObj, regions, opts={}) {
+    
+    // OPTIONS
+    var showPopups = ('showPopups' in opts) ? opts.showPopups : false;
+    var showLabels = ('showLabels' in opts) ? opts.showLabels : true;
+    var minSize = ('scaleRange' in opts) ? opts.scaleRange[0] : 20;
+    var maxSize = ('scaleRange' in opts) ? opts.scaleRange[1] : 100;
+    
+    var regionVals = regions.map(function(r) { return r.value; });
+    var minVal = Math.min.apply(Math, regionVals);
+    var maxVal = Math.max.apply(Math, regionVals);
+    var scalePointForRange = M.buildPointScalingFunction(minVal,maxVal,minSize,maxSize);
+    
+    regions.forEach(function(region) {
+      
+      // if (region.geom) {
+      //   M.drawPoly(mapObj, region.geom, {color: 'gray', weight: 1, className: 'region-poly'});
+      // }
+      
+      var iconSize = scalePointForRange(region.value);
+      
+      var marker = L.marker(region.point, {
+        icon: L.divIcon({
+          className: 'point-icon',
+          iconSize: iconSize,
+          html: '<div class="point-icon-body"><div class="point-icon-label"><label>' + region.label + ':  </label>' + region.value + '</div></div>'
+        })
+      }).addTo(mapObj);
+      
+      if(showPopups) {
+        marker.bindPopup(region.label, { offset: new L.Point(0,-10)})
+        .on('mouseover', function(e) {
+          this.openPopup();
+        })
+        .on('mouseout', function(e) {
+          this.closePopup();
+        });
+      }
+      
+    });
+    
+    // if(showLabels) {
+    //   $('.point-icon').mouseenter(function(e) {
+    //     $(this).css({ marginTop: '-=5px'});
+    //   });
+    //   $('.point-icon').mouseout(function(e) {
+    //     $(this).css({ marginTop: '+=5px'});
+    //   });
+    // }
+    
 
-  // Draw service areas onto the map
-  drawMaps: function(layers) {
+  },
+
+  drawPoly: function(mapObj, layer, opts={}) {
+    return L.polygon(layer, opts).addTo(mapObj);
+  },
+
+  // Draw service area polygons onto the map
+  drawMaps: function(mapObj, layers) {
     layers.forEach(function(layer, i) {
       if(layer != null && layer.length > 0) {
-        var poly = L.polygon(layer, {color: M.colors[i]}).addTo(map);
-        map.fitBounds(poly.getBounds());
+        var poly = M.drawPoly(mapObj, layer, { color: M.colors[i]});
+        mapObj.fitBounds(poly.getBounds());
       }
     });
   },

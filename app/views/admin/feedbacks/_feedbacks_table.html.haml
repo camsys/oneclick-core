@@ -1,0 +1,31 @@
+%table.table.table-hover.feedbacks-table
+  %thead.thead-default
+    %tr
+      %th Date
+      %th Service
+      %th Rating
+      %th Review
+      %th Customer
+  %tbody
+    -@feedbacks.each do |feedback|
+      %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
+        %td.text-nowrap
+          =feedback.created_at.strftime("%Y-%m-%d")
+        %td
+          =feedback.feedbackable.try(:name) || "General"
+        %td
+          -if feedback.rating.present?
+            =rating_stars(feedback.rating)
+        %td
+          =truncate(feedback.review, length: 50)
+        %td
+          =feedback.user.try(:email)
+
+:javascript
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('.feedbacks-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
