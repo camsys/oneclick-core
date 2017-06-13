@@ -25,12 +25,12 @@ class Comment < ApplicationRecord
   
   # Tests if the commentable model validates uniquess by locales
   def commentable_validates_uniqueness_by_locale
-    commentable.validates_comment_uniqueness_by_locale?
+    commentable.try(:validates_comment_uniqueness_by_locale?)
   end
   
   # Tests if the commentable model validates commenter presence
   def commentable_validates_commenter_presence
-    commentable.validates_comment_commenter_presence?
+    commentable.try(:validates_comment_commenter_presence?)
   end
 
 end

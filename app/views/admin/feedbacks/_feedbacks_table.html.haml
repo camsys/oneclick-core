@@ -1,6 +1,7 @@
 %table.table.table-hover.feedbacks-table
   %thead.thead-default
     %tr
+      %th Date
       %th Service
       %th Rating
       %th Review
@@ -8,6 +9,8 @@
   %tbody
     -@feedbacks.each do |feedback|
       %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
+        %td.text-nowrap
+          =feedback.created_at.strftime("%Y-%m-%d")
         %td
           =feedback.feedbackable.try(:name) || "General"
         %td

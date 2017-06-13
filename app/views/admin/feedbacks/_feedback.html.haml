@@ -3,19 +3,54 @@
   
 = simple_form_for @feedback, 
     url: admin_feedback_path(@feedback), 
-    html: {class: 'form-horizontal', multipart: true, method: :post, id: form_id_from_path }, 
+    html: {class: 'form-horizontal', multipart: true, method: :patch, id: form_id_from_path }, 
     authenticity_token: true do |f|
 
+  =static_form_group label: "Date", value: @feedback.created_at
   =static_form_group label: "Customer", value: @feedback.user
   =static_form_group label: "Subject", value: @feedback.subject
-  =static_form_group label: "Rating", value_html: @feedback.rating.present? ? rating_stars(@feedback.rating, wrapper_class: "form-control-static") : ""
+  -if @feedback.rating.present?
+    =static_form_group label: "Rating", value_html: rating_stars(@feedback.rating, wrapper_class: "form-control-static")
+  -else
+    =static_form_group label: "Rating", value: ""
   =static_form_group label: "Review", value: @feedback.review
+  
+  %hr
+  
+  =f.input :acknowledged, as: :hidden, input_html: {class: "acknowledge-feedback"}
+  -if @feedback.acknowledged?
+    %h4.text-center Feedback has been acknowledged
+    =static_form_group label: "Acknowledged On", value: @acknowledgement_comment.created_at
+    =static_form_group label: "Acknowledged By", value: @acknowledgement_comment.commenter.to_s
+    =static_form_group label: "Comment", value: @acknowledgement_comment.comment
+  -else
+    %h4.text-center Acknowledge Feedback
+    =f.simple_fields_for :acknowledgement_comment, @acknowledgement_comment do |c_f|
+      =c_f.input :commenter_id, as: :hidden
+      =c_f.input :locale, as: :hidden
+      =c_f.input :comment, label: "Acknowledgement Comment", as: :text, input_html: {class: "acknowledgement-comment"}
+  
 
 =content_for :footer do
-  .btn.btn-primary.form-submit Acknowledge & Comment
-  .btn.btn-danger.form-reset Cancel
+  -if @feedback.acknowledged?
+    .btn.btn-primary.reopen-button Reopen
+  -else
+    .btn.btn-primary.acknowledge-button Acknowledge & Comment
+
 
 :javascript
   $(document).ready(function() {
-    new FormHandler($('#{form_selector_from_id}'));
+    var form = $('#{form_selector_from_id}');
+  
+    // When Acknowledge and Comment button clicked, check the acknowledge box and submit the form
+    $('.acknowledge-button').click(function() {
+      $('.acknowledge-feedback').val(true);
+      form.submit();
+    });
+    
+    // When Reopen button clicked, check the acknowledge box and submit the form
+    $('.reopen-button').click(function() {
+      $('.acknowledge-feedback').val(false);
+      form.submit();
+    });
   });

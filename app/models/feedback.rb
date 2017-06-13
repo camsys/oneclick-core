@@ -7,13 +7,15 @@ class Feedback < ApplicationRecord
   belongs_to :feedbackable, polymorphic: true
   belongs_to :user
   include Commentable # has_many :comments
-  
+  has_one :acknowledgement_comment, class_name: "Comment", as: :commentable
+  accepts_nested_attributes_for :acknowledgement_comment
   
   ### SCOPES ###
   
   scope :general, -> { where(feedbackable_id: nil)}
-  scope :pending, -> { where(acknowledged: false) }
-  scope :acknowledged, -> { where(acknowledged: true) }
+  scope :newest_first, -> { order(created_at: :desc) }
+  scope :pending, -> { where(acknowledged: false).newest_first }
+  scope :acknowledged, -> { where(acknowledged: true).newest_first }
   
   
   ### VALIDATIONS ###
@@ -42,10 +44,7 @@ class Feedback < ApplicationRecord
     acknowledged
   end
   
-  # Update acknowledged boolean to true
-  def acknowledge
-    update_attributes(acknowledged: true)
-  end
+  
   
   
 end
