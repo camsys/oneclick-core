@@ -16,5 +16,11 @@ FactoryGirl.define do
     trait :with_commenter do
       commenter
     end
+    
+    factory :acknowledgement_comment do
+      comment "I acknowledged this feedback"
+      locale "en"
+      commenter
+    end
   end
 end
