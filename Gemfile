@@ -90,6 +90,9 @@ gem 'leaflet-rails' # For embedding maps
 gem 'em-http-request'
 ############################################
 
+### ReferNET 211 API Tools #################
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet'
+############################################
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
