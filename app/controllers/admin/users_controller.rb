@@ -28,6 +28,10 @@ class Admin::UsersController < Admin::AdminController
     redirect_to admin_users_path
   end
 
+  def edit
+    @user = User.find(params[:id])
+  end
+
   private
 
   def user_params

@@ -143,7 +143,9 @@ Rails.application.routes.draw do
     resources :services, :only => [:index, :destroy, :create, :show, :update]
 
     # Users
-    resources :users, :only => [:index, :create, :destroy]
+    resources :users, :only => [:index, :create, :destroy, :edit, :update]
+
+
 
   end #Admin
 

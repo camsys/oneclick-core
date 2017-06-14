@@ -1,0 +1,11 @@
+=content_for :header do
+  ="Edit User"
+=content_for :body do
+  = f.input :email, required: true, :as => :string
+  = f.input :first_name, required: false, :as => :string
+  = f.input :last_name, required: false, :as => :string
+  = f.input :password, required: true, :as => :password
+  = f.input :password_confirmation, required: true, :as => :password
+
+=content_for :footer do
+  = f.button :submit, "OK"#, class: 'btn action-button btn-primary', role: 'button'r
