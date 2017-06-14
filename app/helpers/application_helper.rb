@@ -36,5 +36,33 @@ module ApplicationHelper
   def remote_form_input
     "<input class='hidden' name='partial_path' type'text' value='#{partial_path}'>".html_safe
   end
+  
+  # Renders a bootstrap form group with static text
+  def static_form_group(options={})
+    ("<div class='form-group'>" +
+      "<label class='col-sm-3 control-label'>" +
+        (options[:label_html] || options[:label].to_s) +
+      "</label>" +
+      "<div class='col-sm-9'>" +
+        ( 
+          options[:value_html] ||
+          "<p class='form-control-static'>" + options[:value].to_s + "</p>"
+        ) +
+      "</div>" +
+    "</div>").html_safe
+  end
+  
+  # Renders a pretty 0-5 star rating bar
+  def rating_stars(n, opts={})
+    out_of = opts[:out_of] || 5
+    wrapper_class = opts[:wrapper_class] || ""
+    
+    html = "<div class='rating-stars #{wrapper_class}'>"
+    n.times { html << "<span class='glyphicon glyphicon-star'></span>" }
+    (out_of - n).times { html << "<span class='glyphicon glyphicon-star-empty text-muted'></span>" }
+    html << "</div>"
+    
+    html.html_safe
+  end
 
 end

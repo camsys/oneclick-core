@@ -12,14 +12,16 @@
     =r.input :recipe, as: :hidden,
       input_html: { value: @service.trip_within_area.recipe.to_json }
 
-  = map(center: { latlng: [42, -71], zoom: 5 })
+  -# div for holding the service area map
+  #map
 
 :javascript
   $(document).ready(function() {
+    var map = M.setupMap('map');
 
     var fh = new FormHandler($('#{form_selector_from_id}'));
 
-    M.drawMaps([
+    M.drawMaps(map, [
       #{@service.trip_within_area && @service.trip_within_area.geom_to_array}
     ]);
 

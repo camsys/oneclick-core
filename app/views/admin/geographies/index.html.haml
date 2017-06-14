@@ -33,16 +33,16 @@
   .col-md-3
     %h2 Counties
     =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @counties}
+      locals: {columns: [:name, :state], records: @counties, class: "table-sm"}
   .col-md-3
     %h2 Cities
     =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @cities}
+      locals: {columns: [:name, :state], records: @cities, class: "table-sm"}
   .col-md-3
     %h2 Zipcodes
     =render partial: '/shared/record_table',
-      locals: {columns: [:name], records: @zipcodes}
+      locals: {columns: [:name], records: @zipcodes, class: "table-sm"}
   .col-md-3
     %h2 Custom
     =render partial: '/shared/record_table',
-      locals: {columns: [:name], records: @custom_geographies}
+      locals: {columns: [:name], records: @custom_geographies, class: "table-sm"}

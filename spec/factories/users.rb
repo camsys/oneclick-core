@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :user do
+  factory :user, aliases: [:commenter] do
     sequence(:email) {|i| "test_user_#{i}@camsys.com" }
     password "welcome1"
     password_confirmation "welcome1"

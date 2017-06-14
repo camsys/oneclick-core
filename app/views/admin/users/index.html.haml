@@ -1,16 +1,17 @@
 =content_for :title do
   Staff
 %table.table
-  %tr
-    %th
-      Last Name
-    %th
-      First Name
-    %th
-      Email
-    %th
-      Last Signed In
-    %th
+  %thead.thead-default
+    %tr
+      %th
+        Last Name
+      %th
+        First Name
+      %th
+        Email
+      %th
+        Last Signed In
+      %th
       
   -@staff.each do |member|
     %tr
