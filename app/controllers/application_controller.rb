@@ -1,7 +1,8 @@
 class ApplicationController < ActionController::Base
+  
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  protected
+  private
 
   # Allow additional sign_up parameters beyond email, password
   def configure_permitted_parameters
