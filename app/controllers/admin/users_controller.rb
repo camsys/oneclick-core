@@ -32,6 +32,17 @@ class Admin::UsersController < Admin::AdminController
     @user = User.find(params[:id])
   end
 
+  def update
+
+    #We need to pull out the password and password_confirmation and handle them separately
+    update_params = user_params
+    password = update_params.delete(:password)
+    password_confirmation = update_params.delete(:password_confirmation)
+
+    @user = User.find(params[:id])
+    @user.update_attributes(update_params)
+  end
+
   private
 
   def user_params
