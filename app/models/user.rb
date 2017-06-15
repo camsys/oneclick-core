@@ -14,6 +14,8 @@ class User < ApplicationRecord
   ### Scopes ###
   scope :staff, -> { User.with_role(:admin) }
   scope :admins, -> { User.with_role(:admin) }
+  scope :guests, -> { User.where(GuestUserHelper.new.query_str) }
+  scope :registered, -> { User.where.not(GuestUserHelper.new.query_str) }
 
   ### Associations ###
   has_many :trips
@@ -69,7 +71,7 @@ class User < ApplicationRecord
 
   # Check to see if the user is a guest traveler
   def guest?
-    self.email.include? "@example.com"
+    GuestUserHelper.new.is_guest_email?(email)
   end
 
   ### Update Profle from API Call ###
