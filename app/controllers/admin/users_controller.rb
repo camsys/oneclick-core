@@ -33,7 +33,6 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def update
-
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
     password = update_params.delete(:password)
