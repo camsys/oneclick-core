@@ -11,6 +11,11 @@ FactoryGirl.define do
       after(:create) {|u| u.add_role("admin")}
     end
 
+    factory :another_admin do 
+      email "another_admin_user@camsys.com"
+      after(:create) {|u| u.add_role("admin")}
+    end
+
     factory :password_typo_user do
       password_confirmation "welcome2"
     end
