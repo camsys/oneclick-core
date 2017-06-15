@@ -4,5 +4,13 @@
 = simple_form_for @user, url: admin_user_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
   =render partial: 'edit_user', layout: '/layouts/panel', locals: {f: f}
 
+
 .text-center
   =link_to "Back", admin_users_path, method: :get, class: 'btn btn-lg btn-link'
+
+%br
+%br
+%br
+.text-center
+  -unless @user == current_user
+    =button_to 'Delete User', admin_user_path(@user), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
