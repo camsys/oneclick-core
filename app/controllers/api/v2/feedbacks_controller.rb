@@ -1,5 +1,5 @@
 module Api
-  module V1
+  module V2
     class FeedbacksController < ApiController
             
       # POST /api/v1/feedbacks
@@ -8,7 +8,7 @@ module Api
         if authentication_successful?
           @feedback = @traveler.feedbacks.build(feedback_params) # Builds a feedback belonging to the logged-in user
         else
-          @feedback = Feedback.new
+          @feedback = Feedback.new(feedback_params)
         end
         
         if @feedback.save # Render a success response only if feedback saves successfully
@@ -25,7 +25,9 @@ module Api
           :feedbackable_id,
           :feedbackable_type,
           :rating,
-          :review
+          :review,
+          :email,
+          :phone
         )
       end
       

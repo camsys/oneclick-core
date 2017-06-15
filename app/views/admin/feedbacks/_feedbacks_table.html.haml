@@ -5,7 +5,7 @@
       %th Service
       %th Rating
       %th Review
-      %th Customer
+      %th Contact
   %tbody
     -@feedbacks.each do |feedback|
       %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
@@ -19,7 +19,7 @@
         %td
           =truncate(feedback.review, length: 50)
         %td
-          =feedback.user.try(:email)
+          =feedback.contact
 
 :javascript
   $(document).ready(function() {
