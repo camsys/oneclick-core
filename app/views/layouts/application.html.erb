@@ -42,8 +42,12 @@
 
                   <li role="separator" class="divider"></li>
                   <li>
+                    <%= link_to('My Profile', edit_admin_user_path(current_user), :method => :get) %>  
+                  </li>
+                  <li>
                     <%= link_to('Logout', destroy_user_session_path, :method => :delete) %>  
                   </li>
+
 
                 </ul>
               <% end %>
