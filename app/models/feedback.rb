@@ -44,6 +44,23 @@ class Feedback < ApplicationRecord
     acknowledged
   end
   
+  # Return's the contact email or phone
+  def contact
+    [contact_email, contact_phone].compact.join(', ')
+    # {email: contact_email, phone: contact_phone}.compact.map do |k,v|
+    #   "#{k}: #{v}"
+    # end.join(",  ")
+  end
+  
+  # Returns the feedback's email, or the associated user's email
+  def contact_email
+    email || user.try(:email)
+  end
+  
+  # Returns the feedback's phone, or the associated user's phone
+  def contact_phone
+    phone || user.try(:phone)
+  end
   
   
   

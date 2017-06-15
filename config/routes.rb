@@ -5,12 +5,8 @@ Rails.application.routes.draw do
   ### JSON API ###
   namespace :api do
 
-
     ### API V1 (LEGACY) ###
     namespace :v1 do
-      
-      # Feedbacks
-      resources :feedbacks, only: [:create]
       
       # Places
       resources :places do
@@ -60,6 +56,9 @@ Rails.application.routes.draw do
 
     ### API V2 ###
     namespace :v2 do
+      
+      # Feedbacks
+      resources :feedbacks, only: [:create]
       
       # Users
       devise_scope :user do

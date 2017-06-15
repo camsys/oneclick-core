@@ -7,7 +7,7 @@
     authenticity_token: true do |f|
 
   =static_form_group label: "Date", value: @feedback.created_at
-  =static_form_group label: "Customer", value: @feedback.user
+  =static_form_group label: "Contact", value: @feedback.contact
   =static_form_group label: "Subject", value: @feedback.subject
   -if @feedback.rating.present?
     =static_form_group label: "Rating", value_html: rating_stars(@feedback.rating, wrapper_class: "form-control-static")

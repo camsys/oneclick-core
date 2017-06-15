@@ -1,17 +1,20 @@
 module Api
-  module V1
+  module V2
     class FeedbacksController < ApiController
-      
-      before_action :require_authentication, only: [:create]
-      
+            
       # POST /api/v1/feedbacks
       # Create a feedback for the logged in user
       def create
-        feedback = @traveler.feedbacks.build(feedback_params) # Builds a feedback belonging to the logged-in user
-        if feedback.save # Render a success response only if feedback saves successfully
+        if authentication_successful?
+          @feedback = @traveler.feedbacks.build(feedback_params) # Builds a feedback belonging to the logged-in user
+        else
+          @feedback = Feedback.new(feedback_params)
+        end
+        
+        if @feedback.save # Render a success response only if feedback saves successfully
           render(success_response(message: "Feedback successfully created"))
         else
-          render(fail_response(errors: feedback.errors.to_h))
+          render(fail_response(errors: @feedback.errors.to_h))
         end
       end
       
@@ -22,7 +25,9 @@ module Api
           :feedbackable_id,
           :feedbackable_type,
           :rating,
-          :review
+          :review,
+          :email,
+          :phone
         )
       end
       
