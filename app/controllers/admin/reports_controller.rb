@@ -5,7 +5,12 @@ class Admin::ReportsController < Admin::AdminController
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year]
   
   # sets @from_date and @to_date instance variables from params
-  before_action :set_date_range, only: [:planned_trips_dashboard, :trips_table]
+  before_action :set_filters, only: [
+    :planned_trips_dashboard, 
+    :trips_table, 
+    :users_table, 
+    :services_table
+  ]
   
   def index
     @download_tables = DOWNLOAD_TABLES
@@ -50,6 +55,9 @@ class Admin::ReportsController < Admin::AdminController
   
   def users_table
     @users = User.all
+    @users = @users.registered unless @include_guests
+    @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
+    @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
     
     respond_to do |format|
       format.csv { send_data @users.to_csv }
@@ -74,17 +82,32 @@ class Admin::ReportsController < Admin::AdminController
   
   protected
   
-  def set_date_range
+  def set_filters
     @from_date = params[:from_date].blank? ? nil : Date.parse(params[:from_date])
     @to_date = params[:to_date].blank? ? nil : Date.parse(params[:to_date])
+    @include_guests = params[:include_guests].to_i == 1
+    @accommodations = params[:accommodations].to_a.select {|a| !a.blank? }.map(&:to_i)
+    @eligibilities = params[:eligibilities].to_a.select {|e| !e.blank? }.map(&:to_i)
   end
   
   def download_table_params
-    params.require(:download_table).permit(:table_name, :from_date, :to_date)
+    params.require(:download_table).permit(
+      :table_name, 
+      :from_date, 
+      :to_date,
+      :include_guests,
+      {accommodations: []},
+      {eligibilities: []}
+    )
   end
   
   def dashboard_params
-    params.require(:dashboard).permit(:dashboard_name, :from_date, :to_date, :grouping)
+    params.require(:dashboard).permit(
+      :dashboard_name, 
+      :from_date, 
+      :to_date, 
+      :grouping
+    )
   end
 
 end

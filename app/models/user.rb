@@ -16,6 +16,13 @@ class User < ApplicationRecord
   scope :admins, -> { User.with_role(:admin) }
   scope :guests, -> { User.where(GuestUserHelper.new.query_str) }
   scope :registered, -> { User.where.not(GuestUserHelper.new.query_str) }
+  scope :with_accommodations, -> (accommodation_ids) do
+    User.joins(:accommodations).where(accommodations: { id: accommodation_ids })
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    User.joins(:eligibilities).where(eligibilities: { id: eligibility_ids })
+  end
+
 
   ### Associations ###
   has_many :trips

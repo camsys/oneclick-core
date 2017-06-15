@@ -1,0 +1,26 @@
+-# GUEST USERS FILTER
+=f.input :include_guests, required: false,
+  wrapper: :checkbox_wrapper,
+  as: :boolean, label: "Include Guest Users?"
+
+-# ACCOMMODATIONS
+= f.input :accommodations, required: false,
+    collection: Accommodation.all, 
+    as: :check_boxes, 
+    label_method: :code, 
+    value_method: :id
+      
+-# ELIGIBILITIES
+= f.input :eligibilities, required: false,
+    collection: Eligibility.all, 
+    as: :check_boxes, 
+    label_method: :code, 
+    value_method: :id
+
+-# TRIP PLANNED DURING DATE RANGE
+=f.input :from_date, required: false,
+  input_html: {class: 'datepicker'}, 
+  as: :string, label: "From Date"
+=f.input :to_date, required: false,
+  input_html: {class: 'datepicker'}, 
+  as: :string, label: "To Date"
