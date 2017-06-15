@@ -1,9 +1,8 @@
 =content_for :title do
   = "#{@user.first_name} #{@user.last_name}".strip
 
-= simple_form_for @user, url: admin_user_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
-  =render partial: 'edit_user', layout: '/layouts/panel', locals: {f: f}
 
+=render partial: 'edit_user', layout: '/layouts/panel'
 
 .text-center
   =link_to "All Staff", admin_users_path, method: :get, class: 'btn btn-lg btn-link'

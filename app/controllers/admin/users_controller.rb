@@ -12,7 +12,7 @@ class Admin::UsersController < Admin::AdminController
   	new_user = User.create(user_params)
   	role ? new_user.roles << role : nil
   	if new_user.errors.empty?
-      flash[:success] = 'Created ' + new_user.email
+      flash[:success] = "Created #{new_user.first_name} #{new_user.last_name}"
     else
       flash[:danger] = new_user.errors.first.join(' ') unless new_user.errors.empty?
     end
@@ -25,6 +25,7 @@ class Admin::UsersController < Admin::AdminController
   def destroy
     @user = User.find(params[:id])
     @user.destroy
+    flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
     redirect_to admin_users_path
   end
 
@@ -39,7 +40,23 @@ class Admin::UsersController < Admin::AdminController
     password_confirmation = update_params.delete(:password_confirmation)
 
     @user = User.find(params[:id])
+    
+    unless password.blank?
+      @user.update_attributes(password: password, password_confirmation: password_confirmation)
+    end
     @user.update_attributes(update_params)
+
+    if @user.errors.empty?
+      flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
+    else
+      flash[:danger] = @user.errors.first.join(' ') 
+    end
+
+    respond_to do |format|
+      format.js
+      format.html {redirect_to admin_users_path}
+    end
+
   end
 
   private

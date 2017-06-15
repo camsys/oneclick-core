@@ -1,11 +1,21 @@
 =content_for :header do
   ="Edit User"
-=content_for :body do
+
+=simple_form_for @user,
+  url: admin_user_path, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+
+  =remote_form_input
+
   = f.input :email, required: true, :as => :string
   = f.input :first_name, required: false, :as => :string
   = f.input :last_name, required: false, :as => :string
   = f.input :password, required: true, :as => :password
   = f.input :password_confirmation, required: true, :as => :password
 
-=content_for :footer do
-  = f.button :submit, "OK"
+
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });
