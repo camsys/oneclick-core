@@ -108,9 +108,15 @@ namespace :db do
       ).load
     end
 
+    desc "Feedback Samples"
+    task feedback: :environment do
+      Feedback.create(rating: 3, review: "OCC is meh", user: User.first)
+      Feedback.create(rating: 5, review: "OCC is GREAT!!!", user: User.first)
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config]
+                :services, :config, :feedback]
 
   end
 end
