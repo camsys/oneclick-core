@@ -4,7 +4,7 @@ namespace :qa do
     task landmarks: :environment do
 
       landmarks = [
-                   {name: "Cambridge Systematics", street_number: "201", route: "Station Landing",
+                   {name: "Cambridge Systematics", street_number: "101", route: "Station Landing",
                    city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"},
 
                    {name: "Fenway Park", street_number: "4", route: "Yawkey Way",
