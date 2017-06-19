@@ -35,4 +35,9 @@ module EligibilityAccommodationHelper
     SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_question")
   end
 
+  # set translations e.g.,  locale="en", object="name", value="medical"
+  def set_translation(locale, translation, value)
+    SimpleTranslationEngine.set_translation(locale, "#{self.class.name.downcase}_#{self.code}_#{translation}", value)
+  end
+
 end
