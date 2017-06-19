@@ -10,7 +10,7 @@
       %th Question
       
   -@purposes.each do |purpose|
-    %tr{style: "cursor: pointer", data: {url: 'http://www.google.com'}}
+    %tr{style: "cursor: pointer", data: {url: edit_admin_purpose_path(purpose)}}
       %td
         =purpose.code
       %td

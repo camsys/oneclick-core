@@ -16,6 +16,14 @@ class Admin::PurposesController < Admin::AdminController
   	redirect_to admin_purposes_path
   end
 
+  def edit
+    @purpose = Purpose.find(params[:id])
+  end
+
+  def update
+    puts params.ai
+  end
+
   private
 
   def purpose_params

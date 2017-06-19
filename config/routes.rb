@@ -124,7 +124,7 @@ Rails.application.routes.draw do
     end
 
     # Purposes
-    resources :purposes, :only => [:index, :destroy, :create]
+    resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
 
     # Reports
     resources :reports, only: [:index] do
