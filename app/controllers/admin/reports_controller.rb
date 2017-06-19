@@ -58,6 +58,8 @@ class Admin::ReportsController < Admin::AdminController
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
+    @users = @users.joins(:trips).merge(Trip.from_date(@user_active_from_date)) if @user_active_from_date
+    @users = @users.joins(:trips).merge(Trip.to_date(@user_active_to_date)) if @user_active_to_date
     
     respond_to do |format|
       format.csv { send_data @users.to_csv }
@@ -83,11 +85,19 @@ class Admin::ReportsController < Admin::AdminController
   protected
   
   def set_filters
-    @from_date = params[:from_date].blank? ? nil : Date.parse(params[:from_date])
-    @to_date = params[:to_date].blank? ? nil : Date.parse(params[:to_date])
+    
+    # TRIPS FILTERS
+    @from_date = parse_date_param(params[:from_date])
+    @to_date = parse_date_param(params[:to_date])
     @include_guests = params[:include_guests].to_i == 1
+    
+    # USERS FILTERS
     @accommodations = params[:accommodations].to_a.select {|a| !a.blank? }.map(&:to_i)
     @eligibilities = params[:eligibilities].to_a.select {|e| !e.blank? }.map(&:to_i)
+    @user_active_from_date = parse_date_param(params[:user_active_from_date])
+    @user_active_to_date = parse_date_param(params[:user_active_to_date])
+    
+    # SERVICES FILTERS
   end
   
   def download_table_params
@@ -97,7 +107,9 @@ class Admin::ReportsController < Admin::AdminController
       :to_date,
       :include_guests,
       {accommodations: []},
-      {eligibilities: []}
+      {eligibilities: []},
+      :user_active_from_date,
+      :user_active_to_date
     )
   end
   
@@ -108,6 +120,11 @@ class Admin::ReportsController < Admin::AdminController
       :to_date, 
       :grouping
     )
+  end
+  
+  # Parses date param, or returns nil if param is blank
+  def parse_date_param(date_param)
+    date_param.blank? ? nil : Date.parse(date_param)
   end
 
 end
