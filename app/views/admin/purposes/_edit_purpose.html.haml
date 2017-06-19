@@ -7,9 +7,12 @@
 
   =remote_form_input
 
-  = f.input :name, required: true, :as => :string
-  = f.input :note, required: false, :as => :text
-  = f.input :question, required: false, :as => :text
+  -I18n.available_locales.each do |locale|
+    %h3.text-center
+      =locale
+    = f.input "#{locale}_name", label:"Name", :as => :string
+    = f.input "#{locale}_note", label:"Note", :as => :text
+    = f.input "#{locale}_question", label:"Question", :as => :text
 
 :javascript
   $(document).ready(function() {
