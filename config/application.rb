@@ -16,7 +16,7 @@ module OneclickCore
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.time_zone = 'Eastern Time (US & Canada)'
+    config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
     config.i18n.available_locales = [:en, :es]
     config.i18n.default_locale = :en
 
