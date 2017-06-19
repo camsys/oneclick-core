@@ -1,7 +1,33 @@
 =content_for :title do
   Purposes
 
-=render partial: 'purpose', layout: '/layouts/panel', collection: @purposes
+%table.table.table-hover#purpose-table
+  %thead.thead-default
+    %tr
+      %th Code
+      %th Name
+      %th Note
+      %th Question
+      
+  -@purposes.each do |purpose|
+    %tr{style: "cursor: pointer", data: {url: 'http://www.google.com'}}
+      %td
+        =purpose.code
+      %td
+        =purpose.name
+      %td
+        =purpose.note
+      %td
+        =purpose.question
 
 = simple_form_for @new_purpose, url: admin_purposes_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_purpose', layout: '/layouts/new_record_panel', locals: {f: f}
+
+:javascript
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('#purpose-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
