@@ -118,6 +118,11 @@ var M = {
   },
 
   // Recipe object factory for manipulating recipe model data
+  // Takes as params a hash with the following required keys:
+  //   container: a jQuery object referring to the wrapper div for the region-builder partial
+  //   recipeInput: a jQuery object referring to the hidden input field for the recipe
+  //   searchPath: a path for making autocomplete api calls.
+  //   ingredientLabelTag: HTML for a div to populate for each ingredient label added to the builder.
   Recipe: function(params) {
     this.container = params.container;
     this._input = this.container.find('.region-input');

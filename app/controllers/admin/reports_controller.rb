@@ -67,7 +67,8 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = Trip.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+    # @trips = 
     
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
@@ -86,25 +87,33 @@ class Admin::ReportsController < Admin::AdminController
   
   def set_filters
     
-    # TRIPS FILTERS
-    @from_date = parse_date_param(params[:from_date])
-    @to_date = parse_date_param(params[:to_date])
-    @include_guests = params[:include_guests].to_i == 1
+    # TRIP FILTERS
+    @trip_time_from_date = parse_date_param(params[:trip_time_from_date])
+    @trip_time_to_date = parse_date_param(params[:trip_time_to_date])
+    @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
+    @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe]) 
     
-    # USERS FILTERS
+    # USER FILTERS
+    @include_guests = params[:include_guests].to_i == 1
     @accommodations = params[:accommodations].to_a.select {|a| !a.blank? }.map(&:to_i)
     @eligibilities = params[:eligibilities].to_a.select {|e| !e.blank? }.map(&:to_i)
     @user_active_from_date = parse_date_param(params[:user_active_from_date])
     @user_active_to_date = parse_date_param(params[:user_active_to_date])
     
-    # SERVICES FILTERS
+    # SERVICE FILTERS
   end
   
   def download_table_params
     params.require(:download_table).permit(
       :table_name, 
-      :from_date, 
-      :to_date,
+      
+      # TRIP FILTERS
+      :trip_time_from_date, 
+      :trip_time_to_date,
+      :trip_origin_recipe,
+      :trip_destination_recipe,
+      
+      # USER FILTERS
       :include_guests,
       {accommodations: []},
       {eligibilities: []},

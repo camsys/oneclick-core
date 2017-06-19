@@ -60,7 +60,7 @@ class ShapefileUploader
 
   def load_shapefile(shp_name)
     Rails.logger.info "Reading Shapes into #{@model.to_s} Table..."
-    RGeo::Shapefile::Reader.open(shp_name, { :assume_inner_follows_outer => true }) do |shapefile|
+    RGeo::Shapefile::Reader.open(shp_name, { assume_inner_follows_outer: true, srid: Config.srid }) do |shapefile|
       fail_count = 0
       shapefile.each do |shape|
         attrs = {}

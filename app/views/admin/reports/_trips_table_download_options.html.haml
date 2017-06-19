@@ -1,7 +1,26 @@
 -# TRIP PLANNED DATE RANGE
-=f.input :from_date, required: false,
+=f.input :trip_time_from_date, required: false,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "From Date"
-=f.input :to_date, required: false,
+=f.input :trip_time_to_date, required: false,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "To Date"
+
+-# TRIP ORIGIN REGION BUILDER
+=render partial: 'admin/services/region_builder',
+  locals: { wrapper_id: 'trip-origin-recipe', label_text: "Filter by trips originating in this area:"}
+=f.input :trip_origin_recipe, as: :hidden,
+  input_html: { value: '[]'}
+
+:javascript
+  $(document).ready(function() {
+
+    var tripOriginRecipe = new M.Recipe({
+      container: $('#trip-origin-recipe'),
+      recipeInput: $('#download_table_trip_origin_recipe'),
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
+    });
+
+
+  });

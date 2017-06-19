@@ -115,6 +115,7 @@ Rails.application.routes.draw do
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
     post 'custom_geographies' => 'geographies#upload_custom_geographies'
+    get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
     resources :landmarks, :only => [:index] do

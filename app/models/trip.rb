@@ -39,6 +39,8 @@ class Trip < ApplicationRecord
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
 
+  # Geographic scopes return trips that start or end in the passed geom
+  scope :origin_in, -> (geom) { all }
 
   ### CLASS METHODS ###
 
