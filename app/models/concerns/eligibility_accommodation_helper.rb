@@ -1,5 +1,19 @@
 module EligibilityAccommodationHelper
 
+  def self.included(base)
+
+  	# This block of code creates the following helpers
+  	# en_name, es_name, en_note, es_note, etc. 
+  	I18n.available_locales.each do |locale|
+  	  ["to_label", "name", "note", "question"].each do |custom_method|
+        define_method("#{locale}_#{custom_method}") do
+          self.send(custom_method, locale)
+        end
+      end
+    end
+  
+  end
+
   def snake_casify
   	 self.code = self.code.parameterize.underscore
   end

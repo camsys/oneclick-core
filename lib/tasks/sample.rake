@@ -116,7 +116,7 @@ namespace :db do
 
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config, :feedback]
+                :services, :config, :test_geographies, :feedback]
 
   end
 end
