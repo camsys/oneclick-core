@@ -1,7 +1,0 @@
-=content_for :header do
-  =purpose.code
-
-= render :partial => 'shared/translations', :locals => { object: purpose }
-
-=content_for :footer do
-  =button_to 'Delete', admin_purpose_path(purpose), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}

@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: d3a7d2c2b62b932f037612fc9b6ee0b430a3bc8c
+  revision: 42b9e5a8d7360a0981d91bdfea0393e98ce1d8bd
   specs:
     simple_translation_engine (1.0.0)
       pg
