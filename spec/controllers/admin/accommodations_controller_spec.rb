@@ -4,6 +4,7 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
 
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }
+  let(:jacuzzi) { FactoryGirl.create :jacuzzi }
 
   it 'gets a list of all accommodations' do
     sign_in admin
@@ -37,6 +38,18 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
 
     # Confirm that the code was set to snake case
     expect(Accommodation.last.code).to eq('test_accommodation')
+
+  end
+
+  it 'updates the translations' do
+    sign_in admin
+    params = {id: jacuzzi.id, accommodation: {en_name: 'new name', en_note: 'new note', en_question: 'new question'}}
+
+    patch :update, params: params, format: :html
+
+    expect(jacuzzi.name).to eq('new name')
+    expect(jacuzzi.note).to eq('new note')
+    expect(jacuzzi.question).to eq('new question')
 
   end
 

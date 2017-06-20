@@ -4,6 +4,7 @@ RSpec.describe Admin::PurposesController, type: :controller do
 
   let!(:admin) { FactoryGirl.create :admin }
   let!(:non_admin) { FactoryGirl.create :user }
+  let(:metallica_concert) { FactoryGirl.create :metallica_concert }
   
   it 'gets a list of all purposes' do
     sign_in admin
@@ -42,6 +43,18 @@ RSpec.describe Admin::PurposesController, type: :controller do
 
   end
 
+  it 'updates the translations' do
+    sign_in admin
+    params = {id: metallica_concert.id, purpose: {en_name: 'new name', en_note: 'new note', en_question: 'new question'}}
+
+    patch :update, params: params, format: :html
+
+    expect(metallica_concert.name).to eq('new name')
+    expect(metallica_concert.note).to eq('new note')
+    expect(metallica_concert.question).to eq('new question')
+
+  end
+
   it 'creates and destroys a purpose' do 
     # Clean up any old purposes
     Purpose.delete_all
@@ -62,5 +75,7 @@ RSpec.describe Admin::PurposesController, type: :controller do
     # Confirm that there are no eligibilities
     expect(Purpose.count).to eq(0)
   end
+
+
 
 end
