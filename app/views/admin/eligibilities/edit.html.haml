@@ -1,0 +1,15 @@
+=content_for :title do
+  = @eligibility.code
+
+
+=render partial: 'edit_eligibility', layout: '/layouts/panel'
+
+.text-center
+  =link_to "All Eligibilities", admin_eligibilities_path, method: :get, class: 'btn btn-lg btn-link'
+
+
+%br
+%br
+%br
+.text-center
+  =button_to 'Delete', admin_eligibility_path(@eligibility), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}

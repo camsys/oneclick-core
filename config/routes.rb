@@ -100,7 +100,7 @@ Rails.application.routes.draw do
     end
 
     # Eligibilities
-    resources :eligibilities, :only => [:index, :destroy, :create]
+    resources :eligibilities, :only => [:index, :destroy, :create, :edit, :update]
 
     # Feedbacks
     resources :feedbacks, :only => [:index, :show, :update] do

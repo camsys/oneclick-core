@@ -1,7 +1,33 @@
 =content_for :title do
   Eligibilities
 
-=render partial: 'eligibility', layout: '/layouts/panel', collection: @eligibilities
+%table.table.table-hover#eligibility-table
+  %thead.thead-default
+    %tr
+      %th Code
+      %th Name
+      %th Note
+      %th Question
+      
+  -@eligibilities.each do |eligibility|
+    %tr{style: "cursor: pointer", data: {url: edit_admin_eligibility_path(eligibility)}}
+      %td
+        =eligibility.code
+      %td
+        =eligibility.name
+      %td
+        =eligibility.note
+      %td
+        =eligibility.question
 
 = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_eligibility', layout: '/layouts/new_record_panel', locals: {f: f}
+
+:javascript
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('#eligibility-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
