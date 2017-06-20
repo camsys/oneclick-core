@@ -21,7 +21,13 @@ class Admin::PurposesController < Admin::AdminController
   end
 
   def update
-    puts params.ai
+    @purpose = Purpose.find(params[:id])
+    translations = params[:purpose]
+    translations.each do |translation, value|
+      @purpose.set_translation(translation.split('_').first, translation.split('_').last, value)
+    end
+    flash[:success] = "Translations Updated"
+    redirect_to edit_admin_purpose_path(@purpose)
   end
 
   private
