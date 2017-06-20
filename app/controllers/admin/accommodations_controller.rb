@@ -16,6 +16,20 @@ class Admin::AccommodationsController < Admin::AdminController
   	redirect_to admin_accommodations_path
   end
 
+  def edit
+    @accommodation = Accommodation.find(params[:id])
+  end
+
+  def update
+    @accommodation = Accommodation.find(params[:id])
+    translations = params[:accommodation]
+    translations.each do |translation, value|
+      @accommodation.set_translation(translation.split('_').first, translation.split('_').last, value)
+    end
+    flash[:success] = "Translations Updated"
+    redirect_to edit_admin_accommodation_path(@accommodation)
+  end
+
   private
 
   def accommodation_params

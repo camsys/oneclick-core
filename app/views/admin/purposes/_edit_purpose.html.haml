@@ -1,0 +1,20 @@
+=content_for :header do
+  ="Edit Purpose Translations"
+
+=simple_form_for @purpose,
+  url: admin_purpose_path, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+
+  =remote_form_input
+
+  -I18n.available_locales.each do |locale|
+    %h3.text-center
+      =locale
+    = f.input "#{locale}_name", label:"Name", :as => :string
+    = f.input "#{locale}_note", label:"Note", :as => :text
+    = f.input "#{locale}_question", label:"Question", :as => :text
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });

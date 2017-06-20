@@ -88,7 +88,7 @@ Rails.application.routes.draw do
     get '/' => 'admin#index'
 
     # Accommodations
-    resources :accommodations, :only => [:index, :destroy, :create]
+    resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
 
     # Configs
     resources :configs, :only => [:index] do
@@ -100,7 +100,7 @@ Rails.application.routes.draw do
     end
 
     # Eligibilities
-    resources :eligibilities, :only => [:index, :destroy, :create]
+    resources :eligibilities, :only => [:index, :destroy, :create, :edit, :update]
 
     # Feedbacks
     resources :feedbacks, :only => [:index, :show, :update] do
@@ -124,7 +124,7 @@ Rails.application.routes.draw do
     end
 
     # Purposes
-    resources :purposes, :only => [:index, :destroy, :create]
+    resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
 
     # Reports
     resources :reports, only: [:index] do
