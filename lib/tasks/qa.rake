@@ -19,6 +19,21 @@ namespace :qa do
       end
     end
 
+    desc "Setup Sample Users"
+    task users: :environment do
+      
+      users = [
+                {first_name: "Test User 1", last_name: "Test", email: "test_user_1@camsys.com", 
+                 password: "welcome1", password_confirmation: "welcome1"},
+                {first_name: "Test User 2", last_name: "Test", email: "test_user_2@camsys.com", 
+                 password: "welcome1", password_confirmation: "welcome1"}
+              ]
+
+      users.each do |user|
+        User.where(email: user[:email]).first_or_create!(user)
+      end
+    end
+
     desc "Setup Sample Eligibilities"
     task eligibilities: :environment do
       eligs = [
@@ -115,7 +130,7 @@ namespace :qa do
     end
 
     #Load all sample data
-    task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
+    task all: [ :landmarks, :users, :eligibilities, :accommodations, :purposes,
                 :services, :config, :feedback]
 
   end
