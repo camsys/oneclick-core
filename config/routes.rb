@@ -88,7 +88,7 @@ Rails.application.routes.draw do
     get '/' => 'admin#index'
 
     # Accommodations
-    resources :accommodations, :only => [:index, :destroy, :create]
+    resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
 
     # Configs
     resources :configs, :only => [:index] do
