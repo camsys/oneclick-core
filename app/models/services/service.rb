@@ -107,6 +107,19 @@ class Service < ApplicationRecord
     :available_by_schedule_for,
     :available_by_start_or_end_area_for, :available_by_trip_within_area_for
 
+    
+  ## Reporting Filter Scopes ##
+  
+  # Accommodation, Eligibility, and Purpose scopes filter by services that have one or more of the passed ids
+  scope :with_accommodations, -> (accommodation_ids) do
+    where(id: joins(:accommodations).where(accommodations: {id: accommodation_ids}).pluck(:id).uniq)
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    where(id: joins(:eligibilities).where(eligibilities: {id: eligibility_ids}).pluck(:id).uniq)
+  end
+  scope :with_purposes, -> (purpose_ids) do
+    where(id: joins(:purposes).where(purposes: {id: purpose_ids}).pluck(:id).uniq)
+  end
 
   #################
   # CLASS METHODS #

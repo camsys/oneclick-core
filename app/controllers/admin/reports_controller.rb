@@ -67,8 +67,11 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    @trips = Trip.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    # @trips = 
+    @trips = Trip.all
+    @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+    @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
+    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
+    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
@@ -77,6 +80,11 @@ class Admin::ReportsController < Admin::AdminController
 
   def services_table
     @services = Service.all
+    @services = @services.where(type: @service_type) unless @service_type.blank?
+    @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?
+    @services = @services.with_eligibilities(@eligibilities) unless @eligibilities.empty?
+    @services = @services.with_purposes(@purposes) unless @purposes.empty?
+
     
     respond_to do |format|
       format.csv { send_data @services.to_csv }
@@ -90,17 +98,23 @@ class Admin::ReportsController < Admin::AdminController
     # TRIP FILTERS
     @trip_time_from_date = parse_date_param(params[:trip_time_from_date])
     @trip_time_to_date = parse_date_param(params[:trip_time_to_date])
+    @purposes = parse_id_list(params[:purposes])
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
-    @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe]) 
+    @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
     
     # USER FILTERS
-    @include_guests = params[:include_guests].to_i == 1
-    @accommodations = params[:accommodations].to_a.select {|a| !a.blank? }.map(&:to_i)
-    @eligibilities = params[:eligibilities].to_a.select {|e| !e.blank? }.map(&:to_i)
+    @include_guests = parse_bool(params[:include_guests])
+    @accommodations = parse_id_list(params[:accommodations])
+    @eligibilities = parse_id_list(params[:eligibilities])
     @user_active_from_date = parse_date_param(params[:user_active_from_date])
     @user_active_to_date = parse_date_param(params[:user_active_to_date])
     
     # SERVICE FILTERS
+    @service_type = params[:service_type]
+    # @accommodations = parse_id_list(params[:accommodations])
+    # @eligibilities = parse_id_list(params[:eligibilities])
+    # @purposes = parse_id_list(params[:purposes])
+    
   end
   
   def download_table_params
@@ -112,13 +126,19 @@ class Admin::ReportsController < Admin::AdminController
       :trip_time_to_date,
       :trip_origin_recipe,
       :trip_destination_recipe,
+      {purposes: []},
       
       # USER FILTERS
       :include_guests,
       {accommodations: []},
       {eligibilities: []},
       :user_active_from_date,
-      :user_active_to_date
+      :user_active_to_date,
+      
+      # SERVICE FILTERS
+      :service_type
+      # {accommodations: []},
+      # {eligibilities: []},
     )
   end
   
@@ -134,6 +154,16 @@ class Admin::ReportsController < Admin::AdminController
   # Parses date param, or returns nil if param is blank
   def parse_date_param(date_param)
     date_param.blank? ? nil : Date.parse(date_param)
+  end
+  
+  # Parses a list of ids, removing blanks and converting to integers
+  def parse_id_list(id_list_param)
+    id_list_param.to_a.select {|el| !el.blank? }.map(&:to_i)
+  end
+  
+  # Parses a boolean string, either "true", "false", "1", or "0"
+  def parse_bool(bool_param)
+    bool_param.try(:to_bool) || (bool_param.try(:to_i) == 1)
   end
 
 end

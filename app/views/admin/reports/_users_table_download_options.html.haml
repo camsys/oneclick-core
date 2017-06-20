@@ -8,14 +8,16 @@
     collection: Accommodation.all, 
     as: :check_boxes, 
     label_method: :code, 
-    value_method: :id
+    value_method: :id,
+    label: "Accommodations Needed"
       
 -# ELIGIBILITIES
 = f.input :eligibilities, required: false,
     collection: Eligibility.all, 
     as: :check_boxes, 
     label_method: :code, 
-    value_method: :id
+    value_method: :id,
+    label: "Eligibility Requirements Met"
 
 -# TRIP PLANNED DURING DATE RANGE
 =f.input :user_active_from_date, required: false,
