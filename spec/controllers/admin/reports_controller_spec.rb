@@ -12,6 +12,8 @@ RSpec.describe Admin::ReportsController, type: :controller do
     end
   end
   
+  let(:from_date) { (Date.today - 3.months) }
+  let(:to_date) { Date.today }
   
   
   ### DASHBOARDS ###
@@ -19,15 +21,15 @@ RSpec.describe Admin::ReportsController, type: :controller do
   describe 'dashboards' do
     
     describe 'planned trips dashboard' do
-      
+                  
       # Filter params cover a daily range from 3 months ago to today.
       let(:date_filter_params) { { 
-        from_date: (Date.today - 3.months).to_s, 
-        to_date: Date.today.to_s, 
+        from_date: from_date.to_s, 
+        to_date: to_date.to_s, 
         grouping: :day 
       } }
     
-      it 'redirects to dashboard page' do
+      it 'redirects to dashboard page' do        
         params = { dashboard: { dashboard_name: 'Planned Trips' } }
         post :dashboard, params: params
         
@@ -37,16 +39,16 @@ RSpec.describe Admin::ReportsController, type: :controller do
       
       it 'assigns appropriate filter params' do
         get :planned_trips_dashboard, params: date_filter_params
-        expect(assigns(:from_date)).to eq(Date.parse(filter_params[:from_date]))
-        expect(assigns(:to_date)).to eq(Date.parse(filter_params[:to_date]))
-        expect(assigns(:grouping)).to eq(filter_params[:grouping].to_s)
+        expect(assigns(:from_date)).to eq(Date.parse(date_filter_params[:from_date]))
+        expect(assigns(:to_date)).to eq(Date.parse(date_filter_params[:to_date]))
+        expect(assigns(:grouping)).to eq(date_filter_params[:grouping].to_s)
       end
       
       it 'filters trips by date' do
         get :planned_trips_dashboard, params: date_filter_params
         
         # Date range from 3 months ago to today should contain 4 trips (includes fencepost days)
-        expect(assigns(:trips).count).to eq(4)
+        expect(assigns(:trips).count).to eq(Trip.from_date(from_date).to_date(to_date).count)
       end
       
     end
@@ -102,8 +104,6 @@ RSpec.describe Admin::ReportsController, type: :controller do
       end
       
       it 'filters by date range' do
-        from_date = (Date.today - 3.months)
-        to_date = Date.today
         params = {
           trip_time_from_date: from_date.to_s, 
           trip_time_to_date: to_date.to_s

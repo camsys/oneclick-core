@@ -241,7 +241,7 @@ class Service < ApplicationRecord
 
   # Helper scope constructs a contains query based on region association name and a geometry
   scope :region_contains, -> (geom) do
-    where("ST_Contains(regions.geom, ?)", geom.to_s)
+    where("ST_Contains(regions.geom, ?)", geom)
   end
 
   # Helper scope constructs a query for empty regions

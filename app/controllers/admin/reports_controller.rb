@@ -4,13 +4,17 @@ class Admin::ReportsController < Admin::AdminController
   DASHBOARDS = ['Planned Trips']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year]
   
-  # sets @from_date and @to_date instance variables from params
-  before_action :set_filters, only: [
-    :planned_trips_dashboard, 
+  # Set filters on Dashboards
+  before_action :set_dashboard_filters, only: [
+    :planned_trips_dashboard
+  ]
+  
+  # Set filters on CSV table downloads
+  before_action :set_download_table_filters, only: [
     :trips_table, 
     :users_table, 
     :services_table
-  ]
+  ]  
   
   def index
     @download_tables = DOWNLOAD_TABLES
@@ -31,8 +35,6 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def planned_trips_dashboard
-    @grouping = params[:grouping]
-
     @trips = Trip.from_date(@from_date).to_date(@to_date)
   end
   
@@ -93,7 +95,7 @@ class Admin::ReportsController < Admin::AdminController
   
   protected
   
-  def set_filters
+  def set_download_table_filters
     
     # TRIP FILTERS
     @trip_time_from_date = parse_date_param(params[:trip_time_from_date])
@@ -114,6 +116,15 @@ class Admin::ReportsController < Admin::AdminController
     # @accommodations = parse_id_list(params[:accommodations])
     # @eligibilities = parse_id_list(params[:eligibilities])
     # @purposes = parse_id_list(params[:purposes])
+    
+  end
+  
+  def set_dashboard_filters
+    
+    # PLANNED TRIPS FILTERS
+    @from_date = parse_date_param(params[:from_date])
+    @to_date = parse_date_param(params[:to_date])
+    @grouping = params[:grouping]
     
   end
   
