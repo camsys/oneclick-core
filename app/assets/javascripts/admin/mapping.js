@@ -20,6 +20,7 @@ var M = {
   
   // Sets up a Leaflet.js map with default settings
   setupMap: function(divId, opts) {
+    var opts = opts || {};
     var map = L.map(divId);
     var viewCenter = opts.viewCenter || [42.355, -71.066];
     var viewZoom = opts.viewZoom || 10;
@@ -51,6 +52,8 @@ var M = {
   // Draws scaled circles on the passed map, based on the dataset provided.
   // Dataset must be an array of objects with a label, value, and point key
   drawScaledCircles: function(mapObj, regions, opts) {
+    
+    var opts = opts || {};
     
     // OPTIONS
     var showPopups = ('showPopups' in opts) ? opts.showPopups : false;
@@ -104,6 +107,8 @@ var M = {
   },
 
   drawPoly: function(mapObj, layer, opts) {
+    var opts = opts || {};
+    
     return L.polygon(layer, opts).addTo(mapObj);
   },
 
