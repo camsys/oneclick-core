@@ -22,6 +22,14 @@ class User < ApplicationRecord
   scope :with_eligibilities, -> (eligibility_ids) do
     joins(:eligibilities).where(eligibilities: { id: eligibility_ids })
   end
+  
+  # Active between scopes check if user has planned trips before or after given dates
+  scope :active_since, -> (date) do
+    joins(:trips).merge(Trip.from_date(date))
+  end
+  scope :active_until, -> (date) do
+    joins(:trips).merge(Trip.to_date(date))
+  end
 
 
   ### Associations ###

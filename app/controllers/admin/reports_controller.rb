@@ -60,8 +60,8 @@ class Admin::ReportsController < Admin::AdminController
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
-    @users = @users.joins(:trips).merge(Trip.from_date(@user_active_from_date)) if @user_active_from_date
-    @users = @users.joins(:trips).merge(Trip.to_date(@user_active_to_date)) if @user_active_to_date
+    @users = @users.active_since(@user_active_from_date) if @user_active_from_date
+    @users = @users.active_until(@user_active_to_date) if @user_active_to_date
     
     respond_to do |format|
       format.csv { send_data @users.to_csv }
@@ -150,6 +150,7 @@ class Admin::ReportsController < Admin::AdminController
       :service_type
       # {accommodations: []},
       # {eligibilities: []},
+      # {purposes: []}
     )
   end
   

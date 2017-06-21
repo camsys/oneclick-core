@@ -61,6 +61,15 @@ RSpec.describe Admin::ReportsController, type: :controller do
   describe 'csv table downloads' do
         
     describe 'users report' do
+      before(:each) do
+        u1 = create(:user, :with_trip_today)        
+        u2 = create(:user, :needs_accommodation, :with_old_trip)
+        u3 = create(:user, :eligible, :with_trip_today)
+        u4 = create(:user, :eligible, :needs_accommodation)
+        gu1 = create(:guest, :with_trip_today)
+        gu2 = create(:guest, :needs_accommodation)
+        gu3 = create(:guest, :eligible)
+      end
       
       it 'redirects to Users report download page' do
         params = {download_table: {table_name: 'Users'}}
@@ -70,15 +79,62 @@ RSpec.describe Admin::ReportsController, type: :controller do
         expect(response).to redirect_to('/admin/reports/users_table.csv')
       end
       
-      it 'downloads a Users report CSV file with a row for each user' do
-        5.times { create(:user) }
+      it 'downloads a Users report CSV file with a row for each registered user' do
         
         get :users_table, format: :csv
         expect(response).to be_success
         expect(response.body).to be_a(String)
         
         response_body = CSV.parse(response.body)
-        expect(response_body.length).to eq(User.count + 1)
+        expect(response_body.length - 1).to eq(User.registered.count)
+      end
+      
+      it 'allows inclusion of guest users' do
+        
+        get :users_table, format: :csv, params: {
+          include_guests: '1'
+        }
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(User.count)
+      end
+      
+      it 'filters by accommodation' do
+        accommodations = [ Accommodation.first.id ]
+        
+        get :users_table, format: :csv, params: {
+          accommodations: accommodations
+        }
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(User.registered.with_accommodations(accommodations).count)
+      end
+      
+      it 'filters by eligibility' do
+        eligibilities = [ Eligibility.first.id ]
+        
+        get :users_table, format: :csv, params: {
+          eligibilities: eligibilities
+        }
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(User.registered.with_eligibilities(eligibilities).count)
+      end
+      
+      it 'filters by trips planned during date range' do
+        from_date = Date.today - 1.month
+        to_date = Date.today + 1.month
+        params = {
+          user_active_from_date: from_date,
+          user_active_to_date: to_date
+        }
+        
+        get :users_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(
+          User.registered.active_since(from_date).active_until(to_date).count
+        )
       end
       
     end
@@ -116,8 +172,11 @@ RSpec.describe Admin::ReportsController, type: :controller do
         expect(response_body.length - 1).to eq(
           Trip.from_date(from_date).to_date(to_date).count
         )
-      
       end
+      
+      pending 'filters by purpose'
+      
+      pending 'filters by origin and destination'
       
     end
   
@@ -141,6 +200,14 @@ RSpec.describe Admin::ReportsController, type: :controller do
         response_body = CSV.parse(response.body)
         expect(response_body.length).to eq(Service.count + 1)
       end
+      
+      pending 'filters by service type'
+      
+      pending 'filters by accommodation'
+      
+      pending 'filters by eligibility'
+      
+      pending 'filters by purpose'
       
     end
     
