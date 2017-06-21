@@ -66,7 +66,7 @@ class Admin::ReportsController < Admin::AdminController
     end
   end
   
-  def trips_table
+  def trips_table    
     @trips = Trip.all
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?

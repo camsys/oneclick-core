@@ -5,13 +5,6 @@ RSpec.describe Admin::ReportsController, type: :controller do
   let!(:admin) { create(:admin) }  
   before(:each) { sign_in admin }
   
-  # Filter params cover a daily range from 3 months ago to today.
-  let(:filter_params) { { 
-    from_date: (Date.today - 3.months).to_s, 
-    to_date: Date.today.to_s, 
-    grouping: :day 
-  } }
-  
   # Create a bunch of monthly trips across a range of months
   before(:each) do
     (-5..2).map do |i|
@@ -26,6 +19,13 @@ RSpec.describe Admin::ReportsController, type: :controller do
   describe 'dashboards' do
     
     describe 'planned trips dashboard' do
+      
+      # Filter params cover a daily range from 3 months ago to today.
+      let(:date_filter_params) { { 
+        from_date: (Date.today - 3.months).to_s, 
+        to_date: Date.today.to_s, 
+        grouping: :day 
+      } }
     
       it 'redirects to dashboard page' do
         params = { dashboard: { dashboard_name: 'Planned Trips' } }
@@ -35,15 +35,15 @@ RSpec.describe Admin::ReportsController, type: :controller do
         expect(response).to redirect_to('/admin/reports/planned_trips_dashboard')
       end
       
-      it 'assigns appropriate filter params' do 
-        get :planned_trips_dashboard, params: filter_params
+      it 'assigns appropriate filter params' do
+        get :planned_trips_dashboard, params: date_filter_params
         expect(assigns(:from_date)).to eq(Date.parse(filter_params[:from_date]))
         expect(assigns(:to_date)).to eq(Date.parse(filter_params[:to_date]))
         expect(assigns(:grouping)).to eq(filter_params[:grouping].to_s)
       end
       
       it 'filters trips by date' do
-        get :planned_trips_dashboard, params: filter_params
+        get :planned_trips_dashboard, params: date_filter_params
         
         # Date range from 3 months ago to today should contain 4 trips (includes fencepost days)
         expect(assigns(:trips).count).to eq(4)
@@ -102,12 +102,20 @@ RSpec.describe Admin::ReportsController, type: :controller do
       end
       
       it 'filters by date range' do
+        from_date = (Date.today - 3.months)
+        to_date = Date.today
+        params = {
+          trip_time_from_date: from_date.to_s, 
+          trip_time_to_date: to_date.to_s
+        }
   
-        get :trips_table, format: :csv, params: filter_params
+        get :trips_table, format: :csv, params: params
         
         # Date range from 3 months ago to today should contain 4 trips (includes fencepost days)
         response_body = CSV.parse(response.body)
-        expect(response_body.length).to eq(4 + 1)
+        expect(response_body.length - 1).to eq(
+          Trip.from_date(from_date).to_date(to_date).count
+        )
       
       end
       

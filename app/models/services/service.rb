@@ -225,16 +225,16 @@ class Service < ApplicationRecord
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination
   def self.with_containing_start_or_end_area(trip)
     joins(:start_or_end_area).empty_region(:start_or_end_area)
-    .or(joins(:start_or_end_area).region_contains(trip.origin.to_point))
-    .or(joins(:start_or_end_area).region_contains(trip.destination.to_point))
+    .or(joins(:start_or_end_area).region_contains(trip.origin.geom))
+    .or(joins(:start_or_end_area).region_contains(trip.destination.geom))
     .pluck(:id)
   end
 
   # Returns IDs of Services with a trip_within_area that is EMPTY or containing trip origin AND destination
   def self.with_containing_trip_within_area(trip)
     joins(:trip_within_area)
-    .region_contains(trip.origin.to_point)
-    .region_contains(trip.destination.to_point)
+    .region_contains(trip.origin.geom)
+    .region_contains(trip.destination.geom)
     .or(joins(:trip_within_area).empty_region(:trip_within_area))
     .pluck(:id)
   end
@@ -245,7 +245,7 @@ class Service < ApplicationRecord
   end
 
   # Helper scope constructs a query for empty regions
-  scope :empty_region, -> (region) do
+  scope :empty_region, -> (region="") do
     where("ST_IsEmpty(regions.geom)")
   end
 

@@ -5,12 +5,12 @@ class GuestUserHelper
   end
   
   # Return a new guest user, but don't persist to database
-  def build_guest(params)
+  def build_guest(params={})
     User.new(default_params.merge(params))
   end
   
   # Return a new guest user and save it to the database
-  def create_guest(params)
+  def create_guest(params={})
     User.create(default_params.merge(params))
   end
   
