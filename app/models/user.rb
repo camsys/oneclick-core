@@ -39,6 +39,7 @@ class User < ApplicationRecord
   has_many :user_eligibilities, dependent: :destroy
   has_many :eligibilities, through: :user_eligibilities
   has_many :feedbacks
+  has_many :stomping_grounds
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
