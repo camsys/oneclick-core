@@ -1,7 +1,7 @@
 class User < ApplicationRecord
 
   ### Includes ###
-  rolify
+  rolify  # user may be an admin, staff, traveler, ...
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
@@ -57,6 +57,12 @@ class User < ApplicationRecord
 
   
   ### Instance Methods ###
+  
+  # Returns the agencies that the user has a role (e.g. staff) for
+  def agencies
+    TransportationAgency.with_role(:staff, self) + 
+    PartnerAgency.with_role(:staff, self)
+  end
   
   # To String prints out user's email address
   def to_s

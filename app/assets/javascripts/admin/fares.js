@@ -5,7 +5,7 @@ function FareZoneHelper(fareZonesJSON, containerDiv, tableDiv, fareZoneTemplate,
   this.table = tableDiv;
   this.template = fareZoneTemplate;
   this.options = options || {};
-  this.searchPath = options.searchPath || '';
+  this.searchPath = options.searchPath || ''; // Autocomplete search path to pass to recipe builder
   this.ingredientLabelTag = options.ingredientLabelTag || '';
   this.fh = options.formHandler || null;
   this.tableReplacer = options.tableReplacer || null;

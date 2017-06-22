@@ -92,6 +92,9 @@ Rails.application.routes.draw do
 
     # Accommodations
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
+    
+    # Agencies
+    resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
     # Configs
     resources :configs, :only => [:index] do
