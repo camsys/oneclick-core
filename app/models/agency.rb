@@ -18,6 +18,11 @@ class Agency < ApplicationRecord
   def staff
     User.with_role(:staff, self)
   end
+  
+  # Add a user to this agency's staff
+  def add_staff(user)
+    user.add_role(:staff, self)
+  end
 
 
 end

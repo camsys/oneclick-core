@@ -58,7 +58,7 @@ class User < ApplicationRecord
   
   ### Instance Methods ###
   
-  # Returns the agencies that the user has a role (e.g. staff) for
+  # Returns the agencies that the user is staff for
   def agencies
     TransportationAgency.with_role(:staff, self) + 
     PartnerAgency.with_role(:staff, self)
