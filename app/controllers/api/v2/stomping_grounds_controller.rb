@@ -28,6 +28,11 @@ module Api
           render(fail_response(message: "Unable to create Stomping Ground"))
         end
       end
+
+      def update
+        stomping_ground = @traveler.stomping_grounds.find_by(id: params[:id]) 
+        stomping_ground.update_from_google_place_attributes(params[:stomping_ground])
+      end
       
     end
   end
