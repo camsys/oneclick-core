@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170619211322) do
+ActiveRecord::Schema.define(version: 20170622155616) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -221,6 +221,22 @@ ActiveRecord::Schema.define(version: 20170619211322) do
     t.index ["name"], name: "index_services_on_name", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
+  end
+
+  create_table "stomping_grounds", force: :cascade do |t|
+    t.string   "name"
+    t.string   "street_number"
+    t.string   "route"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.boolean  "old"
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
+    t.index ["geom"], name: "index_stomping_grounds_on_geom", using: :gist
   end
 
   create_table "translation_keys", force: :cascade do |t|

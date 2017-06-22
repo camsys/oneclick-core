@@ -1,0 +1,2 @@
+class StompingGround < Place
+end
