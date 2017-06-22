@@ -10,5 +10,5 @@ class TransportationAgency < Agency
   end
   
   # accepts_nested_attributes_for :services
-  
+
 end
