@@ -38,5 +38,19 @@ class Admin::GeographiesController < Admin::AdminController
     flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
     redirect_to admin_geographies_path
   end
+  
+  # Serves JSON responses to geography searches to enable autocomplete
+  def autocomplete
+    respond_to do |format|
+      format.json do
+        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
+        json_response = @counties + @zipcodes + @cities + @custom_geographies
+        render json: json_response
+      end
+    end
+  end
 
 end

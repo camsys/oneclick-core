@@ -117,7 +117,7 @@ module Api
     
 
     def create_guest_user
-      u = User.create(first_name: "Guest", last_name: "User", email: "guest_#{Time.now.to_i}#{rand(100)}@example.com")
+      u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       session[:guest_user_id] = u.id
       u

@@ -107,6 +107,19 @@ class Service < ApplicationRecord
     :available_by_schedule_for,
     :available_by_start_or_end_area_for, :available_by_trip_within_area_for
 
+    
+  ## Reporting Filter Scopes ##
+  
+  # Accommodation, Eligibility, and Purpose scopes filter by services that have one or more of the passed ids
+  scope :with_accommodations, -> (accommodation_ids) do
+    where(id: joins(:accommodations).where(accommodations: {id: accommodation_ids}).pluck(:id).uniq)
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    where(id: joins(:eligibilities).where(eligibilities: {id: eligibility_ids}).pluck(:id).uniq)
+  end
+  scope :with_purposes, -> (purpose_ids) do
+    where(id: joins(:purposes).where(purposes: {id: purpose_ids}).pluck(:id).uniq)
+  end
 
   #################
   # CLASS METHODS #
@@ -212,27 +225,27 @@ class Service < ApplicationRecord
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination
   def self.with_containing_start_or_end_area(trip)
     joins(:start_or_end_area).empty_region(:start_or_end_area)
-    .or(joins(:start_or_end_area).region_contains(trip.origin.to_point))
-    .or(joins(:start_or_end_area).region_contains(trip.destination.to_point))
+    .or(joins(:start_or_end_area).region_contains(trip.origin.geom))
+    .or(joins(:start_or_end_area).region_contains(trip.destination.geom))
     .pluck(:id)
   end
 
   # Returns IDs of Services with a trip_within_area that is EMPTY or containing trip origin AND destination
   def self.with_containing_trip_within_area(trip)
     joins(:trip_within_area)
-    .region_contains(trip.origin.to_point)
-    .region_contains(trip.destination.to_point)
+    .region_contains(trip.origin.geom)
+    .region_contains(trip.destination.geom)
     .or(joins(:trip_within_area).empty_region(:trip_within_area))
     .pluck(:id)
   end
 
   # Helper scope constructs a contains query based on region association name and a geometry
   scope :region_contains, -> (geom) do
-    where("ST_Contains(regions.geom, ?)", geom.to_s)
+    where("ST_Contains(regions.geom, ?)", geom)
   end
 
   # Helper scope constructs a query for empty regions
-  scope :empty_region, -> (region) do
+  scope :empty_region, -> (region="") do
     where("ST_IsEmpty(regions.geom)")
   end
 
