@@ -4,7 +4,7 @@ namespace :db do
     task landmarks: :environment do
 
       landmarks = [
-                   {name: "Cambridge Systematics", street_number: "201", route: "Station Landing",
+                   {name: "Cambridge Systematics", street_number: "101", route: "Station Landing",
                    city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"},
 
                    {name: "Fenway Park", street_number: "4", route: "Yawkey Way",
@@ -114,9 +114,25 @@ namespace :db do
       Feedback.create(rating: 5, review: "OCC is GREAT!!!", user: User.first)
     end
 
+    desc "Stomping Grounds"
+    task stomping_grounds: :environment do 
+      u = User.staff.first # Grab the first staff at random
+
+      places = [
+        {name: "Home", street_number: "17", route: "Park Avenue",
+        city: "Somerville", state: "MA", zip: "02144", lat: "42.398270", lng: "-71.122898"},
+        {name: "Work", street_number: "101", route: "Station Landing",
+        city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"}
+      ]
+
+      places.each do |place|
+        StompingGround.where(name: place[:name], user: u).first_or_create!(place)
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config, :test_geographies, :feedback]
+                :services, :config, :test_geographies, :feedback, :stomping_grounds]
 
   end
 end
