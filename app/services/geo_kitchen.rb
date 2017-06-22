@@ -27,7 +27,7 @@ module GeoKitchen
     def initialize(ingredients=[])
       @ingredients = ingredients.select {|i| i.is_a?(GeoIngredient)}
       @errors = []
-      @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default #RGeo::Geos::CAPIFactory.new(srid: Config.srid)
+      @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
       invalid_count = ingredients.length - @ingredients.length
       @errors << "#{invalid_count} arguments were not GeoIngredients" if invalid_count > 0
     end

@@ -10,7 +10,7 @@ class Config < ApplicationRecord
 
     config = Config.find_by(key: key)
     if config.nil?
-      return Rails.application.config.send(key) if Rails.application.config.respond_to?(key)
+      # return Rails.application.config.send(key) if Rails.application.config.respond_to?(key)
       return nil
     else
       return config.value

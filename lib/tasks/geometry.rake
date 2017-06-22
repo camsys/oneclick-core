@@ -2,7 +2,7 @@
 #   task load_counties: :environment do
 #     # uses_lenient_assertions is so that it doesn't take forever to go through.
 #     # Should probably just pre-filter county shapefiles and turn that off.
-#     factory = RGeo::Geographic.spherical_factory(srid: Config.srid, uses_lenient_assertions: true)
+#     factory = RGeo::Geographic.spherical_factory(srid: 4326, uses_lenient_assertions: true)
 #     RGeo::Shapefile::Reader.open(Rails.root.to_s + '/tmp/shapefiles/county.shp', factory: factory) do |file|
 #       file.each do |record|
 #         state = record['STATE']
