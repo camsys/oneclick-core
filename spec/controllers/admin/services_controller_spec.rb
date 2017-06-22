@@ -180,25 +180,4 @@ RSpec.describe Admin::ServicesController, type: :controller do
     end
   end
 
-  it 'allows search of geographies via show action' do
-    county = create(:county)
-    city = create(:city)
-    zipcode = create(:zipcode)
-
-    # Search returns county results by name and state
-    get :show, format: :json, params: {id: service.id, term: "#{county.name}, #{county.state}"}
-    response_body = JSON.parse(response.body)
-    expect(response_body.length).to be > 0
-
-    # Search returns city results by name and state
-    get :show, format: :json, params: {id: service.id, term: "#{city.name}, #{city.state}"}
-    response_body = JSON.parse(response.body)
-    expect(response_body.length).to be > 0
-
-    # Search returns zipcode resuls
-    get :show, format: :json, params: {id: service.id, term: zipcode.name}
-    response_body = JSON.parse(response.body)
-    expect(response_body.length).to be > 0
-  end
-
 end
