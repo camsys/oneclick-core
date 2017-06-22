@@ -1,0 +1,2 @@
+class PartnerAgency < Agency
+end

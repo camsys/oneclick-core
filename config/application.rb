@@ -20,8 +20,10 @@ module OneclickCore
     config.i18n.available_locales = [:en, :es]
     config.i18n.default_locale = :en
     
-    # Load different Service Types
-    config.autoload_paths += %W(#{config.root}/app/models/services)
+    # Load model sub-classes
+    config.autoload_paths += %W(#{config.root}/app/models/service_types)
+    config.autoload_paths += %W(#{config.root}/app/models/agency_types)
+
 
     # Set default CORS settings
     config.middleware.insert_before 0, Rack::Cors do

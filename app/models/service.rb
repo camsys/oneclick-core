@@ -1,15 +1,15 @@
 class Service < ApplicationRecord
 
-  ### INCLUDES ###
+  ### INCLUDES & CONFIGURATION ###
   mount_uploader :logo, LogoUploader
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include Commentable # has_many :comments
   include FareHelper
   include FareHelper::ZoneFareable
+  include Feedbackable
   include GeoKitchen
   include ScheduleHelper
   include ScopeHelper
-  include Feedbackable
   write_to_csv with: Admin::ServicesReportCSVWriter
 
   ### ATTRIBUTES & ASSOCIATIONS ###
@@ -20,6 +20,7 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes
+  belongs_to :transportation_agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
