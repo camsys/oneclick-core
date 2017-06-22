@@ -5,13 +5,6 @@ RSpec.describe Admin::ReportsController, type: :controller do
   let!(:admin) { create(:admin) }  
   before(:each) { sign_in admin }
   
-  # Create a bunch of monthly trips across a range of months
-  before(:each) do
-    (-5..2).map do |i|
-      create(:trip, trip_time: Date.today + i.months)
-    end
-  end
-  
   let(:from_date) { (Date.today - 3.months) }
   let(:to_date) { Date.today }
   
@@ -21,6 +14,12 @@ RSpec.describe Admin::ReportsController, type: :controller do
   describe 'dashboards' do
     
     describe 'planned trips dashboard' do
+      # Create a bunch of monthly trips across a range of months
+      before(:each) do
+        (-5..2).map do |i|
+          create(:trip, trip_time: Date.today + i.months)
+        end
+      end
                   
       # Filter params cover a daily range from 3 months ago to today.
       let(:date_filter_params) { { 
@@ -62,13 +61,13 @@ RSpec.describe Admin::ReportsController, type: :controller do
         
     describe 'users report' do
       before(:each) do
-        u1 = create(:user, :with_trip_today)        
-        u2 = create(:user, :needs_accommodation, :with_old_trip)
-        u3 = create(:user, :eligible, :with_trip_today)
-        u4 = create(:user, :eligible, :needs_accommodation)
-        gu1 = create(:guest, :with_trip_today)
-        gu2 = create(:guest, :needs_accommodation)
-        gu3 = create(:guest, :eligible)
+        create(:user, :with_trip_today)        
+        create(:user, :needs_accommodation, :with_old_trip)
+        create(:user, :eligible, :with_trip_today)
+        create(:user, :eligible, :needs_accommodation)
+        create(:guest, :with_trip_today)
+        create(:guest, :needs_accommodation)
+        create(:guest, :eligible)
       end
       
       it 'redirects to Users report download page' do
@@ -141,6 +140,17 @@ RSpec.describe Admin::ReportsController, type: :controller do
     
     describe 'trips report' do
       
+      before(:each) do
+        create(:trip, :going_to_see_metallica, trip_time: Date.today - 5.months)
+        create(:trip, trip_time: Date.today - 4.months, origin: create(:way_out_point))
+        create(:trip, trip_time: Date.today - 3.months, origin: create(:way_out_point_2))
+        create(:trip, :going_to_see_metallica, trip_time: Date.today - 2.months)
+        create(:trip, trip_time: Date.today - 1.months, destination: create(:way_out_point))
+        create(:trip, :going_to_see_metallica, trip_time: Date.today, destination: create(:way_out_point_2))
+        create(:trip, trip_time: Date.today + 1.months)
+        create(:trip, trip_time: Date.today + 2.months, origin: create(:way_out_point), destination: create(:way_out_point_2))
+      end
+      
       it 'redirects to Trips report download page' do
         params = {download_table: {table_name: 'Trips'}}
         post :download_table, params: params
@@ -174,13 +184,48 @@ RSpec.describe Admin::ReportsController, type: :controller do
         )
       end
       
-      pending 'filters by purpose'
+      it 'filters by purpose' do
+        purpose_ids = [Purpose.find_by(code: "metallica_concert").id]
+        params = {
+          purposes: purpose_ids
+        }
+        
+        get :trips_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(Trip.with_purpose(purpose_ids).count)
+      end
       
-      pending 'filters by origin and destination'
+      it 'filters by origin and destination' do
+        origin_recipe = GeoKitchen::GeoRecipe.new([Zipcode.find_by(name: "02139").to_geo]).to_json
+        destination_recipe = GeoKitchen::GeoRecipe.new([Zipcode.find_by(name: "02140").to_geo]).to_json
+        params = {
+          trip_origin_recipe: origin_recipe,
+          trip_destination_recipe: destination_recipe
+        }
+        
+        get :trips_table, format: :csv, params: params
+        
+        origin_geom = Region.build(recipe: origin_recipe).geom
+        destination_geom = Region.build(recipe: destination_recipe).geom
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(Trip.origin_in(origin_geom).destination_in(destination_geom).count)
+      end
       
     end
   
     describe 'services report' do
+      before(:each) do
+        create(:paratransit_service, :strict, :medical_only)
+        create(:paratransit_service, :accommodating, :strict)
+        create(:paratransit_service, :accommodating, :medical_only)
+        create(:paratransit_service, :accommodating, :strict)
+        create(:paratransit_service, :accommodating)
+        create(:transit_service)
+        create(:taxi_service)
+        create(:uber_service)
+      end
       
       it 'redirects to Services report download page' do
         params = {download_table: {table_name: 'Services'}}
@@ -190,28 +235,55 @@ RSpec.describe Admin::ReportsController, type: :controller do
         expect(response).to redirect_to('/admin/reports/services_table.csv')
       end
 
-      it 'downloads a Services report CSV file with a row for each user' do
-        3.times { create(:service) }
-        
+      it 'downloads a Services report CSV file with a row for each user' do        
         get :services_table, format: :csv
         expect(response).to be_success
         expect(response.body).to be_a(String)
         
         response_body = CSV.parse(response.body)
-        expect(response_body.length).to eq(Service.count + 1)
+        expect(response_body.length - 1).to eq(Service.count)
       end
       
-      pending 'filters by service type'
+      it 'filters by service type' do
+        type = "Paratransit"
+        params = { service_type: type }
+        get :services_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)        
+        expect(response_body.length - 1).to eq(Service.where(type: type).count)
+      end
       
-      pending 'filters by accommodation'
+      it 'filters by accommodation' do
+        accommodations = [ Accommodation.first.id ]
+        params = { accommodations: accommodations }
+    
+        get :services_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(Service.with_accommodations(accommodations).count)
+      end
       
-      pending 'filters by eligibility'
+      it 'filters by eligibility' do
+        eligibilities = [ Eligibility.first.id ]
+        params = { eligibilities: eligibilities }
+    
+        get :services_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(Service.with_eligibilities(eligibilities).count)
+      end
       
-      pending 'filters by purpose'
+      it 'filters by purpose' do
+        purposes = [ Purpose.first.id ]
+        params = { purposes: purposes }
+    
+        get :services_table, format: :csv, params: params
+        
+        response_body = CSV.parse(response.body)
+        expect(response_body.length - 1).to eq(Service.with_purposes(purposes).count)
+      end
       
     end
-    
-    
 
   end
   
