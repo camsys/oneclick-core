@@ -66,10 +66,7 @@ Rails.application.routes.draw do
       end
       
       # Users/StompingGrounds
-      resources :users do
-        resources :stomping_grounds, only: [:index, :destroy, :create, :update]
-      end
-
+      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
     end #v2
 
