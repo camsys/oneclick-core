@@ -49,5 +49,28 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
     expect(place["geometry"]["location"]["lng"]).to eq(-71.081818)
 
   end
+
+  it 'deletes a stomping ground' do
+    # Assign these Stomping Grounds
+    home.user = traveler
+    work.user = traveler
+    home.save
+    work.save 
+
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    expect(traveler.stomping_grounds.count).to eq(2)
+    delete :destroy, params: { id: home.id} # Sign out user
+    expect(response).to be_success
+    expect(traveler.stomping_grounds.count).to eq(1)
+  end
+
+  it 'creates a stomping ground' do
+  end
+
+  it 'updates a stomping ground' do
+  end
   
 end
