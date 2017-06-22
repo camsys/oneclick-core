@@ -7,5 +7,7 @@ FactoryGirl.define do
       code "metallica_concert"
     end
 
+    initialize_with { Purpose.find_or_create_by(code: code) }
+
   end
 end

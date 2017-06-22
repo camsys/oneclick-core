@@ -1,6 +1,6 @@
 module RGeoSpecHelpers
   class RGeoSpecHelper
-    def initialize(factory=RGeo::Geographic.simple_mercator_factory(srid: 4326))
+    def initialize(factory=RGeo::Geos::CAPIFactory.new(srid: Config.srid))
       @factory = factory
     end
 

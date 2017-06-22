@@ -30,7 +30,7 @@ module Api
 
       # If this trip is a new guest user, return the email and token
       def new_guest_user
-        if object.user.guest? and object.user.trips.count == 1
+        if object.user && object.user.guest? && object.user.trips.count == 1
           {email: object.user.email, authentication_token: object.user.authentication_token}
         else
           nil

@@ -14,6 +14,23 @@ class User < ApplicationRecord
   ### Scopes ###
   scope :staff, -> { User.with_role(:admin) }
   scope :admins, -> { User.with_role(:admin) }
+  scope :guests, -> { User.where(GuestUserHelper.new.query_str) }
+  scope :registered, -> { User.where.not(GuestUserHelper.new.query_str) }
+  scope :with_accommodations, -> (accommodation_ids) do
+    joins(:accommodations).where(accommodations: { id: accommodation_ids })
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    joins(:eligibilities).where(eligibilities: { id: eligibility_ids })
+  end
+  
+  # Active between scopes check if user has planned trips before or after given dates
+  scope :active_since, -> (date) do
+    joins(:trips).merge(Trip.from_date(date))
+  end
+  scope :active_until, -> (date) do
+    joins(:trips).merge(Trip.to_date(date))
+  end
+
 
   ### Associations ###
   has_many :trips
@@ -69,7 +86,7 @@ class User < ApplicationRecord
 
   # Check to see if the user is a guest traveler
   def guest?
-    self.email.include? "@example.com"
+    GuestUserHelper.new.is_guest_email?(email)
   end
 
   ### Update Profle from API Call ###

@@ -28,8 +28,10 @@ FactoryGirl.define do
       preferred_trip_types ['transit', 'unicycle']
     end
 
-    factory :guest do 
-      email "guest_xxx@example.com"
+    factory :guest do
+      first_name "Guest"
+      last_name "User"
+      sequence(:email) {|i| "guest_user_#{i}@#{GuestUserHelper.new.email_domain}" } 
     end
 
     trait :needs_accommodation do
@@ -54,6 +56,18 @@ FactoryGirl.define do
     trait :ineligible do
       after(:create) do |u|
         u.user_eligibilities << create(:user_eligibility, :denied, user: u)
+      end
+    end
+    
+    trait :with_trip_today do
+      after(:create) do |u|
+        u.trips << create(:trip, trip_time: Date.today)
+      end
+    end
+    
+    trait :with_old_trip do
+      after(:create) do |u|
+        u.trips << create(:trip, trip_time: Date.today - 2.months)
       end
     end
 

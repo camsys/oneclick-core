@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170615143154) do
+ActiveRecord::Schema.define(version: 20170619211322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,10 +40,9 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   create_table "cities", force: :cascade do |t|
     t.string   "name"
     t.string   "state"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_cities_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name", "state"], name: "index_cities_on_name_and_state", using: :btree
   end
 
@@ -69,19 +68,17 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   create_table "counties", force: :cascade do |t|
     t.string   "name"
     t.string   "state"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_counties_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name", "state"], name: "index_counties_on_name_and_state", using: :btree
   end
 
   create_table "custom_geographies", force: :cascade do |t|
     t.string   "name"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_custom_geographies_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
 
@@ -142,8 +139,8 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   end
 
   create_table "landmarks", force: :cascade do |t|
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
     t.string   "name"
     t.string   "street_number"
     t.string   "route"
@@ -151,8 +148,10 @@ ActiveRecord::Schema.define(version: 20170615143154) do
     t.string   "state"
     t.string   "zip"
     t.boolean  "old"
-    t.decimal  "lat",           precision: 10, scale: 6
-    t.decimal  "lng",           precision: 10, scale: 6
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
   end
 
   create_table "locales", force: :cascade do |t|
@@ -176,10 +175,9 @@ ActiveRecord::Schema.define(version: 20170615143154) do
 
   create_table "regions", force: :cascade do |t|
     t.text     "recipe"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"multi_polygon"}
-    t.datetime "created_at",                                            null: false
-    t.datetime "updated_at",                                            null: false
-    t.index ["geom"], name: "index_regions_on_geom", using: :gist
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"multi_polygon"}
   end
 
   create_table "roles", force: :cascade do |t|
@@ -306,24 +304,25 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   end
 
   create_table "waypoints", force: :cascade do |t|
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
     t.string   "name"
     t.string   "street_number"
     t.string   "route"
     t.string   "city"
     t.string   "state"
     t.string   "zip"
-    t.decimal  "lat",           precision: 10, scale: 6
-    t.decimal  "lng",           precision: 10, scale: 6
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.index ["geom"], name: "index_waypoints_on_geom", using: :gist
   end
 
   create_table "zipcodes", force: :cascade do |t|
     t.string   "name"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_zipcodes_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 

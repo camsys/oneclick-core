@@ -35,15 +35,15 @@
     var startOrEndAreaRecipe = new M.Recipe({
       container: $('#start-or-end-area'),
       recipeInput: $('#paratransit_start_or_end_area_attributes_recipe'),
-      searchPath: '#{admin_service_path}',
-      ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
     });
 
     var tripWithinAreaRecipe = new M.Recipe({
       container: $('#trip-within-area'),
       recipeInput: $('#paratransit_trip_within_area_attributes_recipe'),
-      searchPath: '#{admin_service_path}',
-      ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
     });
 
     fh.onReset(function() {
