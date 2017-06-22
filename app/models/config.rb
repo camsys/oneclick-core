@@ -5,7 +5,7 @@ class Config < ApplicationRecord
   validates :key, presence: true
   validates :key, uniqueness: true
 
-  # Returns the value of a setting when you say Setting.<key>
+  # Returns the value of a setting when you say Config.<key>
   def self.method_missing(key, *args, &blk)
 
     config = Config.find_by(key: key)
