@@ -20,4 +20,9 @@ class Place < ApplicationRecord
     self.new(attrs_from_google_place(attrs))
   end
 
+  # Converts google place attributes to readable format before updating as normal
+  def update_from_google_place_attributes(attrs=nil)
+    self.update_attributes(Place.attrs_from_google_place(attrs))
+  end
+
 end

@@ -65,6 +65,9 @@ Rails.application.routes.draw do
         post 'sign_up' => 'registrations#create'
       end
       
+      # Users/StompingGrounds
+      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
+
     end #v2
 
 
