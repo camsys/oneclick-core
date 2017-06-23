@@ -31,7 +31,13 @@ module Api
 
       def update
         stomping_ground = @traveler.stomping_grounds.find_by(id: params[:id]) 
-        stomping_ground.update_from_google_place_attributes(params[:stomping_ground])
+        if stomping_ground
+          stomping_ground.update_from_google_place_attributes(params[:stomping_ground])
+          render(success_response(message: "Updated"))
+        else
+          render(fail_response(status: 404, message: "Not found"))
+        end
+
       end
       
     end
