@@ -5,6 +5,7 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
   let(:traveler) { create(:english_speaker) }
   let!(:home) { create(:home_place) }
   let!(:work) { create(:stomping_ground) }
+  let(:doctor_location) {JSON.parse(File.read("spec/files/doctor_location.json"))}
 
   it 'indexes the the users stomping grounds' do
     # Assign these Stomping Grounds
@@ -68,9 +69,25 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
   end
 
   it 'creates a stomping ground' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+    expect(traveler.stomping_grounds.count).to eq(0)
+    post :create, params: {stomping_ground: doctor_location}
+    expect(traveler.stomping_grounds.count).to eq(1)
+    expect(traveler.stomping_grounds.first.name).to eq('Doctor')
   end
 
   it 'updates a stomping ground' do
+    home.user = traveler
+    home.save
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+    expect(traveler.stomping_grounds.count).to eq(1)
+    patch :update, params: {id: home.id, stomping_ground: doctor_location}
+    expect(traveler.stomping_grounds.count).to eq(1)
+    expect(traveler.stomping_grounds.first.name).to eq('Doctor')
   end
   
 end
