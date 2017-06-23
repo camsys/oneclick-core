@@ -2,6 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
+  include RoleHelper
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
@@ -12,10 +13,6 @@ class User < ApplicationRecord
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
 
   ### Scopes ###
-  scope :staff, -> { User.with_role(:admin) }
-  scope :admins, -> { User.with_role(:admin) }
-  scope :guests, -> { User.where(GuestUserHelper.new.query_str) }
-  scope :registered, -> { User.where.not(GuestUserHelper.new.query_str) }
   scope :with_accommodations, -> (accommodation_ids) do
     joins(:accommodations).where(accommodations: { id: accommodation_ids })
   end
@@ -58,12 +55,6 @@ class User < ApplicationRecord
   
   ### Instance Methods ###
   
-  # Returns the agencies that the user is staff for
-  def agencies
-    TransportationAgency.with_role(:staff, self) + 
-    PartnerAgency.with_role(:staff, self)
-  end
-  
   # To String prints out user's email address
   def to_s
     email
@@ -84,16 +75,6 @@ class User < ApplicationRecord
     else
       return false
     end
-  end
-
-  # Check to see if the user is an Admin
-  def admin?
-    self.has_role? :admin
-  end
-
-  # Check to see if the user is a guest traveler
-  def guest?
-    GuestUserHelper.new.is_guest_email?(email)
   end
 
   ### Update Profle from API Call ###
