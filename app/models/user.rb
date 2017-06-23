@@ -55,12 +55,6 @@ class User < ApplicationRecord
   
   ### Instance Methods ###
   
-  # Returns the agencies that the user is staff for
-  def agencies
-    TransportationAgency.with_role(:staff, self) + 
-    PartnerAgency.with_role(:staff, self)
-  end
-  
   # To String prints out user's email address
   def to_s
     email
