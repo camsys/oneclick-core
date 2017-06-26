@@ -1,0 +1,10 @@
+=content_for :title do
+  Agencies
+
+=render partial: 'agency', layout: '/layouts/panel', collection: @agencies
+
+=simple_form_for :agency, 
+    url: admin_agencies_path, 
+    html: {class: 'form-horizontal', multipart: true, method: :post }, 
+    authenticity_token: true do |f|
+  =render partial: 'new_agency', layout: '/layouts/new_record_panel', locals: {f: f}

@@ -1,39 +1,57 @@
 class Ability
   include CanCan::Ability
 
-  def initialize(user)
-    # Define abilities for the passed in user here. For example:
-    #
-    #   user ||= User.new # guest user (not logged in)
-    #   if user.admin?
-    #     can :manage, :all
-    #   else
-    #     can :read, :all
-    #   end
-    #
-    # The first argument to `can` is the action you are giving the user
-    # permission to do.
-    # If you pass :manage it will apply to every action. Other common actions
-    # here are :read, :create, :update and :destroy.
-    #
-    # The second argument is the resource the user can perform the action on.
-    # If you pass :all it will apply to every resource. Otherwise pass a Ruby
-    # class of the resource.
-    #
-    # The third argument is an optional hash of conditions to further filter the
-    # objects.
-    # For example, here the user can only update published articles.
-    #
-    #   can :update, Article, :published => true
-    #
-    # See the wiki for details:
-    # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
+  # See the wiki for details:
+  # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
 
-    if user.has_role? :admin
+  def initialize(user)
+
+    ### ADMIN PERMISSIONS ###
+    if user.admin?
       can :manage, :all
-    else
-      can :read, :all
     end
+    
+    
+    ### STAFF PERSMISSIONS ###
+    if user.staff?
+
+      ## General Staff Permissions ##      
+      # Can read or update their own agency
+      can [:read, :update], Agency, id: user.agencies.pluck(:id)
+      
+      # Can CRUD staff in your own agency
+      # ???
+      
+      ## TransportationAgency Staff Permissions ##
+      if user.transportation_staff?
+
+        # Can CRUD services under their agency
+        can :manage, Service, id: user.services.pluck(:id)
+
+        # Can read/update feedbacks related to their agency's services
+        can [:read, :update], Feedback, id: Feedback.concerning(user.services).pluck(:id)
+
+      end
+      
+      ## PartnerAgency Staff Permissions ##
+      if user.partner_staff?
+      
+        # Can read/update ALL feedbacks
+        can [:read, :update], Feedback
+        
+        # Can view all reports
+        can [:read], Report
+
+      end
+      
+    end
+    
+    
+    ### TRAVELER PERMISSIONS ###
+    
+    # Registered Traveler Permissions
+    
+    # Guest Traveler Permissions
 
   end
 end

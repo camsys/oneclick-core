@@ -5,6 +5,7 @@ module AdminHelpers
     
     @admin_pages = [
       { label: "Accommodations", url: urls.admin_accommodations_path },
+      { label: "Agencies", url: urls.admin_agencies_path },
       { label: "Configuration", url: urls.admin_configs_path },
       { label: "Feedback", url: urls.admin_feedbacks_path },
       { label: "Eligibilities", url: urls.admin_eligibilities_path },
