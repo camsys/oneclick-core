@@ -2,7 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
-  include RoleHelper
+  include RoleHelper::Rolified
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable

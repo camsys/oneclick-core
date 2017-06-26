@@ -19,8 +19,8 @@ class Ability
       # Can read or update their own agency
       can [:read, :update], Agency, id: user.agencies.pluck(:id)
       
-      # Can CRUD staff in your own agency
-      # ???
+      # Can CRUD staff in their own agency
+      can :manage, Role, name: "staff", resource_id: user.agencies.pluck(:id)
       
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?
@@ -29,7 +29,7 @@ class Ability
         can :manage, Service, id: user.services.pluck(:id)
 
         # Can read/update feedbacks related to their agency's services
-        can [:read, :update], Feedback, id: Feedback.concerning(user.services).pluck(:id)
+        can [:read, :update], Feedback, id: Feedback.about(user.services).pluck(:id)
 
       end
       
