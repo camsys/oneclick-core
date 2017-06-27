@@ -3,7 +3,7 @@ class Admin::UsersController < Admin::AdminController
   before_action :load_user, only: [:destroy, :edit, :update]
 
   def index
-    @staff = User.registered.order(:last_name, :first_name, :email)
+    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
     @new_user= User.new 
     @roles = Role::ROLES
   end

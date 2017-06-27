@@ -18,11 +18,11 @@ class Ability
       ## General Staff Permissions ##
       can [:read, :update], Agency,     # Can read or update their own agency
         id: user.agencies.pluck(:id)
-      can :manage, Role,                # Can CRUD staff in their own agency
-        name: "staff", 
-        resource_id: user.agencies.pluck(:id)
-      # can :manage, User,
-      #   id: 
+      # can :manage, Role,                # Can CRUD staff in their own agency
+      #   name: "staff", 
+      #   resource_id: user.agencies.pluck(:id)
+      can :manage, User,                # Can 
+        id: user.fellow_staff.pluck(:id)
       
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?

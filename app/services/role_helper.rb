@@ -15,8 +15,13 @@ module RoleHelper
     base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
     base.scope :registered_travelers, -> { base.travelers.registered }
-    base.scope :staff, -> { base.with_role(:staff, :any) }
+    base.scope :staff, -> { base.querify(base.with_role(:staff, :any).pluck(:id)) }
     base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
+    base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
+    base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
+      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
+    end
+    base.scope :except_user, -> (user) { where.not(id: user.id) }
     
     # ASSOCIATIONS
     base.has_many :transportation_agencies, 
@@ -85,7 +90,7 @@ module RoleHelper
   
   # Returns the agencies that the user is staff for
   def agencies
-    transportation_agencies + partner_agencies
+    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id))
   end
   
   # Returns a collection of the user's transportation agency's services
@@ -136,5 +141,16 @@ module RoleHelper
     accessible_roles.map{|r| r.resource}.uniq.compact
   end
   
-    
+  # Returns a list of users who are staff for any of the agencies this user is staff for
+  def fellow_staff
+    User.staff_for_any(agencies)
+  end
+  
+  # Returns a list of the staff that the user has permissions to access
+  def accessible_staff
+    return User.staff if admin?
+    return fellow_staff if staff?
+    return User.none
+  end
+
 end

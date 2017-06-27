@@ -1,0 +1,34 @@
+.form-group
+  %label.col-xs-2.control-label Roles
+  .col-xs-10
+    .form-inline
+      .panel.roles-wrapper.panel-default
+        .row.panel-body
+          .col-sm-12
+            %span.roles-container
+            .btn.add-role
+              %span.text-muted add role
+              %span.text-muted.glyphicon.glyphicon-plus
+
+:javascript
+  $(document).ready(function() {
+    
+    var rh = new RoleHelper(
+      '#{user.roles.to_json.html_safe}',
+      $('.roles-container'),
+      '#{escape_javascript render partial: "admin/users/role_form", locals: {f: f, role: role}}'
+    );
+    
+    // Click handler for adding new roles
+    $('.add-role').click(function() {
+      rh.addRole().trigger('change');
+    });
+
+    // Have the FormHandler watch the roles for changes, plus trigger change event for the new role
+    fh.watch($('.roles-wrapper'));
+
+    // Reset the schedule divs on form reset
+    fh.onReset(function() {
+      rh.reset();
+    });
+  });
