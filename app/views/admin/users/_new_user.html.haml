@@ -1,12 +1,40 @@
 =content_for :header do
   ="Create a New Staff Person"
 =content_for :body do
-  = f.input :email, required: true, :as => :string
-  = f.input :first_name, required: false, :as => :string
-  = f.input :last_name, required: false, :as => :string
-  = f.input :password, required: true, :as => :password
-  = f.input :password_confirmation, required: true, :as => :password
-  = f.input :roles, :as => :radio_buttons, collection: @roles, checked: @roles.first
+  %fieldset.form-horizontal
+    = f.input :email, required: true, :as => :string
+    = f.input :first_name, required: false, :as => :string
+    = f.input :last_name, required: false, :as => :string
+    = f.input :password, required: true, :as => :password
+    = f.input :password_confirmation, required: true, :as => :password
+
+  .form-group
+    %label.col-xs-2.control-label Roles
+    .col-xs-10
+      .form-inline
+        .panel.roles-wrapper.panel-default
+          .row.panel-body
+            .col-sm-12
+              %span.roles-container
+              .btn.add-role
+                %span.text-muted add role
+                %span.text-muted.glyphicon.glyphicon-plus
+              
+    
+  :javascript
+    $(document).ready(function() {
+      var rh = new RoleHelper(
+        '#{@new_user.roles.to_json.html_safe}',
+        $('.roles-container'),
+        '#{escape_javascript render partial: "admin/users/role_form", locals: {f: f, role: @new_role}}'
+      );
+      
+      // Click handler for adding new roles
+      $('.add-role').click(function() {
+        rh.addRole();
+      });
+
+    });
 
 =content_for :footer do
-  = f.button :submit, "OK"#, class: 'btn action-button btn-primary', role: 'button'r
+  = f.button :submit, "OK"#, class: 'btn action-button btn-primary', role: 'button'

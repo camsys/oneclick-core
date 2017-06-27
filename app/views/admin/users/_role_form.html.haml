@@ -1,0 +1,34 @@
+=f.simple_fields_for :roles, role,
+    wrapper: :inline_input_group,
+    include_id: false do |role_form|
+  .role-body
+    =role_form.input :name,
+      collection: Role::ROLES,
+      wrapper_html: {class: 'role-form-group'},
+      required: true,
+      include_blank: "role",
+      input_html: {name: input_name(f, :roles, :name), class: 'role-input name'}
+      
+    %span.role-fields.hidden{ data: { role: "admin"} }
+    
+    %span.role-fields.hidden{ data: {role: "staff"} }
+      for
+      =role_form.input :resource_id,
+        collection: Agency.all,
+        wrapper_html: {class: 'role-form-group'},
+        required: true,
+        include_blank: 'select an agency',
+        input_html: { name: input_name(f, :roles, :resource_id), class: 'role-input resource-id' }
+      =role_form.input :resource_type,
+        wrapper_html: {class: 'hidden'},
+        input_html: { name: input_name(f, :roles, :resource_type), 
+                      class: 'resource-type' }
+        
+    =role_form.input :id,
+      wrapper_html: {class: 'hidden'},
+      input_html: {name: input_name(f, :roles, :id), class: 'id'}
+    =role_form.input :_destroy,
+      wrapper_html: {class: 'hidden'},
+      input_html: {class: 'destroy', name: input_name(f, :roles, :_destroy), value: false}
+    .btn.btn-link.delete-role
+      %span.glyphicon.glyphicon-remove
