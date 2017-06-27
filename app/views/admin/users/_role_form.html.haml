@@ -1,9 +1,10 @@
+-puts "ROLES FORM", can?(:manage, Role)
 =f.simple_fields_for :roles, role,
     wrapper: :inline_input_group,
     include_id: false do |role_form|
   .role-body
     =role_form.input :name,
-      collection: Role::ROLES,
+      collection: current_user.accessible_role_names,
       wrapper_html: {class: 'role-form-group'},
       required: true,
       include_blank: "role",
@@ -14,7 +15,7 @@
     %span.role-fields.hidden{ data: {role: "staff"} }
       for
       =role_form.input :resource_id,
-        collection: Agency.all,
+        collection: current_user.accessible_role_resources,
         wrapper_html: {class: 'role-form-group'},
         required: true,
         include_blank: 'select an agency',

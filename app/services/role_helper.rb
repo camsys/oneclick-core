@@ -110,6 +110,7 @@ module RoleHelper
     end
   end
   
+  # Finds a resource based on type and id, allowing for nil params
   def find_resource(type, id)
     if type.present? && id.present?
       resource_id = id.to_i
@@ -119,5 +120,21 @@ module RoleHelper
       return nil
     end
   end
+  
+  # Returns a list of the roles accessible to the user based on its abilities
+  def accessible_roles
+    Role.accessible_by(Ability.new(self))
+  end
+  
+  # Returns the role names that the user may manage
+  def accessible_role_names
+    accessible_roles.pluck(:name).uniq
+  end
+  
+  # Returns the role resources that the user may manage
+  def accessible_role_resources
+    accessible_roles.map{|r| r.resource}.uniq.compact
+  end
+  
     
 end
