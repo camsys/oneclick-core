@@ -2,6 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
+  include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include RoleHelper
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
@@ -58,6 +59,11 @@ class User < ApplicationRecord
   # To String prints out user's email address
   def to_s
     email
+  end
+  
+  # Returns the user's full name
+  def full_name
+    "#{first_name} #{last_name}"
   end
   
   #Return a locale for a user, even if the users preferred locale is not set

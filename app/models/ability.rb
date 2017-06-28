@@ -17,7 +17,7 @@ class Ability
 
       ## General Staff Permissions ##
       can [:read, :update], Agency,     # Can read or update their own agency
-        id: user.agencies.pluck(:id)
+        id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency
         id: user.accessible_staff.pluck(:id)
       
@@ -45,4 +45,9 @@ class Ability
     # Guest Traveler Permissions
 
   end
+  
+  def can_access_all?(model_class)
+    model_class.accessible_by(self).count == model_class.count
+  end
+  
 end

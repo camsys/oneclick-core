@@ -3,7 +3,5 @@
 class PartnerAgency < Agency
   
   resourcify  # user roles may be scoped to agencies
-  
-  has_many :services
     
 end

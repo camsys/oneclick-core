@@ -32,7 +32,7 @@
             
             <% if current_user%>
               <li>
-                <%= link_to(current_user.email, root_path, :method => :get) %> 
+                <%= link_to("Welcome #{current_user.full_name}", root_path, :method => :get) %> 
               </li>
             <% end %>
             

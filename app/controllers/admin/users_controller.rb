@@ -32,7 +32,7 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def destroy
-    @user.destroy
+    @user.archive # Make invisible in default scope
     flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
     redirect_to admin_users_path
   end

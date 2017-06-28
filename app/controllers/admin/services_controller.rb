@@ -3,10 +3,9 @@ class Admin::ServicesController < Admin::AdminController
   include GeoKitchen
   include FareHelper
 
-  before_action :find_service, except: [:create, :index]
+  load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
-    @services = Service.all.order(:id)
   end
 
   def destroy
@@ -15,7 +14,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-  	@service = Service.create(service_params)
+  	@service.update_attributes(service_params)
   	redirect_to admin_service_path(@service)
   end
 
@@ -49,10 +48,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   private
-
-  def find_service
-    @service = Service.find(params[:id])
-  end
 
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])

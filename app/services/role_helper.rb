@@ -108,14 +108,14 @@ module RoleHelper
   
   # Returns a collection of the user's transportation agency's services
   def services
-    Service.where(transportation_agency: transportation_agencies)
+    Service.where(agency: agencies)
   end
 
   # Returns the agencies that the user may manage
   def accessible_agencies
     Agency.accessible_by(Ability.new(self))
   end
-  ``
+  
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
     User.staff_for_any(agencies)
