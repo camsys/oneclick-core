@@ -7,20 +7,23 @@ module RoleHelper
     
     base.extend(ClassMethods)
     
-    # SCOPES
-    base.scope :admins, -> { base.with_role(:admin, :any) }    
+    # SCOPES    
     base.scope :any_role, -> do
-      base.with_any_role({name: :admin, resource: :any}, {name: :staff, resource: :any})
-    end
-    base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
-    base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
-    base.scope :registered_travelers, -> { base.travelers.registered }
-    base.scope :staff, -> { base.querify(base.with_role(:staff, :any).pluck(:id)) }
-    base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
+      base.querify(base.with_any_role(
+        {name: :admin, resource: :any}, 
+        {name: :staff, resource: :any}
+      ))
+    end    
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
       base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
     end
+    base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
+    base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
+    base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
+    base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
+    base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
+    base.scope :registered_travelers, -> { base.travelers.registered }
     base.scope :except_user, -> (user) { where.not(id: user.id) }
     
     # ASSOCIATIONS
@@ -32,8 +35,6 @@ module RoleHelper
       through: :roles,
       source: :resource,
       source_type: "PartnerAgency"
-      
-    # base.accepts_nested_attributes_for :roles, allow_destroy: true
     
   end
 
@@ -41,8 +42,12 @@ module RoleHelper
   module ClassMethods
   end
   
+  ####################
+  # INSTANCE METHODS #
+  ####################
   
-  ### INSTANCE METHODS ###
+  
+  ### CHECKING USER ROLES ###
   
   def has_no_roles?
     !has_any_role?
@@ -88,59 +93,29 @@ module RoleHelper
     has_no_roles?
   end
   
+  
+  ### ASSOCIATIONS VIA USER ROLES ###
+  
   # Returns the agencies that the user is staff for
   def agencies
     Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id))
+  end
+  
+  # Returns the last of the user's staffing agencies (of which there are hopefully just one)
+  def staff_agency
+    agencies.last
   end
   
   # Returns a collection of the user's transportation agency's services
   def services
     Service.where(transportation_agency: transportation_agencies)
   end
-  
-  # Replaces all roles with the passed roles, wrapping it in a transaction
-  # and rolling back to the original roles if there's an error
-  def update_roles(roles)
-    self.class.transaction do
-      self.roles.destroy_all
-      self.add_roles(roles)
-    end
+
+  # Returns the agencies that the user may manage
+  def accessible_agencies
+    Agency.accessible_by(Ability.new(self))
   end
-  
-  # Takes a collection of roles objects or an array of roles attributes hashes,
-  # and adds those roles to the rolified object
-  def add_roles(roles)
-    roles.each do |role|
-      self.add_role(role[:name], find_resource(role[:resource_type], role[:resource_id]))
-    end
-  end
-  
-  # Finds a resource based on type and id, allowing for nil params
-  def find_resource(type, id)
-    if type.present? && id.present?
-      resource_id = id.to_i
-      base_resource_class = type.constantize.base_class
-      return base_resource_class.find(resource_id)
-    else
-      return nil
-    end
-  end
-  
-  # Returns a list of the roles accessible to the user based on its abilities
-  def accessible_roles
-    Role.accessible_by(Ability.new(self))
-  end
-  
-  # Returns the role names that the user may manage
-  def accessible_role_names
-    accessible_roles.pluck(:name).uniq
-  end
-  
-  # Returns the role resources that the user may manage
-  def accessible_role_resources
-    accessible_roles.map{|r| r.resource}.uniq.compact
-  end
-  
+  ``
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
     User.staff_for_any(agencies)
@@ -148,9 +123,31 @@ module RoleHelper
   
   # Returns a list of the staff that the user has permissions to access
   def accessible_staff
-    return User.staff if admin?
+    return User.any_role if admin?
     return fellow_staff if staff?
     return User.none
   end
+  
+  
+  ### MODIFYING USER ROLES ###
+  
+  # Replaces the user's staff agency role with the passed agency
+  # wraps in a transaction so changes will be rolled back on error
+  def set_staff_role(agency)
+    self.class.transaction do
+      self.remove_role(:staff)
+      self.add_role(:staff, agency) if agency
+    end
+  end
+  
+  # Adds or removes the user's admin permissions based on passed boolean
+  # wraps in a transaction so changes will be rolled back on error
+  def set_admin(bool)
+    self.class.transaction do
+      bool ? self.add_role(:admin) : self.remove_role(:admin)
+    end
+  end
+  
+  
 
 end

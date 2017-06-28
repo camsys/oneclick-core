@@ -3,19 +3,12 @@
 
 =simple_form_for @user,
   url: admin_user_path, authenticity_token: true, data: {type: 'html'},
-  html: {id: form_id_from_path, method: :put } do |f|
+  html: {id: form_id_from_path, method: :put, class: "form-horizontal" } do |f|
+  
+  = render partial: "user_form", locals: { f: f }
 
-  %fieldset.form-horizontal
-    = f.input :email, required: true, :as => :string
-    = f.input :first_name, required: false, :as => :string
-    = f.input :last_name, required: false, :as => :string
-    = f.input :password, required: true, :as => :password
-    = f.input :password_confirmation, required: true, :as => :password
 
-  -if can? :manage, Role
-    =render partial: "role_builder", locals: { f: f, user: @user, role: @new_role }
-
-:javascript
-  $(document).ready(function() {
-    var fh = new FormHandler($('#{form_selector_from_id}'));
-  });
+  :javascript
+    $(document).ready(function() {
+      var fh = new FormHandler($('#{form_selector_from_id}'));
+    });

@@ -1,28 +1,34 @@
 class Admin::UsersController < Admin::AdminController
   
-  before_action :load_user, only: [:destroy, :edit, :update]
+  # before_action :initialize_user, only: [:index, :create]
+  before_action :load_user
+  before_action :load_staff
 
   def index
-    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
-    @new_user= User.new 
-    @roles = Role::ROLES
   end
 
   def create
     create_params = user_params
-    roles_attributes = create_params.delete(:roles_attributes)
-    @new_user = User.create(create_params)
-    @new_user.update_roles(roles_attributes) if roles_attributes.present?
+        
+    # Update the user's roles as appropriate
+    set_admin_role(create_params.delete(:admin?))
+    set_staff_role(create_params.delete(:staff_agency))
+                  
+    @user.assign_attributes(create_params)
     
-  	if @new_user.errors.empty?
-      flash[:success] = "Created #{@new_user.first_name} #{@new_user.last_name}"
+  	if @user.save
+      flash[:success] = "Created #{@user.first_name} #{@user.last_name}"
+      respond_to do |format|
+        format.js
+        format.html {redirect_to admin_users_path}
+      end
     else
-      flash[:danger] = @new_user.errors.first.join(' ') unless @new_user.errors.empty?
+      flash[:danger] = @user.errors.first.join(' ') unless @user.errors.empty?
+      respond_to do |format|
+        format.html {render :index}
+      end
     end
-    respond_to do |format|
-      format.js
-      format.html {redirect_to admin_users_path}
-    end
+
   end
 
   def destroy
@@ -35,15 +41,17 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def update
+    puts "UPDATING..."
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
     password = update_params.delete(:password)
     password_confirmation = update_params.delete(:password_confirmation)
-    roles_attributes = update_params.delete(:roles_attributes)
     
-    @user.update_roles(roles_attributes) if roles_attributes.present?
-    
+    # Update the user's roles as appropriate
+    set_admin_role(update_params.delete(:admin?))
+    set_staff_role(update_params.delete(:staff_agency))
+        
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
@@ -65,8 +73,30 @@ class Admin::UsersController < Admin::AdminController
 
   private
   
+  # Set admin role on @user if current_user has permissions
+  def set_admin_role(admin_param)
+    @user.set_admin(admin_param.to_bool) if can?(:manage, :admin)
+  end
+  
+  # Set staff role on @user if current_user has permissions
+  def set_staff_role(staff_agency_param)
+    staff_agency_id = staff_agency_param.to_i
+    
+    # Default to the user's staff agency if no agency is passed
+    staff_agency = Agency.find_by(id: staff_agency_id) || current_user.staff_agency 
+    
+    # Update the staff agency on @user
+    if staff_agency && can?(:update, staff_agency)
+      @user.set_staff_role(staff_agency)
+    end
+  end
+  
   def load_user
-    @user = User.find_by(id: params[:id])
+    @user = User.find_by(id: params[:id]) || User.new
+  end
+
+  def load_staff
+    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
   end
 
   def user_params
@@ -75,14 +105,9 @@ class Admin::UsersController < Admin::AdminController
       :first_name, 
       :last_name, 
       :password, 
-      :password_confirmation, 
-      roles_attributes: [
-        :name,
-        :resource_id,
-        :resource_type,
-        :id,
-        :_destroy
-      ]
+      :password_confirmation,
+      :admin?,
+      :staff_agency
     )
   end
 

@@ -1,15 +1,6 @@
 =content_for :header do
   ="Create a New Staff Person"
 =content_for :body do
-  %fieldset.form-horizontal
-    = f.input :email, required: true, :as => :string
-    = f.input :first_name, required: false, :as => :string
-    = f.input :last_name, required: false, :as => :string
-    = f.input :password, required: true, :as => :password
-    = f.input :password_confirmation, required: true, :as => :password
-
-  -if can? :manage, Role
-    =render partial: "role_builder", locals: { f: f, user: @new_user, role: @new_role }
-
+  =render partial: "user_form", locals: { f: f }
 =content_for :footer do
-  = f.button :submit, "OK" #, class: 'btn action-button btn-primary', role: 'button'
+  = f.button :submit, "OK", class: 'btn action-button btn-primary', role: 'button'

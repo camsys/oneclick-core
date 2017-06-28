@@ -1,0 +1,21 @@
+= f.input :email, required: true, :as => :string
+= f.input :first_name, required: false, :as => :string
+= f.input :last_name, required: false, :as => :string
+= f.input :password, required: true, :as => :password
+= f.input :password_confirmation, required: true, :as => :password
+
+-if can? :manage, Role  
+  %hr
+  %h4.text-center Roles
+  = f.input :admin?, 
+      as: :boolean, 
+      boolean_style: :inline, 
+      label: "Admin?",
+      disabled: @user == current_user # Admin can't remove their own admin privileges
+  = f.input :staff_agency, 
+      required: true, 
+      as: :select, 
+      collection: current_user.accessible_agencies, 
+      selected: @user.staff_agency.try(:id),
+      label: "Staff for: ", 
+      include_blank: "Select an Agency"
