@@ -1,24 +1,22 @@
 class Admin::FeedbacksController < Admin::AdminController
+  load_and_authorize_resource
 
   def index
-    @feedbacks = Feedback.pending
+    @feedbacks = @feedbacks.pending
   end
   
   def acknowledged
-    @feedbacks = Feedback.acknowledged
+    @feedbacks = @feedbacks.acknowledged
   end
   
   def show
-    @feedback = Feedback.find(params[:id])
     @acknowledgement_comment = @feedback.acknowledgement_comment || @feedback.build_acknowledgement_comment(
       commenter: current_user, 
       locale: current_user.preferred_locale.try(:name)
     )
   end
   
-  def update
-    @feedback = Feedback.find(params[:id])
-    
+  def update    
     if @feedback.update_attributes(feedback_params)
       if @feedback.acknowledged?
         flash[:success] = "Feedback successfully acknowledged"

@@ -1,12 +1,12 @@
 class Admin::PurposesController < Admin::AdminController
+  load_and_authorize_resource
 
   def index
-    @purposes = Purpose.all.order(:code)
+    @purposes = @purposes.order(:code)
     @new_purpose= Purpose.new 
   end
 
   def destroy
-    @purpose = Purpose.find(params[:id])
     @purpose.destroy
     redirect_to admin_purposes_path
   end
@@ -17,11 +17,9 @@ class Admin::PurposesController < Admin::AdminController
   end
 
   def edit
-    @purpose = Purpose.find(params[:id])
   end
 
   def update
-    @purpose = Purpose.find(params[:id])
     translations = params[:purpose]
     translations.each do |translation, value|
       @purpose.set_translation(translation.split('_').first, translation.split('_').last, value)

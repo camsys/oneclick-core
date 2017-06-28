@@ -1,6 +1,14 @@
 class ApplicationController < ActionController::Base
   
   before_action :configure_permitted_parameters, if: :devise_controller?
+  
+  helper_method :can_access_all?
+  
+  
+  # Wrapper method calls can_access_all? on current ability
+  def can_access_all?(model_class)
+    current_ability.can_access_all?(model_class)
+  end
 
   private
 
@@ -25,4 +33,6 @@ class ApplicationController < ActionController::Base
     # end
 
   end
+
+
 end

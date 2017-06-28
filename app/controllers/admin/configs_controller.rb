@@ -1,4 +1,5 @@
 class Admin::ConfigsController < Admin::AdminController
+  authorize_resource
 
   def index
     @open_trip_planner = Config.where(key: 'open_trip_planner').first_or_initialize

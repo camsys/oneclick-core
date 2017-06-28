@@ -15,6 +15,8 @@ class Admin::ReportsController < Admin::AdminController
     :users_table, 
     :services_table
   ]  
+
+  before_action :authorize_reports
   
   def index
     @download_tables = DOWNLOAD_TABLES
@@ -93,7 +95,13 @@ class Admin::ReportsController < Admin::AdminController
     end
   end
   
+  
   protected
+
+  # Ensures that current_user has permission to view the reports
+  def authorize_reports
+    authorize! :read, :reports
+  end
   
   def set_download_table_filters
     
