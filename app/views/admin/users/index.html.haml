@@ -6,6 +6,8 @@
       %th Last Name
       %th First Name
       %th Email
+      %th Admin?
+      %th Staff Agency
       %th Last Signed In
       
   -@staff.each do |member|
@@ -17,8 +19,13 @@
       %td
         =member.email
       %td
+        -if member.admin?
+          %span.glyphicon.glyphicon-ok
+      %td
+        =member.staff_agency.try(:name)
+      %td
         -unless member.last_sign_in_at.nil?
-          =member.last_sign_in_at.strftime("%a, %e %b %Y %H:%M:%S %z").in_time_zone
+          =member.last_sign_in_at.to_formatted_s(:long)
 
 = simple_form_for @user, 
     url: admin_users_path, 
