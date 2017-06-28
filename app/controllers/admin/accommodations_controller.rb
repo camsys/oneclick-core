@@ -1,7 +1,8 @@
 class Admin::AccommodationsController < Admin::AdminController
+  load_and_authorize_resource
 
   def index
-    @accommodations = Accommodation.all.order(:code)
+    # @accommodations = Accommodation.all.order(:code)
     @new_accommodation = Accommodation.new 
   end
 
