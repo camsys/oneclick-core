@@ -4,6 +4,14 @@ class ApplicationController < ActionController::Base
   
   helper_method :can_access_all?
   
+  # If user is not authorized to visit a page, go the the root url and show a message
+  rescue_from CanCan::AccessDenied do |exception|
+    respond_to do |format|
+      format.json { head :forbidden }
+      format.html { redirect_to main_app.root_url, :alert => exception.message }
+    end
+  end
+  
   
   # Wrapper method calls can_access_all? on current ability
   def can_access_all?(model_class)
