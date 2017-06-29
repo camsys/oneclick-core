@@ -82,13 +82,21 @@ class Admin::UsersController < Admin::AdminController
   # Set staff role on @user if current_user has permissions
   def set_staff_role(staff_agency_param)
     staff_agency_id = staff_agency_param.to_i
+    staff_agency = Agency.find_by(id: staff_agency_id)
     
-    # Default to the user's staff agency if no agency is passed
-    staff_agency = Agency.find_by(id: staff_agency_id) || current_user.staff_agency 
-    
-    # Update the staff agency on @user
-    if staff_agency && can?(:update, staff_agency)
-      @user.set_staff_role(staff_agency)
+    # If staff_agency is present and the current_user can update it, set @user as staff for that agency
+    if staff_agency
+      if can? :update, staff_agency
+        @user.set_staff_role(staff_agency)
+      end
+    else
+      # If staff_agency is not present, and current_user can manage Agencies, set @user as staff for no agency
+      if can? :manage, Agency
+        @user.set_staff_role(nil)
+      # If staff_agency is not present, and current_user cannot manage Agencies, set @user as staff for current_user's agency
+      else
+        @user.set_staff_role(current_user.staff_agency)
+      end
     end
   end
   
