@@ -1,10 +1,11 @@
 require 'rails_helper'
+require 'cancan/matchers'
 
 RSpec.describe User, type: :model do
 
-  let!(:english_traveler) { FactoryGirl.create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
-  let!(:traveler) { FactoryGirl.create :user }
-  let(:guest) { FactoryGirl.create :guest }
+  let!(:english_traveler) { create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
+  let!(:traveler) { create(:user) }
+  let(:guest) { create(:guest) }
 
   it { should have_many :trips }
   it { should have_and_belong_to_many :accommodations }
@@ -60,14 +61,145 @@ RSpec.describe User, type: :model do
     expect(traveler.locale).to eq(Locale.find_by(name: "en"))
     expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
   end
+  
+  
+  ### ROLES & CANCAN ABILITIES ###
+  describe 'abilities & roles' do
+    
+    describe "admin users" do
+      
+      let(:admin) { create(:admin) }
+      subject(:ability) { Ability.new(admin) }
+      
+      it "is an admin but not a staff, traveler, or guest" do
+        expect(admin.admin?).to be true
+        expect(admin.staff?).to be false
+        expect(admin.traveler?).to be false
+        expect(admin.guest?).to be false
+      end
+      it{ should be_able_to(:manage, :all) }
+      
+    end
+    
+    describe "staff users" do
+      
+      let(:agency) { create(:transportation_agency, :with_services)}
+      let(:staff) { create(:user, :staff, staff_agency: agency)}
+      subject(:ability) { Ability.new(staff) }
+      let(:other_agency) { create(:partner_agency) }
+      let(:fellow_staff) { create(:user, :staff, staff_agency: agency)}
+      let(:other_staff) { create(:user, :staff, staff_agency: other_agency)}
+      let(:other_service) { create(:service) }
+      
+      # General
+      it "is a staff but not an admin, traveler, or guest" do
+        expect(staff.staff?).to be true
+        expect(staff.admin?).to be false
+        expect(staff.guest?).to be false
+        expect(staff.traveler?).to be false
+      end
+      it{ should_not  be_able_to( :manage,            :all) }
 
-  it 'is a guest' do
-    expect(guest.guest?).to be true
+      # Agencies
+      it{ should      be_able_to( [:read, :update],   Agency) }      
+      it{ should_not  be_able_to( :manage,            Agency) }
+      it{ should      be_able_to( [:read, :update],   agency) }
+      it{ should_not  be_able_to( [:read, :update],   other_agency) }
+      
+      # Staff
+      it{ should      be_able_to( :manage,            User) }
+      it{ should      be_able_to( :manage,            fellow_staff) }
+      it{ should_not  be_able_to( :manage,            other_staff) }
+      
+      # Services
+      it{ should      be_able_to( :manage,            Service) }
+      it{ should      be_able_to( :manage,            agency.services.take) }
+      it{ should_not  be_able_to( :manage,            other_service) }
+      it "staff user should have many services" do
+        expect(staff.services.count).to be > 0
+        expect(staff.services.all?{|s| s.is_a?(Service)}).to be true
+      end
+      
+      describe "transportation staff users" do
+        
+        let(:transportation_agency) { create(:transportation_agency, :with_services) }
+        let(:transportation_staff) { create(:user, :staff, staff_agency: transportation_agency)}
+        subject(:ability) { Ability.new(transportation_staff) }
+        let(:feedback) { create(:feedback, feedbackable: transportation_agency.services.take) }
+        let(:other_feedback) { create(:service_feedback) }
+        
+        it "is a transportation_staff but not a partner_staff" do
+          expect(transportation_staff.transportation_staff?).to be true
+          expect(transportation_staff.partner_staff?).to be false
+        end
+        
+        # Feedbacks
+        it{ should      be_able_to( [:read, :update],   Feedback) }
+        it{ should      be_able_to( [:read, :update],   feedback) }
+        it{ should_not  be_able_to( [:read, :update],   other_feedback) }
+        
+        # Reports
+        it{ should_not  be_able_to( :read,              :report) }
+        
+      end
+      
+      describe "partner agency staff users" do
+        
+        let(:partner_agency) { create(:partner_agency, :with_services) }
+        let(:partner_staff) { create(:user, :staff, staff_agency: partner_agency)}
+        subject(:ability) { Ability.new(partner_staff) }
+        let(:feedback) { create(:feedback, feedbackable: partner_agency.services.take) }
+        let(:other_feedback) { create(:service_feedback) }
+        
+        it "is a partner_staff but not a transportation_staff" do
+          expect(partner_staff.partner_staff?).to be true
+          expect(partner_staff.transportation_staff?).to be false
+        end
+        
+        # Feedbacks
+        it{ should      be_able_to( [:read, :update],   Feedback) }
+        it{ should      be_able_to( [:read, :update],   feedback) }
+        it{ should      be_able_to( [:read, :update],   other_feedback) }
+        
+        # Reports
+        it{ should      be_able_to( :read,              :report) }
+        
+      end
+      
+    end
+    
+    describe "traveler users" do
+      
+      subject(:ability) { Ability.new(traveler) }
+      
+      it "is a traveler but not an admin, staff, or guest" do
+        expect(traveler.traveler?).to be true
+        expect(traveler.staff?).to be false
+        expect(traveler.admin?).to be false
+        expect(traveler.guest?).to be false
+      end
+      
+      # shouldn't be able to do anything, this is just a test example
+      it{ should_not  be_able_to(:read, Service) }
+      
+    end
+    
+    describe "guest users" do
+      
+      subject(:ability) { Ability.new(guest) }
+      
+      it "is a guest and a traveler but not an admin or staff" do
+        expect(guest.traveler?).to be true
+        expect(guest.staff?).to be false
+        expect(guest.admin?).to be false
+        expect(guest.guest?).to be true
+      end
+      
+      # shouldn't be able to do anything, this is just a test example
+      it{ should_not  be_able_to(:read, Service) }
+      
+    end
+    
   end
-
-  it 'is not a guest' do
-    expect(traveler.guest?).to be false
-  end
-
 
 end

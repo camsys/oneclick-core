@@ -48,5 +48,9 @@ class Agency < ApplicationRecord
   def partner?
     self.type == "PartnerAgency"
   end
+  
+  def to_s
+    name
+  end
 
 end

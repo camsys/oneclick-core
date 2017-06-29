@@ -20,11 +20,11 @@ class Ability
         id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency
         id: user.accessible_staff.pluck(:id)
+      can :manage, Service,           # Can CRUD services under their agency
+        id: user.services.pluck(:id)
       
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?
-        can :manage, Service,           # Can CRUD services under their agency
-          id: user.services.pluck(:id)
         can [:read, :update], Feedback, # Can read/update feedbacks related to their agency's services
           id: Feedback.about(user.services).pluck(:id)
       end
@@ -41,8 +41,14 @@ class Ability
     ### TRAVELER PERMISSIONS ###
     
     # Registered Traveler Permissions
+    if user.traveler?
+      cannot :manage, :all # Can't do anything in the admin pages
+    end
     
     # Guest Traveler Permissions
+    if user.guest?
+      cannot :manage, :all # Can't do anything in the admin pages
+    end
 
   end
   

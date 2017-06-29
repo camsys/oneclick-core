@@ -17,7 +17,7 @@ FactoryGirl.define do
     end
     
     trait :staff do
-      ignore do
+      transient do
         staff_agency nil
       end
       
