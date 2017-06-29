@@ -11,7 +11,8 @@
   =f.input :url
   =f.input :phone
   =f.input :email
-  =f.association :agency, collection: Agency.all, include_blank: "Select an Umbrella Agency"
+  -if can? :manage, Agency  # Only show agency menu if the user can manage agencies
+    =f.association :agency, collection: current_user.accessible_agencies, include_blank: "Select an Umbrella Agency"
 
 
 

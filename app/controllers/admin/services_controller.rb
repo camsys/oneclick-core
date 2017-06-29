@@ -14,6 +14,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
+    @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
   	@service.update_attributes(service_params)
   	redirect_to admin_service_path(@service)
   end

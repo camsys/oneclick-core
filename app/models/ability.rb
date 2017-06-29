@@ -20,8 +20,9 @@ class Ability
         id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency
         id: user.accessible_staff.pluck(:id)
-      can :manage, Service,           # Can CRUD services under their agency
+      can :manage, Service,             # Can CRUD services under their agency
         id: user.services.pluck(:id)
+      can :create, Service              # Can create new services
       
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?
