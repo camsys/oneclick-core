@@ -3,8 +3,8 @@ FactoryGirl.define do
     sequence(:email) {|i| "test_user_#{i}@camsys.com" }
     password "welcome1"
     password_confirmation "welcome1"
-    first_name "Bob"
-    last_name "Bobson"
+    first_name "Test"
+    last_name "McUser"
 
     factory :admin do
       email "admin_user@camsys.com"
@@ -14,6 +14,16 @@ FactoryGirl.define do
     factory :another_admin do 
       email "another_admin_user@camsys.com"
       after(:create) {|u| u.add_role("admin")}
+    end
+    
+    trait :staff do
+      ignore do
+        staff_agency nil
+      end
+      
+      after(:create) do |u, params|
+        u.add_role(:staff, params.staff_agency)
+      end
     end
 
     factory :password_typo_user do

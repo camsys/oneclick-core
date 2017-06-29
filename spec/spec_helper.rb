@@ -50,6 +50,8 @@ RSpec.configure do |config|
   config.before(:all) do
     FactoryGirl.reload
     OneclickCore::Application.load_tasks
+    Rake::Task["db:environment:set"].invoke("RAILS_ENV=test")
+    Rake::Task["db:test:prepare"].invoke
     Rake::Task["db:sample:test_geographies"].invoke
   end
 
