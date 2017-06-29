@@ -5,10 +5,17 @@ class Ability
   # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
 
   def initialize(user)
-
-    ### ADMIN PERMISSIONS ###
-    if user.admin?
-      can :manage, :all # Can perform all actions on all models
+    
+    ### TRAVELER PERMISSIONS ###
+    
+    # Registered Traveler Permissions
+    if user.traveler?
+      cannot :manage, :all # Can't do anything in the admin pages
+    end
+    
+    # Guest Traveler Permissions
+    if user.guest?
+      cannot :manage, :all # Can't do anything in the admin pages
     end
     
     
@@ -38,18 +45,11 @@ class Ability
       
     end # staff
     
-    
-    ### TRAVELER PERMISSIONS ###
-    
-    # Registered Traveler Permissions
-    if user.traveler?
-      cannot :manage, :all # Can't do anything in the admin pages
+    ### ADMIN PERMISSIONS ###
+    if user.admin?
+      can :manage, :all # Can perform all actions on all models
     end
-    
-    # Guest Traveler Permissions
-    if user.guest?
-      cannot :manage, :all # Can't do anything in the admin pages
-    end
+
 
   end
   

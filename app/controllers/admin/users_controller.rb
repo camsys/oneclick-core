@@ -12,7 +12,7 @@ class Admin::UsersController < Admin::AdminController
     create_params = user_params
         
     # Update the user's roles as appropriate
-    set_admin_role(create_params.delete(:admin?))
+    set_admin_role(create_params.delete(:admin))
     set_staff_role(create_params.delete(:staff_agency))
                   
     @user.assign_attributes(create_params)
@@ -49,7 +49,7 @@ class Admin::UsersController < Admin::AdminController
     password_confirmation = update_params.delete(:password_confirmation)
     
     # Update the user's roles as appropriate
-    set_admin_role(update_params.delete(:admin?))
+    set_admin_role(update_params.delete(:admin))
     set_staff_role(update_params.delete(:staff_agency))
         
     unless password.blank?
@@ -75,6 +75,7 @@ class Admin::UsersController < Admin::AdminController
   
   # Set admin role on @user if current_user has permissions
   def set_admin_role(admin_param)
+    return false if admin_param.nil?
     @user.set_admin(admin_param.to_bool) if can?(:manage, :admin)
   end
   
@@ -106,7 +107,7 @@ class Admin::UsersController < Admin::AdminController
       :last_name, 
       :password, 
       :password_confirmation,
-      :admin?,
+      :admin,
       :staff_agency
     )
   end

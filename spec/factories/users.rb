@@ -7,7 +7,7 @@ FactoryGirl.define do
     last_name "McUser"
 
     factory :admin do
-      email "admin_user@camsys.com"
+      sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
       after(:create) {|u| u.add_role("admin")}
     end
 
@@ -24,6 +24,11 @@ FactoryGirl.define do
       after(:create) do |u, params|
         u.add_role(:staff, params.staff_agency)
       end
+    end
+    
+    factory :staff_user do
+      sequence(:email) {|i| "staff_user_#{i}@camsys.com" }
+      staff
     end
 
     factory :password_typo_user do

@@ -11,7 +11,7 @@
       as: :boolean, 
       boolean_style: :inline, 
       label: "Admin?",
-      disabled: @user == current_user # Admin can't remove their own admin privileges
+      disabled: @user == current_user
   = f.input :staff_agency, 
       required: true, 
       as: :select, 
