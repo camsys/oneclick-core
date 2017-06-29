@@ -26,7 +26,7 @@ RSpec.describe Admin::UsersController, type: :controller do
 
   it 'updates a staff' do
     sign_in admin
-    post :update, id: another_admin, user: {first_name: "new name", email: "new@email.com"}
+    post :update, params: { id: another_admin, user: { first_name: "new name", email: "new@email.com" } }
     another_admin.reload
     expect(another_admin.first_name).to eq("new name")
     expect(another_admin.email).to eq("new@email.com")
@@ -35,7 +35,7 @@ RSpec.describe Admin::UsersController, type: :controller do
   it 'deletes a staff' do
     sign_in admin
     user_count = User.count 
-    delete :destroy, id: another_admin
+    delete :destroy, params: { id: another_admin }
     expect(User.count).to eq(user_count - 1)
   end
   

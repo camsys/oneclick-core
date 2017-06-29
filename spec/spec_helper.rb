@@ -50,9 +50,17 @@ RSpec.configure do |config|
   config.before(:all) do
     FactoryGirl.reload
     OneclickCore::Application.load_tasks
+    
+    # Clean and prepare the database
     Rake::Task["db:environment:set"].invoke("RAILS_ENV=test")
     Rake::Task["db:test:prepare"].invoke
+    
+    # Load sample geography records
     Rake::Task["db:sample:test_geographies"].invoke
+        
+    # Load Translations
+    Rake::Task['simple_translation_engine:update'].invoke
+
   end
 
 # The settings below are suggested to provide a good initial experience

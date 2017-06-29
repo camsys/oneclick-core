@@ -55,27 +55,35 @@ RSpec.describe Admin::PurposesController, type: :controller do
 
   end
 
-  it 'creates and destroys a purpose' do 
-    # Clean up any old purposes
-    Purpose.delete_all
-    
+  it 'creates a purpose' do
     sign_in admin
+    
+    purpose_count = Purpose.count
+    
     params = {purpose: {code: 'Test DeLEte& purpose22'}}
     post :create, params: params, format: :js
-
+    
     # Confirm that the variable was set
-    expect(Purpose.count).to eq(1)
+    expect(Purpose.count).to eq(purpose_count + 1)
 
     # Confirm that the code was set to snake case
     expect(Purpose.last.code).to eq('test_delete_purpose22')
-
-    params = {id: Purpose.last.id}
-    delete :destroy, params: params, format: :js 
-
-    # Confirm that there are no eligibilities
-    expect(Purpose.count).to eq(0)
+    
   end
-
-
+  
+  it 'destroys a purpose' do
+    sign_in admin
+    create(:purpose)
+    purpose_count = Purpose.count
+    
+    purpose_id = Purpose.last.id
+    delete :destroy, params: {id: purpose_id}, format: :js
+    
+    # Expect purpose count to be down
+    expect(Purpose.count).to eq(purpose_count - 1)
+    
+    # Purpose should be gone
+    expect(Purpose.find_by(id: purpose_id)).to be nil
+  end
 
 end

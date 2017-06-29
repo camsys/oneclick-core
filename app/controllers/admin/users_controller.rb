@@ -1,6 +1,7 @@
 class Admin::UsersController < Admin::AdminController
   
   # before_action :initialize_user, only: [:index, :create]
+  authorize_resource
   before_action :load_user
   before_action :load_staff
 
@@ -41,7 +42,6 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def update
-    puts "UPDATING..."
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
