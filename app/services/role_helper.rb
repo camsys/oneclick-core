@@ -36,6 +36,8 @@ module RoleHelper
       source: :resource,
       source_type: "PartnerAgency"
     
+    base.validate :must_have_a_role, if: :role_required?
+    
   end
 
   # CLASS METHOD DEFINITIONS
@@ -48,9 +50,10 @@ module RoleHelper
   
   
   ### CHECKING USER ROLES ###
-  
-  def has_no_roles?
-    !has_any_role?
+    
+  # Does the use have either an admin or a staff role?
+  def admin_or_staff?
+    admin? || staff?
   end
     
   # Check to see if the user is an Admin, any scope
@@ -90,7 +93,7 @@ module RoleHelper
   
   # Check to see if the user is a traveler (i.e. has no roles)
   def traveler?
-    has_no_roles?
+    !admin_or_staff?
   end
   
   
@@ -134,20 +137,34 @@ module RoleHelper
   # Replaces the user's staff agency role with the passed agency
   # wraps in a transaction so changes will be rolled back on error
   def set_staff_role(agency)
-    self.class.transaction do
+    if agency && staff_agency != agency
       self.remove_role(:staff)
-      self.add_role(:staff, agency) if agency
+      self.add_role(:staff, agency)
     end
   end
   
   # Adds or removes the user's admin permissions based on passed boolean
   # wraps in a transaction so changes will be rolled back on error
   def set_admin(bool)
-    self.class.transaction do
-      bool ? self.add_role(:admin) : self.remove_role(:admin)
-    end
+    bool ? self.add_role(:admin) : self.remove_role(:admin)
   end
   
+  
+  ### VALIDATIONS ###
+  
+  def require_role
+    @role_required = true
+  end
+  
+  # Checks to see if a role is required for validation
+  def role_required?
+    @role_required || false
+  end
+  
+  # Validates that the user has at least one role
+  def must_have_a_role
+    errors.add(:roles, "Must have a staff or admin role") unless admin_or_staff?
+  end
   
 
 end

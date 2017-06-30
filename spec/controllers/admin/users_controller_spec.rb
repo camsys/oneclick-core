@@ -47,6 +47,18 @@ RSpec.describe Admin::UsersController, type: :controller do
       expect(other_staff.admin?).to be true
     end
     
+    it 'creates a staff user' do
+      user_count = User.count
+      post :create, params: { user: attributes_for(:user).merge(staff_agency: agency.id) }
+      expect(User.count).to eq(user_count + 1)
+    end
+    
+    it 'cannot create a user with no roles' do
+      user_count = User.count
+      post :create, params: { user: attributes_for(:user) }
+      expect(User.count).to eq(user_count)
+    end
+    
   end
   
   context "while signed in as a staff" do

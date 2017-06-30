@@ -10,13 +10,9 @@ class Admin::UsersController < Admin::AdminController
 
   def create
     create_params = user_params
-        
-    # Update the user's roles as appropriate
-    set_admin_role(create_params.delete(:admin))
-    set_staff_role(create_params.delete(:staff_agency))
-                  
+    set_roles(create_params.delete(:admin), create_params.delete(:staff_agency))                    
     @user.assign_attributes(create_params)
-    
+            
   	if @user.save
       flash[:success] = "Created #{@user.first_name} #{@user.last_name}"
       respond_to do |format|
@@ -46,15 +42,12 @@ class Admin::UsersController < Admin::AdminController
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
     password = update_params.delete(:password)
-    password_confirmation = update_params.delete(:password_confirmation)
-    
-    # Update the user's roles as appropriate
-    set_admin_role(update_params.delete(:admin))
-    set_staff_role(update_params.delete(:staff_agency))
-        
+    password_confirmation = update_params.delete(:password_confirmation)        
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
+    
+    set_roles(update_params.delete(:admin), update_params.delete(:staff_agency))
     
     @user.update_attributes(update_params)
 
@@ -72,6 +65,17 @@ class Admin::UsersController < Admin::AdminController
   end
 
   private
+
+  # Sets admin and staff roles for user. Wraps actions in a transaction block,
+  # so it can be rolled back if there is a validation error.
+  def set_roles(admin, staff_agency)
+    User.transaction do
+      @user.require_role # Will run validations that admin or staff is set
+      set_admin_role(admin)
+      set_staff_role(staff_agency)
+      raise ActiveRecord::Rollback unless @user.valid?
+    end
+  end
   
   # Set admin role on @user if current_user has permissions
   def set_admin_role(admin_param)
