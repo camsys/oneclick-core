@@ -100,7 +100,7 @@ class Admin::ReportsController < Admin::AdminController
 
   # Ensures that current_user has permission to view the reports
   def authorize_reports
-    authorize! :read, :reports
+    authorize! :read, :report
   end
   
   def set_download_table_filters

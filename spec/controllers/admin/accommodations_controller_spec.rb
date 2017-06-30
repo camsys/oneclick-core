@@ -7,7 +7,7 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
   let(:traveler) { create(:user) }
   let(:jacuzzi) { create(:jacuzzi) }
   
-  context "while signed in as admin" do
+  context "while signed in as an admin" do
     
     before(:each) { sign_in admin }
     
@@ -67,7 +67,7 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
     
     it 'prevents access to accommodations page' do    
       get :index
-      expect(response).to have_http_status(302)
+      expect(response).to have_http_status(:unauthorized)
     end
     
   end
@@ -78,7 +78,7 @@ RSpec.describe Admin::AccommodationsController, type: :controller do
     
     it 'prevents access to accommodations page' do    
       get :index
-      expect(response).to have_http_status(302)
+      expect(response).to have_http_status(:unauthorized)
     end
     
   end

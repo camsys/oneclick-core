@@ -1,12 +1,14 @@
 class Admin::FeedbacksController < Admin::AdminController
   load_and_authorize_resource
+  skip_authorize_resource only: :acknowledged
 
   def index
     @feedbacks = @feedbacks.pending
   end
   
   def acknowledged
-    @feedbacks = @feedbacks.acknowledged
+    @feedbacks = Feedback.accessible_by(current_ability).acknowledged
+    authorize!(:read, Feedback)
   end
   
   def show
