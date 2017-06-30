@@ -24,3 +24,6 @@
 
 # Instance-specific Files
 /public/uploads/*
+
+# Ignore bundle config files
+.bundle/
