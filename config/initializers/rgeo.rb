@@ -1,4 +1,9 @@
-RGeo::ActiveRecord::SpatialFactoryStore.instance.tap do |config| 
-  puts "GEOS AVAILABLE?", RGeo::Geos.supported?
-  # config.default = RGeo::Geos::CAPIFactory.new(:srid => 4326)
+RGeo::ActiveRecord::SpatialFactoryStore.instance.tap do |config|
+  puts "CHECKING RGEO SUPPORT..."
+  if RGeo::Geos.supported?
+    puts "GEOS SUPPORTED!"
+    config.default = RGeo::Geos::CAPIFactory.new(:srid => 4326)
+  else
+    puts "GEOS NOT SUPPORTED :("
+  end
 end
