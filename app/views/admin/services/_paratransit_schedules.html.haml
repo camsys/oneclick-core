@@ -3,7 +3,7 @@
 
 -# For use in building new schedule forms
 -new_sched = @service.schedules.build
--schedules_json = @service.schedules.for_display.to_json
+-schedules_json = @service.schedules.for_display.to_json.html_safe
 
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},

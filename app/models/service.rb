@@ -1,15 +1,15 @@
 class Service < ApplicationRecord
 
-  ### INCLUDES ###
+  ### INCLUDES & CONFIGURATION ###
   mount_uploader :logo, LogoUploader
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include Commentable # has_many :comments
   include FareHelper
   include FareHelper::ZoneFareable
+  include Feedbackable
   include GeoKitchen
   include ScheduleHelper
   include ScopeHelper
-  include Feedbackable
   write_to_csv with: Admin::ServicesReportCSVWriter
 
   ### ATTRIBUTES & ASSOCIATIONS ###
@@ -20,6 +20,8 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes
+  belongs_to :transportation_agency
+  alias_attribute :agency, :transportation_agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
@@ -31,11 +33,15 @@ class Service < ApplicationRecord
   ##########
   # SCOPES #
   ##########
+  
+  # NOTE: Many of the scopes below are used for determining which services are
+  # available for a given trip or user. These are divided into primary,
+  # secondary, and tertiary scopes, depending on their level of abstraction.
 
   ## Default Scope ##
   # where.not(archived: true) # set in Archivable module
 
-  ## Primary Scopes ##
+  ## Primary Availability Scopes ##
   scope :available_for, -> (trip) do
     available_for_time_and_geography(trip)
     .available_for_purpose_and_user(trip)
@@ -56,7 +62,7 @@ class Service < ApplicationRecord
   scope :taxi_services, -> { where(type: "Taxi") }
   scope :uber_services, -> { where(type: "Uber") }
 
-  ## Secondary Scopes ##
+  ## Secondary Availability Scopes ##
   scope :available_for_purpose_for, -> (trip) { trip.purpose ? available_by_purpose(trip.purpose) : all }
   scope :available_for_user, -> (user) { user ? accepts_eligibility_of(user).accommodates(user) : all }
   scope :available_by_time_for, -> (trip) { available_by_schedule_for(trip) }
@@ -65,7 +71,7 @@ class Service < ApplicationRecord
     .available_by_trip_within_area_for(trip)
   end
 
-  ## Tertiary Scopes ##
+  ## Tertiary Availability Scopes ##
   # available_for_user scopes
   scope :accommodates, -> (user) do
     if user.accommodations.empty?
@@ -108,7 +114,7 @@ class Service < ApplicationRecord
     :available_by_start_or_end_area_for, :available_by_trip_within_area_for
 
     
-  ## Reporting Filter Scopes ##
+  ## Other Scopes ##
   
   # Accommodation, Eligibility, and Purpose scopes filter by services that have one or more of the passed ids
   scope :with_accommodations, -> (accommodation_ids) do
@@ -119,6 +125,16 @@ class Service < ApplicationRecord
   end
   scope :with_purposes, -> (purpose_ids) do
     where(id: joins(:purposes).where(purposes: {id: purpose_ids}).pluck(:id).uniq)
+  end
+
+  # Returns services that either have no umbrella agency, or already belong to the passed agency
+  scope :available_to_agency, -> (agency) do
+    where(transportation_agency: [nil, agency]).order(:name)
+  end
+  
+  # Returns services that have another agency as their umbrella agency
+  scope :unavailable_to_agency, -> (agency) do
+    where.not(transportation_agency: agency).order(:name)
   end
 
   #################

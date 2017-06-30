@@ -7,17 +7,12 @@
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   =f.input :name
-  -# CUSTOM FIELD FOR LOGO
-  .form-group.file.optional
-    .col-sm-1
-      %img{ src: @service.logo.thumb.url}
-    =f.label :logo, class: "control-label col-sm-2"
-    .col-sm-9
-      .input-group.col-xs-12
-        =f.input_field :logo, class: "form-control file optional", type: "file"
+  =logo_upload_input(f)
   =f.input :url
   =f.input :phone
   =f.input :email
+  =f.association :transportation_agency, collection: TransportationAgency.all, include_blank: "Select an Umbrella Agency"
+
 
 
 :javascript
