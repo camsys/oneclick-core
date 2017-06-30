@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170622173922) do
+ActiveRecord::Schema.define(version: 20170628161207) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -214,8 +214,8 @@ ActiveRecord::Schema.define(version: 20170622173922) do
   end
 
   create_table "services", force: :cascade do |t|
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
     t.string   "type"
     t.string   "name"
     t.string   "gtfs_agency_id"
@@ -227,13 +227,13 @@ ActiveRecord::Schema.define(version: 20170622173922) do
     t.integer  "trip_within_area_id"
     t.string   "fare_structure"
     t.text     "fare_details"
-    t.boolean  "archived",                 default: false
-    t.integer  "transportation_agency_id"
+    t.boolean  "archived",             default: false
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
-    t.index ["transportation_agency_id"], name: "index_services_on_transportation_agency_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
   end
 
@@ -305,14 +305,14 @@ ActiveRecord::Schema.define(version: 20170622173922) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.datetime "created_at",                                     null: false
-    t.datetime "updated_at",                                     null: false
-    t.string   "email",                             default: "", null: false
-    t.string   "encrypted_password",                default: "", null: false
+    t.datetime "created_at",                                        null: false
+    t.datetime "updated_at",                                        null: false
+    t.string   "email",                             default: "",    null: false
+    t.string   "encrypted_password",                default: "",    null: false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
-    t.integer  "sign_in_count",                     default: 0,  null: false
+    t.integer  "sign_in_count",                     default: 0,     null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
     t.inet     "current_sign_in_ip"
@@ -322,6 +322,8 @@ ActiveRecord::Schema.define(version: 20170622173922) do
     t.string   "last_name"
     t.integer  "preferred_locale_id"
     t.text     "preferred_trip_types"
+    t.boolean  "archived",                          default: false
+    t.index ["archived"], name: "index_users_on_archived", using: :btree
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
     t.index ["last_name", "first_name"], name: "index_users_on_last_name_and_first_name", using: :btree
@@ -362,7 +364,7 @@ ActiveRecord::Schema.define(version: 20170622173922) do
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "schedules", "services"
-  add_foreign_key "services", "agencies", column: "transportation_agency_id"
+  add_foreign_key "services", "agencies"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "stomping_grounds", "users"
