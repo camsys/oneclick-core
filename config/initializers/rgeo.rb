@@ -1,3 +1,4 @@
 RGeo::ActiveRecord::SpatialFactoryStore.instance.tap do |config| 
-  config.default = RGeo::Geos::CAPIFactory.new(:srid => 4326)
+  puts "GEOS AVAILABLE?", RGeo::Geos.supported?
+  # config.default = RGeo::Geos::CAPIFactory.new(:srid => 4326)
 end
