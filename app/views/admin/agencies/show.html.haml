@@ -3,5 +3,6 @@
 
 =render partial: 'edit_agency', layout: '/layouts/panel'
 
-.text-center
-  =link_to "All Agencies", admin_agencies_path, method: :get, class: 'btn btn-lg btn-link'
+-if can_access_all?(Agency)
+  .text-center
+    =link_to "All Agencies", admin_agencies_path, method: :get, class: 'btn btn-lg btn-link'

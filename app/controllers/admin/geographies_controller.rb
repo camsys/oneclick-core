@@ -1,4 +1,5 @@
 class Admin::GeographiesController < Admin::AdminController
+  authorize_resource :geography_record, parent: false
 
   def index
     @counties = County.all.order(:state, :name)

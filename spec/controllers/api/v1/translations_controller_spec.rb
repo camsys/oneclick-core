@@ -2,11 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::TranslationsController, type: :controller do
 
-  require 'rake'
-  Rails.application.load_tasks
-  Rake::Task['simple_translation_engine:update'].invoke
-
-  it 'gets the save translation' do
+  it 'gets the save translation' do    
     post :find, params: {"locale":"en","translations":["save"]}, format: :json
 
     # test for the 200 status-code

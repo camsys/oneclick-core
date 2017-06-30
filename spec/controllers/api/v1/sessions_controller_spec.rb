@@ -5,7 +5,7 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
   before(:each) { @request.env["devise.mapping"] = Devise.mappings[:user] }
   let(:user) { create(:user) }
 
-  it 'allows user sign_in requests and returns an auth token' do
+  it 'allows user sign_in requests and returns an auth token' do    
     post :create, params: {
       "user": {
           "email": user.email,
