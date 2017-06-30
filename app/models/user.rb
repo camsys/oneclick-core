@@ -2,7 +2,6 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
-  include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include RoleHelper
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
