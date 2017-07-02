@@ -7,8 +7,13 @@ class Place < ApplicationRecord
   include GooglePlace
 
   # Search over all classes that inherit from place by query string
-  def self.get_by_query_str(query_str, limit)
-    rel = self.arel_table[:name].lower().matches(query_str)
+  def self.get_by_query_str(query_str, limit, user=nil)
+    rel = nil
+    if user
+      rel = self.where(user: user).arel_table[:name].lower().matches(query_str)
+    else
+      rel = self.arel_table[:name].lower().matches(query_str)
+    end
     self.where(rel).limit(limit)
   end
 
