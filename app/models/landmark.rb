@@ -5,13 +5,6 @@ class Landmark < Place
   scope :is_new, -> { where(:old => false) }
 
   #### METHODS ####
-  # Search over all landmarks by query string
-  def self.get_by_query_str(query_str, limit)
-    rel = Landmark.arel_table[:name].lower().matches(query_str)
-    landmarks = Landmark.where(rel).limit(limit)
-    landmarks
-  end
-
   # Load new landmarks from CSV
   # CSV must have the following columns: Name, Street Number, Route, Address, City, State, Zip, Lat, Lng, Types
   def self.update file
