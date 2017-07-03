@@ -42,7 +42,7 @@ RSpec.describe Admin::UsersController, type: :controller do
     
     it 'can manage admin privileges' do
       expect(other_staff.admin?).to be false
-      post :update, params: { id: other_staff.id, user: { admin: true } }
+      post :update, params: { id: other_staff.id, user: { admin: '1' } }
       other_staff.reload
       expect(other_staff.admin?).to be true
     end
@@ -51,6 +51,7 @@ RSpec.describe Admin::UsersController, type: :controller do
       user_count = User.count
       post :create, params: { user: attributes_for(:user).merge(staff_agency: agency.id) }
       expect(User.count).to eq(user_count + 1)
+      expect(User.last.staff?).to be true
     end
     
     it 'cannot create a user with no roles' do
