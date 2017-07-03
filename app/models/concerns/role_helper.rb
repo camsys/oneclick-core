@@ -140,6 +140,7 @@ module RoleHelper
     if agency && staff_agency != agency
       self.remove_role(:staff)
       self.add_role(:staff, agency)
+      r = self.roles.last
     end
   end
   
