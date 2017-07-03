@@ -1,24 +1,24 @@
 class Admin::FeedbacksController < Admin::AdminController
+  load_and_authorize_resource
+  skip_authorize_resource only: :acknowledged
 
   def index
-    @feedbacks = Feedback.pending
+    @feedbacks = @feedbacks.pending
   end
   
   def acknowledged
-    @feedbacks = Feedback.acknowledged
+    @feedbacks = Feedback.accessible_by(current_ability).acknowledged
+    authorize!(:read, Feedback)
   end
   
   def show
-    @feedback = Feedback.find(params[:id])
     @acknowledgement_comment = @feedback.acknowledgement_comment || @feedback.build_acknowledgement_comment(
       commenter: current_user, 
       locale: current_user.preferred_locale.try(:name)
     )
   end
   
-  def update
-    @feedback = Feedback.find(params[:id])
-    
+  def update    
     if @feedback.update_attributes(feedback_params)
       if @feedback.acknowledged?
         flash[:success] = "Feedback successfully acknowledged"

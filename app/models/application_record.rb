@@ -3,4 +3,9 @@ class ApplicationRecord < ActiveRecord::Base
     
   self.abstract_class = true
   
+  # Converts an array of model objects into a collection query of that same set of objects
+  def self.querify(array=[])
+    self.where(id: array.select{|obj| obj.is_a?(self) }.pluck(:id))
+  end
+  
 end

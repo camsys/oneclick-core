@@ -1,0 +1,42 @@
+// USER ROLES STYLING
+
+@import 'mixins';
+@import 'variables';
+@import 'bootstrap_extensions';
+
+
+.delete-role {
+  @include custom-btn-link($brand-info);
+}
+
+.roles-wrapper {
+  padding: 0 10px;
+}
+
+.role-row-label {
+  margin: 10px 0;
+}
+
+.role-body {
+  @include unit-box($brand-info-pastel);
+
+  .role-form-group .role-input {
+    @include subtle-input;
+    padding-right: 0px;
+    font-weight: bold;
+  }
+
+  .btn.btn-link {
+    padding: 6px 5px 6px 0;
+  }
+}
+
+.add-role {
+  @include dashed-unit-box($gray-paler);
+
+  padding: 12px;
+
+  span + span {
+    margin-left: 10px;
+  }
+}

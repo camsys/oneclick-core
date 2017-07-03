@@ -19,5 +19,16 @@ FactoryGirl.define do
       lng -71.122898
       name "Home"
     end
+
+    factory :cambridge_city_hall do
+      street_number "795"
+      route "Massachusetts Ave"
+      city "Cambridge"
+      state "MA"
+      zip "02139"
+      lat 42.367129
+      lng -71.105653
+      name "Cambridge City Hall"
+    end
   end
 end

@@ -60,6 +60,11 @@ class User < ApplicationRecord
     email
   end
   
+  # Returns the user's full name
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+  
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first

@@ -1,5 +1,38 @@
 FactoryGirl.define do
   factory :agency do
     
+    factory :transportation_agency, class: "TransportationAgency" do
+      name "Test Transportation Agency"
+      logo Rails.root.join("spec/files/mbta.png").open
+      email "test_transportation_agency@oneclick.com"    
+      phone "(555)555-5555"
+      url "http://www.test-transportation-agency-url.gov"
+      type "TransportationAgency"
+    end
+    
+    factory :partner_agency, class: "PartnerAgency" do
+      name "Test Partner Agency"
+      logo Rails.root.join("spec/files/parrot.gif").open
+      email "test_partner_agency@oneclick.com"    
+      phone "(555)555-5555"
+      url "http://www.test-partner-agency-url.gov"
+      type "PartnerAgency"
+    end
+    
+    trait :with_services do
+      after(:create) do |agency|
+        agency.services << create(:paratransit_service)
+        agency.services << create(:taxi_service)
+        agency.services << create(:transit_service)
+      end
+    end
+    
+    trait :with_staff do
+      after(:create) do |agency|
+        agency.add_staff(create(:user))
+        agency.add_staff(create(:user))
+      end
+    end
+    
   end
 end

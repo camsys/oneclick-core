@@ -1,16 +1,15 @@
 class Admin::AgenciesController < Admin::AdminController
   
-  before_action :find_agency, except: [:create, :index]
+  load_and_authorize_resource # Loads and authorizes @agency/@agencies instance variable
 
   def index
-    @agencies = Agency.all.order(:id)
   end
   
   def show
   end
   
   def create
-    @agency = Agency.create(agency_params)
+    @agency.update_attributes(agency_params)
     redirect_to admin_agency_path(@agency)
   end
   
@@ -24,10 +23,6 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   private
-
-  def find_agency
-    @agency = Agency.find(params[:id])
-  end
   
   def agency_params
     if params.has_key?(:transportation_agency)

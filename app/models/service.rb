@@ -20,8 +20,7 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes
-  belongs_to :transportation_agency
-  alias_attribute :agency, :transportation_agency
+  belongs_to :agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 

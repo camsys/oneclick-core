@@ -16,7 +16,7 @@ class Feedback < ApplicationRecord
   scope :newest_first, -> { order(created_at: :desc) }
   scope :pending, -> { where(acknowledged: false).newest_first }
   scope :acknowledged, -> { where(acknowledged: true).newest_first }
-  scope :concerning, -> (feedbackable) { where(feedbackable: feedbackable) }
+  scope :about, -> (feedbackable) { where(feedbackable: feedbackable) }
   
   
   ### VALIDATIONS ###

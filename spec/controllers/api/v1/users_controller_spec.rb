@@ -2,14 +2,16 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::UsersController, type: :controller do
 
-  let(:traveler) { FactoryGirl.create :user }
-  let(:english_traveler) { FactoryGirl.create(:english_speaker) }
-  let!(:over_65) { FactoryGirl.create :eligibility }
-  let!(:veteran) { FactoryGirl.create :veteran } 
-  let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
-  let!(:wheelchair) { FactoryGirl.create :wheelchair }
+  let(:traveler) { create :user }
+  let(:english_traveler) { create(:english_speaker) }
+  let!(:over_65) { create :eligibility }
+  let!(:veteran) { create :veteran } 
+  let!(:jacuzzi) { create :jacuzzi }
+  let!(:wheelchair) { create :wheelchair }
 
   it 'returns the first and last name of a user profile' do
+    first_name = traveler.first_name
+    last_name = traveler.last_name
 
     sign_in traveler
 
@@ -22,8 +24,8 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
     # Check on a specific translation
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response["first_name"]).to eq("Bob")
-    expect(parsed_response["last_name"]).to eq("Bobson")
+    expect(parsed_response["first_name"]).to eq(first_name)
+    expect(parsed_response["last_name"]).to eq(last_name)
 
   end
 
