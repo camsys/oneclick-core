@@ -10,7 +10,6 @@
 = f.input :accommodations, required: false,
     collection: Accommodation.all, 
     as: :check_boxes, 
-    label_method: :code, 
     value_method: :id,
     label: "Accommodations Offered"
       
@@ -18,7 +17,6 @@
 = f.input :eligibilities, required: false,
     collection: Eligibility.all, 
     as: :check_boxes, 
-    label_method: :code, 
     value_method: :id,
     label: "Eligibility Requirements"
 
@@ -26,6 +24,5 @@
 = f.input :purposes, required: false,
     collection: Purpose.all, 
     as: :check_boxes, 
-    label_method: :code, 
     value_method: :id,
     label: "Purposes Allowed"
