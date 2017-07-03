@@ -7,7 +7,6 @@
 = f.input :accommodations, required: false,
     collection: Accommodation.all, 
     as: :check_boxes, 
-    label_method: :code, 
     value_method: :id,
     label: "Accommodations Needed"
       
@@ -15,7 +14,6 @@
 = f.input :eligibilities, required: false,
     collection: Eligibility.all, 
     as: :check_boxes, 
-    label_method: :code, 
     value_method: :id,
     label: "Eligibility Requirements Met"
 

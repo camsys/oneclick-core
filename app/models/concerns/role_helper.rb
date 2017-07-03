@@ -58,7 +58,7 @@ module RoleHelper
     
   # Check to see if the user is an Admin, any scope
   def admin?
-    has_role? :admin, :any
+    has_role?(:admin) || has_role?(:admin, :any)
   end
 
   # Check to see if the user is a guest (i.e. not registered)
@@ -140,6 +140,7 @@ module RoleHelper
     if agency && staff_agency != agency
       self.remove_role(:staff)
       self.add_role(:staff, agency)
+      r = self.roles.last
     end
   end
   

@@ -3,5 +3,6 @@
 class TransportationAgency < Agency
 
   resourcify  # user roles may be scoped to transportation agencies
+  include ResourceHelper
     
 end
