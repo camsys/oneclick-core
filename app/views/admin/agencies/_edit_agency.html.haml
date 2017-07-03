@@ -1,5 +1,10 @@
 =content_for :header do
   Agency Info
+  .pull-right
+    -if @agency.published?
+      %span.badge.badge-success PUBLISHED
+    -else
+      %span.badge.badge-warning NOT PUBLISHED
 
 =simple_form_for @agency,
   url: admin_agency_path, authenticity_token: true, data: {type: 'html'},
@@ -10,14 +15,40 @@
   =f.input :url
   =f.input :phone
   =f.input :email
+  =f.input :published, input_html: { class: "published" }, as: :hidden
 
   -# For type-specific fields
   -case @agency.type
   -when "TransportationAgency"
   -when "PartnerAgency"
   -else
-
+  
+=content_for :footer do
+  .btn.btn-primary.form-submit Submit
+  .btn.btn-danger.form-reset Cancel
+  -if @agency.published?
+    .btn.btn-warning.unpublish Unpublish
+  -else
+    .btn.btn-success.publish Publish
+  
 :javascript
   $(document).ready(function() {
-    new FormHandler($('#{form_selector_from_id}'));
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+    
+    // Click handlers for publish and unpublish buttons
+    $('.unpublish').click(function() {
+      if(confirm("Are you sure? This will hide the agency from customers.")) {
+        var publishedInput = fh.form.find('input.published');
+        publishedInput.val(false);      
+        fh.form.submit();
+      }
+    });
+    $('.publish').click(function() {
+      if(confirm("Are you sure? The agency will be visible to the public.")) {
+        var publishedInput = fh.form.find('input.published');
+        publishedInput.val(true);
+        fh.form.submit();
+      }
+    });
+
   });

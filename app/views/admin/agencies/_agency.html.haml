@@ -1,14 +1,18 @@
-=content_for :header do
-  %img{ src: agency.logo.thumb.url}
-  =agency.name
-
-= "Type: #{agency.type}"
-
-=content_for :footer do
-  =link_to 'Delete', admin_agency_path(agency), 
-      { method: :delete, 
-        class: "btn btn-danger btn-sm", 
-        data: {confirm: "Are you sure?  This action cannot be undone!"}}
-  =link_to 'Edit Agency', admin_agency_path(agency), 
-      { method: :get, 
-        class: "btn btn-primary btn-sm"}
+%tr{style: "cursor: pointer", data: {url: admin_agency_path(agency)}}
+  %td
+    %img{ src: agency.logo.thumb.url}
+  %td
+    =agency.name
+  %td
+    =agency.type
+  %td
+    -if agency.published?
+      %span.badge.badge-success PUBLISHED
+    -else
+      %span.badge.badge-warning NOT PUBLISHED
+  %td
+    =link_to admin_agency_path(agency), 
+        method: :delete, 
+        class: "btn btn-danger btn-sm btn-circle", 
+        data: {confirm: "Are you sure?  This action cannot be undone!"} do
+      %span.glyphicon.glyphicon-remove

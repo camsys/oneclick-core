@@ -7,6 +7,7 @@ class Agency < ApplicationRecord
   
   mount_uploader :logo, LogoUploader  
   # resourcify  # This rolify call must live in the inheriting classes to work with Single-Table Inheritance
+  include Publishable
   
   ### SCOPES, CLASS METHODS, & CONSTANTS ###
   
