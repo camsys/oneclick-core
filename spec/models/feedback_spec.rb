@@ -40,6 +40,18 @@ RSpec.describe Feedback, type: :model do
       expect(service_feedback.contact_phone).to eq(service_feedback.user.try(:phone))
       expect(anonymous_feedback.contact_phone).to eq(anonymous_feedback.phone)
     end
+    
+    it "validates feedbackable type and id" do
+      valid_fb_service = build(:feedback, feedbackable_type: "Service", feedbackable_id: 1)
+      valid_fb_general = build(:feedback, feedbackable_type: nil, feedbackable_id: nil)
+      invalid_fb_wrong_type = build(:feedback, feedbackable_type: "Bloop", feedbackable_id: 1)
+      invalid_fb_no_id = build(:feedback, feedbackable_type: "Service", feedbackable_id: nil)
+      
+      expect(valid_fb_service.valid?).to be true
+      expect(valid_fb_general.valid?).to be true
+      expect(invalid_fb_wrong_type.valid?).to be false
+      expect(invalid_fb_no_id.valid?).to be false
+    end
   
   end
   
