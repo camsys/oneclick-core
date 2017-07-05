@@ -1,10 +1,7 @@
 =content_for :header do
   Agency Info
-  .pull-right
-    -if @agency.published?
-      %span.badge.badge-success PUBLISHED
-    -else
-      %span.badge.badge-warning NOT PUBLISHED
+  =render partial: "shared/published_badge", locals: {object: @agency}
+
 
 =simple_form_for @agency,
   url: admin_agency_path, authenticity_token: true, data: {type: 'html'},

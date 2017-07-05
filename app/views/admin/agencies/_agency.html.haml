@@ -6,13 +6,4 @@
   %td
     =agency.type
   %td
-    -if agency.published?
-      %span.badge.badge-success PUBLISHED
-    -else
-      %span.badge.badge-warning NOT PUBLISHED
-  %td
-    =link_to admin_agency_path(agency), 
-        method: :delete, 
-        class: "btn btn-danger btn-sm btn-circle", 
-        data: {confirm: "Are you sure?  This action cannot be undone!"} do
-      %span.glyphicon.glyphicon-remove
+    =render partial: "shared/published_badge", locals: {object: agency}

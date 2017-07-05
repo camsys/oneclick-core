@@ -1,3 +1,9 @@
+-# Renders a panel. 
+-# Use `content_for` :header, :body, and :footer to yield to html from view. 
+-# Local variables: 
+  -# panel_style: "info", etc. to add a bootstrap style class to the panel.
+  -# hide_footer: true to not display the panel footer at all.  
+
 -panel_style = local_assigns[:panel_style] || "default"
 -hide_footer = local_assigns[:hide_footer] || false
 

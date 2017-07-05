@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170703180244) do
+ActiveRecord::Schema.define(version: 20170703203213) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -231,10 +231,12 @@ ActiveRecord::Schema.define(version: 20170703180244) do
     t.text     "fare_details"
     t.boolean  "archived",             default: false
     t.integer  "agency_id"
+    t.boolean  "published",            default: false
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
+    t.index ["published"], name: "index_services_on_published", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
   end

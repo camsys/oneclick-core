@@ -14,7 +14,7 @@ class Agency < ApplicationRecord
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
   
-  has_many :services, foreign_key: "agency_id"
+  has_many :services, foreign_key: "agency_id", dependent: :nullify
   
   AGENCY_TYPES = [
   # [ label, value(class name) ],

@@ -8,6 +8,7 @@ class Service < ApplicationRecord
   include FareHelper::ZoneFareable
   include Feedbackable
   include GeoKitchen
+  include Publishable
   include ScheduleHelper
   include ScopeHelper
   write_to_csv with: Admin::ServicesReportCSVWriter

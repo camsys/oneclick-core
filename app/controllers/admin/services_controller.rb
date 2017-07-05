@@ -81,7 +81,7 @@ class Admin::ServicesController < Admin::AdminController
     [
       :name, :type, :logo,
       :url, :email, :phone,
-      :agency_id,
+      :agency_id, :published,
       comments_attributes: [:id, :comment, :locale]
     ]
   end

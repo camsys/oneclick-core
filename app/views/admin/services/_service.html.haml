@@ -1,9 +1,11 @@
-=content_for :header do
-  %img{ src: service.logo.thumb.url}
-  =service.name
-
-= "Type: #{service.type}"
-
-=content_for :footer do
-  =link_to 'Delete', admin_service_path(service), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
-  =link_to 'Edit Service', admin_service_path(service), {method: :get, class: "btn btn-primary btn-sm"}
+%tr{style: "cursor: pointer", data: {url: admin_service_path(service)}}
+  %td
+    %img{ src: service.logo.thumb.url}
+  %td
+    =service.name
+  %td
+    =service.type
+  %td
+    =service.agency.try(:name)
+  %td
+    =render partial: "shared/published_badge", locals: {object: service}
