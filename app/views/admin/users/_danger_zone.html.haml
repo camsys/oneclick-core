@@ -1,0 +1,11 @@
+=content_for :header do
+  Danger Zone
+  
+.row.form-group
+  .col-sm-8
+    %label Delete the User, permanently removing them from the database.
+  .col-sm-4
+    =link_to "Delete this User", admin_user_path(@user), 
+        method: :delete, 
+        class: "btn btn-danger", 
+        data: {confirm: "Are you sure?  This action cannot be undone!"}

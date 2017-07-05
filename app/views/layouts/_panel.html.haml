@@ -1,4 +1,13 @@
-.panel.panel-default.form-container
+-# Renders a panel. 
+-# Use `content_for` :header, :body, and :footer to yield to html from view. 
+-# Local variables: 
+  -# panel_style: "info", etc. to add a bootstrap style class to the panel.
+  -# hide_footer: true to not display the panel footer at all.  
+
+-panel_style = local_assigns[:panel_style] || "default"
+-hide_footer = local_assigns[:hide_footer] || false
+
+.panel.form-container{class: "panel-#{panel_style}"}
   .panel-heading
     %h4
       =yield_content :header
@@ -7,10 +16,18 @@
       =yield_content :body
     -else
       =yield
-  .panel-footer
-    %center
-      -if content_for?(:footer)
-        =yield_content :footer
-      -else
-        .btn.btn-primary.form-submit Submit
-        .btn.btn-danger.form-reset Cancel
+    -if panel_style == "danger"
+      .row.form-group.danger-zone{ hidden: true }
+        .col-sm-9
+          %label Enter the Danger Zone. You may not return.
+        .col-sm-3
+          =link_to "Enter the Danger Zone", "https://www.youtube.com/watch?v=siwpn14IE7E",
+              class: "btn btn-danger"
+  -unless hide_footer
+    .panel-footer
+      %center
+        -if content_for?(:footer)
+          =yield_content :footer
+        -else
+          .btn.btn-primary.form-submit Submit
+          .btn.btn-danger.form-reset Cancel

@@ -1,7 +1,24 @@
 =content_for :title do
   Services
 
-=render partial: 'service', layout: '/layouts/panel', collection: @services
+%table.table.table-hover#services-table
+  %thead.thead-default
+    %tr
+      %th Logo
+      %th Name
+      %th Type
+      %th Agency
+      %th Published?
+  =render partial: 'service', collection: @services
 
 = simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}
+
+:javascript
+
+  $(document).ready(function() {
+    // Link to appropriate feedback detail on row click
+    $('#services-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });

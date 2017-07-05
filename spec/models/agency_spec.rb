@@ -13,6 +13,8 @@ RSpec.describe Agency, type: :model do
   it { should respond_to :type, :name, :phone, :email, :url, :description, :logo }
   it { should have_many(:services) }
   
+  it_behaves_like "publishable"
+  
   it "can be a TransportationAgency or a PartnerAgency" do
     expect(transportation_agency.is_a?(Agency)).to be true
     expect(transportation_agency.is_a?(TransportationAgency)).to be true

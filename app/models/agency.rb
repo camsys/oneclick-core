@@ -7,13 +7,14 @@ class Agency < ApplicationRecord
   
   mount_uploader :logo, LogoUploader  
   # resourcify  # This rolify call must live in the inheriting classes to work with Single-Table Inheritance
+  include Publishable
   
   ### SCOPES, CLASS METHODS, & CONSTANTS ###
   
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
   
-  has_many :services, foreign_key: "agency_id"
+  has_many :services, foreign_key: "agency_id", dependent: :nullify
   
   AGENCY_TYPES = [
   # [ label, value(class name) ],

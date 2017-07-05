@@ -1,5 +1,6 @@
 =content_for :header do
   General Info
+  =render partial: "shared/published_badge", locals: {object: @service}
 
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},

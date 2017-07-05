@@ -17,10 +17,11 @@
   =render partial: 'taxi_accommodations', layout: '/layouts/panel'
   =render partial: 'taxi_service_area', layout: '/layouts/panel'
   =render partial: 'service_fares', layout: '/layouts/panel'
-
 -when 'Uber'
   =render partial: 'taxi_accommodations', layout: '/layouts/panel'
   =render partial: 'uber_service_area', layout: '/layouts/panel'
+  
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 .text-center
   =link_to "All Services", admin_services_path, method: :get, class: 'btn btn-lg btn-link'
