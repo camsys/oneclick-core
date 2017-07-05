@@ -1,7 +1,6 @@
 =content_for :title do
   = "#{@user.first_name} #{@user.last_name}".strip
 
-
 =render partial: 'edit_user', layout: '/layouts/panel'
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
