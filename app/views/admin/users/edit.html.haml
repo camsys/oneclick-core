@@ -3,13 +3,7 @@
 
 
 =render partial: 'edit_user', layout: '/layouts/panel'
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 .text-center
   =link_to "All Staff", admin_users_path, method: :get, class: 'btn btn-lg btn-link'
-
-%br
-%br
-%br
-.text-center
-  -unless @user == current_user
-    =button_to 'Delete User', admin_user_path(@user), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
