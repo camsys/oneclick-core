@@ -16,6 +16,9 @@ RSpec.describe Service, type: :model do
   it { should belong_to(:start_or_end_area).dependent(:destroy)}
   it { should belong_to(:trip_within_area).dependent(:destroy)}
   it { should have_many(:feedbacks) }
+  
+  it_behaves_like "publishable"
+  it_behaves_like "archivable"
 
   let(:service) { create(:service) }
   let(:transit) { create(:transit_service) }
@@ -222,24 +225,6 @@ RSpec.describe Service, type: :model do
     # Make an object double for HTTPRequestBundler that sends back dummy TFF responses
     hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
     expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
-  end
-
-  it { should respond_to :archived }
-
-  it 'should be archivable' do
-    services = [service, taxi, paratransit, transit]
-
-    expect(Service.all.pluck(:id)).to include(service.id)
-    service.archive
-    expect(Service.all.pluck(:id)).not_to include(service.id)
-    service.restore
-    expect(Service.all.pluck(:id)).to include(service.id)
-
-    service_count = Service.count
-    Service.archive_all
-    expect(Service.count).to eq(0)
-    Service.restore_all
-    expect(Service.count).to eq(service_count)
   end
 
 end

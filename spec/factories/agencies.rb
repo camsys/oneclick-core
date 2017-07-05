@@ -1,13 +1,13 @@
 FactoryGirl.define do
   factory :agency do
+    name "Test Transportation Agency"
+    logo Rails.root.join("spec/files/mbta.png").open
+    email "test_transportation_agency@oneclick.com"    
+    phone "(555)555-5555"
+    url "http://www.test-transportation-agency-url.gov"
+    type "TransportationAgency"    
     
     factory :transportation_agency, class: "TransportationAgency" do
-      name "Test Transportation Agency"
-      logo Rails.root.join("spec/files/mbta.png").open
-      email "test_transportation_agency@oneclick.com"    
-      phone "(555)555-5555"
-      url "http://www.test-transportation-agency-url.gov"
-      type "TransportationAgency"
     end
     
     factory :partner_agency, class: "PartnerAgency" do
