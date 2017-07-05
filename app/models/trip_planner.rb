@@ -46,19 +46,22 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   def available_services
+    # Start with the scope of all services available for public viewing
+    @services = Service.all.published
     
-    # First find all the services that are available for your time and locations
-    available_by_geography_and_time = Service.where(type: @trip_types.map do |tt| # Only return services that match the requested trip types
-      tt.to_s.classify
-    end).available_for_time_and_geography(@trip)
+    # Only select services that match the requested trip types
+    @services = @services.by_trip_type(*@trip_types)
+    
+    # Find all the services that are available for your time and locations
+    @services = @services.available_for_time_and_geography(@trip)
 
     # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (available_by_geography_and_time.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (available_by_geography_and_time.collect { |service| service.eligibilities }).flatten.uniq
-    @relevant_accommodations = (available_by_geography_and_time.collect { |service| service.accommodations }).flatten.uniq
+    @relevant_purposes = (@services.collect { |service| service.purposes }).flatten.uniq
+    @relevant_eligibilities = (@services.collect { |service| service.eligibilities }).flatten.uniq
+    @relevant_accommodations = (@services.collect { |service| service.accommodations }).flatten.uniq
 
     # Now finish filtering by purpose, eligibility, and
-    available_by_geography_and_time.available_for_purpose_and_user(@trip).group_by do |svc| # Group available services by type
+    @services.available_for_purpose_and_user(@trip).group_by do |svc| # Group available services by type
       svc.type.underscore.to_sym
     end
   end

@@ -6,6 +6,7 @@ FactoryGirl.define do
     phone "(555)555-5555"
     url "http://www.test-service-url.com"
     type "Paratransit"
+    published true
     association :start_or_end_area, factory: :region
     association :trip_within_area, factory: :big_region
 
