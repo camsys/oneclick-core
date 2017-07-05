@@ -42,6 +42,10 @@ class Service < ApplicationRecord
   # where.not(archived: true) # set in Archivable module
 
   ## Primary Availability Scopes ##
+  scope :by_trip_type, -> (*trip_types) do
+    where(type: trip_types.map { |tt| tt.to_s.classify })
+  end
+  
   scope :available_for, -> (trip) do
     available_for_time_and_geography(trip)
     .available_for_purpose_and_user(trip)
