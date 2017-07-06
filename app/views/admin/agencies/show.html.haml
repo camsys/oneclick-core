@@ -5,5 +5,4 @@
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 -if can_access_all?(Agency)
-  .text-center
-    =link_to "All Agencies", admin_agencies_path, method: :get, class: 'btn btn-lg btn-link'
+  =back_link admin_agencies_path, label: "All Agencies"

@@ -4,5 +4,4 @@
 =render partial: 'edit_eligibility', layout: '/layouts/panel'
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Eligibilities", admin_eligibilities_path, method: :get, class: 'btn btn-lg btn-link'
+=back_link admin_eligibilities_path, label: "All Eligibilities"

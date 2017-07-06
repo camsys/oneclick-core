@@ -4,5 +4,4 @@
 =render partial: 'edit_user', layout: '/layouts/panel'
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Staff", admin_users_path, method: :get, class: 'btn btn-lg btn-link'
+=back_link admin_users_path, label: "All Staff"

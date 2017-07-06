@@ -4,5 +4,4 @@
 =render partial: 'edit_accommodation', layout: '/layouts/panel'
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Accommodations", admin_accommodations_path, method: :get, class: 'btn btn-lg btn-link'
+=back_link admin_accommodations_path, label: "All Accommodations"
