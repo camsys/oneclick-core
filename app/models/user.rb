@@ -17,7 +17,7 @@ class User < ApplicationRecord
     joins(:accommodations).where(accommodations: { id: accommodation_ids })
   end
   scope :with_eligibilities, -> (eligibility_ids) do
-    joins(:eligibilities).where(eligibilities: { id: eligibility_ids })
+    joins(:confirmed_eligibilities).where(eligibilities: { id: eligibility_ids })
   end
   
   # Active between scopes check if user has planned trips before or after given dates
