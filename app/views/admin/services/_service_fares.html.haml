@@ -8,7 +8,9 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  =f.input :fare_structure, input_html: {class: 'fare-structure'}, collection: FareHelper::VALID_STRUCTURES
+  =f.input :fare_structure, 
+      input_html: {class: 'fare-structure'}, 
+      collection: FareHelper::VALID_STRUCTURES.map {|fs| [fs.to_s.titleize, fs]}
 
   -fare_details = @service.fare_details || {}
 
