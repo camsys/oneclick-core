@@ -104,6 +104,7 @@ Rails.application.routes.draw do
         patch 'set_open_trip_planner'
         patch 'set_tff_api_key'
         patch 'set_uber_token'
+        patch 'set_daily_scheduled_tasks'
       end
     end
 
