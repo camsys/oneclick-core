@@ -53,9 +53,16 @@ class HTTPRequestBundler
   # Parses the response bodies and stores them in successes and errors hashes under @responses
   def parse_responses(responses)
     {
-      successes: responses[:callback].map {|k,v| [k, JSON.parse(v.response)]}.to_h,
-      errors: responses[:errback].map {|k,v| [k, JSON.parse(v.response)]}.to_h
+      successes: map_response_to_hash(responses[:callback]),
+      errors: map_response_to_hash(responses[:errback])
     }
+  end
+  
+  # Parses success and error JSON into a hash
+  def map_response_to_hash(response_obj)
+    response_obj.map do |k,v| 
+      [k, (JSON.parse(v.response) if v.response.present?)]
+    end.to_h
   end
 
 end

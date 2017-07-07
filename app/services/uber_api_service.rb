@@ -18,7 +18,7 @@ class UberApiService
   end
 
   def price(product, response)
-    unless response['prices']
+    unless response && response['prices']
       return {product_id: nil, price: nil}
     end
     price = response['prices'].detect{ |price| price["display_name"] == product }
