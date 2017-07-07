@@ -8,14 +8,18 @@ namespace :scheduled do
     end
   end
   
+  desc "Send Agency Staff Reminders to Set up their Agency Profile"
   task agency_setup_reminder_emails: :environment do
-    PartnerAgency.unpublished
-    .where("created_at <= :five_days_ago and created_at > :six_days_ago", 
-          five_days_ago: Time.current - 5.days,
-          six_days_ago: Time.current - 6.days)
-    .each do |agency|
-      Rails.logger.info "Sending reminder emails to staff for #{agency.name}..."
-      UserMailer.agency_setup_reminder(agency).deliver_now
+    # Every five days for a month, if a new agency hasn't been published, send a reminder to all its staff.
+    5.times do |i|
+      PartnerAgency.unpublished
+      .where("created_at <= ? and created_at > ?", 
+            Time.current - (i*5).days,
+            Time.current - (i*5+1).days)
+      .each do |agency|
+        Rails.logger.info "Sending reminder emails to staff for #{agency.name}..."
+        UserMailer.agency_setup_reminder(agency).deliver_now
+      end
     end
   end
     
