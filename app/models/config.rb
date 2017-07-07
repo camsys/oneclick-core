@@ -11,7 +11,8 @@ class Config < ApplicationRecord
   ].freeze
 
   # Returns the value of a setting when you say Config.<key>
-  def self.method_missing(key, *args, &blk)    
+  def self.method_missing(key, *args, &blk)
+    # If the method ends in '=', set the config variable
     return set_config_variable(key.to_s.sub("=", ""), *args) if key.to_s.last == "="
     
     config = Config.find_by(key: key)
