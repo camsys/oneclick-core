@@ -71,11 +71,12 @@ namespace :db do
     task services: :environment do
       transit_service = Transit.find_or_create_by(name: "Sample Transit Service")
       transit_service.update_attributes(gtfs_agency_id: "1",
-        phone: "555-555-5555", url: "http://www.mbta.com")
+        phone: "555-555-5555", url: "http://www.mbta.com", published: true)
 
       paratransit_service = Paratransit.find_or_create_by(name: "Sample Paratransit Service")
       paratransit_service.accommodations << Accommodation.first << Accommodation.last
       paratransit_service.eligibilities << Eligibility.first << Eligibility.last
+      paratransit_service.published = true
       paratransit_service.save
     end
 
@@ -129,10 +130,29 @@ namespace :db do
         StompingGround.where(name: place[:name], user: u).first_or_create!(place)
       end
     end
+    
+    desc "Sample Agencies"
+    task agencies: :environment do      
+      pa = PartnerAgency.find_or_create_by(name: "Test Partner Agency", 
+          email: "test_partner_agency@oneclick.com", 
+          published: true)
+      ta = TransportationAgency.find_or_create_by(name: "Test Transportation Agency", 
+          email: "test_transportation_agency@oneclick.com", 
+          published: true)
+      ta.services << Service.first
+      ta.services << Service.last
+          
+      pa.add_staff(User.registered.last)
+      ta.add_staff(User.registered.first)
+      
+      pa.save
+      ta.save
+    end
 
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config, :test_geographies, :feedback, :stomping_grounds]
+                :services, :config, :test_geographies, :feedback, :stomping_grounds,
+                :agencies]
 
   end
 end

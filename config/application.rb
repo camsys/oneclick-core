@@ -42,5 +42,18 @@ module OneclickCore
     # Sends back appropriate JSON 400 response if a bad JSON request is sent.
     config.middleware.insert_before Rack::Head, JsonResponseHelper::CatchJsonParseErrors
 
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
+    
+    # Loads application.yml file for local ENV variables
+    config.before_configuration do
+      env_file = File.join(Rails.root, 'config', 'local_env.yml')
+      YAML.load(File.open(env_file)).each do |key, value|
+        ENV[key.to_s] = value
+      end if File.exists?(env_file)
+    end
+
+
   end
 end
