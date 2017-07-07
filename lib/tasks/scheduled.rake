@@ -11,7 +11,7 @@ namespace :scheduled do
   desc "Send Agency Staff Reminders to Set up their Agency Profile"
   task agency_setup_reminder_emails: :environment do
     # Every five days for a month, if a new agency hasn't been published, send a reminder to all its staff.
-    5.times do |i|
+    (1..5).each do |i|
       PartnerAgency.unpublished
       .where("created_at <= ? and created_at > ?", 
             Time.current - (i*5).days,
