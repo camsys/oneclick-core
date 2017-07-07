@@ -36,11 +36,11 @@ Rails.application.configure do
   config.action_mailer.default :charset => "utf-8"
   config.action_mailer.asset_host = config.action_controller.asset_host # So that email images will show up
   ActionMailer::Base.smtp_settings = {
-    :address              => "email-smtp.us-east-1.amazonaws.com",
+    :address              => ENV['SMTP_SERVER'],
     :port                 => 587,
     :domain               => "gmail.com",
-    :user_name            => "AKIAJHDZ3GEDRWOYMVNQ",
-    :password             => "Av2cXdGCUO0mK+HawYOYhmmZkdAH5B84qXEVCk7acro6",
+    :user_name            => ENV['SMTP_USER_NAME'],
+    :password             => ENV['SMTP_PASSWORD'],
     :authentication       => 'plain',
     :enable_starttls_auto => 'true'
   }

@@ -24,3 +24,6 @@
 
 # Instance-specific Files
 /public/uploads/*
+
+# Ignore local_env.yml, which contains secrets
+/config/local_env.yml
