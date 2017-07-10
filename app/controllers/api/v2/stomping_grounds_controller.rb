@@ -5,8 +5,10 @@ module Api
 
       #Get all the Stomping Grounds for a user
       def index
-        stomping_grounds_hash = @traveler.stomping_grounds.map {|sg| StompingGroundSerializer.new(sg).to_hash}
-        render(success_response(stomping_grounds_hash))
+        render(success_response(
+                @traveler.stomping_grounds, 
+                serializer: StompingGroundSerializer, 
+                root: "stomping_grounds "))
       end
 
       def destroy

@@ -57,19 +57,23 @@ Rails.application.routes.draw do
     ### API V2 ###
     namespace :v2 do
       
+      # Agencies
+      resources :agencies, only: [:index]
+      
       # Feedbacks
       resources :feedbacks, only: [:create]
+      
+      # Places
+      resources :places, only: [:index]
+      
+      # Users/StompingGrounds
+      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
       
       # Users
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
       end
-      
-      # Users/StompingGrounds
-      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
-      # Places
-      resources :places, only: [:index]
     end #v2
 
 
