@@ -8,7 +8,7 @@ module Api
         render(success_response(
                 @traveler.stomping_grounds, 
                 serializer: StompingGroundSerializer, 
-                root: "stomping_grounds "))
+                root: "stomping_grounds"))
       end
 
       def destroy

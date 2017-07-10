@@ -1,7 +1,7 @@
 module Api
   module V2
     class AgencySerializer < ActiveModel::Serializer
-      attributes  :id, :name, :type, :logo, :phone, :url, :description
+      attributes  :id, :name, :type, :logo, :phone, :email, :url, :description
       
       def self.collection_serialize(collection)
         ActiveModelSerializers::SerializableResource.new(collection, each_serializer: self)
