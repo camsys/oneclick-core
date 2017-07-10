@@ -21,7 +21,7 @@ module Api
         landmarks.each do |landmark|
           results.append(landmark.google_place_hash)
         end
-        render(success_response(results))
+        render(success_response(results, root: "places"))
       end
     end
   end
