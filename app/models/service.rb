@@ -1,13 +1,13 @@
 class Service < ApplicationRecord
 
   ### INCLUDES & CONFIGURATION ###
-  mount_uploader :logo, LogoUploader
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include Commentable # has_many :comments
   include FareHelper
   include FareHelper::ZoneFareable
   include Feedbackable
   include GeoKitchen
+  include Logoable # mounts LogoUploader
   include Publishable
   include ScheduleHelper
   include ScopeHelper
@@ -180,12 +180,6 @@ class Service < ApplicationRecord
   # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
-  end
-
-  # Returns a full logo url. By default, sends thumbnail version.
-  def full_logo_url(version=:thumb)
-    logo_version = version.nil? ? logo : logo.send(version)
-    ActionController::Base.helpers.asset_path(logo_version.url.to_s)
   end
 
   ###################

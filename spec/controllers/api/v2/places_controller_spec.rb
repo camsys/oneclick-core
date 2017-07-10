@@ -14,7 +14,7 @@ RSpec.describe Api::V2::PlacesController, type: :controller do
     expect(response).to be_success
     # There is only one search that matches
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response['data'].count).to eq(1)
+    expect(parsed_response['data']['places'].count).to eq(1)
   end
 
   it 'searches for a landmark that does not exist' do
@@ -24,7 +24,7 @@ RSpec.describe Api::V2::PlacesController, type: :controller do
     expect(response).to be_success
     # There should be ZERO results
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response['data'].count).to eq(0)
+    expect(parsed_response['data']['places'].count).to eq(0)
   end
 
   it "returns a stomping ground" do
@@ -33,7 +33,7 @@ RSpec.describe Api::V2::PlacesController, type: :controller do
     # Make a call without a count parameter, match it to user's places
     get :index, params: {name: "%work%"}, format: :json
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response['data'].count).to eq(1)
+    expect(parsed_response['data']['places'].count).to eq(1)
   end
 
   it "returns a stomping ground and matching landmarks" do
@@ -43,7 +43,7 @@ RSpec.describe Api::V2::PlacesController, type: :controller do
     # Make a call without a count parameter, match it to user's places
     get :index, params: {name: "%cambridge%"}, format: :json
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response['data'].count).to eq(2)
+    expect(parsed_response['data']['places'].count).to eq(2)
   end
 
 end

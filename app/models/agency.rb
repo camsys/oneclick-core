@@ -5,9 +5,10 @@ class Agency < ApplicationRecord
   
   ### INCLUDES & CONFIGS ###
   
-  mount_uploader :logo, LogoUploader  
+  # mount_uploader :logo, LogoUploader  
   # resourcify  # This rolify call must live in the inheriting classes to work with Single-Table Inheritance
   include Publishable
+  include Logoable
   
   ### SCOPES, CLASS METHODS, & CONSTANTS ###
   
@@ -21,6 +22,10 @@ class Agency < ApplicationRecord
     ["Transportation", "TransportationAgency"],
     ["Partner", "PartnerAgency"]
   ]
+  
+  def self.agency_type_names
+    Agency::AGENCY_TYPES.map(&:last)
+  end
   
   def self.with_role(role, user)
     TransportationAgency.with_role(role, user) +

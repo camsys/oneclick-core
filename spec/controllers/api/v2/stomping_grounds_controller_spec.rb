@@ -24,7 +24,7 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
     expect(response).to be_success
 
     parsed_response = JSON.parse(response.body)
-    expect(parsed_response["data"].count).to eq(2)
+    expect(parsed_response["data"]["stomping_grounds"].count).to eq(2)
   end
 
   it 'has all the correct attributes on the index' do
@@ -41,8 +41,8 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
     # Confirm the Response was a Success 
     expect(response).to be_success
     parsed_response = JSON.parse(response.body)
-    place = parsed_response["data"].first
-    expect(parsed_response["data"].count).to eq(1)
+    place = parsed_response["data"]["stomping_grounds"].first
+    expect(parsed_response["data"]["stomping_grounds"].count).to eq(1)
     expect(place["name"]).to eq("Work")
     expect(place["formatted_address"]).to eq("101 Station Landing, Medford, MA 02155")
     expect(place["address_components"]).to be
