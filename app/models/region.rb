@@ -45,7 +45,7 @@ class Region < ApplicationRecord
     self.geom = recipe.make
     unless recipe.errors.empty?
       recipe.errors.each do |e|
-        @errors.add(:recipe, e)
+        self.errors.add(:recipe, e)
       end
     end
     return self
