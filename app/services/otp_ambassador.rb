@@ -1,7 +1,7 @@
 class OTPAmbassador
   include OTPServices
 
-  attr_reader :otp, :trip, :trip_types, :http_request_bundler
+  attr_reader :otp, :trip, :trip_types, :http_request_bundler, :services
 
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
@@ -14,11 +14,20 @@ class OTPAmbassador
     uber:         { label: :otp_car,    modes: "CAR"}
   }
 
-  # Initialize with a trip and an array of trip types
-  def initialize(trip, trip_types=TRIP_TYPE_DICTIONARY.keys, http_request_bundler=HTTPRequestBundler.new)
+  # Initialize with a trip, an array of trip trips, an HTTP Request Bundler object, 
+  # and a scope of available services
+  def initialize(
+      trip, 
+      trip_types=TRIP_TYPE_DICTIONARY.keys, 
+      http_request_bundler=HTTPRequestBundler.new, 
+      services=Transit.published
+    )
+    
     @trip = trip
     @trip_types = trip_types
     @http_request_bundler = http_request_bundler
+    @services = services
+
     @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     @otp = OTPService.new(Config.open_trip_planner)
 
@@ -51,14 +60,6 @@ class OTPAmbassador
     itineraries = ensure_response(trip_type).itineraries
     return itineraries.map {|i| translate_itinerary(i, trip_type)}
   end
-
-  # # Returns an array of 1-Click-ready itinerary hashes, associated with
-  # # services by GTFS ID or GTFS Agency Name
-  # def get_associated_itineraries(trip_type)
-  #   return [] if errors(trip_type)
-  #   itineraries = ensure_response(trip_type).itineraries
-  #   return itineraries.map {|i| translate_itinerary(i, trip_type)}
-  # end
 
   # Extracts a trip duration from the OTP response.
   def get_duration(trip_type)
@@ -146,8 +147,8 @@ class OTPAmbassador
     gtfs_agency_name = leg['agencyName']
 
     # Search for service by gtfs attributes only if they're not nil
-    svc ||= Service.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
-    svc ||= Service.find_by(name: gtfs_agency_name) if gtfs_agency_name
+    svc ||= @services.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
+    svc ||= @services.find_by(name: gtfs_agency_name) if gtfs_agency_name
     return svc
   end
 

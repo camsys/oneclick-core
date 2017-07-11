@@ -39,7 +39,7 @@ class TripPlanner
     @available_services = available_services
 
     # Set up external API ambassadors for route finding and fare calculation
-    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler)
+    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
     @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador = options[:uber_ambassador] || UberAmbassador.new(@trip, @http_request_bundler)
   end
@@ -47,7 +47,7 @@ class TripPlanner
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   def available_services
     # Start with the scope of all services available for public viewing
-    @services = Service.all.published
+    @services = Service.published
     
     # Only select services that match the requested trip types
     @services = @services.by_trip_type(*@trip_types)
@@ -60,10 +60,14 @@ class TripPlanner
     @relevant_eligibilities = (@services.collect { |service| service.eligibilities }).flatten.uniq
     @relevant_accommodations = (@services.collect { |service| service.accommodations }).flatten.uniq
 
-    # Now finish filtering by purpose, eligibility, and
-    @services.available_for_purpose_and_user(@trip).group_by do |svc| # Group available services by type
-      svc.type.underscore.to_sym
-    end
+    # Now finish filtering by purpose, eligibility, and accommodation
+    @services = @services.available_for_purpose_and_user(@trip)
+    
+    # Group available services by type, returning a hash with a key for each
+    # service type, and one for all the available services
+    Service::SERVICE_TYPES.map do |t| 
+      [t.underscore.to_sym, @services.where(type: t)]
+    end.to_h.merge({ all: @services })
   end
 
   # Calls the requisite trip_type itineraries method
@@ -95,14 +99,6 @@ class TripPlanner
   def build_bicycle_itineraries
     build_fixed_itineraries :bicycle
   end
-
-  # # Build transit itineraries by associating OTP itineraries with transit service info
-  # def build_transit_itineraries
-  #   itineraries = @router.get_associated_itineraries(:transit)
-  #   puts "BUILDING TRANSIT", itineraries.pluck(:service_id).ai
-  #
-  #   itineraries.map {|i| Itinerary.new(i)}
-  # end
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
