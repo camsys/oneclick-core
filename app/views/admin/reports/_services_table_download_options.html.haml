@@ -1,0 +1,28 @@
+
+-# SERVICE TYPE (e.g. paratransit, taxi, etc.)
+= f.input :service_type, 
+    required: false, 
+    collection: Service::SERVICE_TYPES, 
+    include_blank: "Select a Service Type",
+    label: "Service Type"
+
+-# ACCOMMODATIONS
+= f.input :accommodations, required: false,
+    collection: Accommodation.all, 
+    as: :check_boxes, 
+    value_method: :id,
+    label: "Accommodations Offered"
+      
+-# ELIGIBILITIES
+= f.input :eligibilities, required: false,
+    collection: Eligibility.all, 
+    as: :check_boxes, 
+    value_method: :id,
+    label: "Eligibility Requirements"
+
+-# PURPOSES
+= f.input :purposes, required: false,
+    collection: Purpose.all, 
+    as: :check_boxes, 
+    value_method: :id,
+    label: "Purposes Allowed"

@@ -1,0 +1,48 @@
+-# TRIP PLANNED DATE RANGE
+=f.input :trip_time_from_date, required: false,
+  input_html: {class: 'datepicker'}, 
+  as: :string, label: "From Date"
+=f.input :trip_time_to_date, required: false,
+  input_html: {class: 'datepicker'}, 
+  as: :string, label: "To Date"
+  
+-# TRIP PURPOSES
+= f.input :purposes, required: false,
+    collection: Purpose.all, 
+    as: :check_boxes, 
+    value_method: :id,
+    label: "Trip Purpose"
+
+-# TRIP ORIGIN REGION BUILDER
+=render partial: 'admin/services/region_builder',
+  locals: { wrapper_id: 'trip-origin-recipe', label_text: "Origin"}
+=f.input :trip_origin_recipe, as: :hidden,
+  input_html: { value: '[]'}
+  
+-# TRIP DESTINATION REGION BUILDER
+=render partial: 'admin/services/region_builder',
+  locals: { wrapper_id: 'trip-destination-recipe', label_text: "Destination"}
+=f.input :trip_destination_recipe, as: :hidden,
+  input_html: { value: '[]'}
+
+:javascript
+  $(document).ready(function() {
+
+    
+    // Set up serializer and autocomplete for region builders
+    
+    var tripOriginRecipe = new M.Recipe({
+      container: $('#trip-origin-recipe'),
+      recipeInput: $('#download_table_trip_origin_recipe'),
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
+    });
+    
+    var tripDestinationRecipe = new M.Recipe({
+      container: $('#trip-destination-recipe'),
+      recipeInput: $('#download_table_trip_destination_recipe'),
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
+    });
+
+  });

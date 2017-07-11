@@ -64,5 +64,36 @@ module ApplicationHelper
     
     html.html_safe
   end
+  
+  # Renders a Logo Upload Form Element. Pass in a reference to the form builder object,
+  # and an options hash
+  def logo_upload_input(f, options={})
+    img_src = options[:img_src] || f.object.logo.thumb.url
+    field_name = options[:field_name] || :logo
+    
+    html =  "<div class='form-group file optional'>"
+    html <<   "<div class='col-sm-1'>"
+    html <<     "<img src='#{img_src}'>"
+    html <<   "</div>"
+    html <<   f.label(field_name, class: "control-label col-sm-2")
+    html <<   "<div class='col-sm-9'>"
+    html <<     "<div class='input-group col-xs-12'>"
+    html <<     f.input_field(field_name, class: "form-control file optional", type: "file")
+    html <<     "</div>"
+    html <<   "</div>"
+    html << "</div>"
+    
+    html.html_safe
+    
+  end
+  
+  # Converts alert type to appropriate bootstrap class
+  def map_alert(type)
+    alert_mappings = {
+      notice: "success",
+      alert: "warning"
+    }
+    alert_mappings[type.to_sym] || type.to_s
+  end
 
 end

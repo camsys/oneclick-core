@@ -39,7 +39,19 @@ class Trip < ApplicationRecord
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
 
-
+  # Geographic scopes return trips that start or end in the passed geom
+  scope :origin_in, -> (geom) do
+    where(id: joins(:origin).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+  end
+  scope :destination_in, -> (geom) do
+    where(id: joins(:destination).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+  end
+  
+  # Returns trip that have any of the given purposes
+  scope :with_purpose, -> (purpose_ids) do
+    where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
+  end
+  
   ### CLASS METHODS ###
 
   # Returns a collection of the waypoints (origins and destinations) associated with a trips collection

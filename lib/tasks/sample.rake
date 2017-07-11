@@ -4,7 +4,7 @@ namespace :db do
     task landmarks: :environment do
 
       landmarks = [
-                   {name: "Cambridge Systematics", street_number: "201", route: "Station Landing",
+                   {name: "Cambridge Systematics", street_number: "101", route: "Station Landing",
                    city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"},
 
                    {name: "Fenway Park", street_number: "4", route: "Yawkey Way",
@@ -71,11 +71,12 @@ namespace :db do
     task services: :environment do
       transit_service = Transit.find_or_create_by(name: "Sample Transit Service")
       transit_service.update_attributes(gtfs_agency_id: "1",
-        phone: "555-555-5555", url: "http://www.mbta.com")
+        phone: "555-555-5555", url: "http://www.mbta.com", published: true)
 
       paratransit_service = Paratransit.find_or_create_by(name: "Sample Paratransit Service")
       paratransit_service.accommodations << Accommodation.first << Accommodation.last
       paratransit_service.eligibilities << Eligibility.first << Eligibility.last
+      paratransit_service.published = true
       paratransit_service.save
     end
 
@@ -114,9 +115,44 @@ namespace :db do
       Feedback.create(rating: 5, review: "OCC is GREAT!!!", user: User.first)
     end
 
+    desc "Stomping Grounds"
+    task stomping_grounds: :environment do 
+      u = User.staff.first # Grab the first staff at random
+
+      places = [
+        {name: "Home", street_number: "17", route: "Park Avenue",
+        city: "Somerville", state: "MA", zip: "02144", lat: "42.398270", lng: "-71.122898"},
+        {name: "Work", street_number: "101", route: "Station Landing",
+        city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"}
+      ]
+
+      places.each do |place|
+        StompingGround.where(name: place[:name], user: u).first_or_create!(place)
+      end
+    end
+    
+    desc "Sample Agencies"
+    task agencies: :environment do      
+      pa = PartnerAgency.find_or_create_by(name: "Test Partner Agency", 
+          email: "test_partner_agency@oneclick.com", 
+          published: true)
+      ta = TransportationAgency.find_or_create_by(name: "Test Transportation Agency", 
+          email: "test_transportation_agency@oneclick.com", 
+          published: true)
+      ta.services << Service.first
+      ta.services << Service.last
+          
+      pa.add_staff(User.registered.last)
+      ta.add_staff(User.registered.first)
+      
+      pa.save
+      ta.save
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config, :test_geographies, :feedback]
+                :services, :config, :test_geographies, :feedback, :stomping_grounds,
+                :agencies]
 
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170615143154) do
+ActiveRecord::Schema.define(version: 20170703203213) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,13 +37,26 @@ ActiveRecord::Schema.define(version: 20170615143154) do
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
   end
 
+  create_table "agencies", force: :cascade do |t|
+    t.string   "type"
+    t.string   "name"
+    t.string   "phone"
+    t.string   "email"
+    t.string   "url"
+    t.text     "description"
+    t.string   "logo"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.boolean  "published",   default: false
+    t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
   create_table "cities", force: :cascade do |t|
     t.string   "name"
     t.string   "state"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_cities_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name", "state"], name: "index_cities_on_name_and_state", using: :btree
   end
 
@@ -69,19 +82,17 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   create_table "counties", force: :cascade do |t|
     t.string   "name"
     t.string   "state"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_counties_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name", "state"], name: "index_counties_on_name_and_state", using: :btree
   end
 
   create_table "custom_geographies", force: :cascade do |t|
     t.string   "name"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_custom_geographies_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
 
@@ -142,8 +153,8 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   end
 
   create_table "landmarks", force: :cascade do |t|
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
     t.string   "name"
     t.string   "street_number"
     t.string   "route"
@@ -151,8 +162,10 @@ ActiveRecord::Schema.define(version: 20170615143154) do
     t.string   "state"
     t.string   "zip"
     t.boolean  "old"
-    t.decimal  "lat",           precision: 10, scale: 6
-    t.decimal  "lng",           precision: 10, scale: 6
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
   end
 
   create_table "locales", force: :cascade do |t|
@@ -176,10 +189,9 @@ ActiveRecord::Schema.define(version: 20170615143154) do
 
   create_table "regions", force: :cascade do |t|
     t.text     "recipe"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"multi_polygon"}
-    t.datetime "created_at",                                            null: false
-    t.datetime "updated_at",                                            null: false
-    t.index ["geom"], name: "index_regions_on_geom", using: :gist
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"multi_polygon"}
   end
 
   create_table "roles", force: :cascade do |t|
@@ -218,11 +230,33 @@ ActiveRecord::Schema.define(version: 20170615143154) do
     t.string   "fare_structure"
     t.text     "fare_details"
     t.boolean  "archived",             default: false
+    t.integer  "agency_id"
+    t.boolean  "published",            default: false
+    t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
+    t.index ["published"], name: "index_services_on_published", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
+  end
+
+  create_table "stomping_grounds", force: :cascade do |t|
+    t.string   "name"
+    t.string   "street_number"
+    t.string   "route"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.boolean  "old"
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
+    t.integer  "user_id"
+    t.index ["geom"], name: "index_stomping_grounds_on_geom", using: :gist
+    t.index ["user_id"], name: "index_stomping_grounds_on_user_id", using: :btree
   end
 
   create_table "translation_keys", force: :cascade do |t|
@@ -306,24 +340,25 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   end
 
   create_table "waypoints", force: :cascade do |t|
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                                                      null: false
+    t.datetime "updated_at",                                                                      null: false
     t.string   "name"
     t.string   "street_number"
     t.string   "route"
     t.string   "city"
     t.string   "state"
     t.string   "zip"
-    t.decimal  "lat",           precision: 10, scale: 6
-    t.decimal  "lng",           precision: 10, scale: 6
+    t.decimal  "lat",                                                    precision: 10, scale: 6
+    t.decimal  "lng",                                                    precision: 10, scale: 6
+    t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.index ["geom"], name: "index_waypoints_on_geom", using: :gist
   end
 
   create_table "zipcodes", force: :cascade do |t|
     t.string   "name"
-    t.geometry "geom",       limit: {:srid=>0, :type=>"geometry"}
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.index ["geom"], name: "index_zipcodes_on_geom", using: :gist
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
@@ -331,8 +366,10 @@ ActiveRecord::Schema.define(version: 20170615143154) do
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "schedules", "services"
+  add_foreign_key "services", "agencies"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
+  add_foreign_key "stomping_grounds", "users"
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
   add_foreign_key "trips", "purposes"
   add_foreign_key "trips", "users"

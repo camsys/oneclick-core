@@ -57,14 +57,23 @@ Rails.application.routes.draw do
     ### API V2 ###
     namespace :v2 do
       
+      # Agencies
+      resources :agencies, only: [:index]
+      
       # Feedbacks
       resources :feedbacks, only: [:create]
+      
+      # Places
+      resources :places, only: [:index]
+      
+      # Users/StompingGrounds
+      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
       
       # Users
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
       end
-      
+
     end #v2
 
 
@@ -89,6 +98,9 @@ Rails.application.routes.draw do
 
     # Accommodations
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
+    
+    # Agencies
+    resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
     # Configs
     resources :configs, :only => [:index] do
@@ -96,6 +108,7 @@ Rails.application.routes.draw do
         patch 'set_open_trip_planner'
         patch 'set_tff_api_key'
         patch 'set_uber_token'
+        patch 'set_daily_scheduled_tasks'
       end
     end
 
@@ -115,6 +128,7 @@ Rails.application.routes.draw do
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
     post 'custom_geographies' => 'geographies#upload_custom_geographies'
+    get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
     resources :landmarks, :only => [:index] do

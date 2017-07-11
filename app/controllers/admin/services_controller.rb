@@ -3,10 +3,9 @@ class Admin::ServicesController < Admin::AdminController
   include GeoKitchen
   include FareHelper
 
-  before_action :find_service, except: [:create, :index]
+  load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
-    @services = Service.all.order(:id)
   end
 
   def destroy
@@ -15,26 +14,14 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-  	@service = Service.create(service_params)
+    @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
+  	@service.update_attributes(service_params)
   	redirect_to admin_service_path(@service)
   end
 
-  # If JSON is requested, search geography tables based on passed param
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     @service.build_comments # Builds a comment for each available locale
-
-    respond_to do |format|
-      format.html
-      format.json do
-        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        json_response = @counties + @zipcodes + @cities + @custom_geographies
-        render json: json_response
-      end
-    end
   end
 
   def update
@@ -62,10 +49,6 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   private
-
-  def find_service
-    @service = Service.find(params[:id])
-  end
 
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])
@@ -98,6 +81,7 @@ class Admin::ServicesController < Admin::AdminController
     [
       :name, :type, :logo,
       :url, :email, :phone,
+      :agency_id, :published,
       comments_attributes: [:id, :comment, :locale]
     ]
   end

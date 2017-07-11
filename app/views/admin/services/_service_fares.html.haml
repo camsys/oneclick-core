@@ -49,13 +49,13 @@
 
     // Create a FareZoneHelper to dynamically build fare zone divs
     var fzh = new FareZoneHelper(
-      '#{@service.zone_recipes.to_json}',
+      '#{@service.zone_recipes.to_json.html_safe}',
       $('#fare-zones-container'),
       $('#fare-zones-table'),
       '#{escape_javascript render partial: "admin/services/fare_zone", locals: {f: fd_js} }',
       {
-        searchPath: '#{admin_service_path}',
-        ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}',
+        searchPath: '#{admin_autocomplete_path}',
+        ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}',
         formHandler: fh,
         tableReplacer: $('#table-replacer')
       }

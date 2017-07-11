@@ -19,7 +19,8 @@ var M = {
   recipes: {},
   
   // Sets up a Leaflet.js map with default settings
-  setupMap: function(divId, opts={}) {
+  setupMap: function(divId, opts) {
+    var opts = opts || {};
     var map = L.map(divId);
     var viewCenter = opts.viewCenter || [42.355, -71.066];
     var viewZoom = opts.viewZoom || 10;
@@ -50,7 +51,9 @@ var M = {
   
   // Draws scaled circles on the passed map, based on the dataset provided.
   // Dataset must be an array of objects with a label, value, and point key
-  drawScaledCircles: function(mapObj, regions, opts={}) {
+  drawScaledCircles: function(mapObj, regions, opts) {
+    
+    var opts = opts || {};
     
     // OPTIONS
     var showPopups = ('showPopups' in opts) ? opts.showPopups : false;
@@ -103,7 +106,9 @@ var M = {
 
   },
 
-  drawPoly: function(mapObj, layer, opts={}) {
+  drawPoly: function(mapObj, layer, opts) {
+    var opts = opts || {};
+    
     return L.polygon(layer, opts).addTo(mapObj);
   },
 
@@ -118,6 +123,11 @@ var M = {
   },
 
   // Recipe object factory for manipulating recipe model data
+  // Takes as params a hash with the following required keys:
+  //   container: a jQuery object referring to the wrapper div for the region-builder partial
+  //   recipeInput: a jQuery object referring to the hidden input field for the recipe
+  //   searchPath: a path for making autocomplete api calls.
+  //   ingredientLabelTag: HTML for a div to populate for each ingredient label added to the builder.
   Recipe: function(params) {
     this.container = params.container;
     this._input = this.container.find('.region-input');

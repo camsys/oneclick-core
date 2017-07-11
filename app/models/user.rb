@@ -1,7 +1,8 @@
 class User < ApplicationRecord
 
   ### Includes ###
-  rolify
+  rolify  # user may be an admin, staff, traveler, ...
+  include RoleHelper
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
@@ -12,8 +13,21 @@ class User < ApplicationRecord
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
 
   ### Scopes ###
-  scope :staff, -> { User.with_role(:admin) }
-  scope :admins, -> { User.with_role(:admin) }
+  scope :with_accommodations, -> (accommodation_ids) do
+    joins(:accommodations).where(accommodations: { id: accommodation_ids })
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    joins(:eligibilities).where(eligibilities: { id: eligibility_ids })
+  end
+  
+  # Active between scopes check if user has planned trips before or after given dates
+  scope :active_since, -> (date) do
+    joins(:trips).merge(Trip.from_date(date))
+  end
+  scope :active_until, -> (date) do
+    joins(:trips).merge(Trip.to_date(date))
+  end
+
 
   ### Associations ###
   has_many :trips
@@ -22,6 +36,7 @@ class User < ApplicationRecord
   has_many :user_eligibilities, dependent: :destroy
   has_many :eligibilities, through: :user_eligibilities
   has_many :feedbacks
+  has_many :stomping_grounds
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
@@ -45,6 +60,11 @@ class User < ApplicationRecord
     email
   end
   
+  # Returns the user's full name
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+  
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: "en") || Locale.first
@@ -60,16 +80,6 @@ class User < ApplicationRecord
     else
       return false
     end
-  end
-
-  # Check to see if the user is an Admin
-  def admin?
-    self.has_role? :admin
-  end
-
-  # Check to see if the user is a guest traveler
-  def guest?
-    self.email.include? "@example.com"
   end
 
   ### Update Profle from API Call ###

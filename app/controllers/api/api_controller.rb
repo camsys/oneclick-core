@@ -1,4 +1,13 @@
 module Api
+  
+  ### NOTES ###
+  # Base controller for API Controllers
+  # Automatically attempts to authenticate users, but does not enforce
+    #  unless explicitly called to do so.
+  # Includes helper methods to serve JSON responses that the JSend specification
+    # API V2 responses should all conform to this specification
+  #############  
+    
   class ApiController < ApplicationController
     protect_from_forgery prepend: true
     acts_as_token_authentication_handler_for User, fallback: :none
@@ -80,8 +89,16 @@ module Api
     # Based on JSend Specification
     
     # Renders a successful response, passing along a given object as data
-    def success_response(data={})
-      status = data.delete(:status) || 200
+    # If the serializer option is passed, will attempt to serialize the data
+    # with the passed serializer
+    def success_response(data={}, opts={})
+      status = opts.delete(:status) || 200
+      serializer = opts.delete(:serializer) || nil
+      root = opts.delete(:root) || nil
+
+      data = data.map {|d| serializer.new(d).to_hash} if serializer
+      data = { root => data } if root
+      
       {
         status: status,
         json: {
@@ -117,7 +134,7 @@ module Api
     
 
     def create_guest_user
-      u = User.create(first_name: "Guest", last_name: "User", email: "guest_#{Time.now.to_i}#{rand(100)}@example.com")
+      u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       session[:guest_user_id] = u.id
       u

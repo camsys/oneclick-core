@@ -1,0 +1,9 @@
+%tr{style: "cursor: pointer", data: {url: admin_agency_path(agency)}}
+  %td
+    %img{ src: agency.logo.thumb.url}
+  %td
+    =agency.name
+  %td
+    =agency.type
+  %td
+    =render partial: "shared/published_badge", locals: {object: agency}

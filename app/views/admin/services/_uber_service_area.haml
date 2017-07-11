@@ -26,8 +26,8 @@
     var tripWithinAreaRecipe = new M.Recipe({
       container: $('#trip-within-area'),
       recipeInput: $('#uber_trip_within_area_attributes_recipe'),
-      searchPath: '#{admin_service_path}',
-      ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}'
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
     });
 
     fh.onReset(function() {

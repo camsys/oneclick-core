@@ -1,5 +1,8 @@
 # Allows a record to be "archived" or soft-deleted--an "archived" boolean is
 # flipped and the record no longer shows up in the default scope
+# For this to work, must add an "archived" column to the including record table, e.g.:
+  # add_column :services, :archived, :boolean, default: false
+  # add_index :services, :archived
 module Archivable
 
   # Set up default scope for including class

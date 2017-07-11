@@ -20,7 +20,7 @@ function FormHandler(form) {
 FormHandler.prototype = {
   addHandlers: function() {
     var fh = this;
-
+    
     // On submit button click, submit form.
     this.submitButton.click(function(e) {
       fh.form.submit();

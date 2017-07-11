@@ -16,7 +16,12 @@ admin = User.where(email: 'admin@oneclick.com').first_or_create do |user|
   puts 'password: '+ 'welcome1'
 end
 
+# Initialize OTP url config
 Config.find_or_create_by(key: "open_trip_planner")
+
+# Set guest user email domain if not already set
+guest_user_email_domain = Config.find_or_create_by(key: "guest_user_email_domain")
+guest_user_email_domain.update_attributes(value: "example.com") unless guest_user_email_domain.value
 
 ## Add Translations
 Rake::Task['simple_translation_engine:update'].invoke

@@ -1,0 +1,18 @@
+=content_for :header do
+  = "Daily Scheduled Tasks"
+
+=simple_form_for @daily_scheduled_tasks,
+  url: set_daily_scheduled_tasks_admin_configs_path,
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: 'patch' },
+  authenticity_token: true do |f|
+
+  -# Displays checkboxes for each of the scheduleable rake tasks
+  =f.input :value, 
+      collection: Config::AVAILABLE_SCHEDULED_TASKS.map { |t| [t.to_s.titleize, t] }, 
+      as: :check_boxes, 
+      label: "Tasks"
+
+:javascript
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });
