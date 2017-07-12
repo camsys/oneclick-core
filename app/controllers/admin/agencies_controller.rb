@@ -52,6 +52,7 @@ class Admin::AgenciesController < Admin::AdminController
       :url,
       :phone,
       :email,
+      :description,
       :logo,
       :published
     )
