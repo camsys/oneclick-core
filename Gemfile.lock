@@ -315,6 +315,10 @@ GEM
       mini_portile2 (~> 2.2.0)
     orm_adapter (0.5.0)
     pg (0.21.0)
+    phony (2.15.46)
+    phony_rails (0.14.6)
+      activesupport (>= 3.0)
+      phony (> 2.15)
     public_suffix (2.0.5)
     puma (3.9.1)
     rack (2.0.3)
@@ -475,6 +479,7 @@ DEPENDENCIES
   mini_magick
   oneclick_refernet!
   pg (~> 0.18)
+  phony_rails
   puma (~> 3.0)
   rack-cors
   rails (~> 5.0.1)
