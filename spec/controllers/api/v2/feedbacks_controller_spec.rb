@@ -40,7 +40,7 @@ RSpec.describe Api::V2::FeedbacksController, type: :controller do
     
     expect(service.feedbacks.count).to eq(service_feedbacks_count + 1)
     expect(Feedback.last.email).to eq(feedback_params[:email])
-    expect(Feedback.last.phone).to eq(feedback_params[:phone])
+    expect(Feedback.last.phone).to eq(PhonyRails.normalize_number(feedback_params[:phone]))
   end
 
   
