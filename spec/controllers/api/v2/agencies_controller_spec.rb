@@ -15,7 +15,7 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
     
     response_body = JSON.parse(response.body)
     agencies = response_body["data"]["agencies"]
-    
+        
     expect(agencies.count).to eq(Agency.all.count)
     
     # Expect each of the following attributes to be present in the JSON results

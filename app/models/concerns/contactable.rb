@@ -21,8 +21,13 @@ module Contactable
     # Normalize and validate phone number column(s) with phony gem
     def setup_phone_fields(*columns)      
       columns.each do |column|
-        phony_normalize column, default_country_code: 'US'
+        phony_normalize column
         validates column, phony_plausible: true
+        
+        define_method("formatted_#{column}") do
+          self.send(column).phony_formatted
+        end
+        
       end
     end
     
