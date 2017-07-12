@@ -2,6 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
+  include Contactable
   include RoleHelper
   acts_as_token_authenticatable
   devise :database_authenticatable, :registerable,
@@ -45,9 +46,8 @@ class User < ApplicationRecord
   has_many :denied_eligibilities, source: :eligibility, through: :denied_user_eligibilities
 
   ### Validations ###
-  validates :email, presence: true
-  validates :email, uniqueness: true
-
+  contact_fields email: :email
+  validates :email, presence: true, uniqueness: true
   
   ### Class Methods ###
 
