@@ -7,6 +7,7 @@ class Feedback < ApplicationRecord
   belongs_to :feedbackable, polymorphic: true
   belongs_to :user
   include Commentable # has_many :comments
+  include Contactable
   has_one :acknowledgement_comment, class_name: "Comment", as: :commentable
   accepts_nested_attributes_for :acknowledgement_comment
   
@@ -32,7 +33,7 @@ class Feedback < ApplicationRecord
   validates :feedbackable_id, 
       presence: true, 
       unless: Proc.new{ |f| f.feedbackable_type.nil? }
-  
+  contact_fields email: :email, phone: :phone
   
   ### METHODS ###
   

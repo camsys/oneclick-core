@@ -32,7 +32,7 @@ gem 'jbuilder', '~> 2.5'
 ############################################
 
 
-### Internal Views #########################
+### VIEWS & FORMATTING #####################
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
@@ -42,6 +42,7 @@ gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
 gem 'chartkick' # For google charts
 gem 'groupdate' # Extends chartkick functionality
+gem 'phony_rails' # For normalizing phone numbers
 ############################################
 
 
@@ -90,9 +91,11 @@ gem 'leaflet-rails' # For embedding maps
 gem 'em-http-request'
 ############################################
 
+
 ### ReferNET 211 API Tools #################
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet'
 ############################################
+
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
