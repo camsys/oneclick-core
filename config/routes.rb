@@ -69,6 +69,10 @@ Rails.application.routes.draw do
       # Users/StompingGrounds
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
       
+      # Trips
+      resources :trips, only: [:create]
+      post 'trips/plan' => 'trips#create'
+      
       # Users
       devise_scope :user do
         post 'sign_up' => 'registrations#create'

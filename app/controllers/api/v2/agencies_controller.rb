@@ -12,10 +12,7 @@ module Api
         type_name = Agency.agency_type_names.include?(type_name) ? type_name : nil
         @agencies = @agencies.where(type: type_name) if type_name
 
-        render success_response(
-            @agencies, 
-            serializer: AgencySerializer, 
-            root: "agencies")
+        render success_response(@agencies)
       end
       
       protected

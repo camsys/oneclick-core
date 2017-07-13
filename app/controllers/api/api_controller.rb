@@ -93,11 +93,17 @@ module Api
     # with the passed serializer
     def success_response(data={}, opts={})
       status = opts.delete(:status) || 200
-      serializer = opts.delete(:serializer) || nil
-      root = opts.delete(:root) || nil
-
-      data = data.map {|d| serializer.new(d).to_hash} if serializer
-      data = { root => data } if root
+      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] }
+      @root = opts.delete(:root) || nil
+      
+      if data.is_a?(ActiveRecord::Relation)
+        data = package_collection(data, serializer_opts)
+      elsif data.is_a?(ActiveRecord::Base)
+        data = package_record(data, serializer_opts)
+      end
+      
+      # Package data within a root key if necessary  
+      data = { @root => data } if @root
       
       {
         status: status,
@@ -108,6 +114,21 @@ module Api
       }
     end
     
+    # Serialize the collection of records with the default serializer and any options.
+    # Also, set the root key to the appropriate plural, if it hasn't been set manually.
+    def package_collection(collection, opts={})
+      @root ||= collection.klass.name.underscore.pluralize
+      collection.map {|record| package_record(record, opts) }
+    end
+    
+    # Serialize the record with the default serializer and any options.
+    # Also, set the root key to the appropriate singular, if it hasn't been set already.
+    def package_record(record, opts={})
+      @root ||= record.class.name.underscore
+      get_serializer(record, opts).serializable_hash
+    end
+    
+
     # Renders a failure response (client error), passing along a given object as data
     def fail_response(data={})
       status = data.delete(:status) || 400
