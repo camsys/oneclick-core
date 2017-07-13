@@ -1,4 +1,6 @@
-module EligibilityAccommodationHelper
+# Provides helper methods for dealing with accommodations, 
+# eligibilities, and purposes.
+module CharacteristicsHelper
 
   def self.included(base)
 

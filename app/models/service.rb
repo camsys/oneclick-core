@@ -48,10 +48,57 @@ class Service < ApplicationRecord
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
   
-  scope :available_for, -> (trip) do
-    available_for_time_and_geography(trip)
-    .available_for_purpose_and_user(trip)
+  AVAILABILITY_FILTERS = [
+    :schedule, :geography, :eligibility, :accommodation, :purpose
+  ]
+
+  # Returns all services available for the given trip.
+  # Optional :only_by and :except_by params allow you to only filter
+  # by select criteria (schedule, geography, eligibility, accommodation, purpose)
+  def self.available_for(trip, opts={})
+    only_filters = opts[:only_by] || AVAILABILITY_FILTERS
+    except_filters = opts[:except_by] || []    
+    filters = only_filters - except_filters
+    
+    # Setting logger level to 1 or less will show messages describing each filter applied.
+    # This will have a moderate impact on performance.
+    logger.info { "*** FILTERING AVAILABLE SERVICES by #{filters} ***"}
+    logger.info {"Available Services before Filtering: #{self.all.pluck(:id)}"}
+    
+    available_services = filters.reduce(self.all) do |scope, filter|
+      filtered_scope = scope.available_by_filter_for(filter, trip)
+      
+      logger.info {"Available Services after Filtering on #{filter}: #{filtered_scope.pluck(:id)}"}
+      
+      filtered_scope
+    end
+    
+    logger.info {"Available Services after Filtering: #{available_services.pluck(:id)}"}
+    
+    return available_services
   end
+  
+  def self.available_by_filter_for(filter, trip)
+    case filter
+    when :schedule
+      return self.available_by_time_for(trip)
+    when :geography
+      return self.available_by_geography_for(trip)
+    when :eligibility
+      return trip.user ? self.accepts_eligibility_of(trip.user) : self.all
+    when :accommodation
+      return trip.user ? self.accommodates(trip.user) : self.all
+    when :purpose
+      return self.available_for_purpose_for(trip)
+    else
+      return self.all
+    end
+  end
+  
+  # scope :available_for, -> (trip) do
+  #   available_for_time_and_geography(trip)
+  #   .available_for_purpose_and_user(trip)
+  # end
 
   scope :available_for_time_and_geography, -> (trip) do 
     available_by_time_for(trip) #Filter First
