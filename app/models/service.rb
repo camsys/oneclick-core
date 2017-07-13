@@ -37,13 +37,13 @@ class Service < ApplicationRecord
   ##########
   
   # NOTE: Many of the scopes below are used for determining which services are
-  # available for a given trip or user. These are divided into primary,
-  # secondary, and tertiary scopes, depending on their level of abstraction.
+  # available for a given trip or user. They are ordered more or less by
+  # level of abstraction, with general high-level scopes like "available_for"
+  # calling more specific ones like "available_by_purpose_for"
 
   ## Default Scope ##
   # where.not(archived: true) # set in Archivable module
 
-  ## Primary Availability Scopes ##
   scope :by_trip_type, -> (*trip_types) do
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
@@ -52,6 +52,7 @@ class Service < ApplicationRecord
     :schedule, :geography, :eligibility, :accommodation, :purpose
   ]
 
+  ### MASTER AVAILABILITY SCOPE ###
   # Returns all services available for the given trip.
   # Optional :only_by and :except_by params allow you to only filter
   # by select criteria (schedule, geography, eligibility, accommodation, purpose)
@@ -60,8 +61,9 @@ class Service < ApplicationRecord
     except_filters = opts[:except_by] || []    
     filters = only_filters - except_filters
     
-    # Setting logger level to 1 or less will show messages describing each filter applied.
-    # This will have a moderate impact on performance.
+    # Setting logger level to 1 or less will show messages describing each
+    # availability filter as it is applied. This will have a moderate impact 
+    # on performance (call takes ~35% longer).
     logger.info { "*** FILTERING AVAILABLE SERVICES by #{filters} ***"}
     logger.info {"Available Services before Filtering: #{self.all.pluck(:id)}"}
     
@@ -81,33 +83,18 @@ class Service < ApplicationRecord
   def self.available_by_filter_for(filter, trip)
     case filter
     when :schedule
-      return self.available_by_time_for(trip)
+      return self.available_by_schedule_for(trip)
     when :geography
       return self.available_by_geography_for(trip)
     when :eligibility
-      return trip.user ? self.accepts_eligibility_of(trip.user) : self.all
+      return self.available_by_eligibility_for(trip)
     when :accommodation
-      return trip.user ? self.accommodates(trip.user) : self.all
+      return self.available_by_accommodation_for(trip)
     when :purpose
-      return self.available_for_purpose_for(trip)
+      return self.available_by_purpose_for(trip)
     else
       return self.all
     end
-  end
-  
-  # scope :available_for, -> (trip) do
-  #   available_for_time_and_geography(trip)
-  #   .available_for_purpose_and_user(trip)
-  # end
-
-  scope :available_for_time_and_geography, -> (trip) do 
-    available_by_time_for(trip) #Filter First
-    .available_by_geography_for(trip) #Filter Second
-  end
-    
-  scope :available_for_purpose_and_user, -> (trip) do
-    available_for_purpose_for(trip) #Filter Last
-    .available_for_user(trip.user) #Filter Last
   end
 
   scope :transit_services, -> { where(type: "Transit") }
@@ -116,16 +103,31 @@ class Service < ApplicationRecord
   scope :uber_services, -> { where(type: "Uber") }
 
   ## Secondary Availability Scopes ##
-  scope :available_for_purpose_for, -> (trip) { trip.purpose ? available_by_purpose(trip.purpose) : all }
-  scope :available_for_user, -> (user) { user ? accepts_eligibility_of(user).accommodates(user) : all }
-  scope :available_by_time_for, -> (trip) { available_by_schedule_for(trip) }
+  
+  scope :available_by_schedule_for, -> (trip) do
+    # Either no schedules are set, or there is a schedule that includes the trip time
+    where( id: no_schedules | with_matching_schedule(trip) )
+  end
+  
   scope :available_by_geography_for, -> (trip) do
     available_by_start_or_end_area_for(trip)
     .available_by_trip_within_area_for(trip)
   end
-
-  ## Tertiary Availability Scopes ##
-  # available_for_user scopes
+  
+  scope :available_by_purpose_for, -> (trip) do
+    trip.purpose ? available_by_purpose(trip.purpose) : all
+  end
+  
+  scope :available_by_eligibility_for, -> (trip) do
+    trip.user ? accepts_eligibility_of(trip.user) : all
+  end
+  
+  scope :available_by_accommodation_for, -> (trip) do
+    trip.user ? accommodates(trip.user) : all
+  end
+  
+  # Includes service if either it accommodates all the user's needs, or the
+  # user has no needs.
   scope :accommodates, -> (user) do
     if user.accommodations.empty?
       all
@@ -133,15 +135,12 @@ class Service < ApplicationRecord
       where(id: accommodates_all_needs(user))
     end
   end
+  
+  # Includes service if either it has no eligibility requirements, or the user
+  # meets at least one of its eligibility requirements
   scope :accepts_eligibility_of, -> (user) do
     # Either no eligibilities are set, or the user meets an eligibility requirement
     where( id: no_eligibilities | with_met_eligibilities(user) )
-  end
-
-  # available_by_time_for scopes
-  scope :available_by_schedule_for, -> (trip) do
-    # Either no schedules are set, or there is a schedule that includes the trip time
-    where( id: no_schedules | with_matching_schedule(trip) )
   end
 
   # find services available by a trips purpose
@@ -149,23 +148,16 @@ class Service < ApplicationRecord
     where(id: no_purposes | with_matching_purpose(purpose))
   end
 
-  # available_by_geography_for scopes
-  scope :available_by_start_or_end_area_for, -> (trip) do
-    # no start_or_end_area, or start_or_end_area contains origin OR destination
-    where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
-  end
-  scope :available_by_trip_within_area_for, -> (trip) do
-    # no trip_within_area, or trip_within_area contains origin OR destination
-    where( id: no_region(:trip_within_area) | with_containing_trip_within_area(trip) )
-  end
-
   # Builds instance methods for determining if record falls within given scope
-  build_instance_scopes :available_for,
-    :available_for_user, :available_by_time_for, :available_by_geography_for,
-    :accommodates, :accepts_eligibility_of, :available_by_purpose_for,
-    :available_by_schedule_for,
-    :available_by_start_or_end_area_for, :available_by_trip_within_area_for
-
+  build_instance_scopes :available_for, 
+      :available_by_schedule_for,
+      :available_by_geography_for,
+      :available_by_purpose_for,
+      :available_by_accommodation_for,
+      :available_by_eligibility_for,
+      :accommodates,
+      :accepts_eligibility_of,
+      :available_by_purpose
     
   ## Other Scopes ##
   
@@ -238,6 +230,16 @@ class Service < ApplicationRecord
 
   ### SCOPE HELPER METHODS ###
 
+  # available_by_geography_for scopes
+  scope :available_by_start_or_end_area_for, -> (trip) do
+    # no start_or_end_area, or start_or_end_area contains origin OR destination
+    where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
+  end
+  scope :available_by_trip_within_area_for, -> (trip) do
+    # no trip_within_area, or trip_within_area contains origin OR destination
+    where( id: no_region(:trip_within_area) | with_containing_trip_within_area(trip) )
+  end
+
   # Returns IDs of Services with no eligibility requirements
   def self.no_eligibilities
     includes(:eligibilities).where(eligibilities: {id: nil}).pluck(:id)
@@ -254,7 +256,6 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services that accommodate all of a user's needs
   def self.accommodates_all_needs(user)
-    # user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
     user.accommodations.map {|acc| Service.accommodates_accommodation(acc).pluck(:id)}.reduce(&:&)
   end
 

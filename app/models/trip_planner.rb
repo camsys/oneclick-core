@@ -53,7 +53,7 @@ class TripPlanner
     @services = @services.by_trip_type(*@trip_types)
     
     # Find all the services that are available for your time and locations
-    @services = @services.available_for_time_and_geography(@trip)
+    @services = @services.available_for(@trip, except_by: [:purpose, :eligibility, :accommodation])
 
     # Pull out the relevant purposes, eligbilities, and accommodations of these services
     @relevant_purposes = (@services.collect { |service| service.purposes }).flatten.uniq
@@ -61,7 +61,7 @@ class TripPlanner
     @relevant_accommodations = (@services.collect { |service| service.accommodations }).flatten.uniq
 
     # Now finish filtering by purpose, eligibility, and accommodation
-    @services = @services.available_for_purpose_and_user(@trip)
+    @services = @services.available_for(@trip, only_by: [:purpose, :eligibility, :accommodation])
     
     # Group available services by type, returning a hash with a key for each
     # service type, and one for all the available services
