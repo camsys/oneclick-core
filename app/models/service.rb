@@ -198,15 +198,17 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services with at least one eligibility requirement met by user
   def self.with_met_eligibilities(user)
-    joins(:eligibilities).where(eligibilities: {code: user.confirmed_eligibilities.pluck(:code)}).pluck(:id)
+    joins(:eligibilities).where(eligibilities: {id: user.confirmed_eligibilities.pluck(:id)}).pluck(:id)
   end
 
   # Returns all services that provide a given accommodation
   scope :accommodates_by_code, -> (code) { joins(:accommodations).where(accommodations: {code: code}) }
+  scope :accommodates_accommodation, -> (accommodation) { joins(:accommodations).where(accommodations: {id: accommodation.id})}
 
   # Returns IDs of Services that accommodate all of a user's needs
   def self.accommodates_all_needs(user)
-    user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+    # user.accommodations.pluck(:code).map {|code| Service.accommodates_by_code(code).pluck(:id)}.reduce(&:&)
+    user.accommodations.map {|acc| Service.accommodates_accommodation(acc).pluck(:id)}.reduce(&:&)
   end
 
   # Returns IDs of Services with no schedules set
@@ -230,7 +232,7 @@ class Service < ApplicationRecord
 
   # Returns IDs of Services with a purpose that includes the trip's purpose
   def self.with_matching_purpose(purpose)
-    joins(:purposes).where(purposes: {code: purpose.code}) #Surely we can do this without comparing codes
+    joins(:purposes).where(purposes: {id: purpose.id}) #Surely we can do this without comparing codes
   end
 
   # Returns IDs of Services with no region of given association type
