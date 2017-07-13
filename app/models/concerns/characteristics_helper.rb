@@ -41,5 +41,13 @@ module CharacteristicsHelper
   def set_translation(locale, translation, value)
     SimpleTranslationEngine.set_translation(locale, "#{self.class.name.downcase}_#{self.code}_#{translation}", value)
   end
+  
+  def to_hash
+    {
+      name: self.try(:name),
+      code: self.try(:code),
+      note: self.try(:note)
+    }
+  end
 
 end

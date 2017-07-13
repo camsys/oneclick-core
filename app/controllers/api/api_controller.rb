@@ -92,10 +92,11 @@ module Api
     # If the serializer option is passed, will attempt to serialize the data
     # with the passed serializer
     def success_response(data={}, opts={})
-      status = opts.delete(:status) || 200
-      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] }
-      @root = opts.delete(:root) || nil
+      status = opts.delete(:status) || 200 # Status code is 200 by default
+      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
+      @root = opts.delete(:root) || nil # By default, no root key
       
+      # Check if an ActiveRecord object or collection was passed, and if so, serialize it
       if data.is_a?(ActiveRecord::Relation)
         data = package_collection(data, serializer_opts)
       elsif data.is_a?(ActiveRecord::Base)
@@ -105,6 +106,7 @@ module Api
       # Package data within a root key if necessary  
       data = { @root => data } if @root
       
+      # Return a JSend-compliant hash
       {
         status: status,
         json: {
@@ -127,7 +129,6 @@ module Api
       @root ||= record.class.name.underscore
       get_serializer(record, opts).serializable_hash
     end
-    
 
     # Renders a failure response (client error), passing along a given object as data
     def fail_response(data={})
