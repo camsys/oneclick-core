@@ -35,10 +35,10 @@ module Api
       # Returns a trip for each of the passed times.
       # Also accepts lists of eligibilities and accommodations.
       def plan_multiday
-        puts "PLANNING MULTIDAY"
-        
-        mtp = MultidayTripPlanner.new(Trip.new(trip_params))
-                
+        trip_times = params[:trip_times]
+        mtp = MultidayTripPlanner.new(Trip.create(trip_params), trip_times)
+        @trips = mtp.plan
+        render success_response(@trips)
       end
 
       protected
