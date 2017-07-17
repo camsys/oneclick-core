@@ -13,8 +13,8 @@ class MultidayTripPlanner < TripPlanner
     # set base scope from which to identify available services
     set_master_service_scope
     
-    # for each trip time, create a trip, set @trip, plan a trip as normal, but start with available services as scope,
-    # and only filter by schedule
+    # For each trip time, create a trip, set @trip, plan a trip as normal, 
+    # but start with available services as scope, and only filter by schedule
     @trip_times.each do |datetime|
       @trip = @trip_template.dup
       @trip.trip_time = datetime
