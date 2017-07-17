@@ -10,7 +10,7 @@ RSpec.describe Agency, type: :model do
   let(:staff_agency) { PartnerAgency.last }
   let(:services_agency) { TransportationAgency.last }
   
-  it { should respond_to :type, :name, :phone, :email, :url, :description, :logo }
+  it { should respond_to :type, :name, :phone, :email, :url, :logo }
   it { should have_many(:services) }
   
   it_behaves_like "publishable"

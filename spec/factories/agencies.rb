@@ -6,7 +6,7 @@ FactoryGirl.define do
     phone "(555)555-5555"
     url "http://www.test-transportation-agency-url.gov"
     type "TransportationAgency"    
-    description "Wow, what an agency this is! People just talk and talk about how great this agency is because it's the best agency in the world. I could go on and on about it but you're probably busy. Really though. What a cool agency!"
+    # description "Wow, what an agency this is! People just talk and talk about how great this agency is because it's the best agency in the world. I could go on and on about it but you're probably busy. Really though. What a cool agency!"
     published
     
     factory :transportation_agency, class: "TransportationAgency" do
