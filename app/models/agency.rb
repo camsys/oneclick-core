@@ -7,24 +7,29 @@ class Agency < ApplicationRecord
   
   # mount_uploader :logo, LogoUploader  
   # resourcify  # This rolify call must live in the inheriting classes to work with Single-Table Inheritance
+  include Commentable # has_many :comments
   include Contactable
   include Logoable
   include Publishable
   
-  ### SCOPES, CLASS METHODS, & CONSTANTS ###
+  ### SCOPES, CONSTANTS, & VALIDATIONS ###
   
+  validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
+  contact_fields email: :email, phone: :phone
+    
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
   
   has_many :services, foreign_key: "agency_id", dependent: :nullify
-  
-  contact_fields email: :email, phone: :phone
-  
+    
   AGENCY_TYPES = [
   # [ label, value(class name) ],
     ["Transportation", "TransportationAgency"],
     ["Partner", "PartnerAgency"]
   ]
+  
+  
+  ### CLASS METHODS ###
   
   def self.agency_type_names
     Agency::AGENCY_TYPES.map(&:last)

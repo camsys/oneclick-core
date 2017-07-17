@@ -7,6 +7,7 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def show
+    @agency.build_comments # Builds a comment for each available locale
   end
   
   def create
@@ -52,9 +53,9 @@ class Admin::AgenciesController < Admin::AdminController
       :url,
       :phone,
       :email,
-      :description,
       :logo,
-      :published
+      :published,
+      comments_attributes: [:id, :comment, :locale]
     )
   end
   

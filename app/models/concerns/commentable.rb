@@ -15,12 +15,17 @@ module Commentable
   def comment(locale)
     self.comments.find_by(locale: locale.to_s)
   end
+  
+  # Builds a comment for the specified locale if it doesn't exist already
+  def build_comment(locale, attrs={})
+    comment = comments.find_by_locale(locale) || comments.build(locale: locale)
+    comment.assign_attributes(attrs)
+    comment
+  end
 
-  # Builds a comment for each available locale
+  # Builds a comment for each available locale if it doesn't exist already
   def build_comments
-    I18n.available_locales.map do |l|
-      comments.build(locale: l) unless comments.find_by_locale(l)
-    end
+    I18n.available_locales.map { |l| build_comment(l) }
   end
   
   # Class Methods for configuring comment validations
