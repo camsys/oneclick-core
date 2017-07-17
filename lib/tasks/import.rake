@@ -76,7 +76,13 @@ namespace :import do
     providers_attributes = response["providers"]
     
     providers_attributes.each do |provider_attrs|
-      ta = TransportationAgency.find_or_create_by(provider_attrs)
+      comment = provider_attrs.delete("description")
+      provider_attrs[:phone] = PhonyRails.normalize_number(provider_attrs.delete("phone"))
+      ta = TransportationAgency.find_or_initialize_by(name: provider_attrs["name"])
+      ta.assign_attributes(provider_attrs)
+      ta.build_comments
+      ta.build_comment(:en, comment: comment || "")
+      ta.save
       puts "Creating or updating Transportation Agency: ", ta.ai
     end
     
