@@ -14,7 +14,7 @@ class Admin::AgenciesController < Admin::AdminController
       flash[:success] = "Agency Created Successfully"
       redirect_to admin_agency_path(@agency)
     else
-      flash[:warning] = "Agency could not be Created"
+      flash[:warning] = "Agency could not be created: " + @agency.errors.full_messages.join('; ')
       redirect_to admin_agencies_path
     end
   end
@@ -23,7 +23,7 @@ class Admin::AgenciesController < Admin::AdminController
     if @agency.update_attributes(agency_params)
       flash[:success] = "Agency Updated Successfully"
     else
-      flash[:warning] = "Agency could not be Updated"
+      flash[:warning] = "Agency could not be updated: " + @agency.errors.full_messages.join('; ')
     end
     redirect_to admin_agency_path(@agency)
   end

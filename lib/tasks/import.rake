@@ -1,14 +1,17 @@
 namespace :import do
 
   require 'open-uri'
-
-  desc "Import Purposes"
-  task :purposes, [:host, :token] => [:environment] do |t, args|
-
+  
+  desc "Check for Host and Token Params"
+  task :verify_params, [:host, :token] => [:environment] do |t, args|
     unless args[:host] and args[:token]
       puts 'This command requires a host and token parameter.'
       break
     end
+  end
+
+  desc "Import Purposes"
+  task :purposes, [:host, :token] => [:environment, :verify_params] do |t, args|
 
     url = "#{args['host']}/export/trip_purposes?token=#{args['token']}"
     puts "Calling: #{url}"
@@ -27,12 +30,7 @@ namespace :import do
   end
 
   desc "Import Eligibilities"
-  task :eligibilities, [:host, :token] => [:environment] do |t, args|
-
-    unless args[:host] and args[:token]
-      puts 'This command requires a host and token parameter.'
-      break
-    end
+  task :eligibilities, [:host, :token] => [:environment, :verify_params] do |t, args|
 
     url = "#{args['host']}/export/characteristics?token=#{args['token']}"
     puts "Calling: #{url}"
@@ -51,12 +49,7 @@ namespace :import do
   end
 
   desc "Import Accommodations"
-  task :accommodations, [:host, :token] => [:environment] do |t, args|
-
-    unless args[:host] and args[:token]
-      puts 'This command requires a host and token parameter.'
-      break
-    end
+  task :accommodations, [:host, :token] => [:environment, :verify_params] do |t, args|
 
     url = "#{args['host']}/export/accommodations?token=#{args['token']}"
     puts "Calling: #{url}"
@@ -73,12 +66,28 @@ namespace :import do
       end
     end
   end
+  
+  desc "Import Providers"
+  task :providers, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    url = "#{args['host']}/export/providers?token=#{args['token']}"
+    puts "Calling: #{url}"
+    response = JSON.parse(open(url).read)    
+    providers_attributes = response["providers"]
+    
+    providers_attributes.each do |provider_attrs|
+      ta = TransportationAgency.find_or_create_by(provider_attrs)
+      puts "Creating or updating Transportation Agency: ", ta.ai
+    end
+    
+  end
 
   desc "Import Everything"
-  task :all, [:host, :token] => [:environment] do |t, args| 
-    Rake::Task["import:purposes"].invoke(args[:host], args[:token])
-    Rake::Task["import:eligibilities"].invoke(args[:host], args[:token])
-    Rake::Task["import:accommodations"].invoke(args[:host], args[:token])
-  end
+  task :all, [:host, :token] => [
+      :purposes, 
+      :eligibilities, 
+      :accommodations, 
+      :providers
+    ]
 
 end
