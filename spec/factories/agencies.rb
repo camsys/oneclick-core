@@ -44,5 +44,13 @@ FactoryGirl.define do
       end
     end
     
+    trait :with_comments do
+      after(:create) do |agency|
+        create(:comment, commentable: agency)
+        create(:es, commentable: agency)
+        create(:fr, commentable: agency)
+      end
+    end
+    
   end
 end
