@@ -13,6 +13,7 @@
   =f.input :phone
   =f.input :email
   =f.input :description, as: :text
+  =render partial: "shared/comments_fields", locals: { form: f, record: @agency }
 
   -# For type-specific fields
   -case @agency.type
