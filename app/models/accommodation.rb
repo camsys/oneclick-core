@@ -1,7 +1,7 @@
 class Accommodation < ApplicationRecord
 
   #### Includes ####
-  include EligibilityAccommodationHelper
+  include CharacteristicsHelper
 
   ### Validations ####
   validates :code, uniqueness: true
