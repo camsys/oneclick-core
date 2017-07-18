@@ -37,20 +37,25 @@ RSpec.describe TripPlanner do
   let(:bicycle_tp) { create(:trip_planner, options: {router: otps[:bicycle]})}
   let(:car_tp) { create(:trip_planner, options: {router: otps[:car]})}
   let(:error_tp) { create(:trip_planner, options: {router: otps[:error]})}
+  
+  before(:each) do
+    [ generic_trip_planner, transit_tp, paratransit_tp, 
+      taxi_tp, walk_tp, bicycle_tp, car_tp, error_tp  ].each {|tp| tp.set_available_services }
+  end
 
   it 'should have trip, options, otp, and errors attributes' do
     expect(generic_trip_planner).to respond_to(:trip, :options, :router, :errors)
   end
 
   it 'builds transit itineraries' do
-    transit_tp.prepare_for_plan_call
+    transit_tp.prepare_ambassadors
     itins = transit_tp.build_transit_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
   end
 
   it 'builds paratransit itineraries' do
-    paratransit_tp.prepare_for_plan_call
+    paratransit_tp.prepare_ambassadors
     itins = paratransit_tp.build_paratransit_itineraries
     expect(itins).to be_an(Array)
     expect(itins.count).to eq(Paratransit.count)
@@ -58,7 +63,7 @@ RSpec.describe TripPlanner do
   end
 
   it 'builds taxi itineraries' do
-    taxi_tp.prepare_for_plan_call
+    taxi_tp.prepare_ambassadors
     itins = taxi_tp.build_taxi_itineraries
     expect(itins).to be_an(Array)
     expect(itins.count).to eq(Taxi.count)
@@ -66,21 +71,21 @@ RSpec.describe TripPlanner do
   end
 
   it 'builds walk itineraries' do
-    walk_tp.prepare_for_plan_call
+    walk_tp.prepare_ambassadors
     itins = walk_tp.build_walk_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
   end
 
   it 'builds bicycle itineraries' do
-    bicycle_tp.prepare_for_plan_call
+    bicycle_tp.prepare_ambassadors
     itins = bicycle_tp.build_bicycle_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
   end
 
   it 'builds car itineraries' do
-    car_tp.prepare_for_plan_call
+    car_tp.prepare_ambassadors
     itins = car_tp.build_car_itineraries
     expect(itins).to be_an(Array)
     expect(itins[0]).to be_an(Itinerary)
@@ -103,13 +108,13 @@ RSpec.describe TripPlanner do
   end
 
   it 'associates fixed itineraries with services when appropriate' do
-    transit_tp.prepare_for_plan_call
+    transit_tp.prepare_ambassadors
     itins = transit_tp.build_transit_itineraries
     itins.each do |itin|
       expect(itin['service_id']).to eq(transit.id)
     end
 
-    walk_tp.prepare_for_plan_call
+    walk_tp.prepare_ambassadors
     itins = walk_tp.build_walk_itineraries
     itins.each do |itin|
       expect(itin['service_id']).to be_nil
@@ -117,20 +122,20 @@ RSpec.describe TripPlanner do
   end
 
   it 'should find relevant purposes' do
-    paratransit_tp.available_services
+    paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_purposes).to eq(Purpose.where(code: "medical"))
   end
 
   it 'should find relevant eligibilities' do
     strict_paratransit
-    paratransit_tp.available_services
+    paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_eligibilities).to eq(Eligibility.where(code: "over_65"))
   end
 
   it 'should find relevant accommodations' do
     strict_paratransit
     accommodating_paratransit
-    paratransit_tp.available_services
+    paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_accommodations).to eq(accommodating_paratransit.accommodations)
   end
 

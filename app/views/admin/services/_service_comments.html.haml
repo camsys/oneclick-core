@@ -6,11 +6,7 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  -@service.comments.each do |comment|
-    =f.simple_fields_for "comments_attributes[]", comment do |comment_form|
-      =comment_form.input :id, wrapper_html: {class: "hidden"}
-      =comment_form.input :locale, wrapper_html: {class: "hidden"}
-      =comment_form.input :comment, label: "Comment (#{comment_form.object.locale})"
+  =render partial: "shared/comments_fields", locals: { form: f, record: @service }
 
 
 :javascript

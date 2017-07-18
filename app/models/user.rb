@@ -31,7 +31,7 @@ class User < ApplicationRecord
 
 
   ### Associations ###
-  has_many :trips
+  has_many :trips, dependent: :nullify
   has_and_belongs_to_many :accommodations
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
   has_many :user_eligibilities, dependent: :destroy

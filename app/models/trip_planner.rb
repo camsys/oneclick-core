@@ -21,53 +21,70 @@ class TripPlanner
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
     @relevant_eligibilities = @relevant_purposes = @relevant_accommodations = []
+    
+    # Initialize ambassadors if passed as options
+    @router = options[:router]
+    @taxi_ambassador = options[:taxi_ambassador]
+    @uber_ambassador = options[:uber_ambassador]
   end
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    # Prepares relevant instance variables and services
-    prepare_for_plan_call
+    # Identify available services and set instance variable for use in building itineraries
+    set_available_services
+    
+    # Sets up external ambassadors
+    prepare_ambassadors
 
     # Build itineraries for each requested trip_type, then save the trip
-    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+    build_all_itineraries
     @trip.save
+    
   end
 
-  # Identify available services and set up external API ambassadors
-  def prepare_for_plan_call
-    # Identify available services and set instance variable for use in building itineraries
-    @available_services = available_services
-
+  # Set up external API ambassadors
+  def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
-    @router = options[:router] || OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
-    @taxi_ambassador = options[:taxi_ambassador] || TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
-    @uber_ambassador = options[:uber_ambassador] || UberAmbassador.new(@trip, @http_request_bundler)
+    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
+    @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
+    @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
-  def available_services
+  def set_available_services
     # Start with the scope of all services available for public viewing
-    @services = Service.published
+    @available_services = Service.published
     
     # Only select services that match the requested trip types
-    @services = @services.by_trip_type(*@trip_types)
+    @available_services = @available_services.by_trip_type(*@trip_types)
     
     # Find all the services that are available for your time and locations
-    @services = @services.available_for_time_and_geography(@trip)
+    @available_services = @available_services.available_for(@trip, except_by: [:purpose, :eligibility, :accommodation])
 
     # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (@services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@services.collect { |service| service.eligibilities }).flatten.uniq
-    @relevant_accommodations = (@services.collect { |service| service.accommodations }).flatten.uniq
+    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq
+    @relevant_accommodations = (@available_services.collect { |service| service.accommodations }).flatten.uniq
 
     # Now finish filtering by purpose, eligibility, and accommodation
-    @services = @services.available_for_purpose_and_user(@trip)
+    @available_services = @available_services.available_for(@trip, only_by: [:purpose, :eligibility, :accommodation])
     
-    # Group available services by type, returning a hash with a key for each
-    # service type, and one for all the available services
+    # Now convert into a hash grouped by type
+    @available_services = available_services_hash(@available_services)
+
+  end
+  
+  # Group available services by type, returning a hash with a key for each
+  # service type, and one for all the available services
+  def available_services_hash(services)
     Service::SERVICE_TYPES.map do |t| 
-      [t.underscore.to_sym, @services.where(type: t)]
-    end.to_h.merge({ all: @services })
+      [t.underscore.to_sym, services.where(type: t)]
+    end.to_h.merge({ all: services })
+  end
+  
+  # Builds itineraries for all trip types
+  def build_all_itineraries
+    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
   end
 
   # Calls the requisite trip_type itineraries method

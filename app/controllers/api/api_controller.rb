@@ -92,13 +92,21 @@ module Api
     # If the serializer option is passed, will attempt to serialize the data
     # with the passed serializer
     def success_response(data={}, opts={})
-      status = opts.delete(:status) || 200
-      serializer = opts.delete(:serializer) || nil
-      root = opts.delete(:root) || nil
-
-      data = data.map {|d| serializer.new(d).to_hash} if serializer
-      data = { root => data } if root
+      status = opts.delete(:status) || 200 # Status code is 200 by default
+      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
+      @root = opts.delete(:root) || nil # By default, no root key
       
+      # Check if an ActiveRecord object or collection was passed, and if so, serialize it
+      if data.is_a?(ActiveRecord::Relation)
+        data = package_collection(data, serializer_opts)
+      elsif data.is_a?(ActiveRecord::Base)
+        data = package_record(data, serializer_opts)
+      end
+      
+      # Package data within a root key if necessary  
+      data = { @root => data } if @root
+      
+      # Return a JSend-compliant hash
       {
         status: status,
         json: {
@@ -108,6 +116,20 @@ module Api
       }
     end
     
+    # Serialize the collection of records with the default serializer and any options.
+    # Also, set the root key to the appropriate plural, if it hasn't been set manually.
+    def package_collection(collection, opts={})
+      @root ||= collection.klass.name.underscore.pluralize
+      collection.map {|record| package_record(record, opts) }
+    end
+    
+    # Serialize the record with the default serializer and any options.
+    # Also, set the root key to the appropriate singular, if it hasn't been set already.
+    def package_record(record, opts={})
+      @root ||= record.class.name.underscore
+      get_serializer(record, opts).serializable_hash
+    end
+
     # Renders a failure response (client error), passing along a given object as data
     def fail_response(data={})
       status = data.delete(:status) || 400

@@ -1,4 +1,6 @@
-module EligibilityAccommodationHelper
+# Provides helper methods for dealing with accommodations, 
+# eligibilities, and purposes.
+module CharacteristicsHelper
 
   def self.included(base)
 
@@ -38,6 +40,14 @@ module EligibilityAccommodationHelper
   # set translations e.g.,  locale="en", object="name", value="medical"
   def set_translation(locale, translation, value)
     SimpleTranslationEngine.set_translation(locale, "#{self.class.name.downcase}_#{self.code}_#{translation}", value)
+  end
+  
+  def to_hash
+    {
+      name: self.try(:name),
+      code: self.try(:code),
+      note: self.try(:note)
+    }
   end
 
 end
