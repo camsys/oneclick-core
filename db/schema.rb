@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170717192422) do
+ActiveRecord::Schema.define(version: 20170719153915) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -229,8 +229,8 @@ ActiveRecord::Schema.define(version: 20170717192422) do
     t.string   "fare_structure"
     t.text     "fare_details"
     t.boolean  "archived",             default: false
-    t.integer  "agency_id"
     t.boolean  "published",            default: false
+    t.integer  "agency_id"
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree

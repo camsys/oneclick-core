@@ -1,6 +1,8 @@
 namespace :import do
 
   require 'open-uri'
+  require 'tasks/helpers/import_task_helpers'
+  include ImportTaskHelpers
   
   desc "Check for Host and Token Params"
   task :verify_params, [:host, :token] => [:environment] do |t, args|
@@ -13,10 +15,9 @@ namespace :import do
   desc "Import Purposes"
   task :purposes, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/trip_purposes?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["trip_purposes"].each do |trip_purpose|
+    trip_purposes = get_export_data(args, 'trip_purposes')["trip_purposes"]
+
+    trip_purposes.each do |trip_purpose|
       Purpose.where(code: trip_purpose["code"]).first_or_create do |new_purpose|
         puts 'Creating New Trip Purpose'
         puts trip_purpose.ai 
@@ -32,10 +33,9 @@ namespace :import do
   desc "Import Eligibilities"
   task :eligibilities, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/characteristics?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["characteristics"].each do |characteristic|
+    characteristics = get_export_data(args, 'characteristics')["characteristics"]
+
+    characteristics.each do |characteristic|
       Eligibility.where(code: characteristic["code"]).first_or_create do |new_elig|
         puts 'Creating New Eligibility'
         puts characteristic.ai 
@@ -51,10 +51,9 @@ namespace :import do
   desc "Import Accommodations"
   task :accommodations, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/accommodations?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["accommodations"].each do |accommodation|
+    accommodations = get_export_data(args, 'accommodations')["accommodations"]
+
+    accommodations.each do |accommodation|
       Accommodation.where(code: accommodation["code"]).first_or_create do |new_acc|
         puts 'Creating New Accommodation'
         puts accommodation.ai 
@@ -69,22 +68,54 @@ namespace :import do
   
   desc "Import Providers"
   task :providers, [:host, :token] => [:environment, :verify_params] do |t, args|
-    
-    url = "#{args['host']}/export/providers?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)    
-    providers_attributes = response["providers"]
+
+    providers_attributes = get_export_data(args, 'providers')["providers"]
     
     providers_attributes.each do |provider_attrs|
-      comment = provider_attrs.delete("description")
+      comments = provider_attrs.delete("comments")
       provider_attrs[:phone] = PhonyRails.normalize_number(provider_attrs.delete("phone"))
       ta = TransportationAgency.find_or_initialize_by(name: provider_attrs["name"])
       ta.assign_attributes(provider_attrs)
-      ta.build_comments
-      ta.build_comment(:en, comment: comment || "")
+      ta.build_comments_from_hash(comments)
       ta.save
       puts "Creating or updating Transportation Agency: ", ta.ai
     end
+    
+  end
+  
+  desc "Import Registered Users"
+  task :registered_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    users_attributes = get_export_data(args, 'users/registered')["users"]
+    
+    users_attributes.each do |user_attrs|
+      user = import_user(user_attrs)
+      puts "Creating or Updating User: ", user.ai
+    end
+    
+  end
+  
+  desc "Import Guest Users"
+  task :guest_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    users_attributes = get_export_data(args, 'users/registered')["users"]
+    
+    users_attributes.each do |user_attrs|
+      user = import_user(user_attrs)
+      user.update_attributes(email: convert_to_guest_email(user.email))
+      puts "Creating or Updating User: ", user.ai
+    end
+    
+  end
+  
+  desc "Cleans up Uniquized Attributes"
+  task clean_up: :environment do
+    
+    # Remove ID from Provider names
+    clean_up_uniquized_table(Agency, :name)
+    
+    # Remove ID from User emails
+    clean_up_uniquized_table(User, :email)
     
   end
 
@@ -93,7 +124,9 @@ namespace :import do
       :purposes, 
       :eligibilities, 
       :accommodations, 
-      :providers
+      :providers,
+      :registered_users,
+      :guest_users
     ]
 
 end
