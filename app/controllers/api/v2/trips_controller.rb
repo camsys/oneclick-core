@@ -44,7 +44,7 @@ module Api
       protected
 
       def trip_params
-        params.require(:trip).permit(
+        stringify_google_place_attributes(params).require(:trip).permit(
           {origin_attributes: place_attributes},
           {destination_attributes: place_attributes},
           :trip_time,
@@ -77,6 +77,19 @@ module Api
         {
           trip_types: params.delete(:trip_types).try(:map, &:to_sym) # convert strings to symbols
         }
+      end
+      
+      # Converts google place attributes params to JSON strings
+      def stringify_google_place_attributes(params)
+        
+        [:origin_attributes, :destination_attributes].each do |place|
+          if params[:trip][place][:google_place_attributes].present?
+            google_place_json = params[:trip][place][:google_place_attributes].to_json
+            params[:trip][place][:google_place_attributes] = google_place_json
+          end
+        end
+
+        return params
       end
 
     end
