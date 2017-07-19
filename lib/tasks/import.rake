@@ -15,10 +15,9 @@ namespace :import do
   desc "Import Purposes"
   task :purposes, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/trip_purposes?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["trip_purposes"].each do |trip_purpose|
+    trip_purposes = get_export_data(args, 'trip_purposes')["trip_purposes"]
+
+    trip_purposes.each do |trip_purpose|
       Purpose.where(code: trip_purpose["code"]).first_or_create do |new_purpose|
         puts 'Creating New Trip Purpose'
         puts trip_purpose.ai 
@@ -34,10 +33,9 @@ namespace :import do
   desc "Import Eligibilities"
   task :eligibilities, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/characteristics?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["characteristics"].each do |characteristic|
+    characteristics = get_export_data(args, 'characteristics')["characteristics"]
+
+    characteristics.each do |characteristic|
       Eligibility.where(code: characteristic["code"]).first_or_create do |new_elig|
         puts 'Creating New Eligibility'
         puts characteristic.ai 
@@ -53,10 +51,9 @@ namespace :import do
   desc "Import Accommodations"
   task :accommodations, [:host, :token] => [:environment, :verify_params] do |t, args|
 
-    url = "#{args['host']}/export/accommodations?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)
-    response["accommodations"].each do |accommodation|
+    accommodations = get_export_data(args, 'accommodations')["accommodations"]
+
+    accommodations.each do |accommodation|
       Accommodation.where(code: accommodation["code"]).first_or_create do |new_acc|
         puts 'Creating New Accommodation'
         puts accommodation.ai 
@@ -71,11 +68,8 @@ namespace :import do
   
   desc "Import Providers"
   task :providers, [:host, :token] => [:environment, :verify_params] do |t, args|
-    
-    url = "#{args['host']}/export/providers?token=#{args['token']}"
-    puts "Calling: #{url}"
-    response = JSON.parse(open(url).read)    
-    providers_attributes = response["providers"]
+
+    providers_attributes = get_export_data(args, 'providers')["providers"]
     
     providers_attributes.each do |provider_attrs|
       comments = provider_attrs.delete("comments")
@@ -88,13 +82,34 @@ namespace :import do
     end
     
   end
+  
+  desc "Importing Registered Users"
+  task :registered_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    users_attributes = get_export_data(args, 'users/registered')["users"]
+    
+    users_attributes.each do |user_attrs|
+      user = import_user(user_attrs)
+      puts "Creating or Updating User: ", user.ai
+    end
+    
+  end
+  
+  desc "Cleans up Uniquized Attributes"
+  task clean_up: :environment do
+    
+    # Remove ID from Provider names
+    # Remove ID from User emails
+    
+  end
 
   desc "Import Everything"
   task :all, [:host, :token] => [
       :purposes, 
       :eligibilities, 
       :accommodations, 
-      :providers
+      :providers,
+      :registered_users
     ]
 
 end

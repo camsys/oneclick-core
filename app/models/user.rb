@@ -94,7 +94,7 @@ class User < ApplicationRecord
     return true
   end
 
-  def update_basic_attributes params
+  def update_basic_attributes params={}
     params.each do |key, value|
       case key.to_sym
         when :first_name
@@ -112,7 +112,7 @@ class User < ApplicationRecord
     self.save
   end
 
-  def update_eligibilities params
+  def update_eligibilities params={}
     params.each do |code, value|
       eligibility = Eligibility.find_by(code: code)
       if eligibility
@@ -123,7 +123,7 @@ class User < ApplicationRecord
     end
   end
 
-  def update_accommodations params
+  def update_accommodations params={}
     user_accommodations = self.accommodations
     params.each do |code, value|
       accommodation = Accommodation.find_by(code: code)

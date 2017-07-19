@@ -38,7 +38,8 @@ module Contactable
         # Allows blank emails by default
         validates column, 
             allow_blank: true, 
-            format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/ }
+            format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})(\${2}.*)?\Z/ }
+            # NOTE: The last part of the regex, "(\${2}.*)?", captures an appended id # after '$$', for importing from Legacy 1Click
       end
     end
     
