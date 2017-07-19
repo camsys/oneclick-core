@@ -52,6 +52,33 @@ module ImportTaskHelpers
     
     return user
     
+  end  
+
+  # Returns the id from the end of a uniquized string
+  def id_from_uniquized_attribute(attr_value)
+    /\A.*\${2}(.*)\Z/.match(attr_value)[1]
+  end
+  
+  # Pulls the id off the email and appends it to a new guest email
+  def convert_to_guest_email(email)
+    id = id_from_uniquized_attribute(email)
+    GuestUserHelper.new.random_email + "$$#{id}"
+  end
+  
+  # Pulls the id off of a uniquized attribute
+  def ununiquize_attribute(attr_value)
+    attr_value.gsub(/\${2}.*/, '')
+  end
+  
+  # Cleans Up Uniquized Table, given the table name and the uniquized attribute
+  def clean_up_uniquized_table(table, attr)
+    puts "Cleaning up #{table.name} Table..."
+    table.where("#{attr} LIKE '%$$%'").each do |r| 
+      puts "Cleaning up #{attr} of #{table.name.underscore} #{r.id}"
+      unless r.update_attributes(attr => ununiquize_attribute(r.send(attr)))
+        puts "FAILED: #{r.errors.full_messages}"
+      end
+    end
   end
   
 end

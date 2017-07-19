@@ -83,7 +83,7 @@ namespace :import do
     
   end
   
-  desc "Importing Registered Users"
+  desc "Import Registered Users"
   task :registered_users, [:host, :token] => [:environment, :verify_params] do |t, args|
     
     users_attributes = get_export_data(args, 'users/registered')["users"]
@@ -95,11 +95,27 @@ namespace :import do
     
   end
   
+  desc "Import Guest Users"
+  task :guest_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    users_attributes = get_export_data(args, 'users/registered')["users"]
+    
+    users_attributes.each do |user_attrs|
+      user = import_user(user_attrs)
+      user.update_attributes(email: convert_to_guest_email(user.email))
+      puts "Creating or Updating User: ", user.ai
+    end
+    
+  end
+  
   desc "Cleans up Uniquized Attributes"
   task clean_up: :environment do
     
     # Remove ID from Provider names
+    clean_up_uniquized_table(Agency, :name)
+    
     # Remove ID from User emails
+    clean_up_uniquized_table(User, :email)
     
   end
 
