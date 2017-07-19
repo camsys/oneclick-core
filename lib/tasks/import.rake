@@ -125,7 +125,8 @@ namespace :import do
       :eligibilities, 
       :accommodations, 
       :providers,
-      :registered_users
+      :registered_users,
+      :guest_users
     ]
 
 end
