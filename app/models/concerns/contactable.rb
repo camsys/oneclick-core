@@ -25,7 +25,7 @@ module Contactable
         validates column, phony_plausible: true
         
         define_method("formatted_#{column}") do
-          self.send(column).phony_formatted
+          self.send(column).to_s.phony_formatted
         end
         
       end

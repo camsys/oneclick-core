@@ -28,6 +28,11 @@ module Commentable
     I18n.available_locales.map { |l| build_comment(l) }
   end
   
+  # Returns a hash of comments, keyed by locale
+  def comments_hash
+    I18n.available_locales.map { |l| [l, comment(l).try(:comment)] }.to_h
+  end
+  
   # Class Methods for configuring comment validations
   module ValidationConfigMethods
     def validates_comment_uniqueness_by_locale
