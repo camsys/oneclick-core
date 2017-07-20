@@ -21,8 +21,7 @@ module Contactable
     # Normalize and validate phone number column(s) with phony gem
     def setup_phone_fields(*columns)      
       columns.each do |column|
-        phony_normalize column
-        validates column, phony_plausible: true
+        phony_normalize column, if: -> { PhonyRails.plausible_number?(self.send(column)) }
         
         define_method("formatted_#{column}") do
           self.send(column).phony_formatted
@@ -42,7 +41,7 @@ module Contactable
             # NOTE: The last part of the regex, "(\${2}.*)?", captures an appended id # after '$$', for importing from Legacy 1Click
       end
     end
-    
+        
     
   end
   

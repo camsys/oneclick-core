@@ -81,4 +81,23 @@ module ImportTaskHelpers
     end
   end
   
+  def find_record_by_legacy_id(model, legacy_id, opts={})
+    column = opts[:column] || :name
+    model.where("#{column} LIKE '%$$#{legacy_id}'").first
+  end
+  
+  def format_fare_details(fare_details, fare_structure)
+    case fare_structure
+    when :flat
+    when :mileage
+      fare_details["trip_type"] = fare_details["trip_type"].to_sym
+    when :zone
+    when :taxi_fare_finder
+    else
+    end
+    
+    return fare_details.with_indifferent_access
+
+  end
+  
 end
