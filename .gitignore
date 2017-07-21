@@ -27,3 +27,6 @@
 
 # Ignore local_env.yml, which contains secrets
 /config/local_env.yml
+
+# Ignore database.yml
+/config/database.yml

@@ -1,15 +1,16 @@
 module ImportTaskHelpers
   
   # Unpacks the rake task arguments, constructs a url, calls it, and returns the response
-  def get_export_data(args, route)
-    url = export_url(args['host'], route, args['token'])
+  def get_export_data(args, route, params={})
+    params = params.merge({token: args['token']})
+    url = export_url(args['host'], route, params)
     puts "Calling: #{url}"
     JSON.parse(open(url).read)
   end
   
   # Constructs a OneClick Export API URL from host, route string, and token
-  def export_url(host, route, token)
-    "#{host}/export/#{route}?token=#{token}"
+  def export_url(host, route, params={})
+    "#{host}/export/#{route}?#{params.to_query}"
   end
   
   def map_mode_to_trip_type(mode_code=nil)
@@ -47,7 +48,7 @@ module ImportTaskHelpers
     user = User.find_or_initialize_by(email: email)
     user.assign_attributes(user_attrs.merge({password: "TEMPpw123", password_confirmation: "TEMPpw123"}))
     user.preferred_locale = Locale.find_by(name: preferred_locale)
-    user.save
+    save_and_log_result(user)
     user.update_profile(user_profile_attrs)
     
     return user
@@ -78,6 +79,49 @@ module ImportTaskHelpers
       unless r.update_attributes(attr => ununiquize_attribute(r.send(attr)))
         puts "FAILED: #{r.errors.full_messages}"
       end
+    end
+  end
+  
+  # Find a record by the id it used to have in the legacy DB
+  def find_record_by_legacy_id(model, legacy_id, opts={})
+    column = opts[:column] || :name
+    model.where("#{column} LIKE '%$$#{legacy_id}'").first
+  end
+  
+  # Makes any necessary formatting changes to fare details hash before importing
+  def format_fare_details(fare_details, fare_structure)
+    case fare_structure
+    when :flat
+    when :mileage
+      fare_details["trip_type"] = fare_details["trip_type"].to_sym
+    when :zone
+    when :taxi_fare_finder
+    else
+    end
+    
+    return fare_details.with_indifferent_access
+
+  end
+  
+  # Converts a legacy geo recipe into the format needed for OCC
+  def convert_geo_recipe(recipe)
+    ingredients = recipe.to_s.split(',')
+    ingredients.map do |i|
+      name, model, state = i.match(/(.+)\[([^-]*)-?([^-]*)?\]/).captures.map(&:strip)
+      attributes = state ? { name: name } : { name: name, state: state }
+      { model: model, attributes: attributes }
+    end.to_json
+  end
+  
+  # Attempts to save the record, logging the a success message or the errors
+  def save_and_log_result(record)    
+    if record.save
+      puts "SUCCESS! #{record.to_s} created. New id: #{record.id}"
+      return true
+    else
+      puts "An error occurred with #{record.to_s}: "
+      record.errors.full_messages.each {|e| puts e }
+      return false
     end
   end
   
