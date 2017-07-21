@@ -143,8 +143,10 @@ namespace :import do
               
       logo = service_attrs.delete("logo")      
       comments = service_attrs.delete("comments")
-      start_or_end_area_recipe = service_attrs.delete("start_or_end_area_recipe")
-      trip_within_area_recipe = service_attrs.delete("trip_within_area_recipe")
+      area_recipes = {
+        start_or_end_area: service_attrs.delete("start_or_end_area_recipe"),
+        trip_within_area: service_attrs.delete("trip_within_area_recipe")
+      }
       schedules = service_attrs.delete("schedules")
       accommodations = service_attrs.delete("accommodations")
       eligibilities = service_attrs.delete("eligibilities")
@@ -158,6 +160,13 @@ namespace :import do
       svc.eligibilities = Eligibility.where(code: eligibilities)
       svc.purposes = Purpose.where(code: purposes)
       svc.schedules.build(schedules)
+      
+      svc.build_geographies
+      [:start_or_end_area, :trip_within_area].each do |area|
+        if svc.send(area)
+          svc.send(area).recipe = convert_geo_recipe(area_recipes[area])
+        end
+      end
       
       if svc.save
         puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"

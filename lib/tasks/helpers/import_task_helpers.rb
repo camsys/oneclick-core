@@ -102,4 +102,13 @@ module ImportTaskHelpers
 
   end
   
+  def convert_geo_recipe(recipe)
+    ingredients = recipe.to_s.split(',')
+    ingredients.map do |i|
+      name, model, state = i.match(/(.+)\[([^-]*)-?([^-]*)?\]/).captures.map(&:strip)
+      attributes = state ? { name: name } : { name: name, state: state }
+      { model: model, attributes: attributes }
+    end.to_json
+  end
+  
 end
