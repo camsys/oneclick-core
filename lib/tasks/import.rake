@@ -113,6 +113,23 @@ namespace :import do
     end
     
   end
+
+  desc "Import Landmarks"
+  task :landmarks, [:host, :token] => [:environment, :verify_params] do |t,args|
+
+    pois = get_export_data(args, "pois")["pois"]
+    pois.each do |poi|
+      poi.transform_keys!{ |key| key=="lon" ? "lng" : key }
+    end
+
+    pois.each do |poi|
+      Landmark.where(name: poi['name']).first_or_create do |landmark|
+        puts "Creating a new Landmark: #{poi['name']}"
+        landmark.update_attributes(poi)
+      end
+    end
+
+  end
   
   desc "Import Services and Associate w/ Providers"
   task :services, [:host, :token] => [:environment, :verify_params] do |t, args|
