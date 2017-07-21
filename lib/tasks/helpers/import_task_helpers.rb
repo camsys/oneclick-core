@@ -47,7 +47,7 @@ module ImportTaskHelpers
     user = User.find_or_initialize_by(email: email)
     user.assign_attributes(user_attrs.merge({password: "TEMPpw123", password_confirmation: "TEMPpw123"}))
     user.preferred_locale = Locale.find_by(name: preferred_locale)
-    user.save
+    save_and_log_result(user)
     user.update_profile(user_profile_attrs)
     
     return user
@@ -102,6 +102,7 @@ module ImportTaskHelpers
 
   end
   
+  # Converts a legacy geo recipe into the format needed for OCC
   def convert_geo_recipe(recipe)
     ingredients = recipe.to_s.split(',')
     ingredients.map do |i|
@@ -109,6 +110,18 @@ module ImportTaskHelpers
       attributes = state ? { name: name } : { name: name, state: state }
       { model: model, attributes: attributes }
     end.to_json
+  end
+  
+  # Attempts to save the record, logging the a success message or the errors
+  def save_and_log_result(record)    
+    if record.save
+      puts "SUCCESS! #{record.to_s} created. New id: #{record.id}"
+      return true
+    else
+      puts "An error occurred with #{record.to_s}: "
+      record.errors.full_messages.each {|e| puts e }
+      return false
+    end
   end
   
 end

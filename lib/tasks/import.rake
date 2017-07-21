@@ -79,12 +79,7 @@ namespace :import do
       ta = TransportationAgency.find_or_initialize_by(name: provider_attrs["name"])
       ta.assign_attributes(provider_attrs)
       ta.build_comments_from_hash(comments)
-      ta.save
-      if ta.valid?
-        puts "SUCCESS! #{ta.name} created. New id: #{ta.id}"
-      else
-        puts "An error occurred: #{ta.errors.full_messages}"
-      end
+      save_and_log_result(ta)
     end
     
   end
@@ -95,8 +90,7 @@ namespace :import do
     users_attributes = get_export_data(args, 'users/registered')["users"]
     
     users_attributes.each do |user_attrs|
-      user = import_user(user_attrs)
-      puts "Creating or Updating User: ", user.ai
+      import_user(user_attrs)
     end
     
   end
@@ -108,8 +102,23 @@ namespace :import do
     
     users_attributes.each do |user_attrs|
       user = import_user(user_attrs)
-      user.update_attributes(email: convert_to_guest_email(user.email))
-      puts "Creating or Updating User: ", user.ai
+      user.assign_attributes(email: convert_to_guest_email(user.email))
+      save_and_log_result(user)
+    end
+    
+  end
+  
+  desc "Import Fare Zone Geographies"
+  task :fare_zones, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    puts "IMPORTING FARE ZONES..."
+    
+    fare_zones_attributes = get_export_data(args, 'geographies/fare_zones')["geographies"]
+    
+    fare_zones_attributes.each do |fz_attrs|
+      fz = CustomGeography.find_or_initialize_by(name: fz_attrs["name"])
+      fz.assign_attributes(fz_attrs)
+      save_and_log_result(fz)
     end
     
   end
@@ -132,8 +141,8 @@ namespace :import do
   end
   
   desc "Import Services and Associate w/ Providers"
-  task :services, [:host, :token] => [:environment, :verify_params] do |t, args|
-          
+  task :services, [:host, :token] => [:environment, :verify_params, :fare_zones] do |t, args|
+    
     services_attributes = get_export_data(args, 'services')["services"]
     
     services_attributes.each do |service_attrs|
@@ -168,21 +177,13 @@ namespace :import do
         end
       end
       
-      if svc.save
-        puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"
-      else
-        puts "An error occurred with #{svc.name}: #{svc.errors.full_messages}"
-      end
+      save_and_log_result(svc)
 
       if logo
         svc = Service.find(svc.id)
         svc.reload
         svc.remote_logo_url = "#{args['host']}#{logo}"
-        if svc.save
-          puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"
-        else
-          puts "An error occurred with #{svc.name}: #{svc.errors.full_messages}"
-        end
+        save_and_log_result(svc)
       end
 
     end          
