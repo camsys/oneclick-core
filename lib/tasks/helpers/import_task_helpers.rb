@@ -81,11 +81,13 @@ module ImportTaskHelpers
     end
   end
   
+  # Find a record by the id it used to have in the legacy DB
   def find_record_by_legacy_id(model, legacy_id, opts={})
     column = opts[:column] || :name
     model.where("#{column} LIKE '%$$#{legacy_id}'").first
   end
   
+  # Makes any necessary formatting changes to fare details hash before importing
   def format_fare_details(fare_details, fare_structure)
     case fare_structure
     when :flat

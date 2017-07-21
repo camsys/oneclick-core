@@ -133,15 +133,15 @@ namespace :import do
   
   desc "Import Services and Associate w/ Providers"
   task :services, [:host, :token] => [:environment, :verify_params] do |t, args|
-    
+          
     services_attributes = get_export_data(args, 'services')["services"]
     
     services_attributes.each do |service_attrs|
-      # puts "IMPORTING SERVICE", service_attrs.ai
 
       service_attrs["agency_id"] = find_record_by_legacy_id(Agency, service_attrs.delete("provider_id")).try(:id)
       service_attrs["fare_details"] = format_fare_details(service_attrs.delete("fare_details"), service_attrs["fare_structure"].to_sym)
-      
+              
+      logo = service_attrs.delete("logo")      
       comments = service_attrs.delete("comments")
       start_or_end_area_recipe = service_attrs.delete("start_or_end_area_recipe")
       trip_within_area_recipe = service_attrs.delete("trip_within_area_recipe")
@@ -151,18 +151,32 @@ namespace :import do
       purposes = service_attrs.delete("purposes")
       
       svc = Service.find_or_initialize_by(name: service_attrs["name"])
+      
       svc.assign_attributes(service_attrs)
       svc.build_comments_from_hash(comments)
       svc.accommodations = Accommodation.where(code: accommodations)
       svc.eligibilities = Eligibility.where(code: eligibilities)
       svc.purposes = Purpose.where(code: purposes)
-      svc.save
-      if svc.valid?
+      svc.schedules.build(schedules)
+      
+      if svc.save
         puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"
       else
         puts "An error occurred with #{svc.name}: #{svc.errors.full_messages}"
       end
-    end
+
+      if logo
+        svc = Service.find(svc.id)
+        svc.reload
+        svc.remote_logo_url = "#{args['host']}#{logo}"
+        if svc.save
+          puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"
+        else
+          puts "An error occurred with #{svc.name}: #{svc.errors.full_messages}"
+        end
+      end
+
+    end          
     
   end
   
@@ -180,11 +194,11 @@ namespace :import do
   desc "Cleans up Uniquized Attributes"
   task clean_up: :environment do
     
-    # Remove ID from Provider names
+    # Remove legacy ID from uniquized attributes
     clean_up_uniquized_table(Agency, :name)
-    
-    # Remove ID from User emails
     clean_up_uniquized_table(User, :email)
+    clean_up_uniquized_table(Service, :name)
+    
     
   end
 
