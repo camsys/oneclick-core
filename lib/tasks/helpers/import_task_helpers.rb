@@ -1,15 +1,16 @@
 module ImportTaskHelpers
   
   # Unpacks the rake task arguments, constructs a url, calls it, and returns the response
-  def get_export_data(args, route)
-    url = export_url(args['host'], route, args['token'])
+  def get_export_data(args, route, params={})
+    params = params.merge({token: args['token']})
+    url = export_url(args['host'], route, params)
     puts "Calling: #{url}"
     JSON.parse(open(url).read)
   end
   
   # Constructs a OneClick Export API URL from host, route string, and token
-  def export_url(host, route, token)
-    "#{host}/export/#{route}?token=#{token}"
+  def export_url(host, route, params={})
+    "#{host}/export/#{route}?#{params.to_query}"
   end
   
   def map_mode_to_trip_type(mode_code=nil)

@@ -108,11 +108,25 @@ namespace :import do
     
   end
   
+  desc "Import Geographies"
+  task :geographies, [:host, :token, :state] => [:environment, :verify_params] do |t, args|
+    
+    [:cities, :counties, :zipcodes].each do |geo_type|
+      geos_attributes = get_export_data(args, "geographies/#{geo_type.to_s}", state: args['state'])["geographies"]
+      
+      geos_attributes.each do |geo_attrs|
+        model_class = geo_type.to_s.classify.constantize
+        geo = model_class.find_or_initialize_by(name: geo_attrs["name"])
+        geo.assign_attributes(geo_attrs)
+        save_and_log_result(geo)
+      end
+    end
+  
+  end
+  
   desc "Import Fare Zone Geographies"
   task :fare_zones, [:host, :token] => [:environment, :verify_params] do |t, args|
-    
-    puts "IMPORTING FARE ZONES..."
-    
+        
     fare_zones_attributes = get_export_data(args, 'geographies/fare_zones')["geographies"]
     
     fare_zones_attributes.each do |fz_attrs|
@@ -141,7 +155,7 @@ namespace :import do
   end
   
   desc "Import Services and Associate w/ Providers"
-  task :services, [:host, :token] => [:environment, :verify_params, :fare_zones] do |t, args|
+  task :services, [:host, :token] => [:environment, :verify_params] do |t, args|
     
     services_attributes = get_export_data(args, 'services')["services"]
     
@@ -174,12 +188,14 @@ namespace :import do
       [:start_or_end_area, :trip_within_area].each do |area|
         if svc.send(area)
           svc.send(area).recipe = convert_geo_recipe(area_recipes[area])
+          save_and_log_result(svc.send(area))
         end
       end
       
       save_and_log_result(svc)
 
-      if logo
+      # Have to re-initialize service object to get logo to upload properly
+      if svc && logo
         svc = Service.find(svc.id)
         svc.reload
         svc.remote_logo_url = "#{args['host']}#{logo}"
@@ -191,13 +207,15 @@ namespace :import do
   end
   
   desc "Import Everything"
-  task :all, [:host, :token] => [
+  task :all, [:host, :token, :state] => [
       :purposes, 
       :eligibilities, 
       :accommodations, 
       :providers,
       :registered_users,
       :guest_users,
+      :geographies,
+      :fare_zones,
       :services
     ]
     
