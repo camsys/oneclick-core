@@ -238,8 +238,24 @@ namespace :import do
       end
       
     end
-  
   end
+  
+  desc "Import Feedbacks"
+  task :feedbacks, [:host, :token] => [:environment, :verify_params] do |t, args|
+    feedbacks_attributes = get_export_data(args, 'feedbacks')["feedbacks"]
+    
+    feedbacks_attributes.each do |feedback_attrs|
+      
+      user = find_record_by_legacy_id(User, feedback_attrs.delete("user_id"), column: :email)
+
+      feedback = Feedback.find_by(created_at: feedback_attrs["created_at"].to_datetime)
+      feedback ||= user.present? ? user.feedbacks.build : Feedback.new
+      feedback.assign_attributes(feedback_attrs)
+      save_and_log_result(feedback)
+      
+    end
+    
+  end  
   
   desc "Import Everything"
   task :all, [:host, :token, :state] => [
@@ -253,7 +269,8 @@ namespace :import do
       :geographies,
       :fare_zones,
       :services,
-      :roles
+      :roles,
+      :feedbacks
     ]
     
   desc "Cleans up Uniquized Attributes"
