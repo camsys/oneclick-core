@@ -18,11 +18,7 @@ module Api
 
       # Returns a list of the user's accommodations
       def accommodations
-        accs = object.accommodations.map { |acc| acc.api_hash(object.locale) }
-        accs.each do |acc|
-          acc[:value] = true
-        end
-        accs
+        object.accommodations.map { |acc| acc.api_hash(object.locale) }
       end
 
       def preferred_locale
