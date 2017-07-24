@@ -79,12 +79,7 @@ namespace :import do
       ta = TransportationAgency.find_or_initialize_by(name: provider_attrs["name"])
       ta.assign_attributes(provider_attrs)
       ta.build_comments_from_hash(comments)
-      ta.save
-      if ta.valid?
-        puts "SUCCESS! #{ta.name} created. New id: #{ta.id}"
-      else
-        puts "An error occurred: #{ta.errors.full_messages}"
-      end
+      save_and_log_result(ta)
     end
     
   end
@@ -95,8 +90,7 @@ namespace :import do
     users_attributes = get_export_data(args, 'users/registered')["users"]
     
     users_attributes.each do |user_attrs|
-      user = import_user(user_attrs)
-      puts "Creating or Updating User: ", user.ai
+      import_user(user_attrs)
     end
     
   end
@@ -108,8 +102,37 @@ namespace :import do
     
     users_attributes.each do |user_attrs|
       user = import_user(user_attrs)
-      user.update_attributes(email: convert_to_guest_email(user.email))
-      puts "Creating or Updating User: ", user.ai
+      user.assign_attributes(email: convert_to_guest_email(user.email))
+      save_and_log_result(user)
+    end
+    
+  end
+  
+  desc "Import Geographies"
+  task :geographies, [:host, :token, :state] => [:environment, :verify_params] do |t, args|
+    
+    [:cities, :counties, :zipcodes].each do |geo_type|
+      geos_attributes = get_export_data(args, "geographies/#{geo_type.to_s}", state: args['state'])["geographies"]
+      
+      geos_attributes.each do |geo_attrs|
+        model_class = geo_type.to_s.classify.constantize
+        geo = model_class.find_or_initialize_by(name: geo_attrs["name"])
+        geo.assign_attributes(geo_attrs)
+        save_and_log_result(geo)
+      end
+    end
+  
+  end
+  
+  desc "Import Fare Zone Geographies"
+  task :fare_zones, [:host, :token] => [:environment, :verify_params] do |t, args|
+        
+    fare_zones_attributes = get_export_data(args, 'geographies/fare_zones')["geographies"]
+    
+    fare_zones_attributes.each do |fz_attrs|
+      fz = CustomGeography.find_or_initialize_by(name: fz_attrs["name"])
+      fz.assign_attributes(fz_attrs)
+      save_and_log_result(fz)
     end
     
   end
@@ -137,14 +160,16 @@ namespace :import do
     services_attributes = get_export_data(args, 'services')["services"]
     
     services_attributes.each do |service_attrs|
-      # puts "IMPORTING SERVICE", service_attrs.ai
 
       service_attrs["agency_id"] = find_record_by_legacy_id(Agency, service_attrs.delete("provider_id")).try(:id)
       service_attrs["fare_details"] = format_fare_details(service_attrs.delete("fare_details"), service_attrs["fare_structure"].to_sym)
-      
+              
+      logo = service_attrs.delete("logo")      
       comments = service_attrs.delete("comments")
-      start_or_end_area_recipe = service_attrs.delete("start_or_end_area_recipe")
-      trip_within_area_recipe = service_attrs.delete("trip_within_area_recipe")
+      area_recipes = {
+        start_or_end_area: service_attrs.delete("start_or_end_area_recipe"),
+        trip_within_area: service_attrs.delete("trip_within_area_recipe")
+      }
       schedules = service_attrs.delete("schedules")
       accommodations = service_attrs.delete("accommodations")
       eligibilities = service_attrs.delete("eligibilities")
@@ -156,35 +181,50 @@ namespace :import do
       svc.accommodations = Accommodation.where(code: accommodations)
       svc.eligibilities = Eligibility.where(code: eligibilities)
       svc.purposes = Purpose.where(code: purposes)
-      svc.save
-      if svc.valid?
-        puts "SUCCESS! #{svc.name} created. New id: #{svc.id}"
-      else
-        puts "An error occurred with #{svc.name}: #{svc.errors.full_messages}"
+      svc.schedules.build(schedules)
+      
+      svc.build_geographies
+      [:start_or_end_area, :trip_within_area].each do |area|
+        if svc.send(area)
+          svc.send(area).recipe = convert_geo_recipe(area_recipes[area])
+          save_and_log_result(svc.send(area))
+        end
       end
-    end
+      
+      save_and_log_result(svc)
+
+      # Have to re-initialize service object to get logo to upload properly
+      if svc && logo
+        svc = Service.find(svc.id)
+        svc.reload
+        svc.remote_logo_url = "#{args['host']}#{logo}"
+        save_and_log_result(svc)
+      end
+
+    end          
     
   end
   
   desc "Import Everything"
-  task :all, [:host, :token] => [
+  task :all, [:host, :token, :state] => [
       :purposes, 
       :eligibilities, 
       :accommodations, 
       :providers,
       :registered_users,
       :guest_users,
+      :geographies,
+      :fare_zones,
       :services
     ]
     
   desc "Cleans up Uniquized Attributes"
   task clean_up: :environment do
     
-    # Remove ID from Provider names
+    # Remove legacy ID from uniquized attributes
     clean_up_uniquized_table(Agency, :name)
-    
-    # Remove ID from User emails
     clean_up_uniquized_table(User, :email)
+    clean_up_uniquized_table(Service, :name)
     
   end
 
