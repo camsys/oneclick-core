@@ -125,4 +125,20 @@ module ImportTaskHelpers
     end
   end
   
+  # Translates resource type from legacy to OCC
+  def translate_resource_type(type_name)
+    {
+      "Provider" => TransportationAgency,
+      "Agency" => PartnerAgency
+    }[type_name.to_s.titleize]
+  end
+  
+  # Translates a legacy role name to OCC
+  def translate_role_name(role_name)
+    {
+      "provider_staff" => :staff,
+      "system_administrator" => :admin      
+    }[role_name]
+  end
+  
 end

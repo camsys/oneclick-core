@@ -108,6 +108,17 @@ namespace :import do
     
   end
   
+  desc "Import Admin and Staff Users"
+  task :professional_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+    
+    users_attributes = get_export_data(args, 'users/professionals')["users"]
+    
+    users_attributes.each do |user_attrs|
+      import_user(user_attrs)
+    end
+    
+  end
+  
   desc "Import Geographies"
   task :geographies, [:host, :token, :state] => [:environment, :verify_params] do |t, args|
     
@@ -205,6 +216,31 @@ namespace :import do
     
   end
   
+  desc "Import User Roles"
+  task :roles, [:host, :token] => [:environment, :verify_params] do |t, args|
+  
+    roles_attributes = get_export_data(args, 'roles')["roles"]
+    
+    roles_attributes.each do |role_attrs|      
+      user = find_record_by_legacy_id(User, role_attrs["user_id"], column: :email)
+      
+      resource = nil
+      resource = find_record_by_legacy_id(
+        translate_resource_type(role_attrs["resource_type"]),
+        role_attrs["resource_id"]
+      ) if role_attrs["resource_type"] && role_attrs["resource_id"]
+      
+      role = translate_role_name(role_attrs["name"])
+
+      if user
+        puts "Adding role #{role} to user #{user.email}#{" for agency #{resource.name}" if resource}"
+        user.add_role(role, resource) 
+      end
+      
+    end
+  
+  end
+  
   desc "Import Everything"
   task :all, [:host, :token, :state] => [
       :purposes, 
@@ -213,9 +249,11 @@ namespace :import do
       :providers,
       :registered_users,
       :guest_users,
+      :professional_users,
       :geographies,
       :fare_zones,
-      :services
+      :services,
+      :roles
     ]
     
   desc "Cleans up Uniquized Attributes"
