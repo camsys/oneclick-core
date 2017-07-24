@@ -3,7 +3,7 @@ module Api
     class UsersController < ApiController
       before_action :require_authentication
 
-      # by agency type (e.g. TransportationAgency, PartnerAgency)
+      # Get the user profile 
       def show
         render(success_response(
                 @traveler, 
