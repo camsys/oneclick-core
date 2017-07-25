@@ -2,6 +2,7 @@ class Place < ApplicationRecord
 
   self.abstract_class = true
   attr_accessor :google_place_attributes
+  before_save :build_geometry
   
   #### Includes ####
   include GooglePlace
@@ -34,6 +35,17 @@ class Place < ApplicationRecord
   # Converts google place attributes to readable format before updating as normal
   def update_from_google_place_attributes(attrs=nil)
     self.update_attributes(Place.attrs_from_google_place(attrs))
+  end
+  
+  # Returns an RGeo point object based on lat and lng
+  def to_point
+    factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+    factory.point(lng, lat)
+  end
+  
+  # Builds its own geometry column based on lat and lng columns
+  def build_geometry
+    self.geom = to_point
   end
 
 end
