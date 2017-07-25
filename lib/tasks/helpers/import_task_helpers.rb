@@ -40,8 +40,11 @@ module ImportTaskHelpers
     user_profile_attrs = {
       preferred_modes: user_attrs.delete("preferred_modes").map{|m| map_mode_to_trip_type(m)},
       accommodations: user_attrs.delete("accommodations"),
-      characteristics: user_attrs.delete("characteristics")
+      characteristics: user_attrs.delete("characteristics"),
     }
+
+    stomping_grounds =  user_attrs.delete("places")
+
     email = user_attrs.delete("email")
     preferred_locale = user_attrs.delete("preferred_locale")
           
@@ -50,10 +53,25 @@ module ImportTaskHelpers
     user.preferred_locale = Locale.find_by(name: preferred_locale)
     save_and_log_result(user)
     user.update_profile(user_profile_attrs)
+    build_stomping_grounds(stomping_grounds, user)
     
     return user
     
   end  
+
+  def build_stomping_grounds(stomping_grounds, user)
+    ## Stomping Grounds
+    stomping_grounds.each do |sg|
+      sg.transform_keys!{ |key| key=="lon" ? "lng" : key }
+    end
+
+    stomping_grounds.each do |sg|
+      StompingGround.where(user: user, name: sg['name']).first_or_create do |stomping_ground|
+        puts "Creating a new Stomping Ground: #{sg['name']}"
+        stomping_ground.update_attributes(sg)
+      end
+    end
+  end
 
   # Returns the id from the end of a uniquized string
   def id_from_uniquized_attribute(attr_value)
