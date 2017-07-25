@@ -89,7 +89,9 @@ class User < ApplicationRecord
     end
     update_basic_attributes params[:attributes] unless params[:attributes].nil?
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
+    update_eligibilities params[:eligibilities] unless params[:eligibilities].nil?
     update_accommodations params[:accommodations] unless params[:accommodations].nil?
+    update_preferred_modes params[:preferred_trip_types] unless params[:preferred_trip_types].nil?
     update_preferred_modes params[:preferred_modes] unless params[:preferred_modes].blank? #This is depracated after api/v1. Preferred Modes are updated as part of attributes
     return true
   end
@@ -103,7 +105,7 @@ class User < ApplicationRecord
           self.last_name = value
         when :email
           self.email = value
-        when :lang
+        when :lang, :preferred_locale
           self.preferred_locale = Locale.find_by(name: value) || self.locale
         when :preferred_trip_types, :preferred_modes
           self.preferred_trip_types = value
