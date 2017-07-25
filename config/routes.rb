@@ -70,7 +70,7 @@ Rails.application.routes.draw do
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
       # Users
-      resource :users, only: [:show]
+      resource :users, only: [:show, :update]
       
       # Trips
       resources :trips, only: [:create]
