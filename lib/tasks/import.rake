@@ -11,6 +11,14 @@ namespace :import do
       break
     end
   end
+  
+  desc "Check for State Param"
+  task :verify_state, [:host, :token, :state] => [:environment] do |t, args|
+    unless args[:state]
+      puts 'This command requires a state parameter (2 letter abbreviation, e.g. "MA").'
+      break
+    end
+  end
 
   desc "Import Purposes"
   task :purposes, [:host, :token] => [:environment, :verify_params] do |t, args|
@@ -120,7 +128,7 @@ namespace :import do
   end
   
   desc "Import Geographies"
-  task :geographies, [:host, :token, :state] => [:environment, :verify_params] do |t, args|
+  task :geographies, [:host, :token, :state] => [:environment, :verify_params, :verify_state] do |t, args|
     
     [:cities, :counties, :zipcodes].each do |geo_type|
       geos_attributes = get_export_data(args, "geographies/#{geo_type.to_s}", state: args['state'])["geographies"]
@@ -254,23 +262,64 @@ namespace :import do
       save_and_log_result(feedback)
       
     end
+  end
+  
+  desc "Import Trips"
+  task :trips, [:host, :token] => [:environment, :verify_params] do |t, args|
     
-  end  
+    # Get trips in batches
+    loop.with_index do |_, i|
+      puts "GETTING TRIPS BATCH #{i}..."
+      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i)["trips"]
+      
+      break if trips_attributes.empty? || i > 2000
+      
+      trips_attributes.each do |trip_attrs|
+        
+        itineraries = trip_attrs.delete("itineraries")
+        
+        user = find_record_by_legacy_id(User, trip_attrs.delete("user_id"), column: :email)
+
+        trip = Trip.find_by(created_at: trip_attrs["created_at"].to_datetime)
+        trip ||= user.present? ? user.trips.build : Trip.new
+        trip.assign_attributes(trip_attrs)
+        
+        itineraries.each do |itin_attrs|
+          
+          itin_attrs[:trip_type] = map_mode_to_trip_type(itin_attrs.delete("mode"))
+          itin_attrs[:service_id] = find_record_by_legacy_id(Service, itin_attrs.delete("service_id"))
+          selected = itin_attrs.delete("selected")
+          
+          itinerary = trip.itineraries.find_by(created_at: itin_attrs["created_at"].to_datetime)
+          itinerary ||= trip.itineraries.build
+          itinerary.assign_attributes(itin_attrs)
+          
+          trip.selected_itinerary = itinerary if selected      
+        end
+        
+        save_and_log_result(trip)
+                
+      end
+    end
+    
+  end
   
   desc "Import Everything"
   task :all, [:host, :token, :state] => [
       :purposes, 
-      :eligibilities, 
+      :eligibilities,
       :accommodations, 
       :providers,
       :registered_users,
       :guest_users,
       :professional_users,
       :geographies,
+      :landmarks,
       :fare_zones,
       :services,
       :roles,
-      :feedbacks
+      :feedbacks,
+      :trips
     ]
     
   desc "Cleans up Uniquized Attributes"
@@ -280,6 +329,7 @@ namespace :import do
     clean_up_uniquized_table(Agency, :name)
     clean_up_uniquized_table(User, :email)
     clean_up_uniquized_table(Service, :name)
+    clean_up_uniquized_table(Waypoint, :name)
     
   end
 
