@@ -5,6 +5,7 @@ class User < ApplicationRecord
   include Contactable
   include RoleHelper
   acts_as_token_authenticatable
+  include TokenAuthenticationHelpers
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
   write_to_csv with: Admin::UsersReportCSVWriter
@@ -48,6 +49,7 @@ class User < ApplicationRecord
   ### Validations ###
   contact_fields email: :email
   validates :email, presence: true, uniqueness: true
+  validates :password_confirmation, presence: true, on: :create
   
   ### Class Methods ###
 

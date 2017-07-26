@@ -12,8 +12,10 @@ module Api
     protect_from_forgery prepend: true
     acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
-    attr_reader :traveler
+    attr_reader :traveler, :errors
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
+
+    before_action :initialize_errors_hash
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -160,6 +162,11 @@ module Api
       u.save!(:validate => false)
       session[:guest_user_id] = u.id
       u
+    end
+    
+    # Initializes an empty errors hash, before each action
+    def initialize_errors_hash
+      @errors = {}
     end
 
   end
