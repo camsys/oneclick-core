@@ -62,4 +62,5 @@ SimpleTokenAuthentication.configure do |config|
   # then signing in through token authentication will be tracked as any other sign in.
   #
   # config.skip_devise_trackable = true
+  
 end

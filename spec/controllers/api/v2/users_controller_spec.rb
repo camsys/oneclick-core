@@ -8,7 +8,107 @@ RSpec.describe Api::V2::UsersController, type: :controller do
   let!(:veteran) { create :veteran } 
   let!(:jacuzzi) { create :jacuzzi }
   let!(:wheelchair) { create :wheelchair }
+  
+  describe "user sign up" do
+    
+    it 'signs up a new user, and signs them in' do
+      user_count = User.count
+      new_user_attrs = attributes_for(:user)
+      
+      post :create, format: :json, params: { user: new_user_attrs }
+      
+      # Expect a successful response and a new user in the database
+      expect(response).to be_success
+      expect(User.count).to eq(user_count + 1)
+      user = User.last
+      expect(user.email).to eq(new_user_attrs[:email])
+      
+      parsed_response = JSON.parse(response.body)
+      
+      # Expect a session hash with an email and auth token
+      expect(parsed_response["data"]["session"]["email"]).to eq(user.email)
+      expect(parsed_response["data"]["session"]["authentication_token"]).to eq(user.authentication_token)  
+    end
+    
+    it 'requires password confirmation for sign up' do
+      new_user_attrs = attributes_for(:user).except(:password_confirmation)
+      
+      post :create, format: :json, params: { user: new_user_attrs }
+      
+      expect(response).to have_http_status(:bad_request)
+    end
+    
+    it 'requires unique email for sign up' do
+      new_user_attrs = attributes_for(:user).merge({email: traveler.email})
+      
+      post :create, format: :json, params: { user: new_user_attrs }
+      
+      expect(response).to have_http_status(:bad_request)
+    end
+    
+    it 'requires password and password confirmation to match' do
+      new_user_attrs = attributes_for(:user).merge({password_confirmation: "someotherpw"})
+      
+      post :create, format: :json, params: { user: new_user_attrs }
+      
+      expect(response).to have_http_status(:bad_request)
+    end
+    
+  end
+    
+  describe "user sign in/sign out" do
+    
+    it 'signs in an existing user' do
+      pw = attributes_for(:user)[:password]
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+      
+      expect(response).to be_success
+      
+      parsed_response = JSON.parse(response.body)
+      
+      # Expect a session hash with an email and auth token
+      expect(parsed_response["data"]["session"]["email"]).to eq(traveler.email)
+      expect(parsed_response["data"]["session"]["authentication_token"]).to eq(traveler.authentication_token)  
+    end
+    
+    it 'requires password for sign in' do
+      pw = "somerandombadpw"
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+      
+      expect(response).to have_http_status(:bad_request)
+    end
+    
+    it 'signs out a user' do
+      original_auth_token = traveler.authentication_token
+      
+      request.headers['X-User-Token'] = original_auth_token
+      request.headers['X-User-Email'] = traveler.email
+      delete :end_session, format: :json
+      
+      expect(response).to be_success
+      
+      # Expect traveler to have a new auth token after sign out
+      traveler.reload
+      expect(traveler.authentication_token).not_to eq(original_auth_token)
+    end
 
+    it 'requires a valid auth token for sign out' do
+      original_auth_token = traveler.authentication_token
+      
+      request.headers['X-User-Token'] = original_auth_token + "_bloop"
+      request.headers['X-User-Email'] = traveler.email
+      delete :end_session, format: :json
+      
+      expect(response).to have_http_status(:unauthorized)
+      
+      # Expect traveler to have the same auth token
+      traveler.reload
+      expect(traveler.authentication_token).to eq(original_auth_token)
+    end
+    
+  end
+  
+  
   it 'returns the first and last name of a user profile' do
     first_name = traveler.first_name
     last_name = traveler.last_name

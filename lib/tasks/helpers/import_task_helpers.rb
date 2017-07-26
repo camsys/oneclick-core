@@ -159,4 +159,9 @@ module ImportTaskHelpers
     }[role_name]
   end
   
+  # Makes a functional 1-second date range for querying by datetime using a string
+  def date_query_from_string(date_string)
+    date_string.to_datetime..(date_string.to_datetime + 1.second)
+  end
+  
 end
