@@ -16,7 +16,7 @@ GIT
       simple_form
 
 GEM
-  remote: https://rubygems.org/
+  remote: http://rubygems.org/
   specs:
     CFPropertyList (2.3.5)
     actioncable (5.0.3)
