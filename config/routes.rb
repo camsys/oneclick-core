@@ -69,19 +69,18 @@ Rails.application.routes.draw do
       # Users/StompingGrounds
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
-      # Users
-      resource :users, only: [:show, :update]
-      
+
       # Trips
       resources :trips, only: [:create]
       post 'trips/plan' => 'trips#create'
       post 'trips/plan_multiday' => 'trips#plan_multiday'
       
       # Users
-      devise_scope :user do
-        post 'sign_up' => 'registrations#create'
-      end
-
+      resource :users, only: [:show, :update, :create]
+      post 'sign_up' => 'users#create'
+      post 'sign_in' => 'users#new_session'
+      delete 'sign_out' => 'users#end_session'
+      
     end #v2
 
 
