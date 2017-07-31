@@ -22,9 +22,9 @@ class Admin::LandmarksController < Admin::AdminController
     end
 
     if error_msgs.size > 0
-      flash[:danger] = error_msgs.join(' ')
+      flash[:danger] = error_msgs.to_sentence
     elsif info_msgs.size > 0
-      flash[:success] = info_msgs.join(' ')
+      flash[:success] = info_msgs.to_sentence
     end
 
     respond_to do |format|

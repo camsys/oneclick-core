@@ -20,7 +20,7 @@ class Admin::UsersController < Admin::AdminController
         format.html {redirect_to admin_users_path}
       end
     else
-      flash[:danger] = @user.errors.first.join(' ') unless @user.errors.empty?
+      present_error_messages(@user)
       respond_to do |format|
         format.html {render :index}
       end
@@ -54,7 +54,7 @@ class Admin::UsersController < Admin::AdminController
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
     else
-      flash[:danger] = @user.errors.first.join(' ') 
+      present_error_messages(@user)
     end
 
     respond_to do |format|

@@ -15,8 +15,12 @@ class Admin::ServicesController < Admin::AdminController
 
   def create
     @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
-  	@service.update_attributes(service_params)
-  	redirect_to admin_service_path(@service)
+  	if @service.update_attributes(service_params)
+      redirect_to admin_service_path(@service)
+    else
+      present_error_messages(@service)
+      redirect_to admin_services_path
+    end
   end
 
   def show
@@ -26,8 +30,7 @@ class Admin::ServicesController < Admin::AdminController
 
   def update
     @service.update_attributes(service_params)
-    error_msgs = @service.errors.messages.values
-    flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
+    present_error_messages(@service)
 
     # If a partial_path parameter is set, serve back that partial
     if params[:partial_path]

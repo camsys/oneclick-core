@@ -13,14 +13,14 @@ class Admin::GeographiesController < Admin::AdminController
   def upload_counties
     uploader = ShapefileUploader.new(params[:geographies][:file], geo_type: :county)
     uploader.load
-    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
+    present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
 
   def upload_cities
     uploader = ShapefileUploader.new(params[:geographies][:file], geo_type: :city)
     uploader.load
-    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
+    present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
 
@@ -29,7 +29,7 @@ class Admin::GeographiesController < Admin::AdminController
       geo_type: :zipcode,
       column_mappings: {name: 'ZCTA5CE10'})
     uploader.load
-    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
+    present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
 
@@ -38,7 +38,7 @@ class Admin::GeographiesController < Admin::AdminController
       geo_type: :custom_geography,
       column_mappings: {name: 'NAME'})
     uploader.load
-    flash[:danger] = uploader.errors.join(' ') unless uploader.errors.empty?
+    present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
   

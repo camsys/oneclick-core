@@ -32,7 +32,7 @@ class Admin::ConfigsController < Admin::AdminController
     if @config.save
       flash[:success] = "#{key} successfully updated"
     else
-      flash[:danger] = @config.errors.full_messages.to_sentence
+      present_error_messages(@config)
     end
 
     respond_to do |format|
