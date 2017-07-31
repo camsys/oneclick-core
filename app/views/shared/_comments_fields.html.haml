@@ -3,7 +3,7 @@
 
 -if record
   -record.comments.each do |comment|
-    =form.simple_fields_for "comments_attributes[]", comment do |comment_form|
+    =form.simple_fields_for :comments, comment do |comment_form|
       =comment_form.input :id, wrapper_html: {class: "hidden"}
       =comment_form.input :locale, wrapper_html: {class: "hidden"}
       =comment_form.input :comment, label: "Comment (#{comment_form.object.locale})"
