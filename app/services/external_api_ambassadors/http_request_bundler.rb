@@ -31,12 +31,13 @@ class HTTPRequestBundler
     EM.run do
       multi = EM::MultiRequest.new
       @requests.each do |label, body|
-        case body[:action]
-        when :get
-          multi.add label, EM::HttpRequest.new(body[:url]).get(head: body[:headers])
-        when :post
-          multi.add label, EM::HttpRequest.new(body[:url]).post(head: body[:headers])
-        end
+        # Add an HTTP request to the multirequest, passing in the key as a label,
+        # and pulling the appropriate action (e.g. get, post, etc.) and headers
+        # from the body.
+        multi.add(label, 
+          EM::HttpRequest.new(body[:url])
+          .send(body[:action], head: body[:headers])
+        )
       end
 
       multi.callback do
