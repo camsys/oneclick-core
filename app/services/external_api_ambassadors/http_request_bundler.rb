@@ -10,11 +10,11 @@ class HTTPRequestBundler
   end
 
   # Add an HTTP request to the bundler, for later processing
-  def add(label, url, action=:get, headers={})
+  def add(label, url, action=:get, opts={})
     @requests[label] = {
       url: url,
       action: action,
-      headers: headers
+      opts: opts
     }
   end
 
@@ -30,13 +30,13 @@ class HTTPRequestBundler
     return false if @requests.empty?
     EM.run do
       multi = EM::MultiRequest.new
-      @requests.each do |label, body|
+      @requests.each do |label, request|
         # Add an HTTP request to the multirequest, passing in the key as a label,
         # and pulling the appropriate action (e.g. get, post, etc.) and headers
         # from the body.
         multi.add(label, 
-          EM::HttpRequest.new(body[:url])
-          .send(body[:action], head: body[:headers])
+          EM::HttpRequest.new(request[:url])
+          .send(request[:action], request[:opts])
         )
       end
 

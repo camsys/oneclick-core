@@ -1,105 +1,71 @@
 class RidePilotAmbassador
   
-  attr_accessor :http_request_bundler, :url, :body, :headers
+  attr_accessor :http_request_bundler, :url, :token
   
   def initialize(opts={})
     @url = opts[:url] || Config.ride_pilot_url
     @token = opts[:token] || Config.ride_pilot_token
-    @headers = {
+    @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
+  end
+  
+  # Gets an array of RidePilot purpose for the passed service
+  def get_purposes(service)
+    provider_id = service.booking_details.try(:[], :provider_id)
+    
+    @http_request_bundler.add(
+      request_label(:purposes, provider_id), 
+      @url + "/trip_purposes", 
+      :get,
+      head: headers,
+      query: { provider_id: provider_id }
+    )
+    return @http_request_bundler.response(:ridepilot_purposes)
+  end
+  
+  # Books the passed trip via RidePilot
+  def book(trip, opts={})
+    @http_request_bundler.add(
+      :ridepilot_booking, 
+      @url + "/create_trip", 
+      :post,
+      head: headers,
+      body: body_for_booking(trip, opts).to_json
+    )
+    return @http_request_bundler.response(:ridepilot_booking)
+  end
+  
+  private
+  
+  def request_label(*identifiers)
+    (["ridepilot"] + identifiers).join("_").to_sym
+  end
+  
+  def headers
+    {
       "X-Ridepilot-Token" => @token,
       "Content-Type" => "application/json"
     }
-    @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
-    @body = {
-      "provider_id"=>4,
-    	"customer_id"=>7,
-    	"customer_token"=>"c32c604455",
-    	"trip_purpose"=>13,
-    	"pickup_time"=>"2017-08-11T14:12:00.843-04:00",
-    	"dropoff_time"=>"2017-08-11T16:12:00.843-04:00",
-    	"attendants"=>0,
-    	"guests"=>0,
-    	"from_address"=>{
-    		"address"=>{
-    			"address_components" =>[
-    				{
-    			    	"long_name"=>"100 Cambridge Park Drive",
-    			    	"short_name"=>"100 Cambridge Park Drive",
-    			    	"types" =>[ "street_address"]
-    			    },
-    			    {
-    			    	"long_name"=>"Cambridge",
-    			    	"short_name"=>"Cambridge",
-    			    	"types" =>[ "locality", "political"]
-    			    },
-    			    {
-    			    	"long_name"=>"Massachusetts",
-    			    	"short_name"=>"MA",
-    			    	"types" =>["administrative_area_level_1", "political"]
-    			    },
-    			    {
-    			    	"long_name"=>"02140",
-    			    	"short_name"=>"02140",
-    			    	"types" =>[ "postal_code"]
-    			    }
-    			],
-    			"formatted_phone_number"=>"(617) 354-0167",
-    			"geometry" =>{
-    				"location" =>{
-    			    	"lat" =>42.394307,
-    			    	"lng" =>-71.144707
-    				}
-    			},
-    			"name" =>"Cambridge Systematics"
-    		}
-    	},
-    	"to_address"=>{
-    		"address"=>{
-    			"address_components" =>[
-    				{
-    			    	"long_name"=>"100 Cambridge Park Drive",
-    			    	"short_name"=>"100 Cambridge Park Drive",
-    			    	"types" =>[ "street_address"]
-    			    },
-    			    {
-    			    	"long_name"=>"Cambridge",
-    			    	"short_name"=>"Cambridge",
-    			    	"types" =>[ "locality", "political"]
-    			    },
-    			    {
-    			    	"long_name"=>"Massachusetts",
-    			    	"short_name"=>"MA",
-    			    	"types" =>["administrative_area_level_1", "political"]
-    			    },
-    			    {
-    			    	"long_name"=>"02140",
-    			    	"short_name"=>"02140",
-    			    	"types" =>[ "postal_code"]
-    			    }
-    			],
-    			"formatted_phone_number"=>"(617) 354-0167",
-    			"geometry" =>{
-    				"location" =>{
-    			    	"lat" =>42.394307,
-    			    	"lng" =>-71.144707
-    				}
-    			},
-    			"name" =>"Cambridge Systematics"
-    		}
-    	}
-    }.to_json
   end
   
-  def book()
-    EM.run do
-      http = EM::HttpRequest.new(@url + "/create_trip").post(head: @headers, body: @body)
-      http.errback { 
-        puts http.response_header.status, http.response; EM.stop 
-      }
-      http.callback {
-        puts http.response_header.status, http.response; EM.stop
-      }
-    end
+  def body_for_booking(trip, opts={})
+    duration = opts[:duration] || 1.hour  # Time to spend at destination
+    attendants = opts[:attendants] || 0
+    guests = opts[:guests] || 0
+    service = trip.selected_itinerary.try(:service)
+    traveler = trip.user
+    
+    {
+      provider_id: service.booking_details[:provider_id], # Pull from selected itinerary's service's booking profile
+    	customer_id: traveler.booking_profile_for(service).details[:id], # Pull from traveler's booking profile
+    	customer_token: traveler.booking_profile_for(service).details[:token], # Pull from traveler's booking profile
+    	trip_purpose: 13, # Convert trip purpose to RidePilot code
+    	pickup_time: trip.trip_time.iso8601,
+    	dropoff_time: (trip.trip_time + 1.hour).iso8601, # Pull increment from options
+    	attendants: attendants,
+    	guests: guests,
+    	from_address: { address: trip.origin.try(:google_place_hash) },
+    	to_address: { address: trip.destination.try(:google_place_hash) }
+    }
   end
   
 end

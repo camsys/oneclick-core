@@ -2,6 +2,7 @@ class Service < ApplicationRecord
 
   ### INCLUDES & CONFIGURATION ###
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
+  include Booking::ServiceHelpers
   include Commentable # has_many :comments
   include Contactable
   include FareHelper
@@ -16,6 +17,7 @@ class Service < ApplicationRecord
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :fare_details
+  has_many :user_booking_profiles
   has_many :itineraries, dependent: :nullify
   has_many :schedules, dependent: :destroy
   has_many :feedbacks, as: :feedbackable

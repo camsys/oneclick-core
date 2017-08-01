@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170719153915) do
+ActiveRecord::Schema.define(version: 20170801160202) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -231,6 +231,8 @@ ActiveRecord::Schema.define(version: 20170719153915) do
     t.boolean  "archived",             default: false
     t.boolean  "published",            default: false
     t.integer  "agency_id"
+    t.string   "booking_api"
+    t.text     "booking_details"
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
@@ -295,6 +297,17 @@ ActiveRecord::Schema.define(version: 20170719153915) do
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
     t.index ["itinerary_id"], name: "index_uber_extensions_on_itinerary_id", using: :btree
+  end
+
+  create_table "user_booking_profiles", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "service_id"
+    t.string   "booking_api"
+    t.text     "details"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.index ["service_id"], name: "index_user_booking_profiles_on_service_id", using: :btree
+    t.index ["user_id"], name: "index_user_booking_profiles_on_user_id", using: :btree
   end
 
   create_table "user_eligibilities", force: :cascade do |t|
@@ -374,6 +387,8 @@ ActiveRecord::Schema.define(version: 20170719153915) do
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"
+  add_foreign_key "user_booking_profiles", "services"
+  add_foreign_key "user_booking_profiles", "users"
   add_foreign_key "user_eligibilities", "eligibilities"
   add_foreign_key "user_eligibilities", "users"
   add_foreign_key "users", "locales", column: "preferred_locale_id"

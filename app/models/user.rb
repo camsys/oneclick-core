@@ -2,6 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
+  include Booking::UserHelpers
   include Contactable
   include RoleHelper
   acts_as_token_authenticatable
@@ -39,6 +40,7 @@ class User < ApplicationRecord
   has_many :eligibilities, through: :user_eligibilities
   has_many :feedbacks
   has_many :stomping_grounds
+  has_many :booking_profiles, class_name: "UserBookingProfile", dependent: :destroy
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
