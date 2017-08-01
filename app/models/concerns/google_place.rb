@@ -31,9 +31,10 @@ module GooglePlace
   # Returns an array of google address components hashes based on the place's attributes
   def google_address_components
     return ADDRESS_COMPONENTS
-      .select {|occ_name,_| self.send(occ_name) }
       .map do |occ_name, google_types|
-        { long_name: self.send(occ_name), short_name: self.send(occ_name), types: google_types }
+        { long_name: self.send(occ_name),
+          short_name: self.send(occ_name),
+          types: google_types }
       end
   end
 
