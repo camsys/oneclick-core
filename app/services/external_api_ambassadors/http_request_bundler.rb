@@ -2,11 +2,12 @@
 # asynchronously, and returns the categorized results in a useful way.
 
 class HTTPRequestBundler
-  attr_reader :requests, :responses
+  attr_reader :requests, :successes, :errors
 
   def initialize
     @requests = {}
-    @responses = nil
+    @successes = {}
+    @errors = {}
   end
 
   # Add an HTTP request to the bundler, for later processing
@@ -17,23 +18,28 @@ class HTTPRequestBundler
       opts: opts
     }
   end
+  
+  # Returns a hash of all responses
+  def responses
+    { successes: @successes, errors: @errors }
+  end
 
   # Return the HTTP request response, based on the label used when passing in the request
   def response(label)
-    ensure_responses
-    @responses[:successes][label] || @responses[:errors][label]
+    ensure_response(label)
+    response_for(label)
   end
   
   # Returns true if a successful response was received for given call
   def success?(label)
-    ensure_responses
-    @responses[:successes].has_key?(label)
+    ensure_response(label)
+    @successes.has_key?(label)
   end
   
   # Returns true if an error response was received for a given call
   def error?(label)
-    ensure_responses
-    @responses[:errors].has_key?(label)
+    ensure_response(label)
+    @errors.has_key?(label)
   end
 
   # Make all of the HTTP requests that have been added to the bundler
@@ -53,8 +59,8 @@ class HTTPRequestBundler
 
       multi.callback do
         EventMachine.stop
-        @responses = parse_responses(multi.responses)
-        return @responses
+        parse_responses(multi.responses)
+        return responses
       end
     end
 
@@ -62,18 +68,27 @@ class HTTPRequestBundler
 
   private
   
-  # Makes calls and sets up a blank response object if calls fail
-  def ensure_responses
-    make_calls unless @responses
-    @responses ||= { successes: {}, errors: {} }
+  # Checks if response has returned for given call;
+  # if not (and if request is present), makes all calls
+  def ensure_response(label)
+    make_calls unless (response_for(label) || !@requests.has_key?(label))
+  end
+  
+  # Retrieves response based on label from either successes or errors hash
+  def response_for(label)
+    @successes[label] || @errors[label]    
   end
 
   # Parses the response bodies and stores them in successes and errors hashes under @responses
   def parse_responses(responses)
-    {
-      successes: map_response_to_hash(responses[:callback]),
-      errors: map_response_to_hash(responses[:errback])
-    }
+    update_responses(responses[:callback], @successes)
+    update_responses(responses[:errback], @errors)
+  end
+  
+  def update_responses(response_hash, storage_hash)
+    response_hash.each do |label, resp|
+      storage_hash[label] = (JSON.parse(resp.response) if resp.response.present?)
+    end
   end
   
   # Parses success and error JSON into a hash
