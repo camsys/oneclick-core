@@ -20,9 +20,20 @@ class HTTPRequestBundler
 
   # Return the HTTP request response, based on the label used when passing in the request
   def response(label)
-    make_calls unless @responses
-    return nil unless @responses
+    ensure_responses
     @responses[:successes][label] || @responses[:errors][label]
+  end
+  
+  # Returns true if a successful response was received for given call
+  def success?(label)
+    ensure_responses
+    @responses[:successes].has_key?(label)
+  end
+  
+  # Returns true if an error response was received for a given call
+  def error?(label)
+    ensure_responses
+    @responses[:errors].has_key?(label)
   end
 
   # Make all of the HTTP requests that have been added to the bundler
@@ -50,6 +61,12 @@ class HTTPRequestBundler
   end
 
   private
+  
+  # Makes calls and sets up a blank response object if calls fail
+  def ensure_responses
+    make_calls unless @responses
+    @responses ||= { successes: {}, errors: {} }
+  end
 
   # Parses the response bodies and stores them in successes and errors hashes under @responses
   def parse_responses(responses)

@@ -2,6 +2,7 @@ class RidePilotAmbassador
   
   attr_accessor :http_request_bundler, :url, :token, :service
   
+  
   # Initialize with a service and an (optional) options hash
   def initialize(service, opts={})
     @service = service
@@ -9,11 +10,41 @@ class RidePilotAmbassador
     @token = opts[:token] || Config.ride_pilot_token
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
   end
+
+
+  ### API CALLS ###
+  
+  # Authenticates a RidePilot Provider
+  def authenticate_provider
+    label = request_label(:authenticate_provider)
+        
+    @http_request_bundler.add(
+      label, 
+      @url + "/authenticate_provider", 
+      :get,
+      head: headers,
+      query: { provider_id: provider_id }
+    )
+    return @http_request_bundler.success?(label)
+  end
+  
+  # # Authenticates a RidePilot Customer
+  # def authenticate_customer(user)
+  #   label = request_label(:authenticate_customer, user.id)
+  #       
+  #   @http_request_bundler.add(
+  #     label, 
+  #     @url + "/trip_purposes", 
+  #     :get,
+  #     head: headers,
+  #     query: { provider_id: provider_id }
+  #   )
+  #   return @http_request_bundler.response(label)
+  # end
   
   # Gets an array of RidePilot purpose for the passed service
   def trip_purposes
-    provider_id = @service.booking_details.try(:[], :provider_id)
-    label = request_label(:purposes, provider_id)
+    label = request_label(:purposes)
         
     @http_request_bundler.add(
       label, 
@@ -25,21 +56,8 @@ class RidePilotAmbassador
     return @http_request_bundler.response(label)
   end
   
-  
-  # Returns the RidePilot Purposes Map from the Configs
-  def purposes_map
-    (Config.ridepilot_purposes || {}).with_indifferent_access
-  end
-  
-  # Maps a OneClick Purpose Code to RidePilot Purpose ID. Pass a service to
-  # use its RidePilot Purposes list
-  def map_purpose_to_ridepilot(occ_purpose)
-    purposes_map[occ_purpose.try(:code)]
-  end
-  
   # Books the passed trip via RidePilot
-  def book(trip, opts={})
-    
+  def book(trip, opts={})    
     label = request_label(:book, trip.id)
     
     @http_request_bundler.add(
@@ -52,11 +70,32 @@ class RidePilotAmbassador
     return @http_request_bundler.response(label)
   end
   
+  
+  ### HELPER METHODS ###
+  
+  # Returns the RidePilot Purposes Map from the Configs
+  def purposes_map
+    (Config.ridepilot_purposes || {}).with_indifferent_access
+  end
+  
+  # Maps a OneClick Purpose Code to RidePilot Purpose ID. Pass a service to
+  # use its RidePilot Purposes list
+  def map_purpose_to_ridepilot(occ_purpose)
+    purposes_map[occ_purpose.try(:code)]
+  end
+  
+
   private
   
+  # Pulls provider_id out of the service's booking details
+  def provider_id
+    @service.booking_details.try(:[], :provider_id)
+  end
+  
   # Makes a symbolic label for HTTP requests, out of an arbitrary # of identifiers
+  # Appends service's RidePilot provider_id to the label
   def request_label(*identifiers)
-    (["ridepilot"] + identifiers).join("_").to_sym
+    (["ridepilot"] + identifiers + [provider_id]).join("_").to_sym
   end
   
   # Builds RidePilot HTTP Request Headers
