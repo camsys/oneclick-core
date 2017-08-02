@@ -2,7 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
-  include Booking::UserHelpers
+  include BookingHelpers::UserHelpers
   include Contactable
   include RoleHelper
   acts_as_token_authenticatable

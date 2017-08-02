@@ -1,6 +1,12 @@
+# All booking ambassadors should implement the following public methods:
+  # book(trip) => Booking object
+  # cancel(trip) => Booking object
+  # status(trip) => Booking object
+  # prepare_to_book(options={})
+
 class RidePilotAmbassador
   
-  attr_accessor :http_request_bundler, :url, :token, :service
+  attr_accessor :http_request_bundler, :url, :token, :service, :booking_options
   
   
   # Initialize with a service and an (optional) options hash
@@ -9,8 +15,37 @@ class RidePilotAmbassador
     @url = opts[:url] || Config.ride_pilot_url
     @token = opts[:token] || Config.ride_pilot_token
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
+    @booking_options = opts[:booking_options] || {}
+  end
+  
+  ### STANDARD BOOKING ACTIONS ###
+  # (Implemented by all Booking Ambassadors)
+
+  def book(trip)
+    # Make a create_trip call to RidePilot, passing a trip and any 
+    # booking_options that have been set
+    response = create_trip(trip)
+    
+    # Store the status info in a Booking object
+    booking = trip.build_booking(type: "RidePilotBooking")
+    booking.details = response.with_indifferent_access
+    booking.status = response.try(:[], "status")
+                             .try(:[], "code")
+    booking.save
+    return booking
+  end
+  
+  def cancel(trip)
+  end
+  
+  def status(trip)
+  end
+  
+  def prepare_to_book(options={})
+    @booking_options = options
   end
 
+  # private
 
   ### API CALLS ###
   
@@ -40,8 +75,8 @@ class RidePilotAmbassador
       :get,
       head: headers,
       query: {  provider_id: provider_id,
-                customer_id: booking_profile.details[:customer_id],
-                customer_token: booking_profile.details[:customer_token] }
+                customer_id: booking_profile.details[:id],
+                customer_token: booking_profile.details[:token] }
     )
     return @http_request_bundler.success?(label)
   end
@@ -61,7 +96,7 @@ class RidePilotAmbassador
   end
   
   # Books the passed trip via RidePilot
-  def book(trip, opts={})    
+  def create_trip(trip)    
     label = request_label(:book, trip.id)
     
     @http_request_bundler.add(
@@ -69,11 +104,50 @@ class RidePilotAmbassador
       @url + "/create_trip", 
       :post,
       head: headers,
-      body: body_for_booking(trip, opts).to_json
+      body: body_for_booking(trip, @booking_options).to_json
     )
     return @http_request_bundler.response(label)
   end
   
+  # Gets the RidePilot trip booking status for a given trip
+  def trip_status(trip)
+    label = request_label(:status, trip.id)
+    user = trip.user
+    booking_profile = user.try(:booking_profile_for, @service)
+    trip_booking = trip.booking
+    return false unless booking_profile
+        
+    @http_request_bundler.add(
+      label, 
+      @url + "/trip_status", 
+      :get,
+      head: headers,
+      query: {  trip_id: trip_booking.try(:details).try(:[], :trip_id),
+                customer_id: booking_profile.details[:id],
+                customer_token: booking_profile.details[:token] }
+    )
+    return @http_request_bundler.response(label)
+  end
+  
+  # Gets the RidePilot trip booking status for a given trip
+  def cancel_trip(trip)
+    label = request_label(:status, trip.id)
+    user = trip.user
+    booking_profile = user.try(:booking_profile_for, @service)
+    trip_booking = trip.booking
+    return false unless booking_profile
+        
+    @http_request_bundler.add(
+      label, 
+      @url + "/cancel_trip", 
+      :delete,
+      head: headers,
+      query: {  trip_id: trip_booking.try(:details).try(:[], :trip_id),
+                customer_id: booking_profile.details[:id],
+                customer_token: booking_profile.details[:token] }
+    )
+    return @http_request_bundler.response(label)
+  end
   
   ### HELPER METHODS ###
   
@@ -87,10 +161,7 @@ class RidePilotAmbassador
   def map_purpose_to_ridepilot(occ_purpose)
     purposes_map[occ_purpose.try(:code)]
   end
-  
-
-  private
-  
+    
   # Pulls provider_id out of the service's booking details
   def provider_id
     @service.booking_details.try(:[], :provider_id)
@@ -123,7 +194,7 @@ class RidePilotAmbassador
     	customer_token: traveler.booking_profile_for(@service).details[:token], # Pull from traveler's booking profile
     	trip_purpose: map_purpose_to_ridepilot(trip.purpose), # Convert trip purpose to RidePilot code
     	pickup_time: trip.trip_time.iso8601,
-    	dropoff_time: (trip.trip_time + 1.hour).iso8601, # Pull increment from options
+    	dropoff_time: (trip.trip_time + duration).iso8601, # Pull increment from options
     	attendants: attendants,
     	guests: guests,
     	from_address: { address: trip.origin.try(:google_place_hash) },

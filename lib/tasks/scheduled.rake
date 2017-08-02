@@ -33,7 +33,7 @@ namespace :scheduled do
     purposes_config = Config.find_or_initialize_by(key: :ride_pilot_purposes)
     purposes_config.value ||= {}
     
-    Service.where(booking_api: :ridepilot)
+    Service.where(booking_api: :ride_pilot)
       .each do |svc|
         puts "Getting purposes for Service: #{svc.to_s}"
         rpa = RidePilotAmbassador.new(svc)

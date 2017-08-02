@@ -23,6 +23,7 @@ module OneclickCore
     # Load model sub-classes and other custom folders
     config.autoload_paths += %W(#{config.root}/app/models/service_types)
     config.autoload_paths += %W(#{config.root}/app/models/agency_types)
+    config.autoload_paths += %W(#{config.root}/app/models/booking_types)
     config.autoload_paths += %W(#{config.root}/app/services/external_api_ambassadors)
 
     # Set default CORS settings

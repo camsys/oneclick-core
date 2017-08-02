@@ -1,6 +1,10 @@
 class Trip < ApplicationRecord
-
-  ### ASSOCIATIONS
+  
+  ### INCLUDES ###
+  include BookingHelpers::TripHelpers
+  
+  
+  ### ASSOCIATIONS ###
   belongs_to :user
   has_many :itineraries, dependent: :destroy
   has_many :services, through: :itineraries
