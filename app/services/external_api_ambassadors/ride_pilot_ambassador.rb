@@ -26,11 +26,8 @@ class RidePilotAmbassador
     # booking_options that have been set
     response = create_trip(trip)
     
-    # Store the status info in a Booking object
-    booking = trip.build_booking(type: "RidePilotBooking")
-    booking.details = response.with_indifferent_access
-    booking.status = response.try(:[], "status")
-                             .try(:[], "code")
+    # Store the status info in a Booking object and return it
+    booking = trip.build_booking(booking_attrs_from_response(response))
     booking.save
     return booking
   end
@@ -39,13 +36,21 @@ class RidePilotAmbassador
   end
   
   def status(trip)
+    # Make a get_status call to RidePilot, passing a trip
+    response = trip_status(trip)
+    
+    # Update Booking object with status info and return it
+    booking = trip.booking || trip.build_booking
+    return false unless booking # Return false if trip has no booking even after building (e.g. because no itinerary is selected)
+    booking.assign_attributes(booking_attrs_from_response(response))
+    booking.save
+    return booking.try(:status)
   end
   
   def prepare_to_book(options={})
     @booking_options = options
   end
 
-  # private
 
   ### API CALLS ###
   
@@ -116,7 +121,7 @@ class RidePilotAmbassador
     booking_profile = user.try(:booking_profile_for, @service)
     trip_booking = trip.booking
     return false unless booking_profile
-        
+            
     @http_request_bundler.add(
       label, 
       @url + "/trip_status", 
@@ -199,6 +204,15 @@ class RidePilotAmbassador
     	guests: guests,
     	from_address: { address: trip.origin.try(:google_place_hash) },
     	to_address: { address: trip.destination.try(:google_place_hash) }
+    }
+  end
+  
+  # returns a hash of booking attributes from a RidePilot response
+  def booking_attrs_from_response(response)
+    {
+      type: "RidePilotBooking",
+      details: response.with_indifferent_access,
+      status: response.try(:[], "status").try(:[], "code")
     }
   end
   

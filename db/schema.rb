@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170801160202) do
+ActiveRecord::Schema.define(version: 20170802175321) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,6 +48,16 @@ ActiveRecord::Schema.define(version: 20170801160202) do
     t.datetime "updated_at",                 null: false
     t.boolean  "published",  default: false
     t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
+  create_table "bookings", force: :cascade do |t|
+    t.integer  "itinerary_id"
+    t.string   "type"
+    t.string   "status"
+    t.text     "details"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
 
   create_table "cities", force: :cascade do |t|
@@ -374,6 +384,7 @@ ActiveRecord::Schema.define(version: 20170801160202) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
