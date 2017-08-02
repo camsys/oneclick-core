@@ -28,19 +28,23 @@ class RidePilotAmbassador
     return @http_request_bundler.success?(label)
   end
   
-  # # Authenticates a RidePilot Customer
-  # def authenticate_customer(user)
-  #   label = request_label(:authenticate_customer, user.id)
-  #       
-  #   @http_request_bundler.add(
-  #     label, 
-  #     @url + "/trip_purposes", 
-  #     :get,
-  #     head: headers,
-  #     query: { provider_id: provider_id }
-  #   )
-  #   return @http_request_bundler.response(label)
-  # end
+  # Authenticates a RidePilot Customer
+  def authenticate_customer(user)
+    label = request_label(:authenticate_customer, user.id)
+    booking_profile = user.booking_profile_for(@service)
+    return false unless booking_profile
+        
+    @http_request_bundler.add(
+      label, 
+      @url + "/authenticate_customer", 
+      :get,
+      head: headers,
+      query: {  provider_id: provider_id,
+                customer_id: booking_profile.details[:customer_id],
+                customer_token: booking_profile.details[:customer_token] }
+    )
+    return @http_request_bundler.success?(label)
+  end
   
   # Gets an array of RidePilot purpose for the passed service
   def trip_purposes
@@ -75,7 +79,7 @@ class RidePilotAmbassador
   
   # Returns the RidePilot Purposes Map from the Configs
   def purposes_map
-    (Config.ridepilot_purposes || {}).with_indifferent_access
+    (Config.ride_pilot_purposes || {}).with_indifferent_access
   end
   
   # Maps a OneClick Purpose Code to RidePilot Purpose ID. Pass a service to

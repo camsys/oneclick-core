@@ -24,13 +24,13 @@ namespace :scheduled do
   end
   
   # For each service with a RidePilot booking profile, make a get_purposes
-  # call and update the ridepilot_purposes config hash map.
+  # call and update the ride_pilot_purposes config hash map.
   desc "Pull Purposes Hash From RidePilot"
-  task get_ridepilot_purposes: :environment do
+  task get_ride_pilot_purposes: :environment do
     
     puts "Updating RidePilot Purposes Map..."
 
-    purposes_config = Config.find_or_initialize_by(key: :ridepilot_purposes)
+    purposes_config = Config.find_or_initialize_by(key: :ride_pilot_purposes)
     purposes_config.value ||= {}
     
     Service.where(booking_api: :ridepilot)
