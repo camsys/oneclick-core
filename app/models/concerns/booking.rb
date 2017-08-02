@@ -28,7 +28,15 @@ module Booking
       base.serialize :booking_details
     end
     
-    
+    # Returns the appropriate booking ambassador based on the booking_api field
+    def booking_ambassador(opts={})
+      case booking_api
+      when "ridepilot"
+        return RidePilotAmbassador.new(opts)
+      else
+        return nil
+      end
+    end
     
     
   end

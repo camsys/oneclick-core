@@ -7,7 +7,8 @@ class Config < ApplicationRecord
   
   # List of rake tasks that can be scheduled
   AVAILABLE_SCHEDULED_TASKS = [
-    :agency_setup_reminder_emails
+    :agency_setup_reminder_emails,
+    :get_ridepilot_purposes
   ].freeze
 
   # Returns the value of a setting when you say Config.<key>
