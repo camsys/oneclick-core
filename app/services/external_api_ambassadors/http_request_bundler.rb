@@ -17,6 +17,8 @@ class HTTPRequestBundler
       action: action,
       opts: opts
     }
+    
+    return self
   end
   
   # Returns a hash of all responses
@@ -28,6 +30,18 @@ class HTTPRequestBundler
   def response(label)
     ensure_response(label)
     response_for(label)
+  end
+  
+  # Same as response, but always re-makes the call
+  def response!(label)
+    call!(label)
+    response_for(label)
+  end
+  
+  # Forces making call and overwriting response for given label
+  def call!(label)
+    make_calls(only: [label], overwrite: true)
+    return self
   end
   
   # Returns true if a successful response was received for given call
@@ -43,11 +57,20 @@ class HTTPRequestBundler
   end
 
   # Make all of the HTTP requests that have been added to the bundler
-  def make_calls
-    return false if @requests.empty?
+  def make_calls(opts={})
+    only = opts[:only] || @requests.keys
+    except = opts[:except] || []
+    overwrite = opts[:overwrite] || false # If set to true, will re-make all calls
+    
+    requests_to_make = (only - except)
+    requests_to_make.reject! {|l| call_made?(l) } unless overwrite
+    return false if requests_to_make.empty?
+
     EM.run do
       multi = EM::MultiRequest.new
-      @requests.each do |label, request|
+      requests_to_make.each do |label|
+        request = @requests[label]
+        
         # Add an HTTP request to the multirequest, passing in the key as a label,
         # and pulling the appropriate action (e.g. get, post, etc.) and headers
         # from the body.
@@ -77,6 +100,11 @@ class HTTPRequestBundler
   # Retrieves response based on label from either successes or errors hash
   def response_for(label)
     @successes[label] || @errors[label]    
+  end
+  
+  # Determines if a call has been made based on label
+  def call_made?(label)
+    @successes.has_key?(label) || @errors.has_key?(label)
   end
 
   # Parses the response bodies and stores them in successes and errors hashes under @responses

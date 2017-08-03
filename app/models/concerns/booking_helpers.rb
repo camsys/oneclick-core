@@ -9,7 +9,7 @@ module BookingHelpers
     
     # Return's the user's booking profile associated with the passed service
     def booking_profile_for(service)
-      booking_profiles.find_by(service_id: service.id)
+      booking_profiles.find_by(service_id: service.try(:id))
     end
     
   end
