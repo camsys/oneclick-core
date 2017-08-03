@@ -7,16 +7,16 @@ class Booking < ApplicationRecord
   
   ### CONSTANTS ###
   BOOKING_TYPES = {
-    ride_pilot: RidePilotBooking #,
+    ride_pilot: "RidePilotBooking" #,
     # ecolane: EcolaneBooking,
     # trapeze: TrapezeBooking
   }.freeze
   
   BOOKING_TYPE_CODES = BOOKING_TYPES.keys.freeze
-  BOOKING_TYPE_CLASS_NAMES = BOOKING_TYPES.values.map {|v| v.to_s }.freeze
+  BOOKING_TYPE_CLASSES = BOOKING_TYPES.values.freeze
   
   ### VALIDATIONS ###
-  validates :type, presence: true, inclusion: BOOKING_TYPE_CLASS_NAMES
+  validates :type, presence: true, inclusion: BOOKING_TYPE_CLASSES
   
   
   ### INSTANCE METHODS ###

@@ -8,4 +8,14 @@ class ApplicationRecord < ActiveRecord::Base
     self.where(id: array.select{|obj| obj.is_a?(self) }.pluck(:id))
   end
   
+  # Returns a collection of n random records
+  def self.random(n=1)
+    self.order("RANDOM()").limit(n)
+  end
+  
+  # Returns 1 random record
+  def self.find_random
+    self.random(1).first
+  end
+  
 end

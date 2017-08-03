@@ -1,7 +1,7 @@
 # All booking ambassadors should implement the following public methods:
-  # book(trip) => Booking object
-  # cancel(trip) => Booking object
-  # status(trip) => Booking object
+  # book() => Booking object
+  # cancel() => Booking object
+  # status() => Booking object
 
 class RidePilotAmbassador
   
@@ -9,25 +9,38 @@ class RidePilotAmbassador
                 :url, 
                 :token, 
                 :booking_options, 
+                :itinerary,
                 :service, 
                 :trip, 
                 :user
   
-  
   # Initialize with a service and an (optional) options hash
   def initialize(opts={})
-    @service = opts[:service]
-    @trip = opts[:trip]
-    @user = opts[:user] || @trip.try(:user) # Defaults to trip.user
+    self.itinerary = opts[:itinerary]
+    self.trip = opts[:trip] || @trip
+    self.service = opts[:service] || @service
+    self.user = opts[:user] || @user # Defaults to trip.user
+    
     @url = opts[:url] || Config.ride_pilot_url
     @token = opts[:token] || Config.ride_pilot_token
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
     @booking_options = opts[:booking_options] || {}
   end
   
+  # Custom setter for itinerary also sets trip, service, and user
+  def itinerary=(new_itin)
+    @itinerary = new_itin
+    return unless @itinerary
+    @itinerary.select unless @itinerary.selected? # select the itinerary if not already selected
+    self.trip = @itinerary.try(:trip) || @trip
+    self.service = @itinerary.try(:service) || @service
+  end
+  
   # Custom setter for trip also sets user
   def trip=(new_trip)
     @trip = new_trip
+    return unless @trip
+    @itinerary = @trip.selected_itinerary || @itinerary
     @user = @trip.try(:user) || @user
   end
   
@@ -42,9 +55,10 @@ class RidePilotAmbassador
     return false unless response
     
     # Store the status info in a Booking object and return it
-    @trip.build_booking unless trip_booking
-    update_trip_booking(response)
-    return trip_booking
+    # ensure_selected_itinerary
+    # ensure_booking
+    update_booking(response)
+    return booking
   end
   
   def cancel
@@ -52,8 +66,8 @@ class RidePilotAmbassador
     response = cancel_trip
     return false unless response
     
-    update_trip_booking(response)
-    return trip_booking.try(:status)
+    update_booking(response)
+    return booking.try(:status)
   end
   
   def status
@@ -65,17 +79,15 @@ class RidePilotAmbassador
     # return false unless booking # Return false if trip has no booking even after building (e.g. because no itinerary is selected)
     # booking.assign_attributes(booking_attrs_from_response(response))
     # booking.save
-    update_trip_booking(response)
-    return trip_booking.try(:status)
+    update_booking(response)
+    return booking.try(:status)
   end
 
 
   ### API CALLS ###
   
   # Authenticates a RidePilot Provider
-  def authenticate_provider
-    return false unless @service
-    
+  def authenticate_provider    
     label = request_label(:authenticate_provider)
         
     @http_request_bundler.add(
@@ -84,30 +96,24 @@ class RidePilotAmbassador
       :get,
       head: headers,
       query: { provider_id: provider_id }
-    ).call!(label).success?(label)
+    ).response!(label)
   end
   
   # Authenticates a RidePilot Customer
-  def authenticate_customer
-    return false unless @user && @service && booking_profile
-    
-    label = request_label(:authenticate_customer, @user.id)
+  def authenticate_customer    
+    label = request_label(:authenticate_customer, customer_id)
         
     @http_request_bundler.add(
       label, 
       @url + "/authenticate_customer", 
       :get,
       head: headers,
-      query: {  provider_id: provider_id,
-                customer_id: booking_profile.details[:id],
-                customer_token: booking_profile.details[:token] }
-    ).call!(label).success?(label)
+      query: { provider_id: provider_id, customer_id: customer_id, customer_token: customer_token }
+    ).response!(label)
   end
   
   # Gets an array of RidePilot purpose for the passed service
-  def trip_purposes
-    return false unless @service
-    
+  def trip_purposes    
     label = request_label(:purposes)
         
     @http_request_bundler.add(
@@ -121,9 +127,10 @@ class RidePilotAmbassador
   
   # Books the passed trip via RidePilot
   def create_trip
-    return false unless @trip && @service && @user
+    # Only attempt to create trip if all the necessary pieces are there
+    return false unless @itinerary && @trip && @service && @user
     
-    label = request_label(:book, @trip.id)
+    label = request_label(:book, trip_id)
     
     @http_request_bundler.add(
       label, 
@@ -136,33 +143,27 @@ class RidePilotAmbassador
   
   # Gets the RidePilot trip booking status for a given trip
   def trip_status
-    return false unless @trip && @user && booking_profile && trip_booking
-    label = request_label(:status, @trip.id)
+    label = request_label(:status, trip_id)
             
     @http_request_bundler.add(
       label, 
       @url + "/trip_status", 
       :get,
       head: headers,
-      query: {  trip_id: trip_booking.try(:details).try(:[], :trip_id),
-                customer_id: booking_profile.details[:id],
-                customer_token: booking_profile.details[:token] }
+      query: { trip_id: trip_id, customer_id: customer_id, customer_token: customer_token }
     ).response!(label) # Always make fresh calls for status
   end
   
   # Gets the RidePilot trip booking status for a given trip
   def cancel_trip
-    return false unless @trip && @user && booking_profile && trip_booking
-    label = request_label(:cancel, trip.id)
+    label = request_label(:cancel, trip_id)
         
     @http_request_bundler.add(
       label, 
       @url + "/cancel_trip", 
       :delete,
       head: headers,
-      query: {  trip_id: trip_booking.try(:details).try(:[], :trip_id),
-                customer_id: booking_profile.details[:id],
-                customer_token: booking_profile.details[:token] }
+      query: { trip_id: trip_id, customer_id: customer_id, customer_token: customer_token }
     ).response!(label)
   end
   
@@ -174,8 +175,8 @@ class RidePilotAmbassador
   end
   
   # Returns the trip's Booking, if available
-  def trip_booking
-    @trip.try(:booking)
+  def booking
+    @itinerary.try(:booking)
   end
   
   # Returns the RidePilot Purposes Map from the Configs
@@ -192,6 +193,21 @@ class RidePilotAmbassador
   # Pulls provider_id out of the service's booking details
   def provider_id
     @service.try(:booking_details).try(:[], :provider_id)
+  end
+  
+  # Gets the customer id from the user's booking profile
+  def customer_id
+    booking_profile.try(:details).try(:[], :id)
+  end
+
+  # Gets the customer token from the user's booking profile  
+  def customer_token
+    booking_profile.try(:details).try(:[], :token)
+  end
+  
+  # Gets the RidePilot trip_id from the booking object
+  def trip_id
+    booking.try(:details).try(:[], :trip_id)
   end
   
   # Makes a symbolic label for HTTP requests, out of an arbitrary # of identifiers
@@ -240,7 +256,7 @@ class RidePilotAmbassador
   # Select's the trip's itinerary associated with @service
   def ensure_selected_itinerary
     # Find the appropriate itinerary based on service_id
-    itin_to_book = @trip.itineraries.find_by(service_id: @service.id)
+    itin_to_book = @itinerary || @trip.itineraries.find_by(service_id: @service.id)
 
     # Select the itinerary and return true, or return false if no appropriate itinerary exists
     if itin_to_book.present?
@@ -253,9 +269,9 @@ class RidePilotAmbassador
   end
   
   # Updates trip booking object with response
-  def update_trip_booking(response)
-    return false unless trip_booking
-    trip_booking.update_attributes(booking_attrs_from_response(response))
+  def update_booking(response)
+    return false unless booking
+    booking.update_attributes(booking_attrs_from_response(response))
   end
-  
+
 end

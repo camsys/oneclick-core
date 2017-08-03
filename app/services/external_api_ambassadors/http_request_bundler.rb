@@ -29,13 +29,25 @@ class HTTPRequestBundler
   # Return the HTTP request response, based on the label used when passing in the request
   def response(label)
     ensure_response(label)
-    response_for(label)
+    response_body_for(label)
   end
   
   # Same as response, but always re-makes the call
   def response!(label)
     call!(label)
-    response_for(label)
+    response_body_for(label)
+  end
+  
+  # Return the HTTP request status, based on the label used when passing in the request
+  def status(label)
+    ensure_response(label)
+    response_status_for(label)
+  end
+  
+  # Same as status, but always re-makes the call
+  def status!(label)
+    call!(label)
+    response_status_for(label)
   end
   
   # Forces making call and overwriting response for given label
@@ -99,7 +111,18 @@ class HTTPRequestBundler
   
   # Retrieves response based on label from either successes or errors hash
   def response_for(label)
-    @successes[label] || @errors[label]    
+    @successes[label] || @errors[label]
+  end
+  
+  # Returns the response body
+  def response_body_for(label)
+    resp = response_for(label)
+    JSON.parse(resp.response) if resp.response.present?
+  end
+  
+  # Returns the response status
+  def response_status_for(label)
+    response_for(label).try(:response_header).try(:[], "STATUS")
   end
   
   # Determines if a call has been made based on label
@@ -113,17 +136,11 @@ class HTTPRequestBundler
     update_responses(responses[:errback], @errors)
   end
   
-  def update_responses(response_hash, storage_hash)
-    response_hash.each do |label, resp|
-      storage_hash[label] = (JSON.parse(resp.response) if resp.response.present?)
+  def update_responses(responses, storage_hash)
+    responses.each do |label, resp|
+      storage_hash[label] = resp if resp.present?
+      # storage_hash[label] = (JSON.parse(resp.response) if resp.response.present?)
     end
-  end
-  
-  # Parses success and error JSON into a hash
-  def map_response_to_hash(response_obj)
-    response_obj.map do |k,v| 
-      [k, (JSON.parse(v.response) if v.response.present?)]
-    end.to_h
   end
 
 end

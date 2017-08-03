@@ -1,8 +1,49 @@
 module Api
   module V1
     class TripsController < ApiController
-      before_action :require_authentication, only: [:past_trips, :future_trips, :select, :cancel, :index]
+      before_action :require_authentication, only: [
+        :past_trips, :future_trips, :select, :cancel, :index, :book
+      ]
       before_action :current_or_guest_user, only: [:create] #If @traveler is not set, then create a guest user account
+
+      # POST trips/book, POST itineraries/book
+      # Books a trip based on passed itinerary information
+      def book
+        responses = booking_request_params.map do |booking_request|
+          itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          trip = itin.try(:trip)
+          service = itin.try(:service)
+          
+          response = {
+            trip_id: trip.try(:id),
+            itinerary_id: itin.try(:id),
+            booked: false
+          }
+          next response unless itin && service
+          
+          booking = service.booking_ambassador(itinerary: itin).book
+          pickup_time = booking.details.try(:[], "pickup_time").try(:to_datetime) || itin.start_time
+          dropoff_time = (booking.details.try(:[], "dropff_time") ||
+                          booking.details.try(:[], "dropoff_time"))
+                          .try(:to_datetime) || pickup_time + itin.duration.seconds
+          # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Will be patched.
+          
+          response = response.merge({
+            booked: true,
+            confirmation_id: booking.details.try(:[], "trip_id"),
+            wait_start: (pickup_time - 15.minutes).iso8601,
+            wait_end: (pickup_time + 15.minutes).iso8601,
+            arrival: dropoff_time.iso8601,
+            message: "Booking Status: #{booking.status}",
+            negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
+          })
+          next response
+          
+        end
+        
+        render status: 200, json: responses
+        
+      end
 
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
@@ -114,6 +155,18 @@ module Api
       end
 
       protected
+      
+      def booking_request_params
+        params.require(:booking_request).map do |p|
+          p.permit(
+            :itinerary_id,
+            :guests,
+            :purpose,
+            :attendants,
+            :return_time
+          )
+        end
+      end
 
       def trip_params(parameters)
         parameters.require(:trip).permit(

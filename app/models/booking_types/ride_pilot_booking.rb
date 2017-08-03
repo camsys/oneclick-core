@@ -38,4 +38,9 @@ class RidePilotBooking < Booking
     CANCELED_TRIP_STATUS_CODES.include?(status)
   end
   
+  # Returns a friendly response hash of itself
+  def to_h
+    self.attributes
+  end
+  
 end

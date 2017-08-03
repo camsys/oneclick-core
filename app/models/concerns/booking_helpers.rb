@@ -7,6 +7,11 @@ module BookingHelpers
   # Include in User model to allow booking
   module UserHelpers
     
+    # Returns the user's first booking_profile
+    def booking_profile
+      booking_profiles.first
+    end
+    
     # Return's the user's booking profile associated with the passed service
     def booking_profile_for(service)
       booking_profiles.find_by(service_id: service.try(:id))
@@ -29,8 +34,9 @@ module BookingHelpers
     
     # Returns the appropriate booking ambassador based on the booking_api field
     def booking_ambassador(opts={})
+      opts = {service: self}.merge(opts)
       case booking_api
-      when "ridepilot"
+      when "ride_pilot"
         return RidePilotAmbassador.new(opts)
       else
         return nil

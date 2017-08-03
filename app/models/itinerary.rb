@@ -21,8 +21,14 @@ class Itinerary < ApplicationRecord
     wait_time.to_i
   end
 
+  # Makes this itinerary the selected itinerary for the trip
   def select
     self.trip.update(selected_itinerary: self)
+  end
+  
+  # Is this the trip's selected itinerary?
+  def selected?
+    trip.selected_itinerary == self
   end
 
   def unselect
