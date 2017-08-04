@@ -119,8 +119,6 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     request.headers['X-User-Email'] = traveler.email
     get :show, format: :json
 
-    puts JSON.parse(response.body).ai 
-
     # test for the 200 status-code
     expect(response).to be_success
 
