@@ -13,12 +13,23 @@ module Api
 
       # Returns a list of the user's eligibilities
       def eligibilities
-        object.user_eligibilities.map { |ue| ue.api_hash }
+        Eligibility.all.map { 
+          |elig| elig.to_hash(object.preferred_locale.name).merge(
+            { 
+              value: 
+                UserEligibility.find_by(eligibility: elig, user: object).try(:value)
+            }
+          )}
       end
 
       # Returns a list of the user's accommodations
       def accommodations
-        object.accommodations.map { |acc| acc.api_hash(object.locale) }
+        Accommodation.all.map { 
+          |acc| acc.to_hash(object.preferred_locale.name).merge(
+            { 
+              value: (acc.in? object.accommodations)
+            }
+          )}
       end
 
       def preferred_locale
