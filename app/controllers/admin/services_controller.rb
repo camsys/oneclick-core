@@ -2,7 +2,9 @@ class Admin::ServicesController < Admin::AdminController
 
   include GeoKitchen
   include FareHelper
+  include RemoteFormResponder
 
+  attr_accessor :test_var
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
@@ -28,27 +30,14 @@ class Admin::ServicesController < Admin::AdminController
     @service.build_comments # Builds a comment for each available locale
   end
 
-  def update
+  def update    
     @service.update_attributes(service_params)
     present_error_messages(@service)
 
     # If a partial_path parameter is set, serve back that partial
-    if params[:partial_path]
-      respond_to do |format|
-        format.html do
-          render template: params[:partial_path], layout: '/layouts/_panel'
-        end
-        format.js do
-          render template: params[:partial_path], layout: '/layouts/_panel'
-        end
-      end
-    else
-      respond_to do |format|
-        format.html do
-          redirect_to admin_service_path(@service)
-        end
-      end
-    end
+    respond_with_partial_or do
+      redirect_to admin_service_path(@service)
+    end    
   end
 
   private
