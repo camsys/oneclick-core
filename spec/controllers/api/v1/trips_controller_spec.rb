@@ -234,6 +234,14 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(response_body["trips"].count).to eq(0)
   end
 
+  it 'sends back all accommodations when planning a trip' do
+    post :create, params: plan_call_params
+    response_body = JSON.parse(response.body)
+
+    expect(response).to be_success
+    expect(response_body["accommodations"].count).to eq(Accommodation.count)
+  end
+
   # it 'sends back itineraries for multiple trips' do
   #   # Stub out trip creation because itinerary planning happens in TripPlanner
   #   allow(Trip).to receive(:create) { [trip, trip] }
