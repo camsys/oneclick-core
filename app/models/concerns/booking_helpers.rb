@@ -7,6 +7,12 @@ module BookingHelpers
   # Include in User model to allow booking
   module UserHelpers
     
+    # Configure including class
+    def self.included(base)
+      base.has_many :booking_profiles, class_name: "UserBookingProfile", dependent: :destroy
+      base.has_many :bookings, through: :itineraries
+    end
+    
     # Returns the user's first booking_profile
     def booking_profile
       booking_profiles.first
@@ -82,5 +88,30 @@ module BookingHelpers
 
   end
   
+  
+  #####################
+  # ITINERARY HELPERS #
+  #####################
+  
+  module ItineraryHelpers
+    
+    # Initializes a BookingAmbassador object of the appropriate type
+    # based on the itinerary's associated service, passing in itself
+    # along with any other options given.
+    def booking_ambassador(opts={})
+      service.try(:booking_ambassador, {itinerary: self}.merge(opts))
+    end
+    
+    # Books this itinerary
+    def book(opts={})
+      booking_ambassador(opts).book
+    end
+    
+    # Cancels this itinerary
+    def cancel(opts={})
+      booking_ambassador(opts).cancel
+    end
+    
+  end
   
 end

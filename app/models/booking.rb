@@ -22,9 +22,14 @@ class Booking < ApplicationRecord
   ### INSTANCE METHODS ###
   
   # By default, returns true if the Booking object exists.
-  # Method should be overwritten in subclass
+  # TODO: Method should be overwritten in subclass
   def booked?
-    return true
+    true
+  end
+  
+  # Returns the booking's type code symbol
+  def type_code
+    BOOKING_TYPES.key(type)
   end
   
   

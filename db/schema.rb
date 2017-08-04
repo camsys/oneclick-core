@@ -54,6 +54,7 @@ ActiveRecord::Schema.define(version: 20170802175321) do
     t.integer  "itinerary_id"
     t.string   "type"
     t.string   "status"
+    t.string   "confirmation"
     t.text     "details"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false

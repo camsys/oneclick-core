@@ -4,6 +4,7 @@ class CreateBookings < ActiveRecord::Migration[5.0]
       t.references :itinerary, foreign_key: true
       t.string :type # Booking API Type
       t.string :status
+      t.string :confirmation
       t.text :details
 
       t.timestamps

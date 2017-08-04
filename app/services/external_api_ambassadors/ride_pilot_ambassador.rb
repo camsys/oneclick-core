@@ -31,7 +31,6 @@ class RidePilotAmbassador
   def itinerary=(new_itin)
     @itinerary = new_itin
     return unless @itinerary
-    @itinerary.select unless @itinerary.selected? # select the itinerary if not already selected
     self.trip = @itinerary.try(:trip) || @trip
     self.service = @itinerary.try(:service) || @service
   end
@@ -49,14 +48,15 @@ class RidePilotAmbassador
   # (Implemented by all Booking Ambassadors)
 
   def book
+    # select the itinerary if not already selected
+    @itinerary.select if @itinerary && !@itinerary.selected?
+
     # Make a create_trip call to RidePilot, passing a trip and any 
     # booking_options that have been set
     response = create_trip
     return false unless response
     
     # Store the status info in a Booking object and return it
-    # ensure_selected_itinerary
-    # ensure_booking
     update_booking(response)
     return booking
   end
@@ -66,8 +66,12 @@ class RidePilotAmbassador
     response = cancel_trip
     return false unless response
     
+    # Unselect the itinerary on successful cancellation
+    @itinerary.unselect
+
+    # Update Booking object with status info and return it
     update_booking(response)
-    return booking.try(:status)
+    return booking
   end
   
   def status
@@ -76,11 +80,8 @@ class RidePilotAmbassador
     return false unless response
     
     # Update Booking object with status info and return it
-    # return false unless booking # Return false if trip has no booking even after building (e.g. because no itinerary is selected)
-    # booking.assign_attributes(booking_attrs_from_response(response))
-    # booking.save
     update_booking(response)
-    return booking.try(:status)
+    return booking
   end
 
 
@@ -174,9 +175,10 @@ class RidePilotAmbassador
     @user.try(:booking_profile_for, @service)
   end
   
-  # Returns the trip's Booking, if available
+  # Returns the trip's Booking, if available. Otherwise, builds a booking object
   def booking
-    @itinerary.try(:booking)
+    RidePilotBooking.find_or_initialize_by(itinerary_id: @itinerary.try(:id))
+    # booking = @itinerary.try(:booking) || @itinerary.build_booking(type: "RidePilotBooking")
   end
   
   # Returns the RidePilot Purposes Map from the Configs
@@ -207,7 +209,7 @@ class RidePilotAmbassador
   
   # Gets the RidePilot trip_id from the booking object
   def trip_id
-    booking.try(:details).try(:[], :trip_id)
+    booking.try(:confirmation)
   end
   
   # Makes a symbolic label for HTTP requests, out of an arbitrary # of identifiers
@@ -248,8 +250,9 @@ class RidePilotAmbassador
   def booking_attrs_from_response(response)
     {
       type: "RidePilotBooking",
-      details: response.with_indifferent_access,
-      status: response.try(:[], "status").try(:[], "code")
+      details: response.try(:with_indifferent_access),
+      status: response.try(:[], "status").try(:[], "code"),
+      confirmation: response.try(:[], "trip_id")
     }
   end
   
@@ -270,8 +273,8 @@ class RidePilotAmbassador
   
   # Updates trip booking object with response
   def update_booking(response)
-    return false unless booking
-    booking.update_attributes(booking_attrs_from_response(response))
+    return false unless response
+    booking.try(:update_attributes, booking_attrs_from_response(response))
   end
 
 end
