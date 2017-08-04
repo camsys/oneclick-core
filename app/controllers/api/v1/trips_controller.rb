@@ -109,7 +109,7 @@ module Api
           response = booking_response_base(itin).merge({booked: false})
           next response unless itin
           
-          # BOOK THE ITINERARY and store it in a booking object
+          # BOOK THE ITINERARY, selecting it and storing the response in a booking object
           booking = itin.book
 
           # Package it in a response hash as per API V1 docs
@@ -132,7 +132,7 @@ module Api
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           booking = itin.cancel
           
-          # Package response
+          # Package response as per API V1 docs
           next response.merge(bookingcancellation_response_hash(booking))
         end
         

@@ -95,17 +95,22 @@ class Admin::ServicesController < Admin::AdminController
 
   def paratransit_params
     [
+      :fare_structure,
+      :booking_api,
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
-    ] + FareParamPermitter.new(params[:service]).permit
+    ] + 
+    FareParamPermitter.new(params[:service]).permit + 
+    ServiceBookingParamPermitter.new(params[:service]).permit
   end
 
   def taxi_params
     [
+      :fare_structure,
       {accommodation_ids: []},
       trip_within_area_attributes: [:recipe]
     ] + FareParamPermitter.new(params[:service]).permit

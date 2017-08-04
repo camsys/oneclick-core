@@ -7,9 +7,9 @@ class Booking < ApplicationRecord
   
   ### CONSTANTS ###
   BOOKING_TYPES = {
-    ride_pilot: "RidePilotBooking" #,
-    # ecolane: EcolaneBooking,
-    # trapeze: TrapezeBooking
+    ride_pilot: "RidePilotBooking",
+    ecolane: "EcolaneBooking",
+    trapeze: "TrapezeBooking"
   }.freeze
   
   BOOKING_TYPE_CODES = BOOKING_TYPES.keys.freeze
