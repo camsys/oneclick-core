@@ -63,6 +63,15 @@ FactoryGirl.define do
           s.purposes << create(:purpose)
         end
       end
+      
+      trait :ride_pilot_bookable do
+        booking_api "ride_pilot"
+        booking_details { 
+          {
+            provider_id: 0
+          }
+        }
+      end
 
     end
 

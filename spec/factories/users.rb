@@ -97,6 +97,13 @@ FactoryGirl.define do
         u.trips << create(:trip, trip_time: Date.today - 2.months)
       end
     end
+    
+    trait :with_booking_profiles do
+      after(:create) do |u|
+        u.booking_profiles << create(:ride_pilot_user_profile, user: u)
+        u.booking_profiles << create(:ride_pilot_user_profile, user: u)
+      end
+    end
 
   end
 end

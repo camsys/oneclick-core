@@ -17,11 +17,10 @@ class Admin::ConfigsController < Admin::AdminController
   end
   
   def update
-    configs = configs_params.map do |k,v|
-      [ Config.find_by(key: k).id, { value: format_config_value(k, v) } ]
+    configs = configs_params.to_h.map do |k,v|
+      [ @configs.find_or_create_by(key: k).id, { value: format_config_value(k, v) } ]
     end.to_h
-    puts "UPDATING", configs.ai
-    
+        
     # Update all relevant configs at once, as a batch
     @errors = Config.update(configs.keys, configs.values)
                     .map(&:errors)

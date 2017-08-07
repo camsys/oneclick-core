@@ -153,7 +153,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     expect(itinerary.selecting_trip).to eq(trip)
   end
 
-  it 'cancels a trip' do
+  pending 'cancels a trip' do
     # Make sure that our itinerary has a trip
     trip.user = user
     trip.save

@@ -11,39 +11,34 @@ RSpec.describe Admin::ConfigsController, type: :controller do
     
     before(:each) { sign_in admin }
     
-    it 'sets the open_trip_planner config' do
-      params = {config: {value: 'http://otp-url.com'}}
-      patch :set_open_trip_planner, params: params, format: :js
+    it 'sets string configs' do
+      params = {  config: { open_trip_planner: 'http://otp-url.com',
+                            tff_api_key: 'SECRETKEYS',
+                            uber_token: 'UBERTOKEN'}, 
+                  partial_path: "admin/configs/_trip_planning_apis" }
+      patch :update, params: params
 
       # test for the 200 status-code
       expect(response).to be_success
 
       # Confirm that the variable was set correctly
       expect(Config.find_by(key: "open_trip_planner").value).to eq('http://otp-url.com')
-    end
-    
-    it 'sets the tff_ppi_key config' do
-      params = {config: {value: 'SECRETKEYS'}}
-      patch :set_tff_api_key, params: params, format: :js
-
-      # test for the 200 status-code
-      expect(response).to be_success
-
-      # Confirm that the variable was set correctly
       expect(Config.find_by(key: "tff_api_key").value).to eq('SECRETKEYS')
-    end
-    
-    it 'sets the uber token config' do
-      params = {config: {value: 'UBERTOKEN'}}
-      patch :set_uber_token, params: params, format: :js
-
-      # test for the 200 status-code
-      expect(response).to be_success
-
-      # Confirm that the variable was set correctly
       expect(Config.find_by(key: "uber_token").value).to eq('UBERTOKEN')
     end
     
+    it 'sets array configs' do
+      params = {  config: { daily_scheduled_tasks: ["task1", "task2", "task3"] }, 
+                  partial_path: "admin/configs/_trip_planning_apis" }
+      patch :update, params: params
+
+      # test for the 200 status-code
+      expect(response).to be_success
+
+      # Confirm that the variable was set correctly
+      expect(Config.find_by(key: "daily_scheduled_tasks").value).to eq([:task1, :task2, :task3])
+    end
+
   end
 
   context "while signed in as a staff" do
@@ -56,8 +51,8 @@ RSpec.describe Admin::ConfigsController, type: :controller do
     end
     
     it 'prevents configs from being updated by a staff' do
-      params = {config: {value: 'http://otp-BAD-url.com'}}
-      patch :set_open_trip_planner, params: params, format: :js
+      params = {config: {open_trip_planner: 'http://otp-BAD-url.com'}, partial_path: "admin/configs/_trip_planning_apis"}
+      patch :update, params: params
 
       # The response should be a re-direct
       expect(response).to have_http_status(:unauthorized)

@@ -1,5 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe UserBookingProfile, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  
+  # Attrs
+  it { should respond_to :booking_api, :details } 
+  
+  # Associations
+  it { should belong_to(:user) }
+  it { should belong_to(:service) }
+
 end

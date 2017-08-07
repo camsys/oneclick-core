@@ -13,7 +13,7 @@ RSpec.describe User, type: :model do
   it { should have_many(:user_eligibilities) }
   it { should have_many(:eligibilities).through(:user_eligibilities) }
   it { should have_many(:feedbacks) }
-
+  
   it 'returns a locale for a user' do
     expect(english_traveler.locale).to eq(english_traveler.preferred_locale) #This user has a preferred locale, so that one should be found
     expect(traveler.locale).to eq(Locale.find_by(name: "en")) #This user does not have a preferred locale, so English should be returned.
@@ -72,6 +72,24 @@ RSpec.describe User, type: :model do
     expect(traveler.last_name).to eq('Burdell')
     expect(traveler.locale).to eq(Locale.find_by(name: "en"))
     expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
+  end
+  
+  ### BOOKING ###
+  describe 'booking' do
+    let(:booking_user) { create(:user, :with_booking_profiles) }
+    
+    it { should have_many(:booking_profiles).dependent(:destroy) }
+    it { should have_many(:bookings).through(:itineraries) }
+
+    it "has booking_profile helper methods" do
+      expect(booking_user.booking_profiles.count).to be > 1
+      
+      expect(booking_user.booking_profile).to eq(booking_user.booking_profiles.first)
+      
+      svc = booking_user.booking_profiles.last.service
+      expect(booking_user.booking_profile_for(svc)).to eq(booking_user.booking_profiles.last)
+    end
+
   end
   
   

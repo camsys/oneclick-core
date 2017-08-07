@@ -27,6 +27,12 @@ class Booking < ApplicationRecord
     true
   end
   
+  # By default, returns false.
+  # TODO: Method should be overwritten in subclass
+  def canceled?
+    false
+  end
+  
   # Returns the booking's type code symbol
   def type_code
     BOOKING_TYPES.key(type)
