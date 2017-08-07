@@ -23,7 +23,7 @@ RSpec.describe User, type: :model do
   	expect(english_traveler.preferred_trip_types).to eq(['transit', 'unicycle'])
   end
 
-  it 'updates basic attributes' do
+  it 'updates  basic attributes' do
     params = {first_name: "George", last_name: "Burdell", email: "gpburdell@email.com", lang: "en", preferred_trip_types: ['recumbent_bicycle', 'roller_blades']}
     traveler.update_basic_attributes params
     expect(traveler.email).to eq('gpburdell@email.com')
@@ -31,6 +31,18 @@ RSpec.describe User, type: :model do
     expect(traveler.last_name).to eq('Burdell')
     expect(traveler.locale).to eq(Locale.find_by(name: "en"))
     expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
+  end
+
+  it 'updates the password' do
+    old_password_token = traveler.encrypted_password
+    params = {password: "welcome_test_test1", password_confirmation: "welcome_test_test1"}
+    traveler.update_basic_attributes params
+    expect(traveler.encrypted_password).not_to eq(old_password_token)
+  end
+
+  it 'will not update the password if the password_confirmation does not match' do
+    params = {password: "welcome_test_test1", password_confirmation: "blahblah3"}
+    expect{traveler.update_basic_attributes params}.to raise_error(ActiveRecord::RecordInvalid)
   end
 
   it 'updates eligibilities' do

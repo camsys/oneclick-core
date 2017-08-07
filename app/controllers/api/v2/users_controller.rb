@@ -14,6 +14,9 @@ module Api
 
       # Update's the user's profile
       def update
+
+        Rails.logger.info params.ai 
+
         if @traveler.update_profile(params)
           render(success_response(@traveler, serializer: UserSerializer))
         else

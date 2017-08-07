@@ -111,9 +111,13 @@ class User < ApplicationRecord
           self.preferred_locale = Locale.find_by(name: value) || self.locale
         when :preferred_trip_types, :preferred_modes
           self.preferred_trip_types = value
+        when :password 
+          self.password = value
+        when :password_confirmation
+          self.password_confirmation = value
       end
     end
-    self.save
+    self.save!
   end
 
   def update_eligibilities params={}
