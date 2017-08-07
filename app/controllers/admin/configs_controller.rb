@@ -8,6 +8,8 @@ class Admin::ConfigsController < Admin::AdminController
     :open_trip_planner,
     :tff_api_key,
     :uber_token,
+    :ride_pilot_url,
+    :ride_pilot_token,
     daily_scheduled_tasks: []
   ].freeze
 
