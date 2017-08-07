@@ -114,6 +114,7 @@ Rails.application.routes.draw do
     # Configs
     resources :configs, :only => [:index] do
       collection do
+        patch 'update'
         patch 'set_open_trip_planner'
         patch 'set_tff_api_key'
         patch 'set_uber_token'
