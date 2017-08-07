@@ -108,7 +108,6 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     
   end
   
-  
   it 'returns the first and last name of a user profile' do
     first_name = traveler.first_name
     last_name = traveler.last_name
@@ -304,6 +303,48 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     expect(traveler.preferred_locale).to eq(Locale.find_by(name:"en"))
     expect(traveler.preferred_trip_types).to eq(['clown_car'])
 
+  end
+
+  it 'updates the password for a user' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    params = {attributes: {password: "welcome_55", password_confirmation: "welcome_55"}}
+
+    old_token = traveler.encrypted_password
+
+    put :update, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).not_to eq(old_token)
+  end
+
+  it 'will not update the password because the confirmation does not match' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+    params = {attributes: {password: "welcome_55", password_confirmation: "welcome_555"}}
+
+    old_token = traveler.encrypted_password
+
+    put :update, params: params
+    
+    # Confirm the Response
+    expect(response.status).to eq(500)
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).to eq(old_token)
   end
 
   it 'adds accommodations for a user' do
