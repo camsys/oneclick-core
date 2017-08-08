@@ -237,4 +237,94 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     expect(parsed_response["authentication_token"]).to be
   end
 
+  it 'updates the password for a user' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+
+    old_token = traveler.encrypted_password
+
+    params = {"password":"welcome2","password_confirmation":"welcome2"}
+
+    post :password, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response).to be_success
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).not_to eq(old_token)
+  end
+
+  it 'will not updates the password for a user because the password confirmation does not match' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+
+    old_token = traveler.encrypted_password
+
+    params = {"password":"welcome2","password_confirmation":"welcome3"}
+
+    post :password, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response.code).to eq("406")
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).to eq(old_token)
+  end
+
+  it 'will not update the password because the confirmation is missing' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+
+    old_token = traveler.encrypted_password
+
+    params = {"password":"welcome2"}
+
+    post :password, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response.code).to eq("400")
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).to eq(old_token)
+  end
+
+  it 'will not update the password because the password is too short' do
+    sign_in traveler
+    request.headers['X-User-Token'] = traveler.authentication_token
+    request.headers['X-User-Email'] = traveler.email
+
+
+    old_token = traveler.encrypted_password
+
+    params = {"password":"5","password_confirmation":"5"}
+
+    post :password, params: params
+    
+    # Confirm the Response was a Success 
+    expect(response.code).to eq("406")
+    parsed_response = JSON.parse(response.body)
+    expect(parsed_response["message"]).to eq("Unacceptable Password")
+
+    # Refresh the User's Attributes from the DB
+    traveler.reload 
+
+    # Confirm that all the attributes were updated
+    expect(traveler.encrypted_password).to eq(old_token)
+  end
+
 end
