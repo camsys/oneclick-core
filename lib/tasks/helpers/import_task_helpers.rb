@@ -49,7 +49,7 @@ module ImportTaskHelpers
     preferred_locale = user_attrs.delete("preferred_locale")
           
     user = User.find_or_initialize_by(email: email)
-    user.assign_attributes(user_attrs.merge({password: "TEMPpw123", password_confirmation: "TEMPpw123"}))
+    user.encrypted_password = user_attrs.delete("encrypted_password")
     user.preferred_locale = Locale.find_by(name: preferred_locale)
     save_and_log_result(user)
     user.update_profile(user_profile_attrs)
