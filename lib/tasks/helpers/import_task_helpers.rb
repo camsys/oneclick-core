@@ -45,15 +45,18 @@ module ImportTaskHelpers
 
     stomping_grounds =  user_attrs.delete("places")
 
+    encrypted_password = user_attrs.delete("encrypted_password")
     email = user_attrs.delete("email")
     preferred_locale = user_attrs.delete("preferred_locale")
           
     user = User.find_or_initialize_by(email: email)
-    user.encrypted_password = user_attrs.delete("encrypted_password")
+    user.assign_attributes(user_attrs.merge({password: "TEMPpw123", password_confirmation: "TEMPpw123"}))
     user.preferred_locale = Locale.find_by(name: preferred_locale)
     save_and_log_result(user)
     user.update_profile(user_profile_attrs)
     build_stomping_grounds(stomping_grounds, user)
+    user.encrypted_password = encrypted_password
+    user.save
     
     return user
     
