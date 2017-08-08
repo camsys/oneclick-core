@@ -115,7 +115,7 @@ module Api
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
-        
+                
         render status: 200, json: responses
       end
 

@@ -253,5 +253,25 @@ RSpec.describe Service, type: :model do
     end
     
   end
+  
+  
+  ### BOOKING ###
+  
+  describe 'booking' do
+    
+    it { should respond_to(:booking_api, :booking_details) }
+    
+    let(:ride_pilot_service) { create(:paratransit_service, :ride_pilot_bookable) }
+    let(:no_booking_service) { create(:paratransit_service, booking_api: "not_a_real_booking_api") }
+    
+    it "returns the appropriate booking ambassador based on the booking_api field" do
+      rpa = ride_pilot_service.booking_ambassador
+      
+      expect(rpa).to be_a(RidePilotAmbassador)
+      expect(rpa.service).to eq(ride_pilot_service)
+      expect(no_booking_service.booking_ambassador).to be_nil
+    end
+    
+  end
 
 end

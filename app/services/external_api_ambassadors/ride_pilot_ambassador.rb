@@ -21,8 +21,8 @@ class RidePilotAmbassador
     self.service = opts[:service] || @service
     self.user = opts[:user] || @user # Defaults to trip.user
     
-    @url = opts[:url] || Config.ride_pilot_url
-    @token = opts[:token] || Config.ride_pilot_token
+    @url = opts[:url] || Config.ride_pilot_url || ""
+    @token = opts[:token] || Config.ride_pilot_token || ""
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
     @booking_options = opts[:booking_options] || {}
   end
@@ -97,7 +97,7 @@ class RidePilotAmbassador
       :get,
       head: headers,
       query: { provider_id: provider_id }
-    ).response!(label)
+    ).status!(label)
   end
   
   # Authenticates a RidePilot Customer
@@ -110,7 +110,7 @@ class RidePilotAmbassador
       :get,
       head: headers,
       query: { provider_id: provider_id, customer_id: customer_id, customer_token: customer_token }
-    ).response!(label)
+    ).status!(label)
   end
   
   # Gets an array of RidePilot purpose for the passed service

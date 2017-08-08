@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe TripPlanner do
+RSpec.describe TripPlanner do  
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   let(:trip) {create :trip}
@@ -10,7 +10,6 @@ RSpec.describe TripPlanner do
   let!(:transit) { create(:transit_service)}
   let(:strict_paratransit) { create(:paratransit_service, :medical_only, :strict) }
   let(:accommodating_paratransit) { create(:paratransit_service, :medical_only, :accommodating) }
-
 
   # OTP RESPONSES
   let!(:otp_responses) { {

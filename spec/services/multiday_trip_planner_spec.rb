@@ -7,25 +7,19 @@ RSpec.describe MultidayTripPlanner do
   before(:each) { create(:taxi_service) }
 
   
-  # OTP RESPONSES
-  let!(:otp_responses) { {
-    car: JSON.parse(File.read("spec/files/otp_response_car.json")) #,
-    # transit: JSON.parse(File.read("spec/files/otp_response_transit.json")),
-    # walk: JSON.parse(File.read("spec/files/otp_response_walk.json")),
-    # bicycle: JSON.parse(File.read("spec/files/otp_response_bicycle.json")),
-    # error: JSON.parse(File.read("spec/files/otp_response_error.json"))
-  } }
+  # Stubbed OTP Responses
+  let!(:otp_car_response) { JSON.parse(File.read("spec/files/otp_response_car.json")) }
 
-  # OTP AMBASSADORS WITH STUBBED HTTP REQUEST BUNDLERS
-  let!(:otps) do
-    otp_responses.map do |tt, resp|
-      [tt, create(:otp_ambassador, http_request_bundler: object_double(HTTPRequestBundler.new, response: resp, make_calls: {}, add: true))]
-    end.to_h
+  # Stubbed HTTPRequestBundler with fake OTP response
+  before(:each) do
+    HTTPRequestBundler.any_instance.stub(:response) { otp_car_response }
+    HTTPRequestBundler.any_instance.stub(:make_calls) { {} }
+    HTTPRequestBundler.any_instance.stub(:add) { true }
   end
   
   # TRIP PLANNERS
   let(:trip_types) { [:paratransit, :taxi] }
-  let(:mtp) { create(:multiday_trip_planner, options: {router: otps[:car], trip_types: trip_types}) }
+  let(:mtp) { create(:multiday_trip_planner, options: {trip_types: trip_types}) }
 
   it 'accepts an array of trip times, and plans a trip for each trip time' do
     expect(mtp.trips.count).to eq(0)
@@ -42,7 +36,6 @@ RSpec.describe MultidayTripPlanner do
       expect(trip.itineraries.count).to be > 0
       expect(trip.itineraries.pluck(:trip_type).map(&:to_sym)).to eq(trip_types)
     end
-    
   end
   
   

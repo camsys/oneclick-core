@@ -112,6 +112,18 @@ module BookingHelpers
       booking_ambassador(opts).cancel
     end
     
+    # Returns true/false if the itin is booked 
+    # (based on existence of and status code in booking object)
+    def booked?
+      !!booking.try(:booked?)
+    end
+    
+    # Returns true/false if the itin is canceled
+    # (based on existence of and status code in booking object)
+    def canceled?
+      !!booking.try(:canceled?)
+    end
+    
   end
   
 end

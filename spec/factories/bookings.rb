@@ -17,6 +17,15 @@ FactoryGirl.define do
             "message" => "Your trip request has been accepted."
             } 
           } }
+          
+      trait :canceled do
+        status "CANC"        
+      end
+      
+      trait :booked do
+        status "requested"
+      end
+      
     end
     
   end
