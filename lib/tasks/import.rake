@@ -183,7 +183,7 @@ namespace :import do
       service_attrs["agency_id"] = find_record_by_legacy_id(Agency, service_attrs.delete("provider_id")).try(:id)
       service_attrs["fare_details"] = format_fare_details(service_attrs.delete("fare_details"), service_attrs["fare_structure"].try(:to_sym))
               
-      logo = service_attrs.delete("logo")      
+      logo = service_attrs.delete("logo")
       comments = service_attrs.delete("comments")
       area_recipes = {
         start_or_end_area: service_attrs.delete("start_or_end_area_recipe"),
@@ -216,7 +216,7 @@ namespace :import do
       if svc && logo
         svc = Service.find(svc.id)
         svc.reload
-        svc.remote_logo_url = "#{args['host']}#{logo}"
+        svc.remote_logo_url = ENV["RACK_ENV"] == "development" ? "#{args['host']}#{logo}" : logo
         save_and_log_result(svc)
       end
 
