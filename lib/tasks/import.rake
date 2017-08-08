@@ -181,7 +181,7 @@ namespace :import do
     services_attributes.each do |service_attrs|
 
       service_attrs["agency_id"] = find_record_by_legacy_id(Agency, service_attrs.delete("provider_id")).try(:id)
-      service_attrs["fare_details"] = format_fare_details(service_attrs.delete("fare_details"), service_attrs["fare_structure"].to_sym)
+      service_attrs["fare_details"] = format_fare_details(service_attrs.delete("fare_details"), service_attrs["fare_structure"].try(:to_sym))
               
       logo = service_attrs.delete("logo")      
       comments = service_attrs.delete("comments")

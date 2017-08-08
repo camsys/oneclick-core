@@ -117,7 +117,7 @@ module ImportTaskHelpers
     else
     end
     
-    return fare_details.with_indifferent_access
+    return fare_details.try(:with_indifferent_access)
 
   end
   
