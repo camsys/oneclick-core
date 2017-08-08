@@ -27,14 +27,18 @@ Rails.application.routes.draw do
       end
       
       # Trips & Itineraries/Planning
-      resources :trips, only: [:create]
+      resources :trips, only: [:create] do 
+        collection do
+          post 'email'
+        end
+      end
       get 'trips/past_trips' => 'trips#past_trips'
       get 'trips/future_trips' => 'trips#future_trips'
       # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
-      
+
       # Users
       resources :users do
         collection do

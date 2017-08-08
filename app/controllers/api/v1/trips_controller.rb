@@ -197,6 +197,19 @@ module Api
         }
       end
 
+      # Replicates the email functionality (Except for the Ecolane Stuff)
+      def email
+        email_address = params[:email_address]
+        trip_id = params[:trip_id]
+
+        trip = Trip.find(trip_id.to_i)
+        UserMailer.user_trip_email([email_address], trip).deliver
+
+        # Also should improve the JSON response to handle successfully and failed email calls`
+        render json: {result: 200}
+
+      end
+
       # Builds a location hash out of the location param, packaging it as a google place hash
       def trip_location_to_google_hash(location)
         { google_place_attributes: location.to_json }
