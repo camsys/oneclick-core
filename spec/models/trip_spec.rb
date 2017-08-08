@@ -18,5 +18,15 @@ RSpec.describe Trip, type: :model do
     trip.reload
     expect(trip.selected_itinerary).to eq(nil)
   end
+  
+  
+  ### BOOKING ###
+  
+  describe 'booking' do
+    
+    it { should have_one(:booking) }
+    it { should respond_to(:build_booking, :booking_status, :booked?, :canceled?)}
+    
+  end
 
 end

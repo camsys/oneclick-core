@@ -1,17 +1,27 @@
 class Itinerary < ApplicationRecord
+  
+  ### INCLUDES ###
+  include BookingHelpers::ItineraryHelpers
+  
+  ### ATTRIBUTES & ASSOCIATIONS ###
   belongs_to :trip
   belongs_to :service
+  has_one :user, through: :trip
   has_one :selecting_trip, foreign_key: "selected_itinerary_id", class_name: "Trip"
   has_one :uber_extension, dependent: :destroy
+  has_one :booking
 
   serialize :legs
 
-  ### Scopes ###
+  ### SCOPES & CONFIG ###
   scope :transit_itineraries, -> { joins(:service).where('services.type = ?', 'Transit') }
   scope :paratransit_itineraries, -> { joins(:service).where('services.type = ?', 'Paratransit') }
   scope :taxi_itineraries, -> { joins(:service).where('services.type = ?', 'Taxi') }
 
   before_save :calculate_start_and_end_time
+
+  
+  ### INSTANCE METHODS ###
 
   # Duration virtual attribute sums all trip_time attributes
   def duration # (in seconds)
@@ -20,8 +30,14 @@ class Itinerary < ApplicationRecord
     wait_time.to_i
   end
 
+  # Makes this itinerary the selected itinerary for the trip
   def select
     self.trip.update(selected_itinerary: self)
+  end
+  
+  # Is this the trip's selected itinerary?
+  def selected?
+    trip.selected_itinerary == self
   end
 
   def unselect

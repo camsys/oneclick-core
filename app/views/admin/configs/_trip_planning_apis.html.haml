@@ -1,0 +1,32 @@
+=content_for :header do
+  = "External Trip Planning Services"
+
+=simple_form_for Config,
+  url: admin_configs_path,
+  remote: true, 
+  html: { class: 'form-horizontal', 
+          id: form_id_from_path, 
+          multipart: true, 
+          method: 'patch' },
+  authenticity_token: true do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  = f.input :open_trip_planner, required: true,
+    label: "URL of the Open Trip Planner Server",
+    input_html: {value: @configs.find_by(key: :open_trip_planner).value},
+    as: :string
+    
+  =f.input :tff_api_key, required: true,
+    label: "API Key for Taxi Fare Finder",
+    input_html: {value: @configs.find_by(key: :tff_api_key).value},
+    as: :string
+    
+  =f.input :uber_token, required: true,
+    label: "Uber Token",
+    input_html: {value: @configs.find_by(key: :uber_token).value},
+    as: :string
+
+:javascript
+  $(document).ready(function() {    
+    new FormHandler($('#{form_selector_from_id}'));
+  });

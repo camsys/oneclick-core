@@ -3,11 +3,11 @@ class Config < ApplicationRecord
   serialize :value
 
   validates :key, presence: true, uniqueness: true
-  # validates :value, presence: true
   
   # List of rake tasks that can be scheduled
   AVAILABLE_SCHEDULED_TASKS = [
-    :agency_setup_reminder_emails
+    :agency_setup_reminder_emails,
+    :get_ride_pilot_purposes
   ].freeze
 
   # Returns the value of a setting when you say Config.<key>

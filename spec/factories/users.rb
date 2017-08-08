@@ -1,6 +1,6 @@
 FactoryGirl.define do
   factory :user, aliases: [:commenter] do
-    sequence(:email) {|i| "test_user_#{i}@camsys.com" }
+    sequence(:email) {|i| "test_user_#{rand(1000).to_s.rjust(3, "0")}_#{i}@camsys.com" }
     password "welcome1"
     password_confirmation "welcome1"
     first_name "Test"
@@ -95,6 +95,13 @@ FactoryGirl.define do
     trait :with_old_trip do
       after(:create) do |u|
         u.trips << create(:trip, trip_time: Date.today - 2.months)
+      end
+    end
+    
+    trait :with_booking_profiles do
+      after(:create) do |u|
+        u.booking_profiles << create(:ride_pilot_user_profile, user: u)
+        u.booking_profiles << create(:ride_pilot_user_profile, user: u)
       end
     end
 

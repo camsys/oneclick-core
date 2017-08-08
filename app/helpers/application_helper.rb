@@ -36,9 +36,17 @@ module ApplicationHelper
     "form#" + form_id_from_path
   end
 
-  # This sends the partial's path to the controller on form submit, so it can serve back the correct partial
+  # This sends the partial's path to the controller on form submit, 
+  # so it can serve back the correct partial. Also, refreshes the flash
+  # messages.
   def remote_form_input
-    "<input class='hidden' name='partial_path' type'text' value='#{partial_path}'>".html_safe
+    html =  "<input class='hidden' name='partial_path' type'text' value='#{partial_path}'>"
+    html << "<script>"
+    html <<   "$(document).ready(function() {
+                $('#flash-display').replaceWith('#{escape_javascript render partial: "shared/flash"}');
+              });"
+    html << "</script>"
+    html.html_safe
   end
   
   ### remote partial helpers ###

@@ -2,6 +2,7 @@ class User < ApplicationRecord
 
   ### Includes ###
   rolify  # user may be an admin, staff, traveler, ...
+  include BookingHelpers::UserHelpers #has_many :booking_profiles, etc.
   include Contactable
   include RoleHelper
   acts_as_token_authenticatable
@@ -33,6 +34,7 @@ class User < ApplicationRecord
 
   ### Associations ###
   has_many :trips, dependent: :nullify
+  has_many :itineraries, through: :trips
   has_and_belongs_to_many :accommodations
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
   has_many :user_eligibilities, dependent: :destroy

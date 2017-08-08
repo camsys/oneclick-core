@@ -168,25 +168,19 @@ module FareHelper
   end
 
   # Permits proper Fare Params based on fare_structure
-  class FareParamPermitter
+  class FareParamPermitter < HashParamPermitter
+    define_hash_structure(
+      hash_column: :fare_details, 
+      case_column: :fare_structure,
+      structure: {
+        flat: [:base_fare],
+        mileage: [:base_fare, :mileage_rate, :trip_type],
+        taxi_fare_finder: [:taxi_fare_finder_city],
+        zone: []
+      }
+    )
 
-    def initialize(params)
-      @params = params
-    end
-
-    def permit
-      return [] unless @params.has_key?(:fare_structure)
-      [:fare_structure, fare_details: self.send("permit_#{@params[:fare_structure]}")]
-    end
-
-    def permit_flat
-      [:base_fare]
-    end
-
-    def permit_mileage
-      [:base_fare, :mileage_rate, :trip_type]
-    end
-
+    # Custom permit method for zone params
     def permit_zone
       permitted_params = []
       zones = @params[:fare_details][:fare_zones].keys.map{|k| k.to_sym}
@@ -196,10 +190,6 @@ module FareHelper
         fare_zones: (zone_recipes.empty? ? [{}] : zone_recipes),
         fare_table: (zone_grid.empty? ? [{}] : zone_grid)
       ]
-    end
-
-    def permit_taxi_fare_finder
-      [:taxi_fare_finder_city]
     end
 
   end
