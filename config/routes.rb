@@ -41,6 +41,7 @@ Rails.application.routes.draw do
           get 'profile'
           get 'get_guest_token'
           post 'update'
+          post 'password'
         end
       end
       
