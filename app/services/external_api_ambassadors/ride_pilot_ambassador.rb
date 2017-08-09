@@ -274,6 +274,7 @@ class RidePilotAmbassador
   def body_for_booking(opts={})
     duration = opts[:duration] || 1.hour  # Time to spend at destination
     attendants = opts[:attendants] || 0
+    attendants = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
     
     {
@@ -284,6 +285,7 @@ class RidePilotAmbassador
     	pickup_time: @trip.trip_time.iso8601,
     	dropoff_time: (@trip.trip_time + duration).iso8601, # Pull increment from options
     	attendants: attendants,
+      mobility_devices: mobility_devices,
     	guests: guests,
     	from_address: { address: @trip.origin.try(:google_place_hash) },
     	to_address: { address: @trip.destination.try(:google_place_hash) }
