@@ -66,7 +66,6 @@ class RidePilotAmbassador
   # (Implemented by all Booking Ambassadors)
 
   def book
-    puts "BOOKING OPTIONS", @booking_options.ai
     # select the itinerary if not already selected
     @itinerary.select if @itinerary && !@itinerary.selected?
 

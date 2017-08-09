@@ -102,6 +102,13 @@ RSpec.describe RidePilotAmbassador do
     expect(rpa_booked.status.canceled?).to be true
   end
   
+  it "authenticates a user" do
+    # Stub out status response for authenticate_customer call
+    http_request_bundler.stub(:status!).and_return(ride_pilot_authenticate_customer_status)
+
+    expect(rpa_booked.authenticate_user?).to be true
+  end
+  
   it "makes RidePilot create_trip call" do
     http_request_bundler.stub(:response!).and_return(ride_pilot_create_trip_response)
     expect(ride_pilot_ambassador.create_trip).to eq(ride_pilot_create_trip_response)

@@ -11,7 +11,7 @@ module TravelerProfileUpdater
     update_accommodations params[:accommodations] unless params[:accommodations].nil?
     update_preferred_modes params[:preferred_trip_types] unless params[:preferred_trip_types].nil?
     update_preferred_modes params[:preferred_modes] unless params[:preferred_modes].blank? #This is depracated after api/v1. Preferred Modes are updated as part of attributes
-    update_booking_profile params[:booking]
+    update_booking_profile params[:booking] unless params[:booking].nil?
     return true
   end
 
@@ -79,7 +79,6 @@ module TravelerProfileUpdater
       details_hash[:id] = params[:user_name] || details_hash[:id]
       details_hash[:token] = params[:password] || details_hash[:token]
       profile.details = details_hash
-      puts "BOOKING_PROFILE", profile.ai
       profile.authenticate? ? profile.save : false
     end
   end
