@@ -1,0 +1,20 @@
+
+
+%h2
+  -if attachments["service_logo.png"]
+    =image_tag(attachments["service_logo.png"].url)
+  =itinerary.service.name
+-unless itinerary.service.url.blank?
+  =link_to(itinerary.service.url, itinerary.service.url)
+  %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
+-unless itinerary.service.email.blank?
+  =mail_to(itinerary.service.email, itinerary.service.email)
+  %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
+-unless itinerary.service.phone.blank?
+  =itinerary.service.phone
+
+%p="*Fare and Trip Times are Estimated"
+
+%td{style: "text-align: center;", colspan: 2}
+  %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
+    =image_tag(attachments[itinerary.id.to_s + ".png"].url)

@@ -17,6 +17,9 @@ class UserMailer < ApplicationMailer
     unless @itinerary
       return
     end
+    if @itinerary.service and @itinerary.service.logo.url
+      attachments.inline['service_logo.png'] = open(ActionController::Base.helpers.asset_path(@itinerary.service.logo.thumb.url.to_s), 'rb').read
+    end
     map_image = MapService.new(@itinerary).create_static_map
     attachments.inline[@itinerary.id.to_s + ".png"] = open(map_image, 'rb').read
     attach_standard_icons #TODO: Don't attach all icons by default.  Attach them as needed.

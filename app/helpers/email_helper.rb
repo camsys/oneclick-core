@@ -102,8 +102,8 @@ module EmailHelper
   def get_mode_partial itinerary
 
     case itinerary.trip_type
-    when "uber"
-      return "uber_details"
+    when "uber", "taxi"
+      return "taxi_tnc_details"
     else
       return "static_details"
     end
