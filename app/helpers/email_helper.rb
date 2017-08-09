@@ -39,7 +39,6 @@ module EmailHelper
     dist_str
   end
 
-
   def html_steps steps
       html = ""
 
@@ -56,5 +55,12 @@ module EmailHelper
       html << "</div>"
       return html.html_safe
     end
+
+  # Returns a mode-specific icon
+  def get_mode_icon(mode)
+
+    return "walk.png"
+
+  end
   
 end
