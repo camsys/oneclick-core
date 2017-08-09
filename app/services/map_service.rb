@@ -82,6 +82,9 @@ class MapService
 
   #Returns an array of polylines, one for each leg
   def create_polylines
+    if @itinerary.legs.nil?
+      return []
+    end
 
     polylines = []
     @itinerary.legs.each_with_index do |leg, index|
