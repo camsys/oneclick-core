@@ -59,15 +59,17 @@ module EmailHelper
   # Returns a mode-specific icon
   def get_mode_icon(mode)
 
-    puts 'Derek'
-    puts mode
-
     case mode
     when "WALK"
       return "walk.png"
     when "CAR"
       return "auto.png"
-    else 
+    when "TRAM", "SUBWAY"
+      return "subway.png"
+    when "BUS"
+      return "bus.png"
+    else
+      Rails.logger.info "#{mode} does not have a supported icon, defaulting to bus.png"
       return "bus.png"
     end
 
