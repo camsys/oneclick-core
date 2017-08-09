@@ -1,5 +1,7 @@
 class UserMailer < ApplicationMailer
 
+  helper :email 
+
   def agency_setup_reminder(agency)
     @agency = agency
     email_list = (agency.staff.pluck(:email) + [@agency.email] + User.admins.pluck(:email)).compact
@@ -15,7 +17,7 @@ class UserMailer < ApplicationMailer
     unless @itinerary
       return
     end
-    map_image = create_static_map(@itinerary)
+    map_image = MapService.new(@itinerary).create_static_map
     attachments.inline[@itinerary.id.to_s + ".png"] = open(map_image, 'rb').read
     attach_standard_icons #TODO: Don't attach all icons by default.  Attach them as needed.
     mail(to: addresses, subject: subject)
