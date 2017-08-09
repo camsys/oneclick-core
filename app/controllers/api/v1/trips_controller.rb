@@ -97,7 +97,7 @@ module Api
             results[itin[:itinerary_id]] = false
           end
         end
-        render status: 200, json: results
+        render status: 200, json: {result: 200, itineraries: results }
       end
 
       # POST trips/book, POST itineraries/book
@@ -114,12 +114,13 @@ module Api
           
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
           booking = itin.book(booking_request)
+          next response unless booking.is_a?(Booking)
 
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
                 
-        render status: 200, json: responses
+        render status: 200, json: {booking_results: responses}
       end
 
       # POST trips/cancel, itineraries/cancel

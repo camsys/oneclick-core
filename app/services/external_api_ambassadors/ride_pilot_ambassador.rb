@@ -22,7 +22,6 @@ class RidePilotAmbassador
     self.booking_profile = opts[:booking_profile] || @booking_profile
     self.service = opts[:service] || @service
     self.user = opts[:user] || @user # Defaults to trip.user
-
     
     @url = opts[:url] || Config.ride_pilot_url || ""
     @token = opts[:token] || Config.ride_pilot_token || ""
@@ -72,8 +71,8 @@ class RidePilotAmbassador
     # Make a create_trip call to RidePilot, passing a trip and any 
     # booking_options that have been set
     response = create_trip
-    return false unless response
-    
+    return false unless response && response["trip_id"].present?
+        
     # Store the status info in a Booking object and return it
     update_booking(response)
     return booking
@@ -82,7 +81,7 @@ class RidePilotAmbassador
   def cancel
     # Make a cancel_trip call to RidePilot, using @trip
     response = cancel_trip
-    return false unless response
+    return false unless response && response["trip_id"].present?
     
     # Unselect the itinerary on successful cancellation
     @itinerary.unselect
@@ -95,7 +94,7 @@ class RidePilotAmbassador
   def status
     # Make a get_status call to RidePilot, using @trip
     response = trip_status
-    return false unless response
+    return false unless response && response["trip_id"].present?
     
     # Update Booking object with status info and return it
     update_booking(response)
@@ -213,7 +212,9 @@ class RidePilotAmbassador
       },
       {
         question: "What is your trip purpose?", 
-        choices: (trip_purposes["trip_purposes"] || []).map{|p| [p["name"], p["code"]]}, 
+        choices: (trip_purposes["trip_purposes"] || 
+                  Config.ride_pilot_purposes.try(:map) {|k,v| {"name" => k, "code" => v}} || 
+                  []).map{|p| [p["name"], p["code"]]}, 
         code: "purpose"
       }
     ]
@@ -272,9 +273,10 @@ class RidePilotAmbassador
   
   # Build request body for book (i.e. create_trip) call
   def body_for_booking(opts={})
-    duration = opts[:duration] || 1.hour  # Time to spend at destination
+    # dropoff_time = (opts[:return_time].try(:to_datetime) || 
+    #                 @trip.trip_time + 1.hour)  # Time to spend at destination
     attendants = opts[:attendants] || 0
-    attendants = opts[:mobility_devices] || 0
+    mobility_devices = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
     
     {
@@ -282,8 +284,8 @@ class RidePilotAmbassador
     	customer_id: @user.booking_profile_for(@service).details[:id], # Pull from traveler's booking profile
     	customer_token: @user.booking_profile_for(@service).details[:token], # Pull from traveler's booking profile
     	trip_purpose: opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose), # Convert trip purpose to RidePilot code
-    	pickup_time: @trip.trip_time.iso8601,
-    	dropoff_time: (@trip.trip_time + duration).iso8601, # Pull increment from options
+    	pickup_time: @itinerary.start_time.iso8601,
+    	dropoff_time: @itinerary.end_time.iso8601,
     	attendants: attendants,
       mobility_devices: mobility_devices,
     	guests: guests,

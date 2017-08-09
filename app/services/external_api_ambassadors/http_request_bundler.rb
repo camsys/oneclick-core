@@ -127,7 +127,11 @@ class HTTPRequestBundler
   # Returns the response body
   def response_body_for(label)
     resp = response_for(label)
-    JSON.parse(resp.response) if resp.response.present?
+    begin
+      JSON.parse(resp.response)
+    rescue JSON::ParserError
+      { error: "Response Body not valid JSON" }
+    end
   end
   
   # Returns the response status
@@ -149,7 +153,6 @@ class HTTPRequestBundler
   def update_responses(responses, storage_hash)
     responses.each do |label, resp|
       storage_hash[label] = resp if resp.present?
-      # storage_hash[label] = (JSON.parse(resp.response) if resp.response.present?)
     end
   end
 

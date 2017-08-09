@@ -142,7 +142,7 @@ module Api
 
       def schedule
         return [] unless object.service && object.service.schedules
-        object.service.schedules.map do |schedule|
+        object.service.schedules.order(:day).map do |schedule|
           {
             day: Date::DAYNAMES[schedule.day],
             start: [schedule_time_to_string(schedule.start_time)],
