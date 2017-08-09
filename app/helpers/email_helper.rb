@@ -68,6 +68,8 @@ module EmailHelper
       return "subway.png"
     when "BUS"
       return "bus.png"
+    when "BICYCLE"
+      return "bicycle.png"
     else
       Rails.logger.info "#{mode} does not have a supported icon, defaulting to bus.png"
       return "bus.png"
@@ -81,14 +83,16 @@ module EmailHelper
     case leg['mode']
     when "WALK"
       return "Walk to #{leg['to']['name']}"
+    when "BICYCLE"
+      return "Bike to #{leg['to']['name']}"
     when "CAR"
       return "Drive to #{leg['to']['name']}"
     when "TRAM", "SUBWAY"
       return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
     when "BUS"
       return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
-    else
-      Rails.logger.info "#{mode} does not have a supported short description, defaulting to bus description"
+    else 
+      Rails.logger.info "#{leg['mode']} does not have a supported short description, defaulting to bus description"
       return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
     end
 
