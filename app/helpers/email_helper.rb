@@ -44,7 +44,7 @@ module EmailHelper
 
       steps.each do |hash|
         html << "<p><b>"
-        html << hash["relativeDirection"].downcase
+        html << hash["relativeDirection"].humanize
         html << "</b> onto "
         html << hash["streetName"].to_s
         html << ", "
@@ -57,7 +57,7 @@ module EmailHelper
     end
 
   # Returns a mode-specific icon
-  def get_mode_icon(mode)
+  def get_mode_icon mode
 
     case mode
     when "WALK"
@@ -71,6 +71,25 @@ module EmailHelper
     else
       Rails.logger.info "#{mode} does not have a supported icon, defaulting to bus.png"
       return "bus.png"
+    end
+
+  end
+
+    # Returns a mode-specific icon
+  def short_description leg
+
+    case leg['mode']
+    when "WALK"
+      return "Walk to #{leg['to']['name']}"
+    when "CAR"
+      return "Drive to #{leg['to']['name']}"
+    when "TRAM", "SUBWAY"
+      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
+    when "BUS"
+      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
+    else
+      Rails.logger.info "#{mode} does not have a supported short description, defaulting to bus description"
+      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
     end
 
   end
