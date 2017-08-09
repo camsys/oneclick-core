@@ -2,6 +2,8 @@
   = "#{@user.first_name} #{@user.last_name}".strip
 
 =render partial: 'edit_user', layout: '/layouts/panel'
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+
+-unless @user == current_user
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 =back_link admin_users_path, label: "All Staff"
