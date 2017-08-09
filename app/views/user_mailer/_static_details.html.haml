@@ -26,6 +26,4 @@
       %h3
         = "Arrive " + itinerary.trip.destination.name
       = itinerary.end_time.in_time_zone.strftime('%l:%M %p').strip
-%td{style: "text-align: center;", colspan: 2}
-  %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
-    =image_tag(attachments[itinerary.id.to_s + ".png"].url)
+

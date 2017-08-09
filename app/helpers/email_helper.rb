@@ -97,17 +97,5 @@ module EmailHelper
     end
 
   end
-
-    # Returns a mode-specific icon
-  def get_mode_partial itinerary
-
-    case itinerary.trip_type
-    when "uber", "taxi"
-      return "taxi_tnc_details"
-    else
-      return "static_details"
-    end
-
-  end
   
 end
