@@ -27,7 +27,7 @@
 = render :partial => 'trip_summary_header', :locals => { :itinerary => @itinerary }
 
 // Detailed Itinerary Info
-= render :partial => "#{@itinerary.trip_type}_details", :locals => { :itinerary => @itinerary }
+= render :partial => "static_details", :locals => { :itinerary => @itinerary }
 
 
 

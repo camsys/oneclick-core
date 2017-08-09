@@ -59,7 +59,17 @@ module EmailHelper
   # Returns a mode-specific icon
   def get_mode_icon(mode)
 
-    return "walk.png"
+    puts 'Derek'
+    puts mode
+
+    case mode
+    when "WALK"
+      return "walk.png"
+    when "CAR"
+      return "auto.png"
+    else 
+      return "bus.png"
+    end
 
   end
   
