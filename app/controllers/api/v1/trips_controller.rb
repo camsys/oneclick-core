@@ -1,7 +1,9 @@
 module Api
   module V1
     class TripsController < ApiController
-      before_action :require_authentication, only: [:past_trips, :future_trips, :select, :cancel, :index]
+      before_action :require_authentication, only: [
+        :past_trips, :future_trips, :select, :cancel, :index, :book
+      ]
       before_action :current_or_guest_user, only: [:create] #If @traveler is not set, then create a guest user account
 
       # GET trips/past_trips
@@ -80,6 +82,8 @@ module Api
         end
       end
 
+      # POST trips/select, itineraries/select
+      # Selects the target itinerary
       def select
         select_itineraries =  params[:select_itineraries] || []
         #Get the itineraries
@@ -96,24 +100,67 @@ module Api
         render status: 200, json: results
       end
 
-      def cancel
-        bookingcancellation_request = params[:bookingcancellation_request] || []
-        # At the moment, this only handles unselecting itineraries.  True cancelling is not yet supported.
-        results = []
-        bookingcancellation_request.each do |bc|
-          itinerary = Itinerary.find_by(id: bc[:itinerary_id].to_i)
-          if @traveler.owns? itinerary
-            itinerary.unselect
-            #results[itinerary.id] = true
-            results.append({trip_id: itinerary.trip.id, itinerary_id: bc[:itinerary_id], success: true, confirmation_id: nil})
-          else
-            results.append({trip_id: nil, itinerary_id: bc[:itinerary_id], success: false, confirmation_id: nil})
-          end
+      # POST trips/book, POST itineraries/book
+      # Selects and books an itinerary via an external booking api
+      def book
+        responses = booking_request_params.map do |booking_request|
+          itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          
+          response = booking_response_base(itin).merge({booked: false})
+          next response unless itin
+          
+          # BOOK THE ITINERARY, selecting it and storing the response in a booking object
+          booking = itin.book
+
+          # Package it in a response hash as per API V1 docs
+          next response.merge(booking_response_hash(booking))
         end
+                
+        render status: 200, json: responses
+      end
+
+      # POST trips/cancel, itineraries/cancel
+      # Unselects and cancels the target itinerary
+      def cancel
+        results = bookingcancellation_request_params.map do |bc_req|
+          itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
+                  @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
+          
+          response = booking_response_base(itin).merge({success: false})
+          next response unless itin
+          
+          # CANCEL THE ITINERARY, unselecting it and updating the booking object
+          booking = itin.cancel
+          
+          # Package response as per API V1 docs
+          next response.merge(bookingcancellation_response_hash(booking))
+        end
+        
         render status: 200, json: {cancellation_results: results}
       end
 
       protected
+      
+      def booking_request_params
+        params.require(:booking_request).map do |p|
+          p.permit(
+            :itinerary_id,
+            :guests,
+            :purpose,
+            :attendants,
+            :return_time
+          )
+        end
+      end
+      
+      def bookingcancellation_request_params
+        params.require(:bookingcancellation_request).map do |p|
+          p.permit(
+            :itinerary_id,
+            :booking_confirmation
+          )
+        end
+      end
 
       def trip_params(parameters)
         parameters.require(:trip).permit(
@@ -213,6 +260,52 @@ module Api
       # Builds a location hash out of the location param, packaging it as a google place hash
       def trip_location_to_google_hash(location)
         { google_place_attributes: location.to_json }
+      end
+      
+      # Returns the base hash for booking action responses
+      def booking_response_base(itinerary)
+        {
+          trip_id: itinerary.try(:trip).try(:id),
+          itinerary_id: itinerary.try(:id)
+        }
+      end
+      
+      # Makes an API V1 booking response hash from a booking object
+      def booking_response_hash(booking)
+        itin = booking.itinerary
+        
+        case booking.type_code
+        when :ride_pilot
+          pickup_time = booking.details.try(:[], "pickup_time").try(:to_datetime) || itin.start_time
+          # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
+          dropoff_time = (booking.details.try(:[], "dropff_time") ||
+                          booking.details.try(:[], "dropoff_time"))
+                          .try(:to_datetime) || pickup_time + itin.duration.seconds
+          return {
+            booked: true,
+            confirmation_id: booking.details.try(:[], "trip_id"),
+            wait_start: (pickup_time - 15.minutes).iso8601,
+            wait_end: (pickup_time + 15.minutes).iso8601,
+            arrival: dropoff_time.iso8601,
+            message: "Booking Status: #{booking.status}",
+            negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
+          }
+        else
+          return {}
+        end
+      end
+      
+      # Makes an API V1 bookingcancellation response hash from a booking object
+      def bookingcancellation_response_hash(booking)
+        case booking.type_code
+        when :ride_pilot
+          return {
+            success: true,
+            confirmation_id: booking.confirmation
+          }
+        else
+          return {}
+        end        
       end
 
     end

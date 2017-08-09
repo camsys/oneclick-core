@@ -1,0 +1,48 @@
+{
+    "trip_purposes": [
+        {
+            "name": "Nutrition",
+            "code": 13
+        },
+        {
+            "name": "New Trip Purpose",
+            "code": 12
+        },
+        {
+            "name": "Center",
+            "code": 9
+        },
+        {
+            "name": "Volunteer Work",
+            "code": 8
+        },
+        {
+            "name": "Shopping",
+            "code": 7
+        },
+        {
+            "name": "School/Work",
+            "code": 6
+        },
+        {
+            "name": "Recreation",
+            "code": 5
+        },
+        {
+            "name": "Personal/Support Services",
+            "code": 4
+        },
+        {
+            "name": "Dietician",
+            "code": 3
+        },
+        {
+            "name": "Medical",
+            "code": 2
+        },
+        {
+            "name": "Life-Sustaining Medical",
+            "code": 1
+        }
+    ]
+}

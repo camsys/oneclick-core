@@ -17,6 +17,7 @@ module Api
 
         # Initialize a trip based on the params
         @trip = Trip.new(trip_params)
+        @trip.user = @traveler
         trip_planner = TripPlanner.new(@trip, trip_planner_options)
         
         # Plan the trip (build itineraries and save it)

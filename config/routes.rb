@@ -38,7 +38,12 @@ Rails.application.routes.draw do
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
+<<<<<<< HEAD
 
+=======
+      post 'itineraries/book' => 'trips#book'
+      
+>>>>>>> master
       # Users
       resources :users do
         collection do
@@ -117,6 +122,7 @@ Rails.application.routes.draw do
     # Configs
     resources :configs, :only => [:index] do
       collection do
+        patch 'update'
         patch 'set_open_trip_planner'
         patch 'set_tff_api_key'
         patch 'set_uber_token'

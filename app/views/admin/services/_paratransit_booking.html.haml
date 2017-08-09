@@ -1,0 +1,51 @@
+=content_for :header do
+  Booking
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  =f.input :booking_api, 
+      input_html: {class: 'booking-api'}, 
+      collection: Booking::BOOKING_TYPES.map {|code, name| [code.to_s.camelcase, code] }
+  
+  -booking_details = @service.booking_details || {}
+  
+  -# RIDEPILOT
+  .booking-inputs.ride_pilot-booking.hidden
+    =f.fields_for :booking_details do |bd|
+      =bd.input :provider_id, as: :integer, label: "RidePilot Provider ID", input_html: {value: booking_details[:provider_id]}
+
+  -# ECOLANE
+  .booking-inputs.ecolane-booking.hidden
+    -# %h4 ECOLANE BOOKING FIELDS
+
+  -# TRAPEZE
+  .booking-inputs.trapeze-booking.hidden
+    -# %h4 TRAPEZE BOOKING FIELDS
+
+:javascript
+  $(document).ready(function() {
+
+    // Create a FormHandler to handle submit and cancel events
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+    
+    // Handle toggling between different booking apis:
+    var bookingApiInput = $('.booking-api');
+
+    // Show appropriate booking details inputs and hide all others
+    var showBookingInputs = function() {
+      var bookingApi = bookingApiInput.val();
+      $('.booking-inputs').addClass('hidden');
+      $('.booking-inputs.' + bookingApi + '-booking').removeClass('hidden');
+    };
+    showBookingInputs(); // On page load, show proper booking inputs
+    bookingApiInput.change(showBookingInputs); // Show correct booking inputs when a new api is selected.
+
+    // Form reset callback
+    fh.onReset(function() {
+      showBookingInputs(); // Show correct booking inputs when form is reset
+    });
+
+  });

@@ -1,0 +1,11 @@
+{
+    "trip_id": 1475,
+    "pickup_time": "2017-08-11T12:12:00-06:00",
+    "dropoff_time": "2017-08-11T14:12:00-06:00",
+    "comments": null,
+    "status": {
+        "code": "CANC",
+        "name": "Cancelled",
+        "message": "Cancelled"
+    }
+}

@@ -17,6 +17,7 @@ module Api
 
         Rails.logger.info params.ai 
 
+        # user.update_profile call filters out any unsafe params
         if @traveler.update_profile(params)
           render(success_response(@traveler, serializer: UserSerializer))
         else
