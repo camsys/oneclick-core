@@ -50,6 +50,16 @@ class HTTPRequestBundler
     response_status_for(label)
   end
   
+  # Returns true if status call is a 200 code
+  def success?(label)
+    status(label)[0] == "2"
+  end
+  
+  # Same as success?, but always remakes the call
+  def success!(label)
+    status!(label)[0] == "2"
+  end
+  
   # Forces making call and overwriting response for given label
   def call!(label)
     make_calls(only: [label], overwrite: true)
