@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170802175321) do
+ActiveRecord::Schema.define(version: 20170810181702) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -295,8 +295,10 @@ ActiveRecord::Schema.define(version: 20170802175321) do
     t.boolean  "arrive_by",             default: false
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
+    t.integer  "previous_trip_id"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
+    t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree
     t.index ["purpose_id"], name: "index_trips_on_purpose_id", using: :btree
     t.index ["selected_itinerary_id"], name: "index_trips_on_selected_itinerary_id", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
@@ -396,6 +398,7 @@ ActiveRecord::Schema.define(version: 20170802175321) do
   add_foreign_key "stomping_grounds", "users"
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
   add_foreign_key "trips", "purposes"
+  add_foreign_key "trips", "trips", column: "previous_trip_id"
   add_foreign_key "trips", "users"
   add_foreign_key "trips", "waypoints", column: "destination_id"
   add_foreign_key "trips", "waypoints", column: "origin_id"

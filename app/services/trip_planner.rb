@@ -17,7 +17,7 @@ class TripPlanner
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
-    @available_services = nil
+    @available_services = options[:available_services] || Service.all # Allow pre-filtering of available services
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
     @relevant_eligibilities = @relevant_purposes = @relevant_accommodations = []
@@ -53,7 +53,7 @@ class TripPlanner
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   def set_available_services
     # Start with the scope of all services available for public viewing
-    @available_services = Service.published
+    @available_services = @available_services.published
     
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
