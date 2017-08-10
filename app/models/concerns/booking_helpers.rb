@@ -95,12 +95,25 @@ module BookingHelpers
     def canceled?
       !!booking.try(:canceled?)
     end
+    
+    # Initializes a BookingAmbassador object of the appropriate type
+    # based on the trip's selected service, passing in itself
+    # along with any other options given.
+    def booking_ambassador(opts={})
+      selected_service.try(:booking_ambassador, {trip: self}.merge(opts))
+    end
 
     # Books the selected itinerary, the passed itinerary, or returns false if no 
-    # itinerary is selected or passed
-    def book(itinerary=nil)
+    # itinerary is selected or passed. Booking options may be passed as a hash.
+    # It is useful to book using this method for debugging, as errors will be stored on the trip
+    def book(itinerary=nil, opts={})
       itinerary_to_book = itineraries.find_by(id: itinerary.try(:id)) || selected_itinerary
-      itinerary_to_book.present? ? itinerary_to_book.book : false
+      if itinerary_to_book.present? 
+        itinerary_to_book.select
+        return booking_ambassador(booking_options: opts).book
+      else
+        return false
+      end
     end
 
   end

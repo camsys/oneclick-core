@@ -73,7 +73,6 @@ class RidePilotAmbassador
     # Make a create_trip call to RidePilot, passing a trip and any 
     # booking_options that have been set
     response = create_trip
-    Rails.logger.debug @errors.to_sentence unless @errors.empty?
     return false unless response && response["trip_id"].present?
         
     # Store the status info in a Booking object and return it
@@ -282,7 +281,7 @@ class RidePilotAmbassador
     mobility_devices = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
     purpose_code = opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose) # Convert trip purpose to RidePilot code
-    @errors << "Cannot book without trip purpose code." unless purpose_code
+    @trip.errors.add(:booking, "Cannot book without trip purpose code.") unless purpose_code
     
     {
       provider_id: @service.booking_details[:provider_id], # Pull from selected itinerary's service's booking profile
