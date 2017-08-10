@@ -23,6 +23,11 @@ module BookingHelpers
       booking_profiles.find_by(service_id: service.try(:id))
     end
     
+    # Returns true if the user has a booking_profile for the given service
+    def has_booking_profile_for?(service)
+      booking_profile_for(service).present?
+    end
+    
   end
   
   
@@ -47,6 +52,11 @@ module BookingHelpers
       else
         return nil
       end
+    end
+    
+    # Returns true/false if service is (theoretically) bookable
+    def bookable?
+      booking_api.present? && booking_details.present?
     end
     
   end
@@ -104,7 +114,7 @@ module BookingHelpers
     
     # Books this itinerary
     def book(opts={})
-      booking_ambassador(opts).book
+      booking_ambassador(booking_options: opts).book
     end
     
     # Cancels this itinerary

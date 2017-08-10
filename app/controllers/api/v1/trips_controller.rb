@@ -97,7 +97,7 @@ module Api
             results[itin[:itinerary_id]] = false
           end
         end
-        render status: 200, json: results
+        render status: 200, json: {result: 200, itineraries: results }
       end
 
       # POST trips/book, POST itineraries/book
@@ -109,14 +109,18 @@ module Api
           response = booking_response_base(itin).merge({booked: false})
           next response unless itin
           
+          # Set trip purpose on the itin's trip
+          # purpose = 
+          
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
-          booking = itin.book
+          booking = itin.book(booking_request)
+          next response unless booking.is_a?(Booking)
 
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
                 
-        render status: 200, json: responses
+        render status: 200, json: {booking_results: responses}
       end
 
       # POST trips/cancel, itineraries/cancel
@@ -148,7 +152,8 @@ module Api
             :guests,
             :purpose,
             :attendants,
-            :return_time
+            :return_time,
+            :mobility_devices
           )
         end
       end
@@ -281,9 +286,11 @@ module Api
           dropoff_time = (booking.details.try(:[], "dropff_time") ||
                           booking.details.try(:[], "dropoff_time"))
                           .try(:to_datetime) || pickup_time + itin.duration.seconds
+          confirmation_id = booking.details.try(:[], "trip_id")
           return {
             booked: true,
-            confirmation_id: booking.details.try(:[], "trip_id"),
+            confirmation: confirmation_id, # it needs both of these 
+            confirmation_id: confirmation_id, # for some reason
             wait_start: (pickup_time - 15.minutes).iso8601,
             wait_end: (pickup_time + 15.minutes).iso8601,
             arrival: dropoff_time.iso8601,

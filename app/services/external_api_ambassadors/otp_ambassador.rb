@@ -51,7 +51,6 @@ class OTPAmbassador
   def get_gtfs_ids
     itineraries = ensure_response(:transit).itineraries
     return itineraries.map{|i| i.pluck_from_legs("agencyId")}
-    # puts "GETTING GTFS ID", itineraries.map {|i| i["legs"].pluck("agencyId")}.ai
   end
 
   # Returns an array of 1-Click-ready itinerary hashes.
