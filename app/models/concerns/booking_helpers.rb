@@ -96,6 +96,13 @@ module BookingHelpers
       !!booking.try(:canceled?)
     end
 
+    # Books the selected itinerary, the passed itinerary, or returns false if no 
+    # itinerary is selected or passed
+    def book(itinerary=nil)
+      itinerary_to_book = itineraries.find_by(id: itinerary.try(:id)) || selected_itinerary
+      itinerary_to_book.present? ? itinerary_to_book.book : false
+    end
+
   end
   
   

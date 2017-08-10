@@ -13,7 +13,8 @@ class RidePilotAmbassador
                 :service, 
                 :trip, 
                 :user,
-                :booking_profile
+                :booking_profile,
+                :errors
   
   # Initialize with a service and an (optional) options hash
   def initialize(opts={})
@@ -27,6 +28,7 @@ class RidePilotAmbassador
     @token = opts[:token] || Config.ride_pilot_token || ""
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
     @booking_options = opts[:booking_options] || {}
+    @errors = []
   end
   
   # Custom setter for itinerary also sets trip, service, and user
@@ -71,6 +73,7 @@ class RidePilotAmbassador
     # Make a create_trip call to RidePilot, passing a trip and any 
     # booking_options that have been set
     response = create_trip
+    Rails.logger.debug @errors.to_sentence unless @errors.empty?
     return false unless response && response["trip_id"].present?
         
     # Store the status info in a Booking object and return it
@@ -278,12 +281,14 @@ class RidePilotAmbassador
     attendants = opts[:attendants] || 0
     mobility_devices = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
+    purpose_code = opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose) # Convert trip purpose to RidePilot code
+    @errors << "Cannot book without trip purpose code." unless purpose_code
     
     {
       provider_id: @service.booking_details[:provider_id], # Pull from selected itinerary's service's booking profile
     	customer_id: @user.booking_profile_for(@service).details[:id], # Pull from traveler's booking profile
     	customer_token: @user.booking_profile_for(@service).details[:token], # Pull from traveler's booking profile
-    	trip_purpose: opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose), # Convert trip purpose to RidePilot code
+    	trip_purpose: purpose_code, 
     	pickup_time: @itinerary.start_time.iso8601,
     	dropoff_time: @itinerary.end_time.iso8601,
     	attendants: attendants,
