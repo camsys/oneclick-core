@@ -128,7 +128,7 @@ class HTTPRequestBundler
   def response_body_for(label)
     resp = response_for(label)
     begin
-      JSON.parse(resp.response)
+      JSON.parse(resp.try(:response))
     rescue JSON::ParserError
       { error: "Response Body not valid JSON" }
     end

@@ -110,7 +110,7 @@ module BookingHelpers
       itinerary_to_book = itineraries.find_by(id: itinerary.try(:id)) || selected_itinerary
       if itinerary_to_book.present? 
         itinerary_to_book.select
-        return booking_ambassador(booking_options: opts).book
+        return booking_ambassador(opts).book
       else
         return false
       end
@@ -134,7 +134,7 @@ module BookingHelpers
     
     # Books this itinerary
     def book(opts={})
-      booking_ambassador(booking_options: opts).book
+      booking_ambassador(opts).book
     end
     
     # Cancels this itinerary

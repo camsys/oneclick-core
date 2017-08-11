@@ -24,6 +24,7 @@ class ReturnTripPlanner < TripPlanner
          .find_by(trip_type: @outbound_trip_type, service: @outbound_service)
          .try(:select)
     @trip.save
+    @trip
   end
   
 end

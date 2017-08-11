@@ -24,8 +24,8 @@ class BookingAmbassador
     self.service = opts[:service] || @service
     self.user = opts[:user] || @user # Defaults to trip.user
     
-    @url = opts[:url] ||  ""
-    @token = opts[:token] || ""
+    @url = opts[:url]
+    @token = opts[:token]
     @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
     @booking_options = opts[:booking_options] || {}
   end

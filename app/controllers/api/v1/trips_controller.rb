@@ -102,19 +102,37 @@ module Api
 
       # POST trips/book, POST itineraries/book
       # Selects and books an itinerary via an external booking api
+      # If return_time is passed in the booking request, create a return trip
+      # as well, and attempt to book it.
       def book
-        responses = booking_request_params.map do |booking_request|
+        outbound_itineraries = booking_request_params
+        
+        responses = booking_request_params
+        .map do |booking_request|
+          # Find the itinerary identified in the booking request
           itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          booking_request[:itinerary] = itin
+          next booking_request unless itin
           
+          # If a return_time param was passed, build a return itinerary
+          return_time = booking_request.delete(:return_time)
+          if return_time
+            return_itin = ReturnTripPlanner.new(itin.trip).plan.try(:selected_itinerary)
+            return_booking_request = booking_request.clone.merge({itinerary: return_itin})
+            next [booking_request, return_booking_request]
+          else
+            next booking_request
+          end
+        end.flatten.compact # flatten into an array of booking requests
+        .map do |booking_request|
+          # Pull the itinerary out of the booking_request hash and set up a 
+          # default (failure) booking response
+          itin = booking_request.delete(:itinerary)          
           response = booking_response_base(itin).merge({booked: false})
-          next response unless itin
-          
-          # Set trip purpose on the itin's trip
-          # purpose = 
-          
+                                        
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
-          booking = itin.book(booking_request)
-          next response unless booking.is_a?(Booking)
+          booking = itin.try(:book, booking_options: booking_request)          
+          next response unless booking.is_a?(Booking) # Return failure response unless book was successful
 
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
@@ -280,7 +298,7 @@ module Api
         itin = booking.itinerary
         
         case booking.type_code
-        when :ride_pilot
+        when 'ride_pilot', :ride_pilot
           pickup_time = booking.details.try(:[], "pickup_time").try(:to_datetime) || itin.start_time
           # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
           dropoff_time = (booking.details.try(:[], "dropff_time") ||
