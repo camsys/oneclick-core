@@ -125,6 +125,12 @@ module BookingHelpers
   
   module ItineraryHelpers
     
+    # Configure including class
+    def self.included(base)
+      base.has_one :booking
+      base.scope :booked_or_cancelled, -> { joins(:booking) }
+    end
+    
     # Initializes a BookingAmbassador object of the appropriate type
     # based on the itinerary's associated service, passing in itself
     # along with any other options given.
@@ -152,6 +158,16 @@ module BookingHelpers
     # (based on existence of and status code in booking object)
     def canceled?
       !!booking.try(:canceled?)
+    end
+    
+    # Attempts to return the confirmation # from the associated booking
+    def booking_confirmation
+      booking.try(:confirmation)
+    end
+    
+    # Attempts to return the status code from the associated booking
+    def booking_status
+      booking.try(:status)
     end
     
   end

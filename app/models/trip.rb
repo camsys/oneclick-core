@@ -59,6 +59,19 @@ class Trip < ApplicationRecord
     where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
   end
   
+  # Scopes based on trip linkages
+  scope :outbound, -> do # Outbound trips: the first leg
+    where(previous_trip_id: nil)  # Trips with no previous trip
+  end
+  scope :return, -> do  # Return trips: the last leg
+    where.not(previous_trip_id: nil) # Trips with a previous trip...
+    .where.not(id: Trip.pluck(:previous_trip_id)) # ...but NO next trip
+  end
+  scope :connecting, -> do # Connecting trips: the middle legs
+    where.not(previous_trip_id: nil) # Trips with a previous trip...
+    .where(id: Trip.pluck(:previous_trip)) # ...AND a next trip
+  end
+  
   ### CLASS METHODS ###
 
   # Returns a collection of the waypoints (origins and destinations) associated with a trips collection

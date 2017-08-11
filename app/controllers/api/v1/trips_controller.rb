@@ -9,14 +9,18 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 10)
+                                   .outbound
+                                   .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
       end
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+                                     .outbound
+                                     .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
       end
 
@@ -209,7 +213,12 @@ module Api
       # Serializes trips in the hash format demanded by the past_trips and future_trips
       # calls (i.e. the My Trips section of the UI)
       def my_trips_hash(trip)
-
+        trips_hash = { "0" => trip_hash(trip) }
+        trips_hash["1"] = trip_hash(trip.next_trip) if trip.next_trip
+        trips_hash
+      end
+      
+      def trip_hash(trip)
         trip_hash = {}
         itin_hash = {}
         service_hash = {
@@ -228,7 +237,7 @@ module Api
         if itinerary
           itin_hash = {
             arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
-            booking_confirmation: nil, # itinerary.booking_confirmation
+            booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
             departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
@@ -261,10 +270,6 @@ module Api
         end
 
         combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
-
-        return {
-          "0" => combined_hash
-        }
       end
 
       # Replicates the email functionality (Except for the Ecolane Stuff)
