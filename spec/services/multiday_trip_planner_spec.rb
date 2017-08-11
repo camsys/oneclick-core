@@ -6,6 +6,10 @@ RSpec.describe MultidayTripPlanner do
   
   # Stubbed OTP Responses
   let!(:otp_car_response) { JSON.parse(File.read("spec/files/otp_response_car.json")) }
+  let!(:paratransit) { create(:paratransit_service, :medical_only) }
+  let!(:taxi) { create(:taxi_service) }
+  let!(:uber) { create(:uber_service) }
+  let!(:transit) { create(:transit_service)}
 
   # Stubbed HTTPRequestBundler with fake OTP response
   before(:each) do
@@ -14,7 +18,6 @@ RSpec.describe MultidayTripPlanner do
     HTTPRequestBundler.any_instance.stub(:add) { true }
   end
   
-  # TRIP PLANNERS
   let(:trip_types) { [:paratransit, :taxi] }
   let(:mtp) { create(:multiday_trip_planner, options: {trip_types: trip_types}) }
 

@@ -115,6 +115,7 @@ module Api
         .map do |booking_request|
           # Find the itinerary identified in the booking request
           itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          itin.try(:select) # Select the itinerary so that the return trip can be built properly
           booking_request[:itinerary] = itin
           next booking_request unless itin
           

@@ -1,6 +1,6 @@
 class MultidayTripPlanner < TripPlanner
   
-  attr_accessor :trip_times, :trip_template, :trip_ids, :master_service_scope
+  attr_accessor :trip_times, :trip_template, :trip_ids
   
   def initialize(trip_template, trip_times=[], options={})
     @trip_template = trip_template
