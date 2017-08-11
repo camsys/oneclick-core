@@ -19,6 +19,8 @@ RSpec.describe RidePilotAmbassador do
                     itinerary: booked_itin }) 
   }
   
+  it { should be_a BookingAmbassador }
+  
   # Instance variables
   it { expect(ride_pilot_ambassador).to respond_to(
     :http_request_bundler, 

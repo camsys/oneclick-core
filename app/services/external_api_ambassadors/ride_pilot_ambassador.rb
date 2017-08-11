@@ -1,68 +1,18 @@
-# All booking ambassadors should implement the following public methods:
-  # book() => Booking object
-  # cancel() => Booking object
-  # status() => Booking object
 
-class RidePilotAmbassador
+
+class RidePilotAmbassador < BookingAmbassador
   
-  attr_accessor :http_request_bundler, 
-                :url, 
-                :token, 
-                :booking_options, 
-                :itinerary,
-                :service, 
-                :trip, 
-                :user,
-                :booking_profile
-  
-  # Initialize with a service and an (optional) options hash
+  # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
-    self.itinerary = opts[:itinerary]
-    self.trip = opts[:trip] || @trip
-    self.booking_profile = opts[:booking_profile] || @booking_profile
-    self.service = opts[:service] || @service
-    self.user = opts[:user] || @user # Defaults to trip.user
-    
-    @url = opts[:url] || Config.ride_pilot_url || ""
-    @token = opts[:token] || Config.ride_pilot_token || ""
-    @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
-    @booking_options = opts[:booking_options] || {}
+    super(opts)
+    @url ||= Config.ride_pilot_url
+    @token ||= Config.ride_pilot_token
   end
-  
-  # Custom setter for itinerary also sets trip, service, and user
-  def itinerary=(new_itin)
-    @itinerary = new_itin
-    return unless @itinerary
-    self.trip = @itinerary.try(:trip) || @trip
-    self.service = @itinerary.try(:service) || @service
+
+  # Returns symbol for identifying booking api type
+  def booking_api
+    :ride_pilot
   end
-  
-  # Custom setter for trip also sets user
-  def trip=(new_trip)
-    @trip = new_trip
-    return unless @trip
-    @itinerary = @trip.selected_itinerary || @itinerary
-    @user = @trip.try(:user) || @user
-  end
-  
-  # Custom setter for booking_profile also sets user and service
-  def booking_profile=(new_booking_profile)
-    @booking_profile = new_booking_profile
-    return unless @booking_profile
-    @user = @booking_profile.try(:user) || @user
-    @service = @booking_profile.try(:service) || @service
-  end
-  
-  # Custom setter for user also sets booking profile if not set already
-  def user=(new_user)
-    @user = new_user
-    return unless @user && @service
-    @booking_profile ||= @user.try(:booking_profile_for, @service)
-  end
-  
-  
-  ### STANDARD BOOKING ACTIONS ###
-  # (Implemented by all Booking Ambassadors)
 
   def book
     # select the itinerary if not already selected
@@ -220,12 +170,6 @@ class RidePilotAmbassador
     ]
   end
   
-  # Returns the trip's Booking, if available. Otherwise, builds a booking object
-  def booking
-    RidePilotBooking.find_or_initialize_by(itinerary_id: @itinerary.try(:id))
-    # booking = @itinerary.try(:booking) || @itinerary.build_booking(type: "RidePilotBooking")
-  end
-  
   # Returns the RidePilot Purposes Map from the Configs
   def purposes_map
     (Config.ride_pilot_purposes || {}).with_indifferent_access
@@ -257,12 +201,6 @@ class RidePilotAmbassador
     booking.try(:confirmation)
   end
   
-  # Makes a symbolic label for HTTP requests, out of an arbitrary # of identifiers
-  # Appends service's RidePilot provider_id to the label
-  def request_label(*identifiers)
-    (["ridepilot"] + identifiers + [provider_id]).join("_").to_sym
-  end
-  
   # Builds RidePilot HTTP Request Headers
   def headers
     {
@@ -273,17 +211,17 @@ class RidePilotAmbassador
   
   # Build request body for book (i.e. create_trip) call
   def body_for_booking(opts={})
-    # dropoff_time = (opts[:return_time].try(:to_datetime) || 
-    #                 @trip.trip_time + 1.hour)  # Time to spend at destination
     attendants = opts[:attendants] || 0
     mobility_devices = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
+    purpose_code = opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose) # Convert trip purpose to RidePilot code
+    @trip.errors.add(:booking, "Cannot book without trip purpose code.") unless purpose_code
     
     {
       provider_id: @service.booking_details[:provider_id], # Pull from selected itinerary's service's booking profile
     	customer_id: @user.booking_profile_for(@service).details[:id], # Pull from traveler's booking profile
     	customer_token: @user.booking_profile_for(@service).details[:token], # Pull from traveler's booking profile
-    	trip_purpose: opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose), # Convert trip purpose to RidePilot code
+    	trip_purpose: purpose_code, 
     	pickup_time: @itinerary.start_time.iso8601,
     	dropoff_time: @itinerary.end_time.iso8601,
     	attendants: attendants,
@@ -302,21 +240,6 @@ class RidePilotAmbassador
       status: response.try(:[], "status").try(:[], "code"),
       confirmation: response.try(:[], "trip_id")
     }
-  end
-  
-  # Select's the trip's itinerary associated with @service
-  def ensure_selected_itinerary
-    # Find the appropriate itinerary based on service_id
-    itin_to_book = @itinerary || @trip.itineraries.find_by(service_id: @service.id)
-
-    # Select the itinerary and return true, or return false if no appropriate itinerary exists
-    if itin_to_book.present?
-      itin_to_book.select
-      return true
-    else
-      return false
-    end
-    
   end
   
   # Updates trip booking object with response

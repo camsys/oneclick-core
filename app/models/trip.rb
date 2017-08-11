@@ -13,7 +13,10 @@ class Trip < ApplicationRecord
   belongs_to :origin, class_name: 'Waypoint', foreign_key: :origin_id, dependent: :destroy
   belongs_to :destination, class_name: 'Waypoint', foreign_key: :destination_id, dependent: :destroy
   belongs_to :selected_itinerary, class_name: "Itinerary", foreign_key: :selected_itinerary_id
-
+  has_one :selected_service, through: :selected_itinerary, source: :service
+  belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
+  has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
+  
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
 
@@ -56,6 +59,19 @@ class Trip < ApplicationRecord
     where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
   end
   
+  # Scopes based on trip linkages
+  scope :outbound, -> do # Outbound trips: the first leg
+    where(previous_trip_id: nil)  # Trips with no previous trip
+  end
+  scope :return, -> do  # Return trips: the last leg
+    where.not(previous_trip_id: nil) # Trips with a previous trip...
+    .where.not(id: Trip.pluck(:previous_trip_id)) # ...but NO next trip
+  end
+  scope :connecting, -> do # Connecting trips: the middle legs
+    where.not(previous_trip_id: nil) # Trips with a previous trip...
+    .where(id: Trip.pluck(:previous_trip)) # ...AND a next trip
+  end
+  
   ### CLASS METHODS ###
 
   # Returns a collection of the waypoints (origins and destinations) associated with a trips collection
@@ -83,5 +99,32 @@ class Trip < ApplicationRecord
   def secs
     trip_time.in_time_zone.seconds_since_midnight
   end
+  
+  # Attempts to get the trip_type from the selected itinerary
+  def trip_type
+    selected_itinerary.try(:trip_type).try(:to_sym)
+  end
+  
+  # Attempts to get an arrival time based on the selected itinerary's end_time.
+  def arrival_time
+    selected_itinerary.try(:end_time) || trip_time
+  end
+    
+  # Builds a next trip with origin and destination swapped, and departure
+  # time set based on passed delay option. Defaults to depart at the end_time
+  # of the selected itinerary. Accepts an optional options hash within attrs.
+  def build_return_trip(attrs={})
+    options = attrs.delete(:options) || {}
+    duration = options[:duration] || 0.hours # Optional trip duration param delays return trip time
+    build_next_trip({
+      origin: destination, 
+      destination: origin,
+      user: user,
+      purpose: purpose,
+      arrive_by: false,
+      trip_time: arrival_time + duration
+    }.merge(attrs))
+  end
+  
 
 end

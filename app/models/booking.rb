@@ -10,7 +10,7 @@ class Booking < ApplicationRecord
     ride_pilot: "RidePilotBooking",
     ecolane: "EcolaneBooking",
     trapeze: "TrapezeBooking"
-  }.freeze
+  }.with_indifferent_access.freeze
   
   BOOKING_TYPE_CODES = BOOKING_TYPES.keys.freeze
   BOOKING_TYPE_CLASSES = BOOKING_TYPES.values.freeze

@@ -95,6 +95,26 @@ module BookingHelpers
     def canceled?
       !!booking.try(:canceled?)
     end
+    
+    # Initializes a BookingAmbassador object of the appropriate type
+    # based on the trip's selected service, passing in itself
+    # along with any other options given.
+    def booking_ambassador(opts={})
+      selected_service.try(:booking_ambassador, {trip: self}.merge(opts))
+    end
+
+    # Books the selected itinerary, the passed itinerary, or returns false if no 
+    # itinerary is selected or passed. Booking options may be passed as a hash.
+    # It is useful to book using this method for debugging, as errors will be stored on the trip
+    def book(itinerary=nil, opts={})
+      itinerary_to_book = itineraries.find_by(id: itinerary.try(:id)) || selected_itinerary
+      if itinerary_to_book.present? 
+        itinerary_to_book.select
+        return booking_ambassador(opts).book
+      else
+        return false
+      end
+    end
 
   end
   
@@ -105,6 +125,12 @@ module BookingHelpers
   
   module ItineraryHelpers
     
+    # Configure including class
+    def self.included(base)
+      base.has_one :booking
+      base.scope :booked_or_cancelled, -> { joins(:booking) }
+    end
+    
     # Initializes a BookingAmbassador object of the appropriate type
     # based on the itinerary's associated service, passing in itself
     # along with any other options given.
@@ -114,7 +140,7 @@ module BookingHelpers
     
     # Books this itinerary
     def book(opts={})
-      booking_ambassador(booking_options: opts).book
+      booking_ambassador(opts).book
     end
     
     # Cancels this itinerary
@@ -132,6 +158,16 @@ module BookingHelpers
     # (based on existence of and status code in booking object)
     def canceled?
       !!booking.try(:canceled?)
+    end
+    
+    # Attempts to return the confirmation # from the associated booking
+    def booking_confirmation
+      booking.try(:confirmation)
+    end
+    
+    # Attempts to return the status code from the associated booking
+    def booking_status
+      booking.try(:status)
     end
     
   end

@@ -13,6 +13,9 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:hacker_headers)  { {"X-USER-EMAIL" => hacker.email, "X-USER-TOKEN" => hacker.authentication_token} }
 
+  before(:each) { create(:otp_config) }
+  before(:each) { create(:tff_config) }
+  before(:each) { create(:uber_token) }
 
   ### PLANNING ###
 
@@ -167,18 +170,22 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     # Build a stubbed-out itinerary that responds to booking requests
     let(:bookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
     before(:each) do
-      Itinerary.any_instance.stub(:book) do
-        bookable_itinerary.booking = create(:ride_pilot_booking, :booked, itinerary: bookable_itinerary)
-        bookable_itinerary.booking
+      Itinerary.any_instance.stub(:book) do |itin|
+        itin.booking = create(:ride_pilot_booking, :booked, itinerary: itin)
+        itin.booking
       end
-      Itinerary.any_instance.stub(:cancel) do
-        bookable_itinerary.booking = create(:ride_pilot_booking, :canceled, itinerary: bookable_itinerary)
-        bookable_itinerary.booking
+      Itinerary.any_instance.stub(:cancel) do |itin|
+        itin.booking = create(:ride_pilot_booking, :canceled, itinerary: itin)
+        itin.booking
       end
     end
     
     let(:booking_params) do
       { booking_request: [ { itinerary_id: bookable_itinerary.id } ] }
+    end
+    
+    let(:booking_params_w_return) do
+      { booking_request: [ { itinerary_id: bookable_itinerary.id, return_time: trip.trip_time + 2.hours } ] }
     end
     
     let(:bookingcancellation_params) do
@@ -191,9 +198,27 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       request.headers.merge!(request_headers)
       post :book, params: booking_params
       response_body = JSON.parse(response.body)
+      bookable_itinerary.reload
                   
       expect(response).to be_success
       expect(bookable_itinerary.booked?).to be true
+    end
+    
+    it 'books a return trip at the designated return time' do
+      expect(bookable_itinerary.booked?).to be false
+
+      request.headers.merge!(request_headers)
+      post :book, params: booking_params_w_return
+      response_body = JSON.parse(response.body)
+      bookable_itinerary.reload
+            
+      return_trip = Trip.find_by(id: response_body["booking_results"][1]["trip_id"])
+      return_itin = Itinerary.find_by(id: response_body["booking_results"][1]["itinerary_id"])
+      
+      expect(response).to be_success
+      expect(bookable_itinerary.booked?).to be true
+      expect(return_trip.selected_itinerary).to eq(return_itin)
+      expect(return_itin.booked?).to be true
     end
     
     it 'cancels a trip' do
@@ -202,6 +227,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       request.headers.merge!(request_headers)
       post :cancel, params: bookingcancellation_params
       response_body = JSON.parse(response.body)
+      bookable_itinerary.reload
                   
       expect(response).to be_success
       expect(bookable_itinerary.canceled?).to be true

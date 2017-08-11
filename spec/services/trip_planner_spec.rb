@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe TripPlanner do  
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
+  before(:each) { create(:uber_token) }
   let(:trip) {create :trip}
   let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }

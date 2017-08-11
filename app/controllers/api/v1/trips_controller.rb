@@ -9,14 +9,18 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 10)
+                                   .outbound
+                                   .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
       end
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+                                     .outbound
+                                     .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
       end
 
@@ -102,20 +106,40 @@ module Api
 
       # POST trips/book, POST itineraries/book
       # Selects and books an itinerary via an external booking api
+      # If return_time is passed in the booking request, create a return trip
+      # as well, and attempt to book it.
       def book
-        responses = booking_request_params.map do |booking_request|
+        outbound_itineraries = booking_request_params
+        
+        responses = booking_request_params
+        .map do |booking_request|
+          # Find the itinerary identified in the booking request
           itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          itin.try(:select) # Select the itinerary so that the return trip can be built properly
+          booking_request[:itinerary] = itin
+          next booking_request unless itin
           
+          # If a return_time param was passed, build a return itinerary
+          return_time = booking_request.delete(:return_time).try(:to_datetime)
+          if return_time
+            return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
+                          .plan.try(:selected_itinerary)
+            return_booking_request = booking_request.clone.merge({itinerary: return_itin})
+            next [booking_request, return_booking_request]
+          else
+            next booking_request
+          end
+        end.flatten.compact # flatten into an array of booking requests
+        .map do |booking_request|
+          # Pull the itinerary out of the booking_request hash and set up a 
+          # default (failure) booking response
+          itin = booking_request.delete(:itinerary)          
           response = booking_response_base(itin).merge({booked: false})
-          next response unless itin
-          
-          # Set trip purpose on the itin's trip
-          # purpose = 
-          
+                                        
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
-          booking = itin.book(booking_request)
-          next response unless booking.is_a?(Booking)
-
+          booking = itin.try(:book, booking_options: booking_request)
+          next response unless booking.is_a?(Booking) # Return failure response unless book was successful
+          
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
@@ -191,7 +215,12 @@ module Api
       # Serializes trips in the hash format demanded by the past_trips and future_trips
       # calls (i.e. the My Trips section of the UI)
       def my_trips_hash(trip)
-
+        trips_hash = { "0" => trip_hash(trip) }
+        trips_hash["1"] = trip_hash(trip.next_trip) if trip.next_trip
+        trips_hash
+      end
+      
+      def trip_hash(trip)
         trip_hash = {}
         itin_hash = {}
         service_hash = {
@@ -210,7 +239,7 @@ module Api
         if itinerary
           itin_hash = {
             arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
-            booking_confirmation: nil, # itinerary.booking_confirmation
+            booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
             departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
@@ -243,10 +272,6 @@ module Api
         end
 
         combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
-
-        return {
-          "0" => combined_hash
-        }
       end
 
       # Replicates the email functionality (Except for the Ecolane Stuff)
@@ -280,7 +305,7 @@ module Api
         itin = booking.itinerary
         
         case booking.type_code
-        when :ride_pilot
+        when 'ride_pilot', :ride_pilot
           pickup_time = booking.details.try(:[], "pickup_time").try(:to_datetime) || itin.start_time
           # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
           dropoff_time = (booking.details.try(:[], "dropff_time") ||
