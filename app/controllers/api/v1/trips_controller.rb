@@ -119,9 +119,10 @@ module Api
           next booking_request unless itin
           
           # If a return_time param was passed, build a return itinerary
-          return_time = booking_request.delete(:return_time)
+          return_time = booking_request.delete(:return_time).try(:to_datetime)
           if return_time
-            return_itin = ReturnTripPlanner.new(itin.trip).plan.try(:selected_itinerary)
+            return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
+                          .plan.try(:selected_itinerary)
             return_booking_request = booking_request.clone.merge({itinerary: return_itin})
             next [booking_request, return_booking_request]
           else
@@ -135,9 +136,9 @@ module Api
           response = booking_response_base(itin).merge({booked: false})
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
-          booking = itin.try(:book, booking_options: booking_request)          
+          booking = itin.try(:book, booking_options: booking_request)
           next response unless booking.is_a?(Booking) # Return failure response unless book was successful
-
+          
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end

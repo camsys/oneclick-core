@@ -50,6 +50,10 @@ FactoryGirl.define do
           booking nil
         end
         
+        factory :booked_itinerary do
+          booked
+        end
+        
       end
       
     end

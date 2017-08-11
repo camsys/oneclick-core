@@ -15,7 +15,7 @@ class Trip < ApplicationRecord
   belongs_to :selected_itinerary, class_name: "Itinerary", foreign_key: :selected_itinerary_id
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
-  has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id 
+  has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
   
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination

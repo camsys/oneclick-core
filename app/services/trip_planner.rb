@@ -39,7 +39,6 @@ class TripPlanner
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
     @trip.save
-    
   end
 
   # Set up external API ambassadors
