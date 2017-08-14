@@ -19,7 +19,13 @@ class Service < ApplicationRecord
   serialize :fare_details
   has_many :user_booking_profiles
   has_many :itineraries, dependent: :nullify
-  has_many :schedules, dependent: :destroy
+  has_many :schedules, dependent: :destroy do
+    # Builds a consolidated schedule, destroys the old ones, and saves the new
+    def consolidate
+      old_schedules = for_display.pluck(:id)
+      where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
+    end
+  end
   has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
@@ -33,6 +39,7 @@ class Service < ApplicationRecord
   validates_with FareValidator # For validating fare_structure and fare_details
   validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
   contact_fields phone: :phone, email: :email
+  after_save :consolidate_schedules
 
   ##########
   # SCOPES #
@@ -228,6 +235,11 @@ class Service < ApplicationRecord
   ###################
   private # PRIVATE #
   ###################
+
+  # Consolidates schedules automatically after save
+  def consolidate_schedules
+    schedules.consolidate
+  end
 
 
   ### SCOPE HELPER METHODS ###

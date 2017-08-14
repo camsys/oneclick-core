@@ -22,9 +22,10 @@ module ScheduleHelper
 
 end
 
+
+# Add a wday method to Integer to help with schedule manipulation
 module IntegerScheduleMethods
 
-  # Add a wday method to Integer to help with schedule manipulation
   def wday
     self % 7
   end
