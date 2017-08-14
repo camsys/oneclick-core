@@ -106,7 +106,7 @@ namespace :import do
   desc "Import Guest Users"
   task :guest_users, [:host, :token] => [:environment, :verify_params] do |t, args|
     
-    users_attributes = get_export_data(args, 'users/registered')["users"]
+    users_attributes = get_export_data(args, 'users/guests')["users"]
     
     users_attributes.each do |user_attrs|
       user = import_user(user_attrs)
