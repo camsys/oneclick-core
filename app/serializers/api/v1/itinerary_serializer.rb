@@ -142,8 +142,8 @@ module Api
 
       def schedule
         return [] unless object.service && object.service.schedules
-        end_time_not_midnight = schedule.end_time == ScheduleHelper::DAY_LENGTH ? schedule.end_time - 1 : schedule.end_time
         object.service.schedules.order(:day).map do |schedule|
+          end_time_not_midnight = schedule.end_time == ScheduleHelper::DAY_LENGTH ? schedule.end_time - 1 : schedule.end_time
           {
             day: Date::DAYNAMES[schedule.day],
             start: [schedule_time_to_string(schedule.start_time)],
