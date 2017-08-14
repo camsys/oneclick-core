@@ -24,5 +24,29 @@ RSpec.describe Schedule, type: :model do
     expect(all_day_schedule.include?(midnight_next_day)).to be true
   end
 
+  it 'builds consolidated schedules from a collection' do
+    # Build a bunch of schedules for each of 2 days, four of which overlap and one of which is separate
+    (3..4).each do |d|
+      create(:schedule, day: d, start_time: 3600, end_time: 7200)
+      create(:schedule, day: d, start_time: 3600, end_time: 4800)
+      create(:schedule, day: d, start_time: 5000, end_time: 5000)
+      create(:schedule, day: d, start_time: 7200, end_time: 10800)
+      create(:schedule, day: d, start_time: 24000, end_time: 27600)
+    end
+    
+    # Should start with 10 schedules
+    expect(Schedule.all.count).to eq(10)
+    
+    consolidated_schedules = Schedule.all.build_consolidated
+    
+    # Should consolidate down to 4 schedules, 2 per day
+    expect(consolidated_schedules.count).to eq(4)
+    
+    # The first one should start at 3600 and end at 10800
+    expect(consolidated_schedules
+      .select {|s| s.day == 3 && s.start_time == 3600 }
+      .first.end_time).to eq(10800)
+    
+  end
 
 end

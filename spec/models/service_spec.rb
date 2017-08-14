@@ -175,6 +175,7 @@ RSpec.describe Service, type: :model do
     let(:service_with_schedules) { create(:paratransit_service, :with_schedules) }
     let(:service_without_schedules) { create(:paratransit_service) }
     let(:service_with_micro_schedules) { create(:paratransit_service, :with_micro_schedules) }
+    let(:service_with_overlapping_schedules) { create(:paratransit_service, :with_overlapping_schedules)}
     
     it 'should be (un)available for trips based on schedule' do
       expect(service_with_schedules.available_by_schedule_for?(weekday_day_trip)).to be true
@@ -186,6 +187,18 @@ RSpec.describe Service, type: :model do
       expect(service_with_schedules.available_by_schedule_for?(weekend_trip)).to be false
       expect(service_without_schedules.available_by_schedule_for?(weekend_trip)).to be true
       expect(service_with_micro_schedules.available_by_schedule_for?(weekend_trip)).to be false
+    end
+    
+    it 'should consolidate its schedules after saving' do
+      expect(service_with_overlapping_schedules.schedules.count).to eq(3)
+      start_time = service_with_overlapping_schedules.schedules.pluck(:start_time).min
+      end_time = service_with_overlapping_schedules.schedules.pluck(:end_time).max
+      
+      service_with_overlapping_schedules.save
+      
+      expect(service_with_overlapping_schedules.schedules.count).to eq(1)
+      expect(service_with_overlapping_schedules.schedules.first.start_time).to eq(start_time)
+      expect(service_with_overlapping_schedules.schedules.first.end_time).to eq(end_time)
     end
     
   end

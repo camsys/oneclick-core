@@ -57,6 +57,14 @@ FactoryGirl.define do
           s.schedules << FactoryGirl.create(:micro_schedule)
         end
       end
+      
+      trait :with_overlapping_schedules do
+        after(:create) do |s|
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 3600, end_time: 10800)
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 7200, end_time: 14400)
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 14400, end_time: 18000)
+        end
+      end
 
       trait :medical_only do
         after(:create) do |s|
