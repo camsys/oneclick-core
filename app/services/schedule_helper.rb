@@ -7,7 +7,6 @@ module ScheduleHelper
 
   # Returns a pretty time from seconds since midnight
   def ScheduleHelper.schedule_time_to_string(secs_since_midnight)
-    secs_since_midnight -= 1 if secs_since_midnight == DAY_LENGTH # Send 11:59:59PM instead of 12AM
     (Time.new(0) + secs_since_midnight).strftime("%l:%M %p").strip
   end
 
