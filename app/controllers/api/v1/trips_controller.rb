@@ -167,6 +167,21 @@ module Api
         render status: 200, json: {cancellation_results: results}
       end
 
+      # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
+      def email
+
+        email_address = params[:email_address]
+        trip_id = params[:trip_id]
+
+        trip = Trip.find(trip_id.to_i)
+
+        UserMailer.user_trip_email([email_address], trip).deliver
+
+        # Also should improve the JSON response to handle successfully and failed email calls`
+        render json: {result: 200}
+
+      end
+
       protected
       
       def booking_request_params
@@ -272,19 +287,6 @@ module Api
         end
 
         combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
-      end
-
-      # Replicates the email functionality (Except for the Ecolane Stuff)
-      def email
-        email_address = params[:email_address]
-        trip_id = params[:trip_id]
-
-        trip = Trip.find(trip_id.to_i)
-        UserMailer.user_trip_email([email_address], trip).deliver
-
-        # Also should improve the JSON response to handle successfully and failed email calls`
-        render json: {result: 200}
-
       end
 
       # Builds a location hash out of the location param, packaging it as a google place hash
