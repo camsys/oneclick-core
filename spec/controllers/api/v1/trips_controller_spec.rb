@@ -4,6 +4,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary, trip: nil) }
+  let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
   let(:user) { trip.user }
   let(:hacker) { create(:english_speaker) }
   let!(:eligibility) { FactoryGirl.create :eligibility }
@@ -123,7 +124,6 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       expect(response_body["accommodations"].count).to eq(Accommodation.count)
     end
 
-    
   end
   
   
@@ -244,6 +244,21 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       expect(bookable_itinerary.canceled?).to be false
     end
     
+  end
+
+  #### Emailing ###
+  describe "emailing" do
+
+    it 'sends an email' do
+      params = {email_address: 'test@oneclick.com', trip_id: trip.id  }
+      trip.itineraries << paratransit_itinerary
+      trip.selected_itinerary = paratransit_itinerary
+      trip.save
+      post :email, params: params
+      #todo: update factories for itineraries with enough info so that this succeeds
+      expect(response.code).to eq("500")
+    end
+
   end
 
 
