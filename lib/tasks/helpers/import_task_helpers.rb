@@ -45,6 +45,7 @@ module ImportTaskHelpers
 
     stomping_grounds =  user_attrs.delete("places")
 
+    encrypted_password = user_attrs.delete("encrypted_password")
     email = user_attrs.delete("email")
     preferred_locale = user_attrs.delete("preferred_locale")
           
@@ -54,6 +55,8 @@ module ImportTaskHelpers
     save_and_log_result(user)
     user.update_profile(user_profile_attrs)
     build_stomping_grounds(stomping_grounds, user)
+    user.encrypted_password = encrypted_password
+    user.save
     
     return user
     
@@ -117,7 +120,7 @@ module ImportTaskHelpers
     else
     end
     
-    return fare_details.with_indifferent_access
+    return fare_details.try(:with_indifferent_access)
 
   end
   
