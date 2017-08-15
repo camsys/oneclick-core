@@ -67,6 +67,8 @@ GEM
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     arel (7.1.4)
+    attr_encrypted (3.0.3)
+      encryptor (~> 3.0.0)
     autoprefixer-rails (7.1.1.2)
       execjs
     awesome_print (1.7.0)
@@ -111,6 +113,7 @@ GEM
       http_parser.rb (>= 0.6.0)
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
+    encryptor (3.0.0)
     erubis (2.7.0)
     eventmachine (1.2.3)
     excon (0.56.0)
@@ -457,6 +460,7 @@ PLATFORMS
 DEPENDENCIES
   active_model_serializers (~> 0.10.0)
   activerecord-postgis-adapter
+  attr_encrypted (~> 3.0.0)
   autoprefixer-rails
   awesome_print
   bootstrap-datepicker-rails
