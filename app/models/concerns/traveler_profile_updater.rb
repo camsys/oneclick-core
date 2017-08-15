@@ -75,10 +75,9 @@ module TravelerProfileUpdater
       service = Service.find_by(id: params[:service_id])
       profile = self.booking_profile_for(service) || self.booking_profiles.build(service: service)
       profile.booking_api = params[:booking_api] || "ride_pilot" || profile.booking_api
-      details_hash = profile.details || {}
-      details_hash[:id] = params[:user_name] || details_hash[:id]
-      details_hash[:token] = params[:password] || details_hash[:token]
-      profile.details = details_hash
+      profile.external_user_id = params[:user_name] || profile.external_user_id
+      profile.external_password = params[:password] || profile.external_password
+      profile.details = params[:details] || profile.details || {}
       profile.authenticate? ? profile.save : false
     end
   end
