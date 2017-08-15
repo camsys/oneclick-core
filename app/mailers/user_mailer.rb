@@ -1,6 +1,7 @@
 class UserMailer < ApplicationMailer
 
   helper :email 
+  helper :translation
 
   def agency_setup_reminder(agency)
     @agency = agency

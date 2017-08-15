@@ -149,6 +149,12 @@ en:
   one_way: "One-way trip"
   play_a_new_trip: "Plan a new trip"
 
+  fare: "Fare"
+  depart_at: "Depart at"
+  arrive_by: "Arrive by"
+  duration: "Duration"
+  walking: "Walking"
+
   # TIME TRANSLATIONS
   hour: {
     one: '%{count} h',
