@@ -116,7 +116,8 @@ Rails.application.routes.draw do
     resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
     # Configs
-    resources :configs, only: [:index, :update]
+    resources :configs, only: [:index]
+    patch 'configs' => 'configs#update'
 
     # Eligibilities
     resources :eligibilities, :only => [:index, :destroy, :create, :edit, :update]
