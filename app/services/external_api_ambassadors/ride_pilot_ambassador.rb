@@ -1,5 +1,3 @@
-
-
 class RidePilotAmbassador < BookingAmbassador
   
   # Calls super and then sets proper default for URL and Token
@@ -188,12 +186,12 @@ class RidePilotAmbassador < BookingAmbassador
   
   # Gets the customer id from the user's booking profile
   def customer_id
-    booking_profile.try(:details).try(:[], :id)
+    @booking_profile.try(:external_user_id)
   end
 
   # Gets the customer token from the user's booking profile  
   def customer_token
-    booking_profile.try(:details).try(:[], :token)
+    @booking_profile.try(:external_password)
   end
   
   # Gets the RidePilot trip_id from the booking object
@@ -219,8 +217,8 @@ class RidePilotAmbassador < BookingAmbassador
     
     {
       provider_id: @service.booking_details[:provider_id], # Pull from selected itinerary's service's booking profile
-    	customer_id: @user.booking_profile_for(@service).details[:id], # Pull from traveler's booking profile
-    	customer_token: @user.booking_profile_for(@service).details[:token], # Pull from traveler's booking profile
+    	customer_id: customer_id, # Pull from traveler's booking profile
+    	customer_token: customer_token, # Pull from traveler's booking profile
     	trip_purpose: purpose_code, 
     	pickup_time: @itinerary.start_time.iso8601,
     	dropoff_time: @itinerary.end_time.iso8601,

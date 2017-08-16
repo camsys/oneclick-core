@@ -5,12 +5,9 @@ FactoryGirl.define do
     factory :ride_pilot_user_profile do
       service { create(:paratransit_service, :ride_pilot_bookable)}
       booking_api "ride_pilot"
-      details {
-        {
-             :id => 0,
-          :token => "RIDEPILOTTOKEN"
-        }
-      }
+      details { { details: "MISCELLANEOUS DETAILS" } }
+      external_user_id '0'
+      external_password "RIDEPILOTTOKEN"
     end
   end
 end
