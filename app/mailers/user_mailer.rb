@@ -1,7 +1,6 @@
 class UserMailer < ApplicationMailer
 
   helper :email 
-  helper :translation
 
   def agency_setup_reminder(agency)
     @agency = agency
@@ -13,6 +12,7 @@ class UserMailer < ApplicationMailer
   # Here to Support API/V1 
   def user_trip_email(addresses, trip)
     @trip = trip
+    @traveler = trip.user
     subject = 'Your Trip Details'
     @itinerary = @trip.selected_itinerary
     unless @itinerary
