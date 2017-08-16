@@ -25,7 +25,7 @@ es:
   fare: "Tarifa"
   depart_at: "Salen a las"
   arrive_by: "Llegar a las"
-  duration: "duración"
+  duration: "Duración"
   walking: "Para caminar"
   estimated: "estimado"
   Origin: "Origen"
