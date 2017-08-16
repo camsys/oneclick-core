@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170810181702) do
+ActiveRecord::Schema.define(version: 20170814204243) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -317,8 +317,12 @@ ActiveRecord::Schema.define(version: 20170810181702) do
     t.integer  "service_id"
     t.string   "booking_api"
     t.text     "details"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+    t.string   "encrypted_external_password"
+    t.string   "encrypted_external_password_iv"
+    t.string   "external_user_id"
+    t.index ["external_user_id"], name: "index_user_booking_profiles_on_external_user_id", using: :btree
     t.index ["service_id"], name: "index_user_booking_profiles_on_service_id", using: :btree
     t.index ["user_id"], name: "index_user_booking_profiles_on_user_id", using: :btree
   end
