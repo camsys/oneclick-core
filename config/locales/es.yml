@@ -50,3 +50,7 @@ es:
   Walk_to: "Camina a"
   Drive_to: "Conducir a"
   Bike_to: "Bicicleta a"
+  depart: "Salir"
+  arrive: "Llegar"
+  start: "Empezar"
+  to: "a"
