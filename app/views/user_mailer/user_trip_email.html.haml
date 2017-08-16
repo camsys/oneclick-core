@@ -8,21 +8,21 @@
   %tr
     %td{style: "color:grey; padding-right: 10px;"}
       %strong.trip_header_detail
-        = 'Origin: '
+        = "#{translate('Origin')}: "
     %td{style: "padding-right: 10px;"}
       %strong.trip_header_detail
         =@trip.origin.to_s
   %tr
     %td{style: "color:grey; weight:strong; padding-right: 10px;"}
       %strong.trip_header_detail
-        ='Destination: '
+        ="#{translate('Destination')}: "
     %td{style: "padding-right: 10px;"}
       %strong.trip_header_detail
         =@trip.destination.to_s
   %tr
     %td{style: "color:grey; padding-right: 10px;"}
       %strong.trip_header_detail
-        ='Date: '
+        ="#{translate('Date')}: "
     %td{style: "padding-right: 10px;"}
       %strong
         =@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")
