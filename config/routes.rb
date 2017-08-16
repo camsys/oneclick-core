@@ -116,15 +116,7 @@ Rails.application.routes.draw do
     resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
     # Configs
-    resources :configs, :only => [:index] do
-      collection do
-        patch 'update'
-        patch 'set_open_trip_planner'
-        patch 'set_tff_api_key'
-        patch 'set_uber_token'
-        patch 'set_daily_scheduled_tasks'
-      end
-    end
+    resources :configs, only: [:index, :update]
 
     # Eligibilities
     resources :eligibilities, :only => [:index, :destroy, :create, :edit, :update]
