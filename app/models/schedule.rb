@@ -36,6 +36,7 @@ class Schedule < ApplicationRecord
     (0..6).map { |d| all.where(day: d).order(:start_time) }
       .each do |scheds|  # For each day of the week, iterate through and consolidate schedules
         # Start with the earliest, and combine with other schedules that overlap
+        next unless scheds.present?
         for_save << scheds.reduce(scheds.first.dup) do |new_sched, sch|
           if new_sched.to_range.overlaps?(sch.to_range) # If the schedule starts before the new_sched ends, update end_time
             new_sched.end_time = [new_sched.end_time, sch.end_time].max
