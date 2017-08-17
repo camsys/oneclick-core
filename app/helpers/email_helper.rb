@@ -1,5 +1,7 @@
 module EmailHelper
-  
+
+  include TranslationHelper 
+
   def duration_to_words(time_in_seconds)
     return "n/a" unless time_in_seconds
 
@@ -11,14 +13,14 @@ module EmailHelper
 
     if hours > 0
       if hours > 1
-        time_string << hours.to_s + " hours "
+        time_string << hours.to_s + " #{translate('hours')} "
       else
         time_string << hours.to_s + " hour "
       end
     end
 
     if minutes > 0 
-      time_string << minutes.to_s + " minute"
+      time_string << minutes.to_s + " #{translate('minute')}"
       time_string << "s" if minutes != 1
     end
 
@@ -31,9 +33,9 @@ module EmailHelper
     # convert the meters to miles
     miles = dist_in_meters * 0.000621371
     if miles < 0.1
-      dist_str = [(5280.0 * miles).round(0).to_s, "feet"].join(' ')
+      dist_str = [(5280.0 * miles).round(0).to_s, translate("feet")].join(' ')
     else
-      dist_str = [miles.round(2).to_s, "miles"].join(' ')
+      dist_str = [miles.round(2).to_s, translate("miles")].join(' ')
     end
 
     dist_str
@@ -44,8 +46,8 @@ module EmailHelper
 
       steps.each do |hash|
         html << "<p><b>"
-        html << hash["relativeDirection"].humanize
-        html << "</b> onto "
+        html << translate(hash["relativeDirection"].downcase)
+        html << "</b> #{translate('onto')} "
         html << hash["streetName"].to_s
         html << ", "
         html << exact_distance_to_words(hash["distance"] * 1.0)
@@ -82,18 +84,18 @@ module EmailHelper
 
     case leg['mode']
     when "WALK"
-      return "Walk to #{leg['to']['name']}"
+      return "#{translate('Walk_to')} #{leg['to']['name']}"
     when "BICYCLE"
-      return "Bike to #{leg['to']['name']}"
+      return "#{translate('Bike_to')} #{leg['to']['name']}"
     when "CAR"
-      return "Drive to #{leg['to']['name']}"
+      return "#{translate('Drive_to')} #{leg['to']['name']}"
     when "TRAM", "SUBWAY"
-      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
+      return "#{leg['agencyName']} #{leg['route']} #{translate('to')} #{leg['to']['name']}"
     when "BUS"
-      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
+      return "#{leg['agencyName']} #{leg['route']} #{translate('to')} #{leg['to']['name']}"
     else 
       Rails.logger.info "#{leg['mode']} does not have a supported short description, defaulting to bus description"
-      return "#{leg['agencyName']} #{leg['route']} to #{leg['to']['name']}"
+      return "#{leg['agencyName']} #{leg['route']} #{translate('to')} #{leg['to']['name']}"
     end
 
   end
