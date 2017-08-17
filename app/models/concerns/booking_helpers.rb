@@ -170,6 +170,11 @@ module BookingHelpers
       booking.try(:status)
     end
     
+    # Returns true if itinerary is associated with a bookable service
+    def bookable?
+      !!service.try(:bookable?)
+    end
+    
   end
   
 end

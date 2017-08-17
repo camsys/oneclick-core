@@ -33,9 +33,10 @@ RSpec.describe Itinerary, type: :model do
   
   describe 'booking' do
     
-    it { should respond_to :book, :cancel, :booked?, :canceled?, :booking_ambassador }
+    it { should respond_to :book, :cancel, :booked?, :canceled?, :booking_ambassador, :bookable? }
     
     let(:ride_pilot_itin) { create(:ride_pilot_itinerary, :unbooked)}
+    let(:unbookable_itin) { create(:transit_itinerary) }
     
     it "creates the appropriate booking ambassador based on service" do
       
@@ -47,6 +48,11 @@ RSpec.describe Itinerary, type: :model do
       expect(rpa.trip).to eq(ride_pilot_itin.trip)
       expect(rpa.user).to eq(ride_pilot_itin.user)
       
+    end
+    
+    it "knows if it's bookable" do
+      expect(ride_pilot_itin.bookable?).to be true
+      expect(unbookable_itin.bookable?).to be false
     end
     
     # Build a stubbed RidePilotAmbassador
