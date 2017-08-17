@@ -1,6 +1,9 @@
 =content_for :title do
   = "Editing #{@service.type} Service: #{@service.name}"
 
+=content_for :last_updated do
+  = "Last Updated: #{@service.updated_at.strftime('%b %e, %Y at %I:%M %p')}"
+
 =render partial: 'service_general_info', layout: '/layouts/panel'
 =render partial: 'service_comments', layout: '/layouts/panel'
 

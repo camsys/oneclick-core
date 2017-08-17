@@ -10,6 +10,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
   let(:admin) { create(:admin) }
   let(:staff) { create(:staff_user, staff_agency: agency) }
   let(:traveler) { create(:user) }
+  let(:wheelchair) { create(:wheelchair)}
   
 
   context "while signed in as an admin" do
@@ -147,6 +148,23 @@ RSpec.describe Admin::ServicesController, type: :controller do
       new_start_or_end_area = service.start_or_end_area
 
       expect(old_start_or_end_area).not_to eq(new_start_or_end_area)
+    end
+
+    it "udates the updated_at attribute even if only child attributes changed" do 
+      old_time = service.updated_at
+
+      # Update Accommodations
+      update_params = {
+        id: service.id,
+        service: {
+          accommodation_ids: ["", wheelchair.id.to_s]
+        }
+      }
+      put :update, params: update_params
+      service.reload
+
+      expect(service.updated_at).to be > old_time
+
     end
 
     it "updates a service's fare information" do
