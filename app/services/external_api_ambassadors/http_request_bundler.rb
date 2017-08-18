@@ -83,17 +83,16 @@ class HTTPRequestBundler
     only = opts[:only] || @requests.keys
     except = opts[:except] || []
     overwrite = opts[:overwrite] || false # If set to true, will re-make all calls
-    multi = !!opts[:multi] # Determines if the calls should be made one at a time or in parallel
     
     requests_to_make = (only - except)
     requests_to_make.reject! {|l| call_made?(l) } unless overwrite
     return false if requests_to_make.empty?
 
-    multi ? make_multi_calls(requests_to_make) : make_single_calls(requests_to_make)
+    make_multi_calls(requests_to_make)
 
   end
 
-  # private
+  private
   
   # Makes multiple EM HTTP Requests in parallel
   def make_multi_calls(requests_to_make)
@@ -109,7 +108,6 @@ class HTTPRequestBundler
       end
 
       multi.callback do
-        puts "CALLS COMPLETE!"
         parse_responses(multi.responses)
         EventMachine.stop
       end
@@ -119,38 +117,38 @@ class HTTPRequestBundler
     return responses
     
   end
-  
-  # Makes EM HTTP Requests one at a time
-  def make_single_calls(requests_to_make)
-    puts "MAKING SINGLE CALLS"
-    
-    requests_to_make.each do |req_label|
-      
-      EM.run do
-        http_request = build_http_request(@requests[req_label])
-        http_responses = { callback: {}, errback: {} }
-
-        http_request.errback {
-          puts "THERE WAS AN ERROR!"
-          http_responses[:errback][req_label] = http_request
-          parse_responses(http_responses)
-          EM.stop
-        }
-        http_request.callback {
-          puts "SUCCESS!"
-          http_responses[:callback][req_label] = http_request
-          parse_responses(http_responses)
-          EM.stop
-        }
-        
-      end
-      
-    end
-    
-    puts "RETURNING RESPONSES", responses.ai
-    return responses
-    
-  end
+  # 
+  # # Makes EM HTTP Requests one at a time
+  # def make_single_calls(requests_to_make)
+  #   puts "MAKING SINGLE CALLS"
+  #   
+  #   requests_to_make.each do |req_label|
+  #     
+  #     EM.run do
+  #       http_request = build_http_request(@requests[req_label])
+  #       http_responses = { callback: {}, errback: {} }
+  # 
+  #       http_request.errback {
+  #         puts "THERE WAS AN ERROR!"
+  #         http_responses[:errback][req_label] = http_request
+  #         parse_responses(http_responses)
+  #         EM.stop
+  #       }
+  #       http_request.callback {
+  #         puts "SUCCESS!"
+  #         http_responses[:callback][req_label] = http_request
+  #         parse_responses(http_responses)
+  #         EM.stop
+  #       }
+  #       
+  #     end
+  #     
+  #   end
+  #   
+  #   puts "RETURNING RESPONSES", responses.ai
+  #   return responses
+  #   
+  # end
     
     
   # Builds an EventMachine::HttpRequest object
