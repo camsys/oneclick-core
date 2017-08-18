@@ -83,23 +83,29 @@ class HTTPRequestBundler
     only = opts[:only] || @requests.keys
     except = opts[:except] || []
     overwrite = opts[:overwrite] || false # If set to true, will re-make all calls
+    multi = !!opts[:multi] # Determines if the calls should be made one at a time or in parallel
     
     requests_to_make = (only - except)
     requests_to_make.reject! {|l| call_made?(l) } unless overwrite
     return false if requests_to_make.empty?
 
+    multi ? make_multi_calls(requests_to_make) : make_single_calls(requests_to_make)
+
+  end
+
+  private
+  
+  # Makes multiple EM HTTP Requests in parallel
+  def make_multi_calls(requests_to_make)
+    
     EM.run do
+      
       multi = EM::MultiRequest.new
-      requests_to_make.each do |label|
-        request = @requests[label]
-        
+      requests_to_make.each do |req_label|        
         # Add an HTTP request to the multirequest, passing in the key as a label,
         # and pulling the appropriate action (e.g. get, post, etc.) and headers
         # from the body.
-        multi.add(label, 
-          EM::HttpRequest.new(request[:url])
-          .send(request[:action], request[:opts])
-        )
+        multi.add(label, build_http_request(@requests[req_label]))
       end
 
       multi.callback do
@@ -107,11 +113,44 @@ class HTTPRequestBundler
         parse_responses(multi.responses)
         return responses
       end
+      
     end
-
+    
   end
+  
+  # Makes EM HTTP Requests one at a time
+  def make_single_calls(requests_to_make)    
+    
+    requests_to_make.each do |req_label|
+      
+      EM.run do
+        http_request = build_http_request(@requests[req_label])
+        http_responses = { callback: {}, errback: {} }
 
-  private
+        http_request.errback {
+          EM.stop
+          http_responses[:errback][req_label] = http_request
+          parse_responses(http_responses)
+          return responses
+        }
+        http_request.callback {
+          EM.stop
+          http_responses[:callback][req_label] = http_request
+          parse_responses(http_responses)
+          return responses
+        }
+        
+      end
+      
+    end
+    
+  end
+    
+    
+  # Builds an EventMachine::HttpRequest object
+  def build_http_request(request={})
+    EM::HttpRequest.new(request[:url]).send(request[:action], request[:opts])
+  end
   
   # Checks if response has returned for given call;
   # if not (and if request is present), makes all calls
