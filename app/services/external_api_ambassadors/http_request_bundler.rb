@@ -105,12 +105,13 @@ class HTTPRequestBundler
         # Add an HTTP request to the multirequest, passing in the key as a label,
         # and pulling the appropriate action (e.g. get, post, etc.) and headers
         # from the body.
-        multi.add(label, build_http_request(@requests[req_label]))
+        multi.add(req_label, build_http_request(@requests[req_label]))
       end
 
       multi.callback do
-        EventMachine.stop
+        puts "CALLS COMPLETE!"
         parse_responses(multi.responses)
+        EventMachine.stop
       end
       
     end
