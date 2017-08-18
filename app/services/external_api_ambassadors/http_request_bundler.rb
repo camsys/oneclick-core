@@ -93,7 +93,7 @@ class HTTPRequestBundler
 
   end
 
-  private
+  # private
   
   # Makes multiple EM HTTP Requests in parallel
   def make_multi_calls(requests_to_make)
@@ -111,15 +111,17 @@ class HTTPRequestBundler
       multi.callback do
         EventMachine.stop
         parse_responses(multi.responses)
-        return responses
       end
       
     end
     
+    return responses
+    
   end
   
   # Makes EM HTTP Requests one at a time
-  def make_single_calls(requests_to_make)    
+  def make_single_calls(requests_to_make)
+    puts "MAKING SINGLE CALLS"
     
     requests_to_make.each do |req_label|
       
@@ -128,21 +130,24 @@ class HTTPRequestBundler
         http_responses = { callback: {}, errback: {} }
 
         http_request.errback {
-          EM.stop
+          puts "THERE WAS AN ERROR!"
           http_responses[:errback][req_label] = http_request
           parse_responses(http_responses)
-          return responses
+          EM.stop
         }
         http_request.callback {
-          EM.stop
+          puts "SUCCESS!"
           http_responses[:callback][req_label] = http_request
           parse_responses(http_responses)
-          return responses
+          EM.stop
         }
         
       end
       
     end
+    
+    puts "RETURNING RESPONSES", responses.ai
+    return responses
     
   end
     
