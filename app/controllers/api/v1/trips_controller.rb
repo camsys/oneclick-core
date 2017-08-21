@@ -158,10 +158,10 @@ module Api
           next response unless itin
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
-          booking = itin.cancel
+          cancellation_result = itin.bookable? ? itin.cancel : itin.unselect
           
           # Package response as per API V1 docs
-          next response.merge(bookingcancellation_response_hash(booking))
+          next response.merge(bookingcancellation_response_hash(cancellation_result))
         end
         
         render status: 200, json: {cancellation_results: results}
@@ -331,14 +331,16 @@ module Api
       
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
-        case booking.type_code
+        case booking.try(:type_code)
         when :ride_pilot
           return {
             success: true,
             confirmation_id: booking.confirmation
           }
         else
-          return {}
+          return {
+            success: true
+          }
         end        
       end
 

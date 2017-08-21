@@ -13,17 +13,17 @@
 
   = f.input :open_trip_planner, required: true,
     label: "URL of the Open Trip Planner Server",
-    input_html: {value: @configs.find_by(key: :open_trip_planner).value},
+    input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
     as: :string
     
   =f.input :tff_api_key, required: true,
     label: "API Key for Taxi Fare Finder",
-    input_html: {value: @configs.find_by(key: :tff_api_key).value},
+    input_html: {value: @configs.find_by(key: :tff_api_key).try(:value)},
     as: :string
     
   =f.input :uber_token, required: true,
     label: "Uber Token",
-    input_html: {value: @configs.find_by(key: :uber_token).value},
+    input_html: {value: @configs.find_by(key: :uber_token).try(:value)},
     as: :string
 
 :javascript

@@ -13,12 +13,12 @@
 
   = f.input :ride_pilot_url, required: true,
     label: "RidePilot API URL",
-    input_html: {value: @configs.find_by(key: :ride_pilot_url).value},
+    input_html: {value: @configs.find_by(key: :ride_pilot_url).try(:value)},
     as: :string
     
   =f.input :ride_pilot_token, required: true,
     label: "RidePilot API Token",
-    input_html: {value: @configs.find_by(key: :ride_pilot_token).value},
+    input_html: {value: @configs.find_by(key: :ride_pilot_token).try(:value)},
     as: :string
 
 :javascript

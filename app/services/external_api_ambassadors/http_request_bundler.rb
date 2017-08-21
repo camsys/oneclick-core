@@ -88,30 +88,39 @@ class HTTPRequestBundler
     requests_to_make.reject! {|l| call_made?(l) } unless overwrite
     return false if requests_to_make.empty?
 
-    EM.run do
-      multi = EM::MultiRequest.new
-      requests_to_make.each do |label|
-        request = @requests[label]
-        
-        # Add an HTTP request to the multirequest, passing in the key as a label,
-        # and pulling the appropriate action (e.g. get, post, etc.) and headers
-        # from the body.
-        multi.add(label, 
-          EM::HttpRequest.new(request[:url])
-          .send(request[:action], request[:opts])
-        )
-      end
-
-      multi.callback do
-        EventMachine.stop
-        parse_responses(multi.responses)
-        return responses
-      end
-    end
-
+    make_multi_calls(requests_to_make)
   end
 
   private
+  
+  # Makes multiple EM HTTP Requests in parallel
+  def make_multi_calls(requests_to_make)
+    
+    EM.run do
+      
+      multi = EM::MultiRequest.new
+      requests_to_make.each do |req_label|        
+        # Add an HTTP request to the multirequest, passing in the key as a label,
+        # and pulling the appropriate action (e.g. get, post, etc.) and headers
+        # from the body.
+        multi.add(req_label, build_http_request(@requests[req_label]))
+      end
+
+      multi.callback do
+        parse_responses(multi.responses)
+        EM.stop
+      end
+      
+    end
+    
+    return responses
+    
+  end
+  
+  # Builds an EventMachine::HttpRequest object
+  def build_http_request(request={})
+    EM::HttpRequest.new(request[:url]).send(request[:action], request[:opts])
+  end
   
   # Checks if response has returned for given call;
   # if not (and if request is present), makes all calls
