@@ -1,6 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Service, type: :model do
+  #Create Configs
+  before(:all) { create(:ride_pilot_url_config) }
+  before(:all) { create(:ride_pilot_token_config) } 
   before(:all) { create(:otp_config) }
   before(:all) { create(:tff_config) }
   before(:all) { create(:uber_token) }
@@ -283,6 +286,13 @@ RSpec.describe Service, type: :model do
       expect(rpa).to be_a(RidePilotAmbassador)
       expect(rpa.service).to eq(ride_pilot_service)
       expect(no_booking_service.booking_ambassador).to be_nil
+    end
+
+    it "should not be valid because the ridepilot credentials cannot be verified" do
+      service.should be_valid
+      service.booking_api = "ride_pilot"
+      service.booking_details = { provider_id: 0 }        
+      service.should_not be_valid
     end
     
   end

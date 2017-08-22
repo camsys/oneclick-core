@@ -7,6 +7,7 @@ FactoryGirl.define do
       opts = attributes[:opts] || { itinerary: create(:ride_pilot_itinerary)}
       RidePilotAmbassador.new(opts)
     end
+
   end
 
 end

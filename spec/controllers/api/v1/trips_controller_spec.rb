@@ -169,6 +169,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     
     # Build a stubbed-out itinerary that responds to booking requests
     let(:bookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
+
     before(:each) do
       Itinerary.any_instance.stub(:book) do |itin|
         itin.booking = create(:ride_pilot_booking, :booked, itinerary: itin)
