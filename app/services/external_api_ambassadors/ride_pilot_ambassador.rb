@@ -54,9 +54,12 @@ class RidePilotAmbassador < BookingAmbassador
     authenticate_customer == "200 OK"
   end
 
-
   ### API CALLS ###
   
+  def authentic_provider?
+    authenticate_provider == "200 OK"
+  end
+
   # Authenticates a RidePilot Provider
   def authenticate_provider    
     label = request_label(:authenticate_provider)

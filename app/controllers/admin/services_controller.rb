@@ -33,12 +33,9 @@ class Admin::ServicesController < Admin::AdminController
   def update    
 
     @service.update_attributes(service_params)
-    
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
-    
     present_error_messages(@service)
-
     # If a partial_path parameter is set, serve back that partial
     respond_with_partial_or do
       redirect_to admin_service_path(@service)

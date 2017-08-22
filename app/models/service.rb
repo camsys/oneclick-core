@@ -39,6 +39,7 @@ class Service < ApplicationRecord
   validates_with FareValidator # For validating fare_structure and fare_details
   validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
   contact_fields phone: :phone, email: :email
+  validate :valid_booking_profile
   after_save :consolidate_schedules
 
   ##########

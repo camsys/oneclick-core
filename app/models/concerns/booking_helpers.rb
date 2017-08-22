@@ -24,7 +24,7 @@ module BookingHelpers
     end
     
     # Returns true if the user has a booking_profile for the given service
-    def has_booking_profile_for?(service)
+    def has_booking_profile_for?(service) 
       booking_profile_for(service).present?
     end
     
@@ -57,6 +57,15 @@ module BookingHelpers
     # Returns true/false if service is (theoretically) bookable
     def bookable?
       booking_api.present? && booking_details.present?
+    end
+
+    def valid_booking_profile
+      unless bookable?
+        return
+      end
+      unless self.booking_ambassador.authentic_provider?
+        errors.add(:booking_details, "are not valid.")
+      end
     end
     
   end
