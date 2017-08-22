@@ -79,6 +79,10 @@ FactoryGirl.define do
             provider_id: 0
           }
         }
+
+        after(:build) do |svc|
+          svc.stub(:valid_booking_profile).and_return true
+        end
       end
 
     end

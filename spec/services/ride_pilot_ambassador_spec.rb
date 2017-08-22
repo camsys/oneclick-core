@@ -38,6 +38,7 @@ RSpec.describe RidePilotAmbassador do
     :book,
     :cancel,
     :status,
+    :authentic_provider?,
     :authenticate_provider,
     :authenticate_customer,
     :trip_purposes,
