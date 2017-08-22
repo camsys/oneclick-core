@@ -124,7 +124,7 @@ module Api
           if return_time
             return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
                           .plan.try(:selected_itinerary)
-            return_booking_request = booking_request.clone.merge({itinerary: return_itin})
+            return_booking_request = booking_request.clone.merge({itinerary: return_itin, return: true})
             next [booking_request, return_booking_request]
           else
             next booking_request
