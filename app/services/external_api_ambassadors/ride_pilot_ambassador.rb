@@ -213,6 +213,7 @@ class RidePilotAmbassador < BookingAmbassador
     mobility_devices = opts[:mobility_devices] || 0
     guests = opts[:guests] || 0
     purpose_code = opts[:purpose] || map_purpose_to_ridepilot(@trip.purpose) # Convert trip purpose to RidePilot code
+    leg = opts[:return] ? 2 : 1 # outbound or return
     @trip.errors.add(:booking, "Cannot book without trip purpose code.") unless purpose_code
     
     {
@@ -225,6 +226,7 @@ class RidePilotAmbassador < BookingAmbassador
     	attendants: attendants,
       mobility_devices: mobility_devices,
     	guests: guests,
+      leg: leg,
     	from_address: { address: @trip.origin.try(:google_place_hash) },
     	to_address: { address: @trip.destination.try(:google_place_hash) }
     }
