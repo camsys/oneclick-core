@@ -20,6 +20,23 @@ namespace :import do
     end
   end
 
+  desc "Import Configs"
+  task :configs, [:host, :token] => [:environment, :verify_params] do |t, args|
+
+    configs = get_export_data(args, 'oneclick_configurations')
+    
+    [
+      {occ_code: 'open_trip_planner', legacy_code: 'open_trip_planner'},
+      {occ_code: 'uber_token', legacy_code: 'ENV_UBER_SERVER_TOKEN'},
+      {occ_code: 'tff_api_key', legacy_code: 'ENV_TAXI_FARE_FINDER_API_KEY'}
+    ].each do |key|
+      if Config.send(key[:occ_code]).blank?
+        Config.set_config_variable(key[:occ_code], configs[key[:legacy_code]])
+      end
+    end
+
+  end
+
   desc "Import Purposes"
   task :purposes, [:host, :token] => [:environment, :verify_params] do |t, args|
 
@@ -306,6 +323,7 @@ namespace :import do
   
   desc "Import Everything"
   task :all, [:host, :token, :state] => [
+      :configs,
       :purposes, 
       :eligibilities,
       :accommodations, 
