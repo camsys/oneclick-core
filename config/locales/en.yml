@@ -24,6 +24,9 @@ en:
   fare_sorter: "Fare"
   travel_time_sorter: "Travel Time"
   walk_distance_sorter: "Walk Distance"
+  show_less: "Show Less"
+  show_more: "Show More"
+  select: "Select"
   ###############################
 
   hello: "Hello"
@@ -69,8 +72,7 @@ en:
   mode_walk_name: "Walk"
   mode_transit_name: "Transit"
   mode_paratransit_name: "Paratransit"
-  select: "Select"
-  show_more: "Show more"
+  mode_car_name: "Drive"
   to: "to"
   from: "from"
   minutes: "minutes"
