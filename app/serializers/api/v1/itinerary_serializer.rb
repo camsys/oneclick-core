@@ -141,7 +141,7 @@ module Api
       end
 
       def schedule
-        return [] unless object.service && object.service.schedules
+        return full_schedule unless object.try(:service).try(:schedules).try(:for_display).present?
         object.service.schedules.for_display.order(:day).map do |sched|
           end_time_not_midnight = sched.end_time == ScheduleHelper::DAY_LENGTH ? sched.end_time - 1 : sched.end_time
           {
@@ -207,6 +207,16 @@ module Api
             }
           }
         }
+      end
+      
+      def full_schedule
+        (0..6).map do |d|
+          {
+            day: Date::DAYNAMES[d],
+            start: [schedule_time_to_string(0)],
+            end: [schedule_time_to_string(ScheduleHelper::DAY_LENGTH - 1)]
+          }
+        end
       end
 
     end

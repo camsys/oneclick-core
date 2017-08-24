@@ -20,6 +20,15 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  ### Support the Standard UI ###
+  fare_sorter: "Fare"
+  travel_time_sorter: "Travel Time"
+  walk_distance_sorter: "Walk Distance"
+  show_less: "Show Less"
+  show_more: "Show More"
+  select: "Select"
+  ###############################
+
   hello: "Hello"
   delete: "Delete"
   create_translation: "Create Translation"
@@ -42,7 +51,7 @@ en:
   email: "Email"
   password: "Password"
   password_confirmation: "Password confirmation"
-  logout: "Login"
+  logout: "Logout"
   password: "Password"
   password_confirmation: "Password confirmation"
   welcome_message: "Plan your trip"
@@ -63,8 +72,7 @@ en:
   mode_walk_name: "Walk"
   mode_transit_name: "Transit"
   mode_paratransit_name: "Paratransit"
-  select: "Select"
-  show_more: "Show more"
+  mode_car_name: "Drive"
   to: "to"
   from: "from"
   minutes: "minutes"

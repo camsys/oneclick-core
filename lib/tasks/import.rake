@@ -122,13 +122,19 @@ namespace :import do
   
   desc "Import Guest Users"
   task :guest_users, [:host, :token] => [:environment, :verify_params] do |t, args|
+
+    # Get trips in batches
+    loop.with_index do |_, i|
+      puts "GETTING GUEST BATCH #{i}..."
+      users_attributes = get_export_data(args, 'users/guests', batch_size: 50, batch_index: i)["users"]
+      
+      break if users_attributes.empty? || i > 100000
     
-    users_attributes = get_export_data(args, 'users/guests')["users"]
-    
-    users_attributes.each do |user_attrs|
-      user = import_user(user_attrs)
-      user.assign_attributes(email: convert_to_guest_email(user.email))
-      save_and_log_result(user)
+      users_attributes.each do |user_attrs|
+        user = import_user(user_attrs)
+        user.assign_attributes(email: convert_to_guest_email(user.email))
+        save_and_log_result(user)
+      end
     end
     
   end
@@ -348,6 +354,7 @@ namespace :import do
     clean_up_uniquized_table(User, :email)
     clean_up_uniquized_table(Service, :name)
     clean_up_uniquized_table(Waypoint, :name)
+    clean_up_uniquized_table(Landmark, :name)
     
   end
 

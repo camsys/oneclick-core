@@ -95,7 +95,7 @@ module ImportTaskHelpers
   # Cleans Up Uniquized Table, given the table name and the uniquized attribute
   def clean_up_uniquized_table(table, attr)
     puts "Cleaning up #{table.name} Table..."
-    table.where("#{attr} LIKE '%$$%'").each do |r| 
+    table.where("#{attr} LIKE '%$$%'").find_each(batch_size: 100) do |r| 
       puts "Cleaning up #{attr} of #{table.name.underscore} #{r.id}"
       unless r.update_attributes(attr => ununiquize_attribute(r.send(attr)))
         puts "FAILED: #{r.errors.full_messages}"
