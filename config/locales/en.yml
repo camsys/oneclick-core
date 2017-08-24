@@ -20,6 +20,12 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  ### Support the Standard UI ###
+  fare_sorter: "Fare"
+  travel_time_sorter: "Travel Time"
+  walk_distance_sorter: "Walk Distance"
+  ###############################
+
   hello: "Hello"
   delete: "Delete"
   create_translation: "Create Translation"
