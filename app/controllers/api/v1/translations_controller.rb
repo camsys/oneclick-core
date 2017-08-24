@@ -34,6 +34,15 @@ module Api
 
           #The gsub finds all instances of %{xyz} and replaces then with {{xyz}} The {{xyz}} string is used by Angular for interpolation
           Translation.where(locale: locale).each {|translation| dictionary[translation.key] = translation.value.to_s.gsub(/%\{[a-zA-Z_]+\}/) { |s| '{{' + s[2..-2] + '}}' } }
+
+          eligs = dictionary.keys.select { |key| key.to_s.match(/^eligibility_/) }
+          eligs.each do |elig|
+            new_key = elig.gsub("eligibility_", "")
+            puts new_key
+            puts elig
+            dictionary[new_key] = dictionary[elig]
+          end
+
           dictionaries = dictionary
         else
           Locale.all.each do |locale|
