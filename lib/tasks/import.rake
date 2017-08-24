@@ -354,6 +354,7 @@ namespace :import do
     clean_up_uniquized_table(User, :email)
     clean_up_uniquized_table(Service, :name)
     clean_up_uniquized_table(Waypoint, :name)
+    clean_up_uniquized_table(Landmark, :name)
     
   end
 
