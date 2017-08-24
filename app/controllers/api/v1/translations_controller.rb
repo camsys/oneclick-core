@@ -62,9 +62,7 @@ module Api
           trans = dictionary.keys.select { |key| key.to_s.match(/^#{trans_type}_/) }
           trans.each do |tran|
             new_key = tran.sub("#{trans_type}_", "")
-            puts new_key
-            puts trans
-            dictionary[new_key] = dictionary[trans]
+            dictionary[new_key] = dictionary[tran]
           end
         end
 
