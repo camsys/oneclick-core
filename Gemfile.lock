@@ -1,9 +1,13 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 09a62379203bd84ebe83d54bb55b4cbd587d6242
+  revision: 937a18251831c68edc82531b62c2d39d9024e8ee
   specs:
     oneclick_refernet (0.1.0)
+      active_model_serializers
+      activerecord-postgis-adapter
+      pg
       rails (~> 5.0.3)
+      rgeo
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
