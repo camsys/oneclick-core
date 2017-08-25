@@ -120,7 +120,7 @@ class HTTPRequestBundler
   # Builds an EventMachine::HttpRequest object
   def build_http_request(request={})
     EM::HttpRequest.new(request[:url]).send(request[:action], request[:opts])
-
+    
     # The above line replaces the need for the following
     # DO NOT DELETE
     #case request[:action]
