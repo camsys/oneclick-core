@@ -326,6 +326,19 @@ namespace :import do
     end
     
   end
+
+  desc "Import Translations"
+  task :translations, [:host] => [:environment] do |t, args|
+    url = "#{args['host']}/api/v1/translations/all"
+    puts "Calling: #{url}"
+    JSON.parse(open(url).read).each do |lang, trans|
+      trans.each do |key, value|
+        puts "locale: #{lang}, key: #{key}, value: #{value}" 
+        SimpleTranslationEngine.set_translation(lang, key, value)
+      end
+    end
+    
+  end
   
   desc "Import Everything"
   task :all, [:host, :token, :state] => [
@@ -343,7 +356,8 @@ namespace :import do
       :services,
       :roles,
       :feedbacks,
-      :trips
+      :trips,
+      :translations
     ]
     
   desc "Cleans up Uniquized Attributes"
