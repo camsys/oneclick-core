@@ -130,7 +130,7 @@ module Api
       end
 
       def phone
-        object.service && object.service.phone
+        object.service && object.service.formatted_phone
       end
 
       def returned_mode_code
