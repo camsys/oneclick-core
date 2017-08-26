@@ -200,6 +200,7 @@ module FareHelper
       @params = params
       @fare_structure = params[:fare_structure]
       @fare_details = params[:fare_details]
+      fix_base_fare 
     end
 
     # Creates a fare_details parameter key based on the fare_structure
@@ -210,7 +211,19 @@ module FareHelper
 
     private
 
-    # Helper method, converts a param in place with passed block
+    # TODO: This is not a pemanent fix, but it works and when you are hacking all weekend to fix OCC it will have to do.
+    # The problem arises because the fare table has two fields with the same name: base_fare. You can't do that.
+    def fix_base_fare 
+      if @fare_structure == 'flat'
+        @fare_details[:base_fare] = @fare_details[:flat_base_fare]
+      elsif @fare_structure == 'mileage'
+        @fare_details[:base_fare] = @fare_details[:mileage_base_fare]
+      end  
+    end
+
+    # "Helper" method, converts a param in place with passed block
+    # ANNOYING: This is hard to understand. Pretend that someone else will have to read this. 
+    # without spending a fair amount of time picking through this, it is not clear what it does.
     def convert_param(key, base_param=@fare_details, &block)
       base_param[key] = yield(base_param[key])
     end
