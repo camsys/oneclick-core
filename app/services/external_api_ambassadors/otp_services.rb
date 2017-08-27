@@ -15,7 +15,6 @@ module OTPServices
     # Makes multiple OTP requests in parallel, and returns once they're all done.
     # Send it a list or array of request hashes.
     def multi_plan(*requests)
-      puts requests.ai 
       requests = requests.flatten
       EM.run do
         multi = EM::MultiRequest.new
