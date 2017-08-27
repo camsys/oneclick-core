@@ -87,6 +87,8 @@ Rails.application.routes.draw do
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'
 
+      # Refernet
+      get 'oneclick_refernet/services' => 'refernet/services#index'
       mount OneclickRefernet::Engine => "/oneclick_refernet"
       
     end #v2
