@@ -19,7 +19,7 @@ module Api
             data << svc_data
           end 
 
-          render(success_response({'oneclick_refernet/services': data}))
+          render json: data
 
         end
 
