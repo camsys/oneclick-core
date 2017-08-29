@@ -56,7 +56,8 @@ module Api
             "lng": service.lng,
             "address": service.address,
             "drive_time": duration_hash["#{service.id}_CAR"],
-            "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"]
+            "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
+            "url": service['details']['url']
           }
         end
 
