@@ -24,7 +24,7 @@ class TFFService
     elsif response_body['status'] != 'OK'
       return {code: 500, status: response_body['status'], message: response_body['explanation']}
     else
-      return {code: 200, status: "Success", fare: response_body['metered_fare']}
+      return {code: 200, status: "Success", fare: response_body['total_fare']} 
     end
   end
 

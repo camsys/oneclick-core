@@ -18,11 +18,14 @@ module Contactable
     
     protected
     
+    
     # Normalize and validate phone number column(s) with phony gem
     def setup_phone_fields(*columns)      
       columns.each do |column|
         phony_normalize column, if: -> { PhonyRails.plausible_number?(self.send(column)) }
         
+        # ANNOYING: Meta programing and using gems makes it hard to find out about methods like <sevice>.formatted_phone since that method is literally not written anywhere
+        # Just by looking at this, I don't know what other columns are supported.  It's ok to write code out sometimes for the sake of readabilty.
         define_method("formatted_#{column}") do
           self.send(column).to_s.phony_formatted
         end
@@ -42,7 +45,6 @@ module Contactable
             # NOTE: The '_' in '[-_a-z0-9]' allows for import of ecolane users, though underscores in domain names are not strictly allowed
       end
     end
-        
     
   end
   

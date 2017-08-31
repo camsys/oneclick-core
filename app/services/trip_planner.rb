@@ -24,7 +24,7 @@ class TripPlanner
     @relevant_eligibilities = @relevant_purposes = @relevant_accommodations = []
     
     # Initialize ambassadors if passed as options
-    @router = options[:router]
+    @router = options[:router] #This is the otp_ambassador
     @taxi_ambassador = options[:taxi_ambassador]
     @uber_ambassador = options[:uber_ambassador]
   end
