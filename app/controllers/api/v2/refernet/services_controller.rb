@@ -55,6 +55,7 @@ module Api
             "lat": service.lat,
             "lng": service.lng,
             "address": service.address,
+            "phone": service['details']["Number_Phone1"],
             "drive_time": duration_hash["#{service.id}_CAR"],
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
             "url": service['details']['url'],
