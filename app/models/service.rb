@@ -218,6 +218,7 @@ class Service < ApplicationRecord
       options[:origin_zone] = origin_zone_code(trip)
       options[:destination_zone] = destination_zone_code(trip)
     end
+
     FareCalculator.new(fare_structure, fare_details, trip, options).calculate
   end
 

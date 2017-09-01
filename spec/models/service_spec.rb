@@ -259,7 +259,7 @@ RSpec.describe Service, type: :model do
 
     it 'should calculate taxi fare finder fares' do
       fare = 10.0
-      tff_response = { 'metered_fare' => fare, 'status' => 'OK' }
+      tff_response = { 'total_fare' => fare, 'status' => 'OK' }
       # Make an object double for HTTPRequestBundler that sends back dummy TFF responses
       hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
       expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)

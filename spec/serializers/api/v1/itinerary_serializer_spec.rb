@@ -47,7 +47,7 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
     expect(transit_serialization['id']).to eq(transit_itinerary.id)
     expect(transit_serialization['json_legs']).to eq(transit_itinerary.legs)
     expect(transit_serialization['logo_url']).to eq(transit_itinerary.service.full_logo_url)
-    expect(transit_serialization['phone']).to eq(transit_itinerary.service.phone)
+    expect(transit_serialization['phone']).to eq(transit_itinerary.service.formatted_phone)
     # expect(transit_serialization['prebooking_questions']).to eq( ? )
     # expect(transit_serialization['product_id']).to eq( ? )
     expect(transit_serialization['returned_mode_code']).to eq('mode_transit')

@@ -1,7 +1,7 @@
 module FareHelper
   include GeoKitchen
 
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder]
+  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty]
   TRIP_TYPES = Trip::TRIP_TYPES
   NO_FARE = nil
 
@@ -34,6 +34,10 @@ module FareHelper
       return fare.to_f.round(2) # Send back a float rounded to 2 decimal places
     end
 
+    # Calculate an Empty Fare
+    def calculate_empty
+      nil
+    end
 
     # Calculates a flat fare
     def calculate_flat
@@ -97,7 +101,7 @@ module FareHelper
     end
 
     def validate_fare_details(record)
-      if record.fare_details.is_a?(Hash)
+      if record.fare_details.is_a?(Hash) or record.fare_details.nil? 
         return true
       else
         record.errors.add(:fare_details, "Fare details must be a hash")
@@ -107,6 +111,10 @@ module FareHelper
 
     def validate_flat(record)
       # validate_fare_details_key(record, :base_fare, :numeric)
+    end
+
+    def validate_empty(record)
+      true
     end
 
     def validate_mileage(record)
@@ -222,10 +230,15 @@ module FareHelper
     end
 
     # "Helper" method, converts a param in place with passed block
-    # ANNOYING: This is hard to understand. Pretend that someone else will have to read this. 
+    # NOTE: This is hard to understand. 
     # without spending a fair amount of time picking through this, it is not clear what it does.
+    # Add notes please.
     def convert_param(key, base_param=@fare_details, &block)
       base_param[key] = yield(base_param[key])
+    end
+
+    def package_empty
+      nil 
     end
 
     def package_flat
