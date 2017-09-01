@@ -121,6 +121,10 @@ module FareHelper
       true
     end
 
+    def validate_empty(record)
+      true
+    end
+
     def validate_mileage(record)
       validate_fare_details_key(record, :mileage_base_fare, :numeric)
       validate_fare_details_key(record, :mileage_rate, :numeric)
