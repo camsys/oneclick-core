@@ -117,7 +117,6 @@ module FareHelper
       true
     end
 
-
     def validate_url(record)
       true
     end
