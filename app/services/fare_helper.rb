@@ -116,7 +116,7 @@ module FareHelper
     def validate_empty(record)
       true
     end
-
+    
     def validate_url(record)
       true
     end
