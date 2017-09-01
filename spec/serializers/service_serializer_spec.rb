@@ -15,7 +15,7 @@ RSpec.describe ServiceSerializer, type: :serializer do
     expect(transit_serialization["type"]).to eq(transit_service.type)
     expect(transit_serialization["url"]).to eq(transit_service.url)
     expect(transit_serialization["email"]).to eq(transit_service.email)
-    expect(transit_serialization["phone"]).to eq(transit_service.phone)
+    expect(transit_serialization["phone"]).to eq(transit_service.formatted_phone)
   end
 
   it 'faithfully serializes paratransit services' do
@@ -24,7 +24,7 @@ RSpec.describe ServiceSerializer, type: :serializer do
     expect(paratransit_serialization["type"]).to eq(paratransit_service.type)
     expect(paratransit_serialization["url"]).to eq(paratransit_service.url)
     expect(paratransit_serialization["email"]).to eq(paratransit_service.email)
-    expect(paratransit_serialization["phone"]).to eq(paratransit_service.phone)
+    expect(paratransit_serialization["phone"]).to eq(paratransit_service.formatted_phone)
   end
 
 end

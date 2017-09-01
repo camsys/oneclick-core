@@ -10,6 +10,7 @@
 
   =f.input :fare_structure, 
       input_html: {class: 'fare-structure'}, 
+      include_blank: false,
       collection: FareHelper::VALID_STRUCTURES.map {|fs| [fs.to_s.titleize, fs]}
 
   -fare_details = @service.fare_details || {}
