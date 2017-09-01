@@ -59,7 +59,7 @@ module Api
             "drive_time": duration_hash["#{service.id}_CAR"],
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
             "url": service['details']['url'],
-            "description": "#{service['details']['Note1']} #{service['details']['Note2']}" #Needs to be replaced by a better description.
+            "description":  service['details']["Label_Service Description"] || "#{service['details']['Note1']} #{service['details']['Note2']}" 
           }
         end
 
