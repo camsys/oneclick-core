@@ -77,7 +77,9 @@ module Api
                 requests << build_request(origin, service, mode)
               end 
             end
-          end         
+          end 
+
+          Rails.logger.info requests        
             
           ### Make the Call
           plans = otp.multi_plan([requests])
