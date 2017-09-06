@@ -16,6 +16,7 @@ module OTPServices
     # Send it a list or array of request hashes.
     def multi_plan(*requests)
       requests = requests.flatten
+      responses = nil
       EM.run do
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
@@ -23,11 +24,15 @@ module OTPServices
           multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
         end
 
+        responses = nil
         multi.callback do
-          EventMachine.stop
-          return multi.responses
+          EM.stop
+          responses = multi.responses
         end
       end
+
+      return responses
+
     end
 
     # Constructs an OTP request url

@@ -80,8 +80,6 @@ module Api
           end         
             
           ### Make the Call
-           
-          puts requests.ai  
           plans = otp.multi_plan([requests])
 
           ### Unack the requests and build a hash of durations
