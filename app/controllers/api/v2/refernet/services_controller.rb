@@ -9,13 +9,14 @@ module Api
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
-
+          services = sub_sub_category.services.confirmed.uniq.limit(10)
+          
           if params[:lat] and params[:lng]
-            duration_hash = build_duration_hash(params, sub_sub_category)
+            duration_hash = build_duration_hash(params, services)
           end
 
           # TODO: NO HARD LIMIT. LIMIT BASED ON SOMETHING SMART E.G. DISTANCE
-          sub_sub_category.services.confirmed.limit(10).each do |service|
+          services.each do |service|
             svc_data = service_hash(service, duration_hash)
             data << svc_data
           end 
@@ -64,14 +65,14 @@ module Api
         end
 
         # Call OTP and Pull out the durations
-        def build_duration_hash(params, sub_sub_category)
+        def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
           otp = OTPServices::OTPService.new(Config.open_trip_planner)
             
           ### Build the requests
           requests = []
-          sub_sub_category.services.confirmed.uniq.limit(10).each do |service|
+          services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
                 requests << build_request(origin, service, mode)
@@ -88,7 +89,6 @@ module Api
             itinerary = response.extract_itineraries.first
             duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
           end
-
           return duration_hash
         end
       
