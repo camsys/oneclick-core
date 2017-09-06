@@ -9,7 +9,7 @@ module Api
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
-          
+
           if params[:lat] and params[:lng]
             duration_hash = build_duration_hash(params, sub_sub_category)
           end
@@ -71,7 +71,7 @@ module Api
             
           ### Build the requests
           requests = []
-          sub_sub_category.services.confirmed.limit(10).each do |service|
+          sub_sub_category.services.confirmed.uniq.limit(10).each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
                 requests << build_request(origin, service, mode)
@@ -79,8 +79,6 @@ module Api
             end
           end 
 
-          Rails.logger.info requests        
-            
           ### Make the Call
           plans = otp.multi_plan([requests])
 
