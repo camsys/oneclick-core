@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: df09f7bea0ad1ad0e44d65de24401e4a71e6f6e3
+  revision: 8c5643324df0d23c98029223a343edcf0b28dfce
   specs:
     oneclick_refernet (0.1.0)
       active_model_serializers
@@ -441,7 +441,7 @@ GEM
     sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-rails (3.2.0)
+    sprockets-rails (3.2.1)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
