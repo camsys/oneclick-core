@@ -1,8 +1,13 @@
 class User < ApplicationRecord
 
   ### Includes ###
-  rolify
+  rolify  # user may be an admin, staff, traveler, ...
+  include BookingHelpers::UserHelpers #has_many :booking_profiles, etc.
+  include Contactable
+  include RoleHelper
   acts_as_token_authenticatable
+  include TokenAuthenticationHelpers
+  include TravelerProfileUpdater   # Update Profile from API Call
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
   write_to_csv with: Admin::UsersReportCSVWriter
@@ -12,16 +17,31 @@ class User < ApplicationRecord
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
 
   ### Scopes ###
-  scope :staff, -> { User.with_role(:admin) }
-  scope :admins, -> { User.with_role(:admin) }
+  scope :with_accommodations, -> (accommodation_ids) do
+    joins(:accommodations).where(accommodations: { id: accommodation_ids })
+  end
+  scope :with_eligibilities, -> (eligibility_ids) do
+    joins(:confirmed_eligibilities).where(eligibilities: { id: eligibility_ids })
+  end
+  
+  # Active between scopes check if user has planned trips before or after given dates
+  scope :active_since, -> (date) do
+    joins(:trips).merge(Trip.from_date(date))
+  end
+  scope :active_until, -> (date) do
+    joins(:trips).merge(Trip.to_date(date))
+  end
+
 
   ### Associations ###
-  has_many :trips
+  has_many :trips, dependent: :nullify
+  has_many :itineraries, through: :trips
   has_and_belongs_to_many :accommodations
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
   has_many :user_eligibilities, dependent: :destroy
   has_many :eligibilities, through: :user_eligibilities
   has_many :feedbacks
+  has_many :stomping_grounds
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
@@ -30,9 +50,9 @@ class User < ApplicationRecord
   has_many :denied_eligibilities, source: :eligibility, through: :denied_user_eligibilities
 
   ### Validations ###
-  validates :email, presence: true
-  validates :email, uniqueness: true
-
+  contact_fields email: :email
+  validates :email, presence: true, uniqueness: true
+  validates :password_confirmation, presence: true, on: :create
   
   ### Class Methods ###
 
@@ -43,6 +63,11 @@ class User < ApplicationRecord
   # To String prints out user's email address
   def to_s
     email
+  end
+  
+  # Returns the user's full name
+  def full_name
+    "#{first_name} #{last_name}"
   end
   
   #Return a locale for a user, even if the users preferred locale is not set
@@ -60,78 +85,6 @@ class User < ApplicationRecord
     else
       return false
     end
-  end
-
-  # Check to see if the user is an Admin
-  def admin?
-    self.has_role? :admin
-  end
-
-  # Check to see if the user is a guest traveler
-  def guest?
-    self.email.include? "@example.com"
-  end
-
-  ### Update Profle from API Call ###
-  def update_profile params
-    if params.blank?
-      return true
-    end
-    update_basic_attributes params[:attributes] unless params[:attributes].nil?
-    update_eligibilities params[:characteristics] unless params[:characteristics].nil?
-    update_accommodations params[:accommodations] unless params[:accommodations].nil?
-    update_preferred_modes params[:preferred_modes] unless params[:preferred_modes].blank? #This is depracated after api/v1. Preferred Modes are updated as part of attributes
-    return true
-  end
-
-  def update_basic_attributes params
-    params.each do |key, value|
-      case key.to_sym
-        when :first_name
-          self.first_name = value
-        when :last_name
-          self.last_name = value
-        when :email
-          self.email = value
-        when :lang
-          self.preferred_locale = Locale.find_by(name: value) || self.locale
-        when :preferred_trip_types, :preferred_modes
-          self.preferred_trip_types = value
-      end
-    end
-    self.save
-  end
-
-  def update_eligibilities params
-    params.each do |code, value|
-      eligibility = Eligibility.find_by(code: code)
-      if eligibility
-        ue = self.user_eligibilities.where(eligibility: eligibility).first_or_create
-        ue.value = value.to_bool
-        ue.save
-      end
-    end
-  end
-
-  def update_accommodations params
-    user_accommodations = self.accommodations
-    params.each do |code, value|
-      accommodation = Accommodation.find_by(code: code)
-      if accommodation
-        user_accommodations.delete(accommodation)
-        if value.to_bool
-          user_accommodations << accommodation
-        end
-      end
-    end
-
-    self.accommodations = user_accommodations
-
-  end
-
-  def update_preferred_modes params
-    self.preferred_trip_types = params.map{ |m| m.to_s.gsub('mode_',"")}
-    self.save
   end
 
   # Returns the user's (count) past trips, in descending order of trip time

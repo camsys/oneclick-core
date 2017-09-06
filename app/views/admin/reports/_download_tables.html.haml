@@ -10,14 +10,14 @@
     collection: @download_tables, 
     label: "Select Report Type"
   
-  -# DATE RANGE SELECTORS
+  .table-download-options.users.hidden
+    =render partial: 'users_table_download_options', locals: {f: f}
+  
   .table-download-options.trips.hidden
-    =f.input :from_date, required: false,
-      input_html: {class: 'datepicker'}, 
-      as: :string, label: "From Date"
-    =f.input :to_date, required: false,
-      input_html: {class: 'datepicker'}, 
-      as: :string, label: "To Date"
+    =render partial: 'trips_table_download_options', locals: {f: f}
+
+  .table-download-options.services.hidden
+    =render partial: 'services_table_download_options', locals: {f: f}
 
     
 =content_for :footer do
@@ -28,12 +28,14 @@
 
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
         
-    // Hides all table options and then shows the relevant ones.
+    // Hides and disables all table options and then shows and enables the relevant ones.
     var showTableDownloadOptions = function(table) {
       $('.table-download-options').addClass('hidden');
+      $('.table-download-options :input').prop('disabled', true);
       if(table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
         $(tableDownloadOptionsSelector).removeClass('hidden');
+        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
       }
     }
     

@@ -1,0 +1,11 @@
+=content_for :header do
+  Danger Zone
+  
+.row.form-group
+  .col-sm-8
+    %label Delete the Purpose, permanently removing it from the database.
+  .col-sm-4
+    =link_to "Delete this Purpose", admin_purpose_path(@purpose), 
+        method: :delete, 
+        class: "btn btn-danger", 
+        data: {confirm: "Are you sure?  This action cannot be undone!"}

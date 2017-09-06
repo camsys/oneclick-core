@@ -10,7 +10,8 @@ class Schedule < ApplicationRecord
   validate :start_time_must_be_before_end_time
 
   ### CALLBACKS ###
-  after_create :create_midnight_shim, if: :ends_at_midnight?
+  # after_create :create_midnight_shim, if: :ends_at_midnight?
+  after_save :ensure_midnight_shim, if: :ends_at_midnight?
   after_destroy :destroy_midnight_shim, if: :ends_at_midnight?
 
   ### ASSOCIATIONS ###
@@ -20,6 +21,39 @@ class Schedule < ApplicationRecord
   scope :by_day, -> (day_of_week=(SUN..SAT).to_a) { where(day: day_of_week) }
   scope :midnight_shims, -> { where(start_time: 0, end_time: 0) }
   scope :for_display, -> { where.not(start_time: 0, end_time: 0).order(:day, :start_time) }
+  scope :overlapping_with, -> (sched) do
+    by_day(sched.day).where(start_time: sched.to_range).where.not(id: sched.id)
+  end
+
+
+  ### CLASS METHODS ###
+
+  # Consolidates schedules in the collection with overlapping dates & times
+  def self.build_consolidated
+    for_save = []
+    
+    # Group by day of week and sort each group by start time
+    (0..6).map { |d| all.where(day: d).order(:start_time) }
+      .each do |scheds|  # For each day of the week, iterate through and consolidate schedules
+        # Start with the earliest, and combine with other schedules that overlap
+        next unless scheds.present?
+        for_save << scheds.reduce(scheds.first.dup) do |new_sched, sch|
+          if new_sched.to_range.overlaps?(sch.to_range) # If the schedule starts before the new_sched ends, update end_time
+            new_sched.end_time = [new_sched.end_time, sch.end_time].max
+          else # Otherwise, save the new_sched and make a new one
+            for_save << new_sched
+            new_sched = sch.dup
+          end
+          next new_sched
+        end
+      end
+
+    return for_save.compact
+    # Destroy the old schedules if the new ones save successfully
+    # for_destroy = Schedule.for_display.pluck(:id)
+    # Schedule.where(id: for_destroy).destroy_all if for_save.compact.all?(&:save)
+  end
+
 
   ### INSTANCE METHODS ###
 
@@ -44,17 +78,21 @@ class Schedule < ApplicationRecord
     to_range.include?(time_on_schedule_day_fwd) || to_range.include?(time_on_schedule_day_back)
   end
 
+
   private
+  
 
   # Creates a 'midnight shim' -- an 0-second schedule at midnight the following day
   # -- allowing trips that start/end at midnight the following day to be valid.
-  def create_midnight_shim
+  def ensure_midnight_shim
     Schedule.find_or_create_by(attributes_for_midnight_shim)
   end
 
-  # Destroys any associated midnight shims
+  # Destroys any associated midnight shims unless another midnight-ending schedule exists
   def destroy_midnight_shim
-    Schedule.where(attributes_for_midnight_shim).destroy_all
+    unless Schedule.where(service: service, day: day, end_time: DAY_LENGTH).present?
+      Schedule.where(attributes_for_midnight_shim).destroy_all
+    end
   end
 
   def attributes_for_midnight_shim
@@ -70,5 +108,6 @@ class Schedule < ApplicationRecord
   def start_time_must_be_before_end_time
     errors.add(:start_time, "start time cannot be after end time") if (start_time > end_time)
   end
+  
 
 end

@@ -1,0 +1,49 @@
+{
+    "name": "Doctor",
+    "address_components": [
+        {
+            "long_name": "100",
+            "short_name": "17",
+            "types": [
+                "street_number"
+            ]
+        },
+        {
+            "long_name": "Park Avenue",
+            "short_name": "Park Avenue",
+            "types": [
+                "route"
+            ]
+        },
+        {
+            "long_name": "Somerville",
+            "short_name": "Somerville",
+            "types": [
+                "locality",
+                "political"
+            ]
+        },
+        {
+            "long_name": "02144",
+            "short_name": "02144",
+            "types": [
+                "postal_code"
+            ]
+        },
+        {
+            "long_name": "MA",
+            "short_name": "MA",
+            "types": [
+                "administrative_area_level_1",
+                "political"
+            ]
+        }
+    ],
+    "formatted_address": "100 Park Avenue, Somerville, MA 02144",
+    "geometry": {
+        "location": {
+            "lat": 42.39827,
+            "lng": -71.122898
+        }
+    }
+}

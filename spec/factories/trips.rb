@@ -5,6 +5,7 @@ FactoryGirl.define do
     association :destination, factory: :waypoint_02140
     trip_time DateTime.new(2020, 7, 14, 14) # Tuesday, 10am EST
     arrive_by true
+    purpose
 
     factory :guest_trip do
       user nil
@@ -19,12 +20,20 @@ FactoryGirl.define do
     factory :trip_with_paratransit_itins do
       after(:create) do |trip|
         create(:paratransit_itinerary, trip: trip)
-      end
+      end      
     end
 
     factory :trip_with_strict_and_accommodating_paratransit_itins do
       after(:create) do |trip|
         create(:strict_and_accommodating_paratransit_itinerary, trip: trip)
+      end
+    end
+    
+    factory :booked_trip do
+      after(:create) do |trip|
+        create(:paratransit_itinerary, trip: trip)
+        create(:transit_itinerary, trip: trip)
+        create(:booked_itinerary, trip: trip)
       end
     end
 
@@ -48,6 +57,7 @@ FactoryGirl.define do
     trait :going_to_see_metallica do |t|
       association :purpose, factory: :metallica_concert
     end
+    
 
   end
 end

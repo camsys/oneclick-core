@@ -1,6 +1,9 @@
 =content_for :title do
   = "Editing #{@service.type} Service: #{@service.name}"
 
+=content_for :last_updated do
+  = "Last Updated: #{@service.updated_at.strftime('%b %e, %Y at %I:%M %p')}"
+
 =render partial: 'service_general_info', layout: '/layouts/panel'
 =render partial: 'service_comments', layout: '/layouts/panel'
 
@@ -13,14 +16,15 @@
   =render partial: 'paratransit_service_areas', layout: '/layouts/panel'
   =render partial: 'paratransit_schedules', layout: '/layouts/panel'
   =render partial: 'service_fares', layout: '/layouts/panel'
+  =render partial: 'paratransit_booking', layout: '/layouts/panel'
 -when 'Taxi'
   =render partial: 'taxi_accommodations', layout: '/layouts/panel'
   =render partial: 'taxi_service_area', layout: '/layouts/panel'
   =render partial: 'service_fares', layout: '/layouts/panel'
-
 -when 'Uber'
   =render partial: 'taxi_accommodations', layout: '/layouts/panel'
   =render partial: 'uber_service_area', layout: '/layouts/panel'
+  
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Services", admin_services_path, method: :get, class: 'btn btn-lg btn-link'
+=back_link admin_services_path, label: "All Services"

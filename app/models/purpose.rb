@@ -1,7 +1,7 @@
 class Purpose < ApplicationRecord
 
   #### Includes ####
-  include EligibilityAccommodationHelper 
+  include CharacteristicsHelper 
 
   ### ASSOCIATIONS
   has_many :trips

@@ -1,4 +1,4 @@
-source 'https://rubygems.org'
+source 'http://rubygems.org'
 
 git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
@@ -32,7 +32,7 @@ gem 'jbuilder', '~> 2.5'
 ############################################
 
 
-### Internal Views #########################
+### VIEWS & FORMATTING #####################
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
@@ -42,6 +42,7 @@ gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
 gem 'chartkick' # For google charts
 gem 'groupdate' # Extends chartkick functionality
+gem 'phony_rails' # For normalizing phone numbers
 ############################################
 
 
@@ -59,6 +60,7 @@ gem 'devise'
 gem 'simple_token_authentication', '~> 1.0' # For API Token Auth
 gem 'cancancan'
 gem 'rolify'
+gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external user booking password on UserBookingProfile
 ############################################
 
 
@@ -90,9 +92,11 @@ gem 'leaflet-rails' # For embedding maps
 gem 'em-http-request'
 ############################################
 
+
 ### ReferNET 211 API Tools #################
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet'
 ############################################
+
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
@@ -118,5 +122,10 @@ group :development do
   gem 'spring-watcher-listen', '~> 2.0.0'
 end
 
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+# gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+
+# Explicitly including these gems to fix a bug in Heroku
+gem 'tzinfo'
+gem 'tzinfo-data'

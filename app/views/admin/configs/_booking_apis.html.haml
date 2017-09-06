@@ -1,0 +1,27 @@
+=content_for :header do
+  = "External Trip Booking Services"
+
+=simple_form_for Config,
+  url: admin_configs_path,
+  remote: true, 
+  html: { class: 'form-horizontal', 
+          id: form_id_from_path, 
+          multipart: true, 
+          method: 'patch' },
+  authenticity_token: true do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  = f.input :ride_pilot_url, required: true,
+    label: "RidePilot API URL",
+    input_html: {value: @configs.find_by(key: :ride_pilot_url).try(:value)},
+    as: :string
+    
+  =f.input :ride_pilot_token, required: true,
+    label: "RidePilot API Token",
+    input_html: {value: @configs.find_by(key: :ride_pilot_token).try(:value)},
+    as: :string
+
+:javascript
+  $(document).ready(function() {    
+    new FormHandler($('#{form_selector_from_id}'));
+  });

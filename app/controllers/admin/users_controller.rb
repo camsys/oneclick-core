@@ -1,55 +1,60 @@
 class Admin::UsersController < Admin::AdminController
+  
+  # before_action :initialize_user, only: [:index, :create]
+  authorize_resource
+  before_action :load_user
+  before_action :load_staff
 
   def index
-    @staff = User.staff.order(:last_name, :first_name, :email)
-    @new_user= User.new 
-    @roles = Role.all
   end
 
   def create
-  	roles = params[:user].delete :roles
-  	role = Role.find_by(id: roles)
-  	new_user = User.create(user_params)
-  	role ? new_user.roles << role : nil
-  	if new_user.errors.empty?
-      flash[:success] = "Created #{new_user.first_name} #{new_user.last_name}"
+    create_params = user_params
+    set_roles(create_params.delete(:admin), create_params.delete(:staff_agency))                    
+    @user.assign_attributes(create_params)
+            
+  	if @user.save
+      flash[:success] = "Created #{@user.first_name} #{@user.last_name}"
+      respond_to do |format|
+        format.js
+        format.html {redirect_to admin_users_path}
+      end
     else
-      flash[:danger] = new_user.errors.first.join(' ') unless new_user.errors.empty?
+      present_error_messages(@user)
+      respond_to do |format|
+        format.html {render :index}
+      end
     end
-    respond_to do |format|
-      format.js
-      format.html {redirect_to admin_users_path}
-    end
+
   end
 
   def destroy
-    @user = User.find(params[:id])
     @user.destroy
     flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
     redirect_to admin_users_path
   end
 
   def edit
-    @user = User.find(params[:id])
   end
 
   def update
+
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
     password = update_params.delete(:password)
-    password_confirmation = update_params.delete(:password_confirmation)
-
-    @user = User.find(params[:id])
-    
+    password_confirmation = update_params.delete(:password_confirmation)        
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
+    
+    set_roles(update_params.delete(:admin), update_params.delete(:staff_agency))
+    
     @user.update_attributes(update_params)
 
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
     else
-      flash[:danger] = @user.errors.first.join(' ') 
+      present_error_messages(@user)
     end
 
     respond_to do |format|
@@ -61,8 +66,62 @@ class Admin::UsersController < Admin::AdminController
 
   private
 
+  # Sets admin and staff roles for user. Wraps actions in a transaction block,
+  # so it can be rolled back if there is a validation error.
+  def set_roles(admin, staff_agency)
+    User.transaction do
+      @user.require_role # Will run validations that admin or staff is set
+      set_admin_role(admin)
+      set_staff_role(staff_agency)
+      raise ActiveRecord::Rollback unless @user.valid?
+    end
+  end
+  
+  # Set admin role on @user if current_user has permissions
+  def set_admin_role(admin_param)
+    return false if admin_param.nil?
+    @user.set_admin(admin_param.to_bool) if can?(:manage, :admin)
+  end
+  
+  # Set staff role on @user if current_user has permissions
+  def set_staff_role(staff_agency_param)
+    staff_agency_id = staff_agency_param.to_i
+    staff_agency = Agency.find_by(id: staff_agency_id)
+    
+    # If staff_agency is present and the current_user can update it, set @user as staff for that agency
+    if staff_agency
+      if can? :update, staff_agency
+        @user.set_staff_role(staff_agency)
+      end
+    else
+      # If staff_agency is not present, and current_user can manage Agencies, set @user as staff for no agency
+      if can? :manage, Agency
+        @user.set_staff_role(nil)
+      # If staff_agency is not present, and current_user cannot manage Agencies, set @user as staff for current_user's agency
+      else
+        @user.set_staff_role(current_user.staff_agency)
+      end
+    end
+  end
+  
+  def load_user
+    @user = User.find_by(id: params[:id]) || User.new
+  end
+
+  def load_staff
+    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
+  end
+
   def user_params
-  	params.require(:user).permit(:email, :first_name, :last_name, :password, :password_confirmation, :roles)
+  	params.require(:user).permit(
+      :email, 
+      :first_name, 
+      :last_name, 
+      :password, 
+      :password_confirmation,
+      :admin,
+      :staff_agency
+    )
   end
 
 end

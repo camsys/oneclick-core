@@ -1,5 +1,6 @@
 =content_for :header do
   General Info
+  =render partial: "shared/published_badge", locals: {object: @service}
 
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
@@ -7,17 +8,13 @@
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   =f.input :name
-  -# CUSTOM FIELD FOR LOGO
-  .form-group.file.optional
-    .col-sm-1
-      %img{ src: @service.logo.thumb.url}
-    =f.label :logo, class: "control-label col-sm-2"
-    .col-sm-9
-      .input-group.col-xs-12
-        =f.input_field :logo, class: "form-control file optional", type: "file"
+  =logo_upload_input(f)
   =f.input :url
   =f.input :phone
   =f.input :email
+  -if can? :manage, Agency  # Only show agency menu if the user can manage agencies
+    =f.association :agency, collection: current_user.accessible_agencies, include_blank: "Select an Umbrella Agency"
+
 
 
 :javascript

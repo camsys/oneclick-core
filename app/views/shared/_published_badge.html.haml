@@ -1,0 +1,8 @@
+-object = local_assigns[:object] || nil
+
+-if object
+  .pull-right
+    -if object.published?
+      %span.badge.badge-success PUBLISHED
+    -else
+      %span.badge.badge-warning NOT PUBLISHED

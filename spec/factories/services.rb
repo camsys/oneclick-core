@@ -6,6 +6,7 @@ FactoryGirl.define do
     phone "(555)555-5555"
     url "http://www.test-service-url.com"
     type "Paratransit"
+    published true
     association :start_or_end_area, factory: :region
     association :trip_within_area, factory: :big_region
 
@@ -56,10 +57,31 @@ FactoryGirl.define do
           s.schedules << FactoryGirl.create(:micro_schedule)
         end
       end
+      
+      trait :with_overlapping_schedules do
+        after(:create) do |s|
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 3600, end_time: 10800)
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 7200, end_time: 14400)
+          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 14400, end_time: 18000)
+        end
+      end
 
       trait :medical_only do
         after(:create) do |s|
           s.purposes << create(:purpose)
+        end
+      end
+      
+      trait :ride_pilot_bookable do
+        booking_api "ride_pilot"
+        booking_details { 
+          {
+            provider_id: 0
+          }
+        }
+
+        after(:build) do |svc|
+          svc.stub(:valid_booking_profile).and_return true
         end
       end
 

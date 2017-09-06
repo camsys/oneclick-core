@@ -14,3 +14,34 @@
   line-height: 1.42;
   border-radius: 15px;
 }
+
+.panel-heading span.badge,
+td span.badge {
+  &.badge-primary {
+    background-color: $brand-primary;
+  }
+
+  &.badge-success {
+    background-color: $brand-success;
+  }
+  
+  &.badge-info {
+    background-color: $brand-info;
+  }
+  
+  &.badge-warning {
+    background-color: $brand-warning;
+  }
+  
+  &.badge-danger {
+    background-color: $brand-danger;
+  }
+}
+
+#flash-display {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  z-index: 1000;
+}

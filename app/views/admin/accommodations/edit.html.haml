@@ -1,15 +1,7 @@
 =content_for :title do
   = @accommodation.code
 
-
 =render partial: 'edit_accommodation', layout: '/layouts/panel'
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Accommodations", admin_accommodations_path, method: :get, class: 'btn btn-lg btn-link'
-
-
-%br
-%br
-%br
-.text-center
-  =button_to 'Delete', admin_accommodation_path(@accommodation), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
+=back_link admin_accommodations_path, label: "All Accommodations"

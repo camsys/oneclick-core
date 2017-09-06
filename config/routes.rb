@@ -27,13 +27,18 @@ Rails.application.routes.draw do
       end
       
       # Trips & Itineraries/Planning
-      resources :trips, only: [:create]
+      resources :trips, only: [:create] do 
+        collection do
+          post 'email'
+        end
+      end
       get 'trips/past_trips' => 'trips#past_trips'
       get 'trips/future_trips' => 'trips#future_trips'
       # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
+      post 'itineraries/book' => 'trips#book'
       
       # Users
       resources :users do
@@ -41,6 +46,7 @@ Rails.application.routes.draw do
           get 'profile'
           get 'get_guest_token'
           post 'update'
+          post 'password'
         end
       end
       
@@ -57,13 +63,33 @@ Rails.application.routes.draw do
     ### API V2 ###
     namespace :v2 do
       
+      # Agencies
+      resources :agencies, only: [:index]
+      
       # Feedbacks
       resources :feedbacks, only: [:create]
       
+      # Places
+      resources :places, only: [:index]
+      
+      # Users/StompingGrounds
+      resources :stomping_grounds, only: [:index, :destroy, :create, :update]
+
+
+      # Trips
+      resources :trips, only: [:create]
+      post 'trips/plan' => 'trips#create'
+      post 'trips/plan_multiday' => 'trips#plan_multiday'
+      
       # Users
-      devise_scope :user do
-        post 'sign_up' => 'registrations#create'
-      end
+      resource :users, only: [:show, :update, :create]
+      post 'sign_up' => 'users#create'
+      post 'sign_in' => 'users#new_session'
+      delete 'sign_out' => 'users#end_session'
+
+      # Refernet
+      get 'oneclick_refernet/services' => 'refernet/services#index'
+      mount OneclickRefernet::Engine => "/oneclick_refernet"
       
     end #v2
 
@@ -89,15 +115,13 @@ Rails.application.routes.draw do
 
     # Accommodations
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
+    
+    # Agencies
+    resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
     # Configs
-    resources :configs, :only => [:index] do
-      collection do
-        patch 'set_open_trip_planner'
-        patch 'set_tff_api_key'
-        patch 'set_uber_token'
-      end
-    end
+    resources :configs, only: [:index]
+    patch 'configs' => 'configs#update'
 
     # Eligibilities
     resources :eligibilities, :only => [:index, :destroy, :create, :edit, :update]
@@ -115,6 +139,7 @@ Rails.application.routes.draw do
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
     post 'custom_geographies' => 'geographies#upload_custom_geographies'
+    get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
     resources :landmarks, :only => [:index] do

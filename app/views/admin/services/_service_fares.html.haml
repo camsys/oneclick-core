@@ -8,20 +8,24 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  =f.input :fare_structure, input_html: {class: 'fare-structure'}, collection: FareHelper::VALID_STRUCTURES
+  =f.input :fare_structure, 
+      input_html: {class: 'fare-structure'}, 
+      include_blank: false,
+      collection: FareHelper::VALID_STRUCTURES.map {|fs| [fs.to_s.titleize, fs]}
 
   -fare_details = @service.fare_details || {}
 
-  -# FLAT (& MILEAGE)
-  .fare-inputs.flat-fare.mileage-fare.hidden
+  -# FLAT
+  .fare-inputs.flat-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+      =fd.input :flat_base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
 
   -# MILEAGE ONLY
   .fare-inputs.mileage-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :mileage_rate, as: :hidden, input_html: {value: fare_details[:mileage_rate]}
-      =fd.input :trip_type, input_html: {value: @service.type}
+      =fd.input :mileage_base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+      =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
+      =fd.input :trip_type, as: :hidden, input_html: {value: @service.type}
 
   -# ZONE
   .fare-inputs.zone-fare.hidden
@@ -49,13 +53,13 @@
 
     // Create a FareZoneHelper to dynamically build fare zone divs
     var fzh = new FareZoneHelper(
-      '#{@service.zone_recipes.to_json}',
+      '#{@service.zone_recipes.to_json.html_safe}',
       $('#fare-zones-container'),
       $('#fare-zones-table'),
       '#{escape_javascript render partial: "admin/services/fare_zone", locals: {f: fd_js} }',
       {
-        searchPath: '#{admin_service_path}',
-        ingredientLabelTag: '#{escape_javascript render partial: "admin/services/ingredient_label"}',
+        searchPath: '#{admin_autocomplete_path}',
+        ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}',
         formHandler: fh,
         tableReplacer: $('#table-replacer')
       }

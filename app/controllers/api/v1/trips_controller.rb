@@ -1,20 +1,26 @@
 module Api
   module V1
     class TripsController < ApiController
-      before_action :require_authentication, only: [:past_trips, :future_trips, :select, :cancel, :index]
+      before_action :require_authentication, only: [
+        :past_trips, :future_trips, :select, :cancel, :index, :book
+      ]
       before_action :current_or_guest_user, only: [:create] #If @traveler is not set, then create a guest user account
 
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 10)
+                                   .outbound
+                                   .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
       end
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10).map {|t| my_trips_hash(t)}
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+                                     .outbound
+                                     .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
       end
 
@@ -80,6 +86,8 @@ module Api
         end
       end
 
+      # POST trips/select, itineraries/select
+      # Selects the target itinerary
       def select
         select_itineraries =  params[:select_itineraries] || []
         #Get the itineraries
@@ -93,27 +101,110 @@ module Api
             results[itin[:itinerary_id]] = false
           end
         end
-        render status: 200, json: results
+        render status: 200, json: {result: 200, itineraries: results }
       end
 
-      def cancel
-        bookingcancellation_request = params[:bookingcancellation_request] || []
-        # At the moment, this only handles unselecting itineraries.  True cancelling is not yet supported.
-        results = []
-        bookingcancellation_request.each do |bc|
-          itinerary = Itinerary.find_by(id: bc[:itinerary_id].to_i)
-          if @traveler.owns? itinerary
-            itinerary.unselect
-            #results[itinerary.id] = true
-            results.append({trip_id: itinerary.trip.id, itinerary_id: bc[:itinerary_id], success: true, confirmation_id: nil})
+      # POST trips/book, POST itineraries/book
+      # Selects and books an itinerary via an external booking api
+      # If return_time is passed in the booking request, create a return trip
+      # as well, and attempt to book it.
+      def book
+        outbound_itineraries = booking_request_params
+        
+        responses = booking_request_params
+        .map do |booking_request|
+          # Find the itinerary identified in the booking request
+          itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
+          itin.try(:select) # Select the itinerary so that the return trip can be built properly
+          booking_request[:itinerary] = itin
+          next booking_request unless itin
+          
+          # If a return_time param was passed, build a return itinerary
+          return_time = booking_request.delete(:return_time).try(:to_datetime)
+          if return_time
+            return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
+                          .plan.try(:selected_itinerary)
+            return_booking_request = booking_request.clone.merge({itinerary: return_itin, return: true})
+            next [booking_request, return_booking_request]
           else
-            results.append({trip_id: nil, itinerary_id: bc[:itinerary_id], success: false, confirmation_id: nil})
+            next booking_request
           end
+        end.flatten.compact # flatten into an array of booking requests
+        .map do |booking_request|
+          # Pull the itinerary out of the booking_request hash and set up a 
+          # default (failure) booking response
+          itin = booking_request.delete(:itinerary)          
+          response = booking_response_base(itin).merge({booked: false})
+                                        
+          # BOOK THE ITINERARY, selecting it and storing the response in a booking object
+          booking = itin.try(:book, booking_options: booking_request)
+          next response unless booking.is_a?(Booking) # Return failure response unless book was successful
+          
+          # Package it in a response hash as per API V1 docs
+          next response.merge(booking_response_hash(booking))
         end
+                
+        render status: 200, json: {booking_results: responses}
+      end
+
+      # POST trips/cancel, itineraries/cancel
+      # Unselects and cancels the target itinerary
+      def cancel
+        results = bookingcancellation_request_params.map do |bc_req|
+          itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
+                  @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
+          
+          response = booking_response_base(itin).merge({success: false})
+          next response unless itin
+          
+          # CANCEL THE ITINERARY, unselecting it and updating the booking object
+          cancellation_result = itin.bookable? ? itin.cancel : itin.unselect
+          
+          # Package response as per API V1 docs
+          next response.merge(bookingcancellation_response_hash(cancellation_result))
+        end
+        
         render status: 200, json: {cancellation_results: results}
       end
 
+      # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
+      def email
+
+        email_address = params[:email_address]
+        trip_id = params[:trip_id]
+
+        trip = Trip.find(trip_id.to_i)
+
+        UserMailer.user_trip_email([email_address], trip).deliver
+
+        # Also should improve the JSON response to handle successfully and failed email calls`
+        render json: {result: 200}
+
+      end
+
       protected
+      
+      def booking_request_params
+        params.require(:booking_request).map do |p|
+          p.permit(
+            :itinerary_id,
+            :guests,
+            :purpose,
+            :attendants,
+            :return_time,
+            :mobility_devices
+          )
+        end
+      end
+      
+      def bookingcancellation_request_params
+        params.require(:bookingcancellation_request).map do |p|
+          p.permit(
+            :itinerary_id,
+            :booking_confirmation
+          )
+        end
+      end
 
       def trip_params(parameters)
         parameters.require(:trip).permit(
@@ -139,7 +230,12 @@ module Api
       # Serializes trips in the hash format demanded by the past_trips and future_trips
       # calls (i.e. the My Trips section of the UI)
       def my_trips_hash(trip)
-
+        trips_hash = { "0" => trip_hash(trip) }
+        trips_hash["1"] = trip_hash(trip.next_trip) if trip.next_trip
+        trips_hash
+      end
+      
+      def trip_hash(trip)
         trip_hash = {}
         itin_hash = {}
         service_hash = {
@@ -158,7 +254,7 @@ module Api
         if itinerary
           itin_hash = {
             arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
-            booking_confirmation: nil, # itinerary.booking_confirmation
+            booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
             departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
@@ -191,15 +287,61 @@ module Api
         end
 
         combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
-
-        return {
-          "0" => combined_hash
-        }
       end
 
       # Builds a location hash out of the location param, packaging it as a google place hash
       def trip_location_to_google_hash(location)
         { google_place_attributes: location.to_json }
+      end
+      
+      # Returns the base hash for booking action responses
+      def booking_response_base(itinerary)
+        {
+          trip_id: itinerary.try(:trip).try(:id),
+          itinerary_id: itinerary.try(:id)
+        }
+      end
+      
+      # Makes an API V1 booking response hash from a booking object
+      def booking_response_hash(booking)
+        itin = booking.itinerary
+        
+        case booking.type_code
+        when 'ride_pilot', :ride_pilot
+          pickup_time = booking.details.try(:[], "pickup_time").try(:to_datetime) || itin.start_time
+          # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
+          dropoff_time = (booking.details.try(:[], "dropff_time") ||
+                          booking.details.try(:[], "dropoff_time"))
+                          .try(:to_datetime) || pickup_time + itin.duration.seconds
+          confirmation_id = booking.details.try(:[], "trip_id")
+          return {
+            booked: true,
+            confirmation: confirmation_id, # it needs both of these 
+            confirmation_id: confirmation_id, # for some reason
+            wait_start: (pickup_time - 15.minutes).iso8601,
+            wait_end: (pickup_time + 15.minutes).iso8601,
+            arrival: dropoff_time.iso8601,
+            message: "Booking Status: #{booking.status}",
+            negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
+          }
+        else
+          return {}
+        end
+      end
+      
+      # Makes an API V1 bookingcancellation response hash from a booking object
+      def bookingcancellation_response_hash(booking)
+        case booking.try(:type_code)
+        when :ride_pilot
+          return {
+            success: true,
+            confirmation_id: booking.confirmation
+          }
+        else
+          return {
+            success: true
+          }
+        end        
       end
 
     end

@@ -31,9 +31,10 @@ module GooglePlace
   # Returns an array of google address components hashes based on the place's attributes
   def google_address_components
     return ADDRESS_COMPONENTS
-      .select {|occ_name,_| self.send(occ_name) }
       .map do |occ_name, google_types|
-        { long_name: self.send(occ_name), short_name: self.send(occ_name), types: google_types }
+        { long_name: self.send(occ_name),
+          short_name: self.send(occ_name),
+          types: google_types }
       end
   end
 
@@ -66,7 +67,13 @@ module GooglePlace
 
   module ClassMethods
     def attrs_from_google_place(google_place_attributes)
-      GooglePlaceHash[JSON.parse(google_place_attributes)].to_attrs
+      if google_place_attributes.is_a? String 
+        # This is JSON parse it before passing it
+        GooglePlaceHash[JSON.parse(google_place_attributes)].to_attrs
+      else
+        # This has already been parsed
+        GooglePlaceHash[google_place_attributes].to_attrs
+      end
     end
   end
 end

@@ -1,15 +1,7 @@
 =content_for :title do
   = @purpose.code
 
-
 =render partial: 'edit_purpose', layout: '/layouts/panel'
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-.text-center
-  =link_to "All Purposes", admin_purposes_path, method: :get, class: 'btn btn-lg btn-link'
-
-
-%br
-%br
-%br
-.text-center
-  =button_to 'Delete', admin_purpose_path(@purpose), {method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?  This action cannot be undone!"}}
+=back_link admin_purposes_path, label: "All Purposes"

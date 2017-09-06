@@ -20,6 +20,15 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  ### Support the Standard UI ###
+  fare_sorter: "Fare"
+  travel_time_sorter: "Travel Time"
+  walk_distance_sorter: "Walk Distance"
+  show_less: "Show Less"
+  show_more: "Show More"
+  select: "Select"
+  ###############################
+
   hello: "Hello"
   delete: "Delete"
   create_translation: "Create Translation"
@@ -42,7 +51,7 @@ en:
   email: "Email"
   password: "Password"
   password_confirmation: "Password confirmation"
-  logout: "Login"
+  logout: "Logout"
   password: "Password"
   password_confirmation: "Password confirmation"
   welcome_message: "Plan your trip"
@@ -63,8 +72,7 @@ en:
   mode_walk_name: "Walk"
   mode_transit_name: "Transit"
   mode_paratransit_name: "Paratransit"
-  select: "Select"
-  show_more: "Show more"
+  mode_car_name: "Drive"
   to: "to"
   from: "from"
   minutes: "minutes"
@@ -88,10 +96,10 @@ en:
   friday: "Friday"
   saturday: "Saturday"
   directions: "Directions"
-  Start: "Start"
-  End: "End"
-  Depart: "Depart"
-  Arrive: "Arrive"
+  start: "Start"
+  end: "End"
+  depart: "Depart"
+  arrive: "Arrive"
   walk: "walk"
   walking: "walking"
   Miles: "miles"
@@ -104,13 +112,6 @@ en:
   get_on: "Get on"
   get_off: "Get off"
   fare_info: "Fare info"
-  Left: "Left"
-  Right: "Right"
-  Hard_left: "Hard left"
-  Hard_right: "Hard right"
-  Slightly_left: "Slightly left"
-  Slightly_right: "Slightly right"
-  Continiue: "Continue"
   email_button: "Email"
   email_your_ride_details: "Email your ride details to a friend (or yourself)."
   comma_separated_addresses: "Use a comma to separate multiple addresses"
@@ -148,3 +149,50 @@ en:
   round_trip: "Round trip"
   one_way: "One-way trip"
   play_a_new_trip: "Plan a new trip"
+
+  fare: "Fare"
+  depart_at: "Depart at"
+  arrive_by: "Arrive by"
+  duration: "Duration"
+  walking: "Walking"
+  estimated: "Estimated"
+  Origin: "Origin"
+  Destination: "Destination"
+  Date: "Date"
+  left: "Left"
+  right: "Right"
+  hard_left: "Hard left"
+  hard_right: "Hard right"
+  slightly_left: "Slightly left"
+  slightly_right: "Slightly right"
+  continiue: "Continue"
+  Walking: "Walking"
+  minutes: "minutes"
+  hours: "hours"
+  minute: "minute"
+  hour: "hour"
+  miles: "miles"
+  feet: "feet"
+  onto: "onto"
+  Walk: "Walk"
+  Walk_to: "Walk to"
+  Drive_to: "Drive to"
+  Bike_to: "Bike to"
+
+  # TIME TRANSLATIONS
+  hour: {
+    one: '%{count} h',
+    other: '%{count} h',
+  }
+  hour_long: {
+    one: '%{count} hour',
+    other: '%{count} hours',
+  }
+  minute: {
+    one: '%{count} min',
+    other: '%{count} mins',
+  }
+  day: {
+    one: '%{count} day',
+    other: '%{count} days',
+  }

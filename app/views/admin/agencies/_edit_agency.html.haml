@@ -1,0 +1,26 @@
+=content_for :header do
+  Agency Info
+  =render partial: "shared/published_badge", locals: {object: @agency}
+
+
+=simple_form_for @agency,
+  url: admin_agency_path, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+
+  =f.input :name
+  =logo_upload_input(f, img_src: @agency.logo.thumb.url)
+  =f.input :url
+  =f.input :phone
+  =f.input :email
+  =render partial: "shared/comments_fields", locals: { form: f, record: @agency }
+
+  -# For type-specific fields
+  -case @agency.type
+  -when "TransportationAgency"
+  -when "PartnerAgency"
+  -else
+  
+:javascript
+  $(document).ready(function() {
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+  });

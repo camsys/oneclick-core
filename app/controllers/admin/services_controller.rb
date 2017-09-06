@@ -2,11 +2,12 @@ class Admin::ServicesController < Admin::AdminController
 
   include GeoKitchen
   include FareHelper
+  include RemoteFormResponder
 
-  before_action :find_service, except: [:create, :index]
+  attr_accessor :test_var
+  load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
-    @services = Service.all.order(:id)
   end
 
   def destroy
@@ -15,57 +16,32 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-  	@service = Service.create(service_params)
-  	redirect_to admin_service_path(@service)
+    @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
+  	if @service.update_attributes(service_params)
+      redirect_to admin_service_path(@service)
+    else
+      present_error_messages(@service)
+      redirect_to admin_services_path
+    end
   end
 
-  # If JSON is requested, search geography tables based on passed param
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     @service.build_comments # Builds a comment for each available locale
-
-    respond_to do |format|
-      format.html
-      format.json do
-        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        json_response = @counties + @zipcodes + @cities + @custom_geographies
-        render json: json_response
-      end
-    end
   end
 
-  def update
+  def update    
     @service.update_attributes(service_params)
-    error_msgs = @service.errors.messages.values
-    flash[:danger] = error_msgs.join(' ') unless error_msgs.empty?
-
+    #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
+    @service.update_attributes({updated_at: Time.now}) 
+    present_error_messages(@service)
     # If a partial_path parameter is set, serve back that partial
-    if params[:partial_path]
-      respond_to do |format|
-        format.html do
-          render template: params[:partial_path], layout: '/layouts/_panel'
-        end
-        format.js do
-          render template: params[:partial_path], layout: '/layouts/_panel'
-        end
-      end
-    else
-      respond_to do |format|
-        format.html do
-          redirect_to admin_service_path(@service)
-        end
-      end
-    end
+    respond_with_partial_or do
+      redirect_to admin_service_path(@service)
+    end    
   end
 
   private
-
-  def find_service
-    @service = Service.find(params[:id])
-  end
 
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])
@@ -98,6 +74,7 @@ class Admin::ServicesController < Admin::AdminController
     [
       :name, :type, :logo,
       :url, :email, :phone,
+      :agency_id, :published, :updated_at,
       comments_attributes: [:id, :comment, :locale]
     ]
   end
@@ -108,17 +85,22 @@ class Admin::ServicesController < Admin::AdminController
 
   def paratransit_params
     [
+      :fare_structure,
+      :booking_api,
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
-    ] + FareParamPermitter.new(params[:service]).permit
+    ] + 
+    FareParamPermitter.new(params[:service]).permit + 
+    ServiceBookingParamPermitter.new(params[:service]).permit
   end
 
   def taxi_params
     [
+      :fare_structure,
       {accommodation_ids: []},
       trip_within_area_attributes: [:recipe]
     ] + FareParamPermitter.new(params[:service]).permit

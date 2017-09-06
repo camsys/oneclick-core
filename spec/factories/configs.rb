@@ -34,5 +34,17 @@ FactoryGirl.define do
       key "uber_token"
       value "test"
     end
+    
+    factory :ride_pilot_url_config do
+      key "ride_pilot_url"
+      value "http://ride-pilot.fake-url.com"
+    end
+    
+    factory :ride_pilot_token_config do
+      key "ride_pilot_token"
+      value "FAKERIDEPILOTTOKEN"
+    end
+    
   end
+  
 end

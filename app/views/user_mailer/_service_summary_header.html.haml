@@ -1,0 +1,13 @@
+%h3
+  -if attachments["service_logo.png"]
+    =image_tag(attachments["service_logo.png"].url)
+  =itinerary.service.name
+  %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
+  -unless itinerary.service.url.blank?
+    =link_to(itinerary.service.url, itinerary.service.url)
+    %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
+  -unless itinerary.service.email.blank?
+    =mail_to(itinerary.service.email, itinerary.service.email)
+    %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
+  -unless itinerary.service.phone.blank?
+    =itinerary.service.formatted_phone

@@ -1,10 +1,21 @@
 module Api
+  
+  ### NOTES ###
+  # Base controller for API Controllers
+  # Automatically attempts to authenticate users, but does not enforce
+    #  unless explicitly called to do so.
+  # Includes helper methods to serve JSON responses that the JSend specification
+    # API V2 responses should all conform to this specification
+  #############  
+    
   class ApiController < ApplicationController
     protect_from_forgery prepend: true
     acts_as_token_authentication_handler_for User, fallback: :none
     respond_to :json
-    attr_reader :traveler
+    attr_reader :traveler, :errors
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
+
+    before_action :initialize_errors_hash
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -80,8 +91,24 @@ module Api
     # Based on JSend Specification
     
     # Renders a successful response, passing along a given object as data
-    def success_response(data={})
-      status = data.delete(:status) || 200
+    # If the serializer option is passed, will attempt to serialize the data
+    # with the passed serializer
+    def success_response(data={}, opts={})
+      status = opts.delete(:status) || 200 # Status code is 200 by default
+      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
+      @root = opts.delete(:root) || nil # By default, no root key
+      
+      # Check if an ActiveRecord object or collection was passed, and if so, serialize it
+      if data.is_a?(ActiveRecord::Relation)
+        data = package_collection(data, serializer_opts)
+      elsif data.is_a?(ActiveRecord::Base)
+        data = package_record(data, serializer_opts)
+      end
+      
+      # Package data within a root key if necessary  
+      data = { @root => data } if @root
+      
+      # Return a JSend-compliant hash
       {
         status: status,
         json: {
@@ -91,6 +118,20 @@ module Api
       }
     end
     
+    # Serialize the collection of records with the default serializer and any options.
+    # Also, set the root key to the appropriate plural, if it hasn't been set manually.
+    def package_collection(collection, opts={})
+      @root ||= collection.klass.name.underscore.pluralize
+      collection.map {|record| package_record(record, opts) }
+    end
+    
+    # Serialize the record with the default serializer and any options.
+    # Also, set the root key to the appropriate singular, if it hasn't been set already.
+    def package_record(record, opts={})
+      @root ||= record.class.name.underscore
+      get_serializer(record, opts).serializable_hash
+    end
+
     # Renders a failure response (client error), passing along a given object as data
     def fail_response(data={})
       status = data.delete(:status) || 400
@@ -117,10 +158,15 @@ module Api
     
 
     def create_guest_user
-      u = User.create(first_name: "Guest", last_name: "User", email: "guest_#{Time.now.to_i}#{rand(100)}@example.com")
+      u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       session[:guest_user_id] = u.id
       u
+    end
+    
+    # Initializes an empty errors hash, before each action
+    def initialize_errors_hash
+      @errors = {}
     end
 
   end

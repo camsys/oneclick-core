@@ -24,6 +24,7 @@ default: &default
 
 development:
   <<: *default
+  # database: oneclick-core_development
   database: oneclick-core_development
 
   # The specified database role being used to connect to postgres.

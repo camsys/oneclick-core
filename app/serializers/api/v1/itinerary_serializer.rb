@@ -70,7 +70,7 @@ module Api
       # def cost_comments; nil end
       # def count; nil end
       # def date_mismatch; false end
-      def discounts; nil end
+      # def discounts; nil end
       # def duration_estimated; true end
       # def external_info; nil end
       # def hidden; false end
@@ -86,7 +86,7 @@ module Api
       # def negotiated_pu_window_start; nil end
       # def negotiated_pu_window_end; nil end
       # def order_xml; nil end
-      def prebooking_questions; [] end
+      # def prebooking_questions; [] end
       def product_id; nil end
       # def ride_count; nil end
       # def schedule; [] end
@@ -94,13 +94,13 @@ module Api
       # def selected; nil end
       # def server_message; nil end
       # def server_status; 200 end
-      def service_bookable; false end
+      # def service_bookable; false end
       # def time_mismatch; false end
       # def too_early; false end
       # def too_late; false end
       # def transfers; nil end
       # def trip_part_id; nil end
-      def user_registered; false end
+      # def user_registered; false end
       # def wait_time; 0 end
       # def walk_distance; nil end
 
@@ -130,7 +130,7 @@ module Api
       end
 
       def phone
-        object.service && object.service.phone
+        object.service && object.service.formatted_phone
       end
 
       def returned_mode_code
@@ -141,12 +141,13 @@ module Api
       end
 
       def schedule
-        return [] unless object.service && object.service.schedules
-        object.service.schedules.map do |schedule|
+        return full_schedule unless object.try(:service).try(:schedules).try(:for_display).present?
+        object.service.schedules.for_display.order(:day).map do |sched|
+          end_time_not_midnight = sched.end_time == ScheduleHelper::DAY_LENGTH ? sched.end_time - 1 : sched.end_time
           {
-            day: Date::DAYNAMES[schedule.day],
-            start: [schedule_time_to_string(schedule.start_time)],
-            end: [schedule_time_to_string(schedule.end_time)]
+            day: Date::DAYNAMES[sched.day],
+            start: [schedule_time_to_string(sched.start_time)],
+            end: [schedule_time_to_string(end_time_not_midnight)]
           }
         end
       end
@@ -177,6 +178,24 @@ module Api
         object.service && object.service.url
       end
 
+      ### BOOKING ###
+      def service_bookable
+        object.service.try(:bookable?)
+      end
+      
+      def user_registered
+        object.user.try(:has_booking_profile_for?, object.service)
+      end
+      
+      def discounts
+      end
+      
+      #TODO: Build this functionality
+      def prebooking_questions
+        object.booking_ambassador.try(:prebooking_questions)
+      end
+      
+
       private
 
       def location_hash(waypoint)
@@ -188,6 +207,16 @@ module Api
             }
           }
         }
+      end
+      
+      def full_schedule
+        (0..6).map do |d|
+          {
+            day: Date::DAYNAMES[d],
+            start: [schedule_time_to_string(0)],
+            end: [schedule_time_to_string(ScheduleHelper::DAY_LENGTH - 1)]
+          }
+        end
       end
 
     end

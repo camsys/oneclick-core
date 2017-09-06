@@ -1,0 +1,27 @@
+=content_for :title do
+  Agencies
+
+%table.table.table-hover#agencies-table
+  %thead.thead-default
+    %tr
+      %th Logo
+      %th Name
+      %th Type
+      %th Published?
+  =render partial: 'agency', collection: @agencies
+
+=simple_form_for :agency, 
+    url: admin_agencies_path, 
+    html: {class: 'form-horizontal', multipart: true, method: :post }, 
+    authenticity_token: true do |f|
+  =render partial: 'new_agency', layout: '/layouts/new_record_panel', locals: {f: f}
+
+:javascript
+
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('#agencies-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
