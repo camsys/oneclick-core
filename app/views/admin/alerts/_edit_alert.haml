@@ -1,5 +1,6 @@
 =content_for :header do
   ="Edit News & Alert"
+  =render partial: "shared/published_badge", locals: {object: @alert}
 
 =simple_form_for @alert,
   url: admin_alert_path, authenticity_token: true, data: {type: 'html'},
