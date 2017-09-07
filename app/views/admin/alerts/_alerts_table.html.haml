@@ -5,6 +5,7 @@
       %th Subject
       %th Message
       %th Expires
+      %th 
   %tbody
     -@alerts.each do |alert|
       %tr{style: "cursor: pointer", data: {url: edit_admin_alert_path(alert)}}
@@ -16,6 +17,8 @@
           =alert.message
         %td
           =alert.expiration.strftime("%D at %I:%M%p")
+        %td
+          =render partial: "shared/published_badge", locals: {object: alert}
 
 :javascript
   $(document).ready(function() {

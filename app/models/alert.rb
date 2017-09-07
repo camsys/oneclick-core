@@ -3,9 +3,12 @@ class Alert < ApplicationRecord
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
 
+
   ### SCOPES ###
   scope :expired, -> { where('expiration < ?', DateTime.now.in_time_zone).order('expiration DESC') }
   scope :current, -> { where('expiration >= ?', DateTime.now.in_time_zone).order('expiration DESC') }
+  scope :is_published,  -> { where(published: true)}
+
 
   ### Translations ###
   def create_translation_helpers

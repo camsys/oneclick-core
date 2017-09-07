@@ -13,6 +13,7 @@
     = f.input "#{locale}_subject", label:"Subject", :as => :string
     = f.input "#{locale}_message", label:"Message", :as => :text
   = f.input :expiration, required:true, as: :datetime
+  = f.input :published, as: :radio_buttons
 
 :javascript
   $(document).ready(function() {

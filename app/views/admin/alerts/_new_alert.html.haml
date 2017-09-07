@@ -1,9 +1,10 @@
 =content_for :header do
-  ="Create new News & Alert"
+  ="Create New Alert"
 
 -I18n.available_locales.each do |locale|
   %h3.text-center
     =locale
-  = f.input "#{locale}_subject", label:"Subject", :as => :string
-  = f.input "#{locale}_message", label:"Message", :as => :text
+  = f.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: ""}, placeholder: "#{locale} Subject"
+  = f.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: ""}, placeholder: "#{locale} Message"
 = f.input :expiration, required:true, as: :datetime
+= f.input :published, as: :radio_buttons
