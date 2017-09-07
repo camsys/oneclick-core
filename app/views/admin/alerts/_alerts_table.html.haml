@@ -1,0 +1,24 @@
+%table.table.table-hover.alerts-table
+  %thead.thead-default
+    %tr
+      %th Subject
+      %th Message
+      %th Expires
+  %tbody
+    -@alerts.each do |alert|
+      %tr{style: "cursor: pointer", data: {url: edit_admin_alert_path(alert)}}
+        %td.text-nowrap
+          =alert.subject
+        %td
+          =alert.message
+        %td
+          =alert.expiration.strftime("%D at %I:%M%p")
+
+:javascript
+  $(document).ready(function() {
+  
+    // Link to appropriate feedback detail on row click
+    $('.alerts-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });

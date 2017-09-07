@@ -1,0 +1,6 @@
+=content_for :title do
+  = @alert.subject
+
+=render partial: 'edit_alert', layout: '/layouts/panel'
+
+=back_link admin_alerts_path, label: "All Alerts"

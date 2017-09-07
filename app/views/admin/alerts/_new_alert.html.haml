@@ -1,0 +1,6 @@
+=content_for :header do
+  ="Create new News & Alert"
+
+= f.input :subject, required:true, as: :string
+= f.input :message, required:true, as: :text
+= f.input :expiration, required:true, as: :datetime

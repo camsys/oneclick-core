@@ -1,0 +1,9 @@
+=content_for :title do
+  News & Alerts
+
+=render partial: "alerts_table"
+
+= simple_form_for @new_alert, url: admin_alerts_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+  =render partial: 'new_alert', layout: '/layouts/new_record_panel', locals: {f: f}
+
+=back_link expired_admin_alerts_path, label: "View Expired News & Alerts"
