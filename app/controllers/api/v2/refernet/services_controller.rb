@@ -84,10 +84,12 @@ module Api
           plans = otp.multi_plan([requests])
 
           ### Unack the requests and build a hash of durations
-          plans[:callback].each do |label, plan|
-            response = otp.unpack(plan.response)
-            itinerary = response.extract_itineraries.first
-            duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
+          unless plans.nil? or plans[:callback].nil?
+            plans[:callback].each do |label, plan|
+              response = otp.unpack(plan.response)
+              itinerary = response.extract_itineraries.first
+              duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
+            end
           end
           return duration_hash
         end

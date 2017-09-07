@@ -21,7 +21,7 @@ module OTPServices
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
           url = plan_url(request)
-          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url).get
+          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 3, inactivity_timeout: 3).get
         end
 
         responses = nil
