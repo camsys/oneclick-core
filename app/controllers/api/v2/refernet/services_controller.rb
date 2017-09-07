@@ -30,6 +30,10 @@ module Api
         # Builds the request to be sent to OTP
         def build_request origin, service, mode="TRANSIT,WALK"
 
+          if service.latlng.nil? 
+            return nil
+          end
+
           {
             from: [
               origin[0],
@@ -52,12 +56,11 @@ module Api
         # Acts as a serializer for refernet services
         def service_hash service, duration_hash={}
 
-          puts service.ai 
           { "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
-            "lat": service.lat,
-            "lng": service.lng,
+            "lat": service.latlng? ? service.lat : nil,
+            "lng": service.latlng? ? service.lng : nil,
             "address": service.address,
             "drive_time": duration_hash["#{service.id}_CAR"],
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
@@ -77,7 +80,10 @@ module Api
           services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
-                requests << build_request(origin, service, mode)
+                new_request = build_request(origin, service, mode)
+                unless new_request.nil? 
+                  requests << new_request
+                end
               end 
             end
           end 
