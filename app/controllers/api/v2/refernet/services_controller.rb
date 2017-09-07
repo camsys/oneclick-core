@@ -51,6 +51,8 @@ module Api
 
         # Acts as a serializer for refernet services
         def service_hash service, duration_hash={}
+
+          puts service.ai 
           { "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
