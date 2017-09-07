@@ -149,6 +149,12 @@ namespace :db do
       ta.save
     end
 
+    desc "Sample Alerts"
+    task alerts: :environment do
+      Alert.create(subject: "Sample Message", message: "This is a test alert.", expiration: Time.now + 7.days)
+      Alert.create(subject: "Sample Expired Message", message: "This is a test alert that has expired.", expiration: Time.now - 7.days)
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,

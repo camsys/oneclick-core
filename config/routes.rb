@@ -133,6 +133,13 @@ Rails.application.routes.draw do
       end
     end
 
+    # Alerts
+    resources :alerts, :only => [:index, :create, :edit, :update] do
+      collection do
+        get 'expired'
+      end
+    end
+
     # Geographies
     get 'geographies' => 'geographies#index'
     post 'counties' => 'geographies#upload_counties'

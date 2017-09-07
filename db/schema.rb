@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170821135337) do
+ActiveRecord::Schema.define(version: 20170907002843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,6 +48,14 @@ ActiveRecord::Schema.define(version: 20170821135337) do
     t.datetime "updated_at",                 null: false
     t.boolean  "published",  default: false
     t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
+  create_table "alerts", force: :cascade do |t|
+    t.string   "subject"
+    t.text     "message"
+    t.datetime "expiration"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "bookings", force: :cascade do |t|

@@ -11,6 +11,7 @@ module AdminHelpers
       { label: "Eligibilities",   url: urls.admin_eligibilities_path,   show: can?(:read, Eligibility) },
       { label: "Geography",       url: urls.admin_geographies_path,     show: can?(:read, GeographyRecord) },
       { label: "Landmarks",       url: urls.admin_landmarks_path,       show: can?(:read, Landmark) },
+      { label: "News & Alerts",   url: urls.admin_alerts_path,          show: can?(:read, Alert) },
       { label: "Purposes",        url: urls.admin_purposes_path,        show: can?(:read, Purpose) },
       { label: "Reports",         url: urls.admin_reports_path,         show: can?(:read, :report) },
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },
