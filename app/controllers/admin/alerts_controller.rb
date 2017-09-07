@@ -13,25 +13,27 @@ class Admin::AlertsController < Admin::AdminController
 
   def create
   	@alert.update_attributes(alert_params)
-  	redirect_to admin_alerts_path
+  	redirect_to edit_admin_alert_path(@alert)
   end
 
   def edit
   end
 
   def update
-    #translations = params[:accommodation]
-    #translations.each do |translation, value|
-    #  @accommodation.set_translation(translation.split('_').first, translation.split('_').last, value)
-    #end
-    #flash[:success] = "Translations Updated"
+    translations = params[:alert]
+    translations.each do |translation, value|
+      puts translation
+      puts value
+      @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
+    end
+    flash[:success] = "Alert Updated"
     redirect_to edit_admin_alert_path(@alert)
   end
 
   private
 
   def alert_params
-  	params.require(:alert).permit(:subject, :message, :expiration)
+  	params.require(:alert).permit(:expiration)
   end
   
 end

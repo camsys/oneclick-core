@@ -51,8 +51,6 @@ ActiveRecord::Schema.define(version: 20170907002843) do
   end
 
   create_table "alerts", force: :cascade do |t|
-    t.string   "subject"
-    t.text     "message"
     t.datetime "expiration"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

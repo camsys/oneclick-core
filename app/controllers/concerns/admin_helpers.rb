@@ -5,13 +5,13 @@ module AdminHelpers
     
     @admin_pages = [
       { label: "Accommodations",  url: urls.admin_accommodations_path,  show: can?(:read, Accommodation) },
+      { label: "Alerts",          url: urls.admin_alerts_path,          show: can?(:read, Alert) },
       { label: "Agencies",        url: urls.admin_agencies_path,        show: can_access_all?(Agency) },
       { label: "Configuration",   url: urls.admin_configs_path,         show: can?(:read, Config) },
       { label: "Feedback",        url: urls.admin_feedbacks_path,       show: can?(:read, Feedback) },
       { label: "Eligibilities",   url: urls.admin_eligibilities_path,   show: can?(:read, Eligibility) },
       { label: "Geography",       url: urls.admin_geographies_path,     show: can?(:read, GeographyRecord) },
       { label: "Landmarks",       url: urls.admin_landmarks_path,       show: can?(:read, Landmark) },
-      { label: "News & Alerts",   url: urls.admin_alerts_path,          show: can?(:read, Alert) },
       { label: "Purposes",        url: urls.admin_purposes_path,        show: can?(:read, Purpose) },
       { label: "Reports",         url: urls.admin_reports_path,         show: can?(:read, :report) },
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },

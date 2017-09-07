@@ -1,6 +1,9 @@
 =content_for :header do
   ="Create new News & Alert"
 
-= f.input :subject, required:true, as: :string
-= f.input :message, required:true, as: :text
+-I18n.available_locales.each do |locale|
+  %h3.text-center
+    =locale
+  = f.input "#{locale}_subject", label:"Subject", :as => :string
+  = f.input "#{locale}_message", label:"Message", :as => :text
 = f.input :expiration, required:true, as: :datetime

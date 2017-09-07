@@ -1,5 +1,5 @@
 =content_for :header do
-  ="Edit Alert"
+  ="Edit News & Alert"
 
 =simple_form_for @alert,
   url: admin_alert_path, authenticity_token: true, data: {type: 'html'},
@@ -7,13 +7,12 @@
 
   =remote_form_input
 
-  //-I18n.available_locales.each do |locale|
-  //  %h3.text-center
-  //    =locale
-  //  = f.input "#{locale}_name", label:"Name", :as => :string
-  //  = f.input "#{locale}_note", label:"Note", :as => :text
-  //  = f.input "#{locale}_question", label:"Question", :as => :text
-  =f.input :subject, :as => :string
+  -I18n.available_locales.each do |locale|
+    %h3.text-center
+      =locale
+    = f.input "#{locale}_subject", label:"Subject", :as => :string
+    = f.input "#{locale}_message", label:"Message", :as => :text
+  = f.input :expiration, required:true, as: :datetime
 
 :javascript
   $(document).ready(function() {
