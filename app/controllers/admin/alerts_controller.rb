@@ -15,11 +15,11 @@ class Admin::AlertsController < Admin::AdminController
   	@alert.update_attributes(alert_params)
     translations = params[:alert]
     translations.each do |translation, value|
-      puts translation
-      puts value
       @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
     end
+
   	redirect_to admin_alerts_path
+
   end
 
   def edit
@@ -29,8 +29,6 @@ class Admin::AlertsController < Admin::AdminController
     @alert.update_attributes(alert_params)
     translations = params[:alert]
     translations.each do |translation, value|
-      puts translation
-      puts value
       @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
     end
     flash[:success] = "Alert Updated"
