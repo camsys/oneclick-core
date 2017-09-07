@@ -129,9 +129,30 @@ namespace :qa do
       Feedback.create(rating: 5, review: "OCC is GREAT!!!", user: User.first)
     end
 
+    desc "Stomping Grounds"
+    task stomping_grounds: :environment do 
+      u = User.find_or_create_by(email: 'test_user_1@camsys.com') do |user|
+        user.password = 'welcome1'
+        user.password_confirmation = 'welcome1'
+        user.first_name = 'Test User 1'
+        user.last_name = 'Test'
+      end
+
+      places = [
+        {name: "Test Stomping Ground 1", street_number: "17", route: "Park Avenue",
+        city: "Somerville", state: "MA", zip: "02144", lat: "42.398270", lng: "-71.122898"},
+        {name: "Work", street_number: "101", route: "Station Landing",
+        city: "Medford", state: "MA", zip: "02155", lat: "42.401697", lng: "-71.081818"}
+      ]
+
+      places.each do |place|
+        StompingGround.where(name: place[:name], user: u).first_or_create!(place)
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :users, :eligibilities, :accommodations, :purposes,
-                :services, :config, :feedback]
+                :services, :config, :feedback, :stomping_grounds]
 
   end
 end
