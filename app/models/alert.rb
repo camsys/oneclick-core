@@ -50,10 +50,17 @@ class Alert < ApplicationRecord
   end
   
   def handle_specific_users audience_details
+  	new_user_string = []
     audience_details["user_emails"].strip.split(',').each do |email|
-      puts email
-      puts 'DO SOMETHING HERE or move into the model'
+      user = User.find_by(email: email)
+      if user
+      	UserAlert.where(user: user, alert: self).first_or_create
+      	new_user_string << email
+      end
     end
+    self.audience_details = {user_emails: new_user_string.join(', ')}
+    self.save
+    return self.audience_details
   end
 	
 end
