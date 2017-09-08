@@ -9,12 +9,14 @@ module Api
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
+          services = sub_sub_category.services.confirmed.uniq.limit(10)
           
           if params[:lat] and params[:lng]
-            duration_hash = build_duration_hash(params, sub_sub_category)
+            duration_hash = build_duration_hash(params, services)
           end
 
-          sub_sub_category.try(:services).try(:confirmed).each do |service|
+          # TODO: NO HARD LIMIT. LIMIT BASED ON SOMETHING SMART E.G. DISTANCE
+          services.each do |service|
             svc_data = service_hash(service, duration_hash)
             data << svc_data
           end 
@@ -34,8 +36,8 @@ module Api
               origin[1]
             ],
             to: [
-              service.lat,
-              service.lng
+              service.lat.to_s,
+              service.lng.to_s
             ],
             trip_time:  Time.now,
             arrive_by: true,
@@ -64,30 +66,32 @@ module Api
         end
 
         # Call OTP and Pull out the durations
-        def build_duration_hash(params, sub_sub_category)
+        def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
           otp = OTPServices::OTPService.new(Config.open_trip_planner)
             
           ### Build the requests
           requests = []
-          sub_sub_category.try(:services).try(:confirmed).each do |service|
-            ['TRANSIT,WALK', 'CAR'].each do |mode|
-              requests << build_request(origin, service, mode)
-            end 
-          end         
-            
+          services.each do |service|
+            unless service.latlng.nil?
+              ['TRANSIT,WALK', 'CAR'].each do |mode|
+                requests << build_request(origin, service, mode)
+              end 
+            end
+          end 
+
           ### Make the Call
           plans = otp.multi_plan([requests])
 
           ### Unack the requests and build a hash of durations
           plans[:callback].each do |label, plan|
             response = otp.unpack(plan.response)
+            puts response.ai 
             itinerary = response.extract_itineraries.first
             duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
           end
-
-          duration_hash
+          return duration_hash
         end
       
       end
