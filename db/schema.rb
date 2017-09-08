@@ -52,10 +52,11 @@ ActiveRecord::Schema.define(version: 20170907002843) do
 
   create_table "alerts", force: :cascade do |t|
     t.datetime "expiration"
-    t.string   "audience",   default: "EVERYONE", null: false
-    t.boolean  "published",  default: true,       null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.string   "audience",         default: "everyone", null: false
+    t.boolean  "published",        default: true,       null: false
+    t.text     "audience_details"
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
   end
 
   create_table "bookings", force: :cascade do |t|
