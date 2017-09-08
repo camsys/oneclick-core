@@ -2,21 +2,40 @@
   ="Edit News & Alert"
   =render partial: "shared/published_badge", locals: {object: @alert}
 
-=simple_form_for @alert,
-  url: admin_alert_path, authenticity_token: true, data: {type: 'html'},
-  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+-audience_details = @alert.audience_details || {}
 
-  =remote_form_input
+-I18n.available_locales.each do |locale|
+  %h3.text-center
+    =locale
+  = f.input "#{locale}_subject", label:"Subject", :as => :string
+  = f.input "#{locale}_message", label:"Message", :as => :text
 
-  -I18n.available_locales.each do |locale|
-    %h3.text-center
-      =locale
-    = f.input "#{locale}_subject", label:"Subject", :as => :string
-    = f.input "#{locale}_message", label:"Message", :as => :text
-  = f.input :expiration, required:true, as: :datetime
-  = f.input :published, as: :radio_buttons
+%hr
+=f.input :expiration, required: false,
+  input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
+  as: :string, label: "Expires"
+= f.input :published, as: :radio_buttons
+= f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+
+.audience-inputs.specific_users.hidden
+  =f.fields_for :audience_details do |ad|
+    =ad.input :user_emails, as: :text, input_html: {value: audience_details[:user_emails]}
+
 
 :javascript
-  $(document).ready(function() {
-    new FormHandler($('#{form_selector_from_id}'));
+  // Handle toggling between different audience types:
+  var audienceTypeInput = $('#audience-type'); // JQuery reference to fare structure selector element
+  // Show appropriate fare inputs and hide all others
+  var showAudienceInputs = function() {
+    var audienceType = audienceTypeInput.val();
+    $('.audience-inputs').addClass('hidden');
+    console.log(audienceType);
+    $('.audience-inputs.' + audienceType).removeClass('hidden');
+  };
+  showAudienceInputs(); // On page load, show proper fare inputs
+  audienceTypeInput.change(showAudienceInputs); // Show correct fare inputs when a new structure is selected.
+
+  Form reset callback
+    f.onReset(function() {
+    showAudienceInputs(); // Show correct fare inputs when form is reset
   });

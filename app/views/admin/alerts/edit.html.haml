@@ -1,6 +1,18 @@
 =content_for :title do
   = @alert.subject
 
-=render partial: 'edit_alert', layout: '/layouts/panel'
+
+= simple_form_for @alert, url: admin_alerts_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+  //=render partial: 'new_alert', layout: '/layouts/new_record_panel', locals: {f: f}
+
+
+  =render partial: 'edit_alert', layout: '/layouts/panel', locals: {f: f}
 
 =back_link admin_alerts_path, label: "All Alerts"
+
+:javascript
+  $(document).ready(function() {
+  
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+  
+  });
