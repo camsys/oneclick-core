@@ -3,6 +3,8 @@ class Alert < ApplicationRecord
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
 
+  ### GLOBALS ###
+  audience_types = [:EVERYONE, :SPECIFIC_USERS]
 
   ### SCOPES ###
   scope :expired, -> { where('expiration < ?', DateTime.now.in_time_zone).order('expiration DESC') }
