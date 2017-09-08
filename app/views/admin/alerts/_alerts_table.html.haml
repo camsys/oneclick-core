@@ -1,7 +1,6 @@
 %table.table.table-hover.alerts-table
   %thead.thead-default
     %tr
-      %th ID
       %th Subject
       %th Message
       %th Expires
@@ -9,8 +8,6 @@
   %tbody
     -@alerts.each do |alert|
       %tr{style: "cursor: pointer", data: {url: edit_admin_alert_path(alert)}}
-        %td
-          =alert.id
         %td
           =alert.subject
         %td

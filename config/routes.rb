@@ -134,7 +134,7 @@ Rails.application.routes.draw do
     end
 
     # Alerts
-    resources :alerts, :only => [:index, :create, :edit, :update] do
+    resources :alerts, :only => [:index, :destroy, :create, :edit, :update] do
       collection do
         get 'expired'
       end

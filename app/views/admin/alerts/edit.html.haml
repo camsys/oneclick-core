@@ -8,11 +8,11 @@
 
   =render partial: 'edit_alert', layout: '/layouts/panel', locals: {f: f}
 
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 =back_link admin_alerts_path, label: "All Alerts"
 
 :javascript
   $(document).ready(function() {
-  
+    new FormHandler($('#{form_selector_from_id}'));
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
-  
   });

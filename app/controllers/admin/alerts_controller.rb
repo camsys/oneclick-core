@@ -11,6 +11,11 @@ class Admin::AlertsController < Admin::AdminController
     @alerts = Alert.expired
   end
 
+  def destroy
+    @alert.destroy
+    redirect_to admin_alerts_path
+  end
+
   def create
   	@alert.update_attributes(alert_params)
     

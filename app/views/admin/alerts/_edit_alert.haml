@@ -1,5 +1,5 @@
 =content_for :header do
-  ="Edit News & Alert"
+  ="Edit Alert"
   =render partial: "shared/published_badge", locals: {object: @alert}
 
 -audience_details = @alert.audience_details || {}
@@ -14,7 +14,6 @@
 =f.input :expiration, required: false,
   input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
   as: :string, label: "Expires"
-= f.input :published, as: :radio_buttons
 = f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
 
 .audience-inputs.specific_users.hidden
@@ -34,8 +33,3 @@
   };
   showAudienceInputs(); // On page load, show proper fare inputs
   audienceTypeInput.change(showAudienceInputs); // Show correct fare inputs when a new structure is selected.
-
-  Form reset callback
-    f.onReset(function() {
-    showAudienceInputs(); // Show correct fare inputs when form is reset
-  });
