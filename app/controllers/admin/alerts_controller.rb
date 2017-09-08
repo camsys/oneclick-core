@@ -18,15 +18,20 @@ class Admin::AlertsController < Admin::AdminController
 
   def create
   	@alert.update_attributes(alert_params)
+    missing_users_message = nil
     if @alert.audience == "specific_users"
-      @alert.handle_specific_users alert_params["audience_details"]
+      missing_users_message = @alert.handle_specific_users alert_params["audience_details"]
     end
     translations = params[:alert]
     translations.each do |translation, value|
       @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
     end
 
-    flash[:success] = "Alert Created"
+    if missing_users_message.nil?
+      flash[:success] = "Alert Created #{missing_users_message}"
+    else
+      flash[:warning] = "Alert Created, however no users were found for the following emails: #{missing_users_message}"
+    end
   	redirect_to admin_alerts_path
 
   end
@@ -35,17 +40,7 @@ class Admin::AlertsController < Admin::AdminController
   end
 
   def update
-    @alert.update_attributes(alert_params)
-    if @alert.audience == "specific_users"
-      @alert.handle_specific_users alert_params["audience_details"]
-    end
-    translations = params[:alert]
-    translations.each do |translation, value|
-      @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
-    end
-
-    flash[:success] = "Alert Updated"
-    redirect_to edit_admin_alert_path(@alert)
+    redirect_to admin_alerts_path
   end
 
   private

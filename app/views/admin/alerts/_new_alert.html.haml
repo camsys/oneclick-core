@@ -10,7 +10,7 @@
   = f.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: ""}, placeholder: "#{locale} Message"
 
 %hr
-=f.input :expiration, required: false,
+=f.input :expiration, required: true,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "Expires"
 = f.input :published, as: :radio_buttons, label: "Publish Now"

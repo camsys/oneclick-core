@@ -9,6 +9,7 @@ class Alert < ApplicationRecord
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
   before_destroy :delete_translations
+  before_create :set_expiration
 
   ### GLOBALS ###
   AUDIENCE_TYPES = [:everyone, :specific_users]
@@ -59,16 +60,28 @@ class Alert < ApplicationRecord
   
   def handle_specific_users audience_details
   	new_user_string = []
+    no_user_found = []
     audience_details["user_emails"].strip.split(',').each do |email|
       user = User.find_by(email: email)
       if user
       	UserAlert.where(user: user, alert: self).first_or_create
       	new_user_string << email
+      else
+        no_user_found << email
       end
     end
     self.audience_details = {user_emails: new_user_string.join(', ')}
     self.save
-    return self.audience_details
+    
+    if no_user_found.empty?
+      return nil
+    else #Return a warning string
+      return no_user_found.join(', ')
+    end
+  end
+
+  def set_expiration
+    self.expiration = self.expiration || (Time.now+7.days).at_midnight()
   end
 
 
