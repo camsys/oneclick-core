@@ -1,6 +1,8 @@
 =content_for :header do
   ="Create New Alert"
 
+-audience_details = @new_alert.audience_details || {}
+
 -I18n.available_locales.each do |locale|
   %h3.text-center
     =locale
@@ -14,7 +16,7 @@
 
 .audience-inputs.specific_users.hidden
   =f.fields_for :audience_details do |ad|
-    =ad.input :user_emails, as: :text, input_html: {value: 'dedwres@bal.cmo'}
+    =ad.input :user_emails, as: :text, input_html: {value: audience_details[:user_emails]}, placeholder: "emails of users separated by commas"
 
 
 :javascript
