@@ -4,7 +4,7 @@ class Alert < ApplicationRecord
   serialize :audience_details
   has_many :user_alerts, dependent: :destroy
   has_many :users, through: :user_alerts
-
+  attr_accessor :translations
 
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
@@ -20,10 +20,37 @@ class Alert < ApplicationRecord
   scope :current, -> { where('expiration >= ?', DateTime.now.in_time_zone).order('expiration ASC') }
   scope :is_published,  -> { where(published: true)}
 
+  ### Custom Update to handle creating translations.
+  def update alert_params    
+
+    # Update the normal attributes
+    self.update_attributes(alert_params)
+
+    # Pop out the translation attributes before you attempt to run update_attributes
+    if alert_params["translations"]
+      alert_params["translations"].each do |key, value|
+        self.set_translation(key.to_s.split('_').first, key.to_s.split('_').last, value)
+      end
+    end
+
+    # Deal with setting up alerts for specific users.
+    warnings = []
+    if self.audience == "specific_users" and alert_params["audience_details"]
+        warnings << self.handle_specific_users(alert_params["audience_details"])
+    end
+
+    unless warnings.empty?
+      warnings = "No users found with the following emails #{warnings.join(', ')}"
+    end  
+
+    return warnings
+
+  end
 
   ### Translations ###
   def create_translation_helpers
-  	# This block of code creates the following helpers
+  	
+    # This block of code creates the following getters
   	# en_subject, es_subject, en_message, es_message, etc. 
   	I18n.available_locales.each do |locale|
   	  Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
@@ -32,6 +59,7 @@ class Alert < ApplicationRecord
         end
       end
     end
+
   end
 
   # To Label is used by SimpleForm to Get the Label
@@ -83,7 +111,5 @@ class Alert < ApplicationRecord
   def set_expiration
     self.expiration = self.expiration || (Time.now+7.days).at_midnight()
   end
-
-
 	
 end

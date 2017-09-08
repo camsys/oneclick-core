@@ -3,11 +3,12 @@
 
 -audience_details = @new_alert.audience_details || {}
 
--I18n.available_locales.each do |locale|
-  %h3.text-center
-    =locale
-  = f.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: ""}, placeholder: "#{locale} Subject"
-  = f.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: ""}, placeholder: "#{locale} Message"
+=f.fields_for :translations do |tf|
+  -I18n.available_locales.each do |locale|
+    %h3.text-center
+      =locale
+    = tf.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: ""}, placeholder: "#{locale} Subject"
+    = tf.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: ""}, placeholder: "#{locale} Message"
 
 %hr
 =f.input :expiration, required: true,

@@ -6,16 +6,17 @@
 
 
 = simple_form_for @alert, 
-  url: admin_alerts_path, data: {type: 'html'}, authenticity_token: true,
+  url: admin_alert_path(@alert), data: {type: 'html'}, authenticity_token: true,
   html: {class: 'form-horizontal', multipart: true, method: :put, id: form_id_from_path }  do |f|
 
   =remote_form_input
 
-  -I18n.available_locales.each do |locale|
-    %h3.text-center
-      =locale
-    = f.input "#{locale}_subject", label:"Subject", :as => :string
-    = f.input "#{locale}_message", label:"Message", :as => :text
+  =f.fields_for :translations do |tf|
+    -I18n.available_locales.each do |locale|
+      %h3.text-center
+        =locale
+      = tf.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: @alert.send("#{locale}_subject")}
+      = tf.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: @alert.send("#{locale}_message")}
 
   %hr
   =f.input :expiration, required: false,
@@ -39,3 +40,8 @@
   };
   showAudienceInputs(); // On page load, show proper audience inputs
   audienceTypeInput.change(showAudienceInputs); // Show correct audience inputs when a new structure is selected.
+
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+  });

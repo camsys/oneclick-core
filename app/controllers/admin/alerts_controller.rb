@@ -17,36 +17,40 @@ class Admin::AlertsController < Admin::AdminController
   end
 
   def create
-  	@alert.update_attributes(alert_params)
-    missing_users_message = nil
-    if @alert.audience == "specific_users"
-      missing_users_message = @alert.handle_specific_users alert_params["audience_details"]
-    end
-    translations = params[:alert]
-    translations.each do |translation, value|
-      @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
-    end
-
-    if missing_users_message.nil?
-      flash[:success] = "Alert Created #{missing_users_message}"
+    warnings = @alert.update alert_params
+    if warnings.empty?
+      flash[:success] = "Alert Created"
     else
-      flash[:warning] = "Alert Created, however no users were found for the following emails: #{missing_users_message}"
+      flash[:warning] = "Alert Created with Warnings: #{warnings}"
     end
-  	redirect_to admin_alerts_path
-
+    redirect_to admin_alerts_path
   end
 
   def edit
   end
 
   def update
+    warnings = @alert.update alert_params
+    if warnings.empty?
+      flash[:success] = "Alert Updated"
+    else
+      flash[:warning] = "Alert Updated with Warnings: #{warnings}"
+    end
     redirect_to admin_alerts_path
   end
 
   private
 
   def alert_params
-  	params.require(:alert).permit(:expiration, :published, :audience, audience_details: [:user_emails])
+    #Array of allowed translations
+    permitted_translations = []
+    I18n.available_locales.each do |locale|
+      Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
+        permitted_translations << "#{locale}_#{custom_method}".to_sym
+      end
+    end
+
+  	params.require(:alert).permit(:expiration, :published, :audience, translations: permitted_translations, audience_details: [:user_emails])
   end
   
 end
