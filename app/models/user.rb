@@ -42,7 +42,7 @@ class User < ApplicationRecord
   has_many :eligibilities, through: :user_eligibilities
   has_many :feedbacks
   has_many :stomping_grounds
-  has_many :user_alerts
+  has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
 
 

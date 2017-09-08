@@ -2,15 +2,17 @@ class Alert < ApplicationRecord
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :audience_details
-  has_many :user_alerts
+  has_many :user_alerts, dependent: :destroy
   has_many :users, through: :user_alerts
 
 
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
+  before_destroy :delete_translations
 
   ### GLOBALS ###
   AUDIENCE_TYPES = [:everyone, :specific_users]
+  CUSTOM_TRANSLATIONS = ["subject", "message"]
 
   ### SCOPES ###
   scope :expired, -> { where('expiration < ?', DateTime.now.in_time_zone).order('expiration DESC') }
@@ -23,7 +25,7 @@ class Alert < ApplicationRecord
   	# This block of code creates the following helpers
   	# en_subject, es_subject, en_message, es_message, etc. 
   	I18n.available_locales.each do |locale|
-  	  ["subject", "message"].each do |custom_method|
+  	  Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
         define_singleton_method("#{locale}_#{custom_method}") do
           self.send(custom_method, locale)
         end
@@ -48,6 +50,12 @@ class Alert < ApplicationRecord
   def set_translation(locale, translation, value)
     SimpleTranslationEngine.set_translation(locale, "alert_#{self.id}_#{translation}", value)
   end
+
+  def delete_translations
+    Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
+      TranslationKey.find_by(name: "alert_#{self.id}_#{custom_method}").try(:destroy)
+    end
+  end
   
   def handle_specific_users audience_details
   	new_user_string = []
@@ -62,5 +70,7 @@ class Alert < ApplicationRecord
     self.save
     return self.audience_details
   end
+
+
 	
 end
