@@ -8,6 +8,8 @@
     =locale
   = f.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: ""}, placeholder: "#{locale} Subject"
   = f.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: ""}, placeholder: "#{locale} Message"
+
+%hr
 =f.input :expiration, required: false,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "Expires"

@@ -12,15 +12,10 @@ class Admin::AlertsController < Admin::AdminController
   end
 
   def create
-    puts params.ai 
-
   	@alert.update_attributes(alert_params)
     
     if @alert.audience == "specific_users"
-      puts params.ai 
-      puts params["audience_details"].ai 
-      puts alert_params.ai 
-      handle_specific_users alert_params["audience_details"]
+      @alert.handle_specific_users alert_params["audience_details"]
     end
 
     translations = params[:alert]
@@ -49,13 +44,6 @@ class Admin::AlertsController < Admin::AdminController
 
   def alert_params
   	params.require(:alert).permit(:expiration, :published, :audience, audience_details: [:user_emails])
-  end
-
-  def handle_specific_users audience_details
-    audience_details["user_emails"].strip.split(',').each do |email|
-      puts email
-      puts 'DO SOMETHING HERE or move into the model'
-    end
   end
   
 end

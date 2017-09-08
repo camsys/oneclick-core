@@ -2,6 +2,9 @@ class Alert < ApplicationRecord
 
   ### ATTRIBUTES & ASSOCIATIONS ###
   serialize :audience_details
+  has_many :user_alerts
+  has_many :users, through: :user_alerts
+
 
   ### CALLBACKS ###
   after_initialize :create_translation_helpers
@@ -46,11 +49,11 @@ class Alert < ApplicationRecord
     SimpleTranslationEngine.set_translation(locale, "alert_#{self.id}_#{translation}", value)
   end
   
-  def to_hash locale=:en
-    {
-      subject: self.try(:subject, locale),
-      message: self.try(:message, locale),
-    }
+  def handle_specific_users audience_details
+    audience_details["user_emails"].strip.split(',').each do |email|
+      puts email
+      puts 'DO SOMETHING HERE or move into the model'
+    end
   end
 	
 end
