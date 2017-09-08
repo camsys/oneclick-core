@@ -28,8 +28,7 @@
   var showAudienceInputs = function() {
     var audienceType = audienceTypeInput.val();
     $('.audience-inputs').addClass('hidden');
-    console.log(audienceType);
     $('.audience-inputs.' + audienceType).removeClass('hidden');
   };
-  showAudienceInputs(); // On page load, show proper fare inputs
-  audienceTypeInput.change(showAudienceInputs); // Show correct fare inputs when a new structure is selected.
+  showAudienceInputs(); // On page load, show proper audience inputs
+  audienceTypeInput.change(showAudienceInputs); // Show correct audience inputs when a new structure is selected.

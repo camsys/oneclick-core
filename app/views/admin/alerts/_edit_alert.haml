@@ -4,21 +4,28 @@
 
 -audience_details = @alert.audience_details || {}
 
--I18n.available_locales.each do |locale|
-  %h3.text-center
-    =locale
-  = f.input "#{locale}_subject", label:"Subject", :as => :string
-  = f.input "#{locale}_message", label:"Message", :as => :text
 
-%hr
-=f.input :expiration, required: false,
-  input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
-  as: :string, label: "Expires"
-= f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+= simple_form_for @alert, 
+  url: admin_alerts_path, data: {type: 'html'}, authenticity_token: true,
+  html: {class: 'form-horizontal', multipart: true, method: :put, id: form_id_from_path }  do |f|
 
-.audience-inputs.specific_users.hidden
-  =f.fields_for :audience_details do |ad|
-    =ad.input :user_emails, as: :text, input_html: {value: audience_details[:user_emails]}
+  =remote_form_input
+
+  -I18n.available_locales.each do |locale|
+    %h3.text-center
+      =locale
+    = f.input "#{locale}_subject", label:"Subject", :as => :string
+    = f.input "#{locale}_message", label:"Message", :as => :text
+
+  %hr
+  =f.input :expiration, required: false,
+    input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
+    as: :string, label: "Expires"
+  =f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+
+  .audience-inputs.specific_users.hidden
+    =f.fields_for :audience_details do |ad|
+      =ad.input :user_emails, as: :text, input_html: {value: audience_details[:user_emails]}
 
 
 :javascript
@@ -28,8 +35,7 @@
   var showAudienceInputs = function() {
     var audienceType = audienceTypeInput.val();
     $('.audience-inputs').addClass('hidden');
-    console.log(audienceType);
     $('.audience-inputs.' + audienceType).removeClass('hidden');
   };
-  showAudienceInputs(); // On page load, show proper fare inputs
-  audienceTypeInput.change(showAudienceInputs); // Show correct fare inputs when a new structure is selected.
+  showAudienceInputs(); // On page load, show proper audience inputs
+  audienceTypeInput.change(showAudienceInputs); // Show correct audience inputs when a new structure is selected.
