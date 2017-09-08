@@ -17,13 +17,4 @@
         %td
           =render partial: "shared/published_badge", locals: {object: alert}
 
-:javascript
-  $(document).ready(function() {
-  
-    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
-  
-    // Link to appropriate feedback detail on row click
-    $('.alerts-table tbody tr').click(function() {
-      window.location = $(this).data("url");
-    });
-  });
+

@@ -18,16 +18,15 @@ class Admin::AlertsController < Admin::AdminController
 
   def create
   	@alert.update_attributes(alert_params)
-    
     if @alert.audience == "specific_users"
       @alert.handle_specific_users alert_params["audience_details"]
     end
-
     translations = params[:alert]
     translations.each do |translation, value|
       @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
     end
 
+    flash[:success] = "Alert Created"
   	redirect_to admin_alerts_path
 
   end
@@ -37,10 +36,14 @@ class Admin::AlertsController < Admin::AdminController
 
   def update
     @alert.update_attributes(alert_params)
+    if @alert.audience == "specific_users"
+      @alert.handle_specific_users alert_params["audience_details"]
+    end
     translations = params[:alert]
     translations.each do |translation, value|
       @alert.set_translation(translation.split('_').first, translation.split('_').last, value)
     end
+
     flash[:success] = "Alert Updated"
     redirect_to edit_admin_alert_path(@alert)
   end

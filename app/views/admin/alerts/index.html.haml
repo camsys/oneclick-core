@@ -7,3 +7,12 @@
   =render partial: 'new_alert', layout: '/layouts/new_record_panel', locals: {f: f}
 
 =back_link expired_admin_alerts_path, label: "View Expired Alerts"
+
+:javascript
+  $(document).ready(function() {
+      $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+      // Link to appropriate alert detail on row click
+    $('.alerts-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
