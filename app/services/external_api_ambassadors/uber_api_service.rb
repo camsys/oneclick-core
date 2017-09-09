@@ -21,6 +21,8 @@ class UberApiService
     unless response && response['prices']
       return {product_id: nil, price: nil}
     end
+
+    puts response.ai 
     price = response['prices'].detect{ |price| price["display_name"] == product }
     return {product_id: price["product_id"], price: price["high_estimate"]}
   end

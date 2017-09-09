@@ -36,7 +36,7 @@ namespace :scheduled do
     Service.where(booking_api: :ride_pilot)
       .each do |svc|
         puts "Getting purposes for Service: #{svc.to_s}"
-        rpa = RidePilotAmbassador.new(svc)
+        rpa = RidePilotAmbassador.new({service: svc})
         new_purposes = rpa.trip_purposes.try(:[], "trip_purposes") || []
         new_purposes.each do |purp|
           key = purp["name"].to_s.parameterize.underscore
