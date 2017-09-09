@@ -10,4 +10,4 @@
     =mail_to(itinerary.service.email, itinerary.service.email)
     %span{style: "padding: 0px 12px; color: #b1b1b1;"}=' | '
   -unless itinerary.service.phone.blank?
-    =itinerary.service.phone
+    =itinerary.service.formatted_phone
