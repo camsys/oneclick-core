@@ -1,0 +1,13 @@
+=content_for :title do
+  Expired Alerts
+
+=render partial: "alerts_table"
+
+=back_link admin_alerts_path, label: "View Active Alerts"
+
+:javascript
+  $(document).ready(function() {
+    $('.alerts-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });

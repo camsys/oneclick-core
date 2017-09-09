@@ -5,6 +5,7 @@ module AdminHelpers
     
     @admin_pages = [
       { label: "Accommodations",  url: urls.admin_accommodations_path,  show: can?(:read, Accommodation) },
+      { label: "Alerts",          url: urls.admin_alerts_path,          show: can?(:read, Alert) },
       { label: "Agencies",        url: urls.admin_agencies_path,        show: can_access_all?(Agency) },
       { label: "Configuration",   url: urls.admin_configs_path,         show: can?(:read, Config) },
       { label: "Feedback",        url: urls.admin_feedbacks_path,       show: can?(:read, Feedback) },

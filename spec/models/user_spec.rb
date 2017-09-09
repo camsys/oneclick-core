@@ -13,6 +13,7 @@ RSpec.describe User, type: :model do
   it { should have_many(:user_eligibilities) }
   it { should have_many(:eligibilities).through(:user_eligibilities) }
   it { should have_many(:feedbacks) }
+  it { should have_many(:alerts) }
   
   it 'returns a locale for a user' do
     expect(english_traveler.locale).to eq(english_traveler.preferred_locale) #This user has a preferred locale, so that one should be found

@@ -1,0 +1,47 @@
+=content_for :header do
+  ="Edit Alert"
+  =render partial: "shared/published_badge", locals: {object: @alert}
+
+-audience_details = @alert.audience_details || {}
+
+
+= simple_form_for @alert, 
+  url: admin_alert_path(@alert), data: {type: 'html'}, authenticity_token: true,
+  html: {class: 'form-horizontal', multipart: true, method: :put, id: form_id_from_path }  do |f|
+
+  =remote_form_input
+
+  =f.fields_for :translations do |tf|
+    -I18n.available_locales.each do |locale|
+      %h3.text-center
+        =locale
+      = tf.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: @alert.send("#{locale}_subject")}
+      = tf.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: @alert.send("#{locale}_message")}
+
+  %hr
+  =f.input :expiration, required: false,
+    input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
+    as: :string, label: "Expires"
+  =f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+
+  .audience-inputs.specific_users.hidden
+    =f.fields_for :audience_details do |ad|
+      =ad.input :user_emails, as: :text, input_html: {value: audience_details[:user_emails]}
+
+
+:javascript
+  // Handle toggling between different audience types:
+  var audienceTypeInput = $('#audience-type'); // JQuery reference to fare structure selector element
+  // Show appropriate fare inputs and hide all others
+  var showAudienceInputs = function() {
+    var audienceType = audienceTypeInput.val();
+    $('.audience-inputs').addClass('hidden');
+    $('.audience-inputs.' + audienceType).removeClass('hidden');
+  };
+  showAudienceInputs(); // On page load, show proper audience inputs
+  audienceTypeInput.change(showAudienceInputs); // Show correct audience inputs when a new structure is selected.
+
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+  });

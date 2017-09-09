@@ -1,0 +1,26 @@
+=content_for :header do
+  Danger Zone
+  
+.row.form-group
+  .col-sm-9
+    %label Delete the Alert, permanently removing it from the database.
+  .col-sm-3
+    =link_to "Delete this Alert", admin_alert_path(@alert), 
+        method: :delete, 
+        class: "btn btn-danger", 
+        data: {confirm: "Are you sure?  This action cannot be undone!"}
+.row.form-group
+  -if @alert.published?
+    .col-sm-9
+      %label Unpublish the Alert. This will hide it from the public.
+    .col-sm-3
+      =link_to "Unpublish", admin_alert_path(id: @alert.id,  alert: { published: false }),
+          method: :patch,
+          class: "btn btn-warning"
+  -else
+    .col-sm-9
+      %label Publish the Alert. This will make it visible to the public.
+    .col-sm-3
+      =link_to "Publish", admin_alert_path(id: @alert.id, alert: { published: true }),
+          method: :patch,
+          class: "btn btn-success"

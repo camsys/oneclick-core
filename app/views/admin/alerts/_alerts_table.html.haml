@@ -1,0 +1,20 @@
+%table.table.table-hover.alerts-table
+  %thead.thead-default
+    %tr
+      %th Subject
+      %th Message
+      %th Expires
+      %th 
+  %tbody
+    -@alerts.each do |alert|
+      %tr{style: "cursor: pointer", data: {url: edit_admin_alert_path(alert)}}
+        %td
+          =alert.subject
+        %td
+          =alert.message
+        %td
+          =alert.expiration.strftime("%D")
+        %td
+          =render partial: "shared/published_badge", locals: {object: alert}
+
+
