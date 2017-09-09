@@ -142,6 +142,12 @@ class RidePilotAmbassador < BookingAmbassador
   
   # Returns an array of question objects for RidePilot booking
   def prebooking_questions
+
+    # this is a patch
+    if @url.blank? or @token.blank?
+      return []
+    end
+
     [
       {
         question: "How many guests will be riding with you?", 
