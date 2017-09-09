@@ -17,6 +17,7 @@ class Admin::AlertsController < Admin::AdminController
   end
 
   def create
+    Rails.logger.info params.ai 
     warnings = @alert.update alert_params
     if warnings.empty?
       flash[:success] = "Alert Created"
@@ -30,6 +31,7 @@ class Admin::AlertsController < Admin::AdminController
   end
 
   def update
+    Rails.logger.info params.ai 
     warnings = @alert.update alert_params
     if warnings.empty?
       flash[:success] = "Alert Updated"
