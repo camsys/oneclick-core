@@ -224,20 +224,20 @@ RSpec.describe Service, type: :model do
     let(:trip_bb) { create(:trip, origin: create(:waypoint_02140), destination: create(:waypoint_02140))}
 
     it 'should calculate flat fares' do
-      expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:base_fare])
+      expect(flat_fare_service.fare_for(trip_1)).to eq(flat_fare_service.fare_details[:flat_base_fare])
     end
 
     it 'should calculate mileage fares' do
       trip_distance = 1000 # in meters
       trip_dist_mi = trip_distance * 0.000621371 # in miles
-      base_fare = mileage_fare_service.fare_details[:base_fare]
+      mileage_base_fare = mileage_fare_service.fare_details[:mileage_base_fare]
       mileage_rate = mileage_fare_service.fare_details[:mileage_rate]
       mileage_otp_response = { "plan" => { "itineraries" => [ {
         "legs" => [ "distance" => trip_distance ]
       } ] } }
       # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
       hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
-      expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((base_fare + mileage_rate * trip_dist_mi).round(2))
+      expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((mileage_base_fare + mileage_rate * trip_dist_mi).round(2))
     end
 
     it 'should calculate zone fares' do

@@ -107,13 +107,13 @@ FactoryGirl.define do
 
     trait :flat_fare do
       fare_structure :flat
-      fare_details { { base_fare: 5.0 } }
+      fare_details { { flat_base_fare: 5.0 } }
     end
 
     trait :mileage_fare do
       fare_structure :mileage
       fare_details do
-        { base_fare: 0, mileage_rate: 5.0, trip_type: :taxi }.with_indifferent_access
+        { mileage_base_fare: 0, mileage_rate: 5.0, trip_type: :taxi }.with_indifferent_access
       end
     end
 

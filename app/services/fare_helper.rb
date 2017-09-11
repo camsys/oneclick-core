@@ -41,13 +41,13 @@ module FareHelper
 
     # Calculates a flat fare
     def calculate_flat
-      @fare_details[:base_fare]
+      @fare_details[:flat_base_fare]
     end
 
     # Calculates a mileage-based fare
     def calculate_mileage
       @router = @router || default_router
-      return (@fare_details[:base_fare] +
+      return (@fare_details[:mileage_base_fare] +
         @fare_details[:mileage_rate] * @router.get_distance(@fare_details[:trip_type].to_sym))
     end
 
@@ -110,7 +110,7 @@ module FareHelper
     end
 
     def validate_flat(record)
-      # validate_fare_details_key(record, :base_fare, :numeric)
+      validate_fare_details_key(record, :flat_base_fare, :numeric)
     end
 
     def validate_empty(record)
@@ -123,7 +123,7 @@ module FareHelper
     end
 
     def validate_mileage(record)
-      validate_fare_details_key(record, :base_fare, :numeric)
+      validate_fare_details_key(record, :mileage_base_fare, :numeric)
       validate_fare_details_key(record, :mileage_rate, :numeric)
       validate_fare_details_key(record, :trip_type, :symbol)
       unless TRIP_TYPES.include?(record.fare_details[:trip_type])
@@ -186,8 +186,8 @@ module FareHelper
       hash_column: :fare_details, 
       case_column: :fare_structure,
       structure: {
-        flat: [:base_fare],
-        mileage: [:base_fare, :mileage_rate, :trip_type],
+        flat: [:flat_base_fare],
+        mileage: [:mileage_base_fare, :mileage_rate, :trip_type],
         taxi_fare_finder: [:taxi_fare_finder_city],
         zone: [],
         url: [:url]
@@ -214,7 +214,6 @@ module FareHelper
       @params = params
       @fare_structure = params[:fare_structure]
       @fare_details = params[:fare_details]
-      fix_base_fare 
     end
 
     # Creates a fare_details parameter key based on the fare_structure
@@ -225,20 +224,10 @@ module FareHelper
 
     private
 
-    # TODO: This is not a pemanent fix, but it works and when you are hacking all weekend to fix OCC it will have to do.
-    # The problem arises because the fare table has two fields with the same name: base_fare. You can't do that.
-    def fix_base_fare 
-      if @fare_structure == 'flat'
-        @fare_details[:base_fare] = @fare_details[:flat_base_fare]
-      elsif @fare_structure == 'mileage'
-        @fare_details[:base_fare] = @fare_details[:mileage_base_fare]
-      end  
-    end
-
-    # "Helper" method, converts a param in place with passed block
-    # NOTE: This is hard to understand. 
-    # without spending a fair amount of time picking through this, it is not clear what it does.
-    # Add notes please.
+    # Helper method, converts a param in place with passed block
+    # Necessary because params coming in as JSON are strings, and they need to
+    # be converted to other data types (floats, symbols, etc.) so that they
+    # can be stored in a rails serialized hash and later used for fare calculation.
     def convert_param(key, base_param=@fare_details, &block)
       base_param[key] = yield(base_param[key])
     end
@@ -248,11 +237,11 @@ module FareHelper
     end
 
     def package_flat
-      convert_param(:base_fare) { |v| v.to_f }
+      convert_param(:flat_base_fare) { |v| v.to_f }
     end
 
     def package_mileage
-      convert_param(:base_fare) { |v| v.to_f }
+      convert_param(:mileage_base_fare) { |v| v.to_f }
       convert_param(:mileage_rate) { |v| v.to_f }
       convert_param(:trip_type) { |v| v.underscore.to_sym }
     end
