@@ -19,6 +19,7 @@ class Alert < ApplicationRecord
   scope :expired, -> { where('expiration < ?', DateTime.now.in_time_zone).order('expiration DESC') }
   scope :current, -> { where('expiration >= ?', DateTime.now.in_time_zone).order('expiration ASC') }
   scope :is_published,  -> { where(published: true)}
+  scope :for_everyone, -> { where(audience: "everyone")}
 
   ### Custom Update to handle creating translations.
   def update alert_params    
