@@ -18,7 +18,7 @@ class UberApiService
   end
 
   def price(product, response)
-    unless response && response['prices']
+    unless response && response['prices'].present?
       return {product_id: nil, price: nil}
     end
 
