@@ -18,12 +18,12 @@
   -# FLAT
   .fare-inputs.flat-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :flat_base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+      =fd.input :flat_base_fare, as: :float, input_html: {value: fare_details[:flat_base_fare]}
 
   -# MILEAGE ONLY
   .fare-inputs.mileage-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :mileage_base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
+      =fd.input :mileage_base_fare, as: :float, input_html: {value: fare_details[:mileage_base_fare]}
       =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
       =fd.input :trip_type, as: :hidden, input_html: {value: @service.type}
   
