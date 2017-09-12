@@ -84,7 +84,7 @@ class Alert < ApplicationRecord
   
   def handle_specific_users 
 
-    unless self.audience == "specific_users" and self.audience_details
+    unless self.audience == "specific_users" and self.audience_details and self.audience_details["user_emails"]
       return nil
     end
   	
