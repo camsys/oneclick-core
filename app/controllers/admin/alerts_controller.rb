@@ -19,7 +19,7 @@ class Admin::AlertsController < Admin::AdminController
   def create
     Rails.logger.info params.ai 
     warnings = @alert.update alert_params
-    if warnings.empty?
+    if warnings.nil?
       flash[:success] = "Alert Created"
     else
       flash[:warning] = "Alert Created with Warnings: #{warnings}"
@@ -33,12 +33,12 @@ class Admin::AlertsController < Admin::AdminController
   def update
     Rails.logger.info params.ai 
     warnings = @alert.update alert_params
-    if warnings.empty?
+    if warnings.nil?
       flash[:success] = "Alert Updated"
     else
       flash[:warning] = "Alert Updated with Warnings: #{warnings}"
     end
-    redirect_to admin_alerts_path
+    redirect_to edit_admin_alert_path(@alert)
   end
 
   private
