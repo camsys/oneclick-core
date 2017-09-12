@@ -26,6 +26,11 @@
       =fd.input :mileage_base_fare, as: :float, input_html: {value: fare_details[:base_fare]}
       =fd.input :mileage_rate, as: :float, input_html: {value: fare_details[:mileage_rate]}
       =fd.input :trip_type, as: :hidden, input_html: {value: @service.type}
+  
+  -# URL
+  .fare-inputs.url-fare.hidden
+    =f.fields_for :fare_details do |fd|
+      =fd.input :url, as: :string, input_html: {value: fare_details[:url]}
 
   -# ZONE
   .fare-inputs.zone-fare.hidden

@@ -1,7 +1,7 @@
 module FareHelper
   include GeoKitchen
 
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty]
+  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url]
   TRIP_TYPES = Trip::TRIP_TYPES
   NO_FARE = nil
 
@@ -117,6 +117,10 @@ module FareHelper
       true
     end
 
+    def validate_url(record)
+      true
+    end
+
     def validate_mileage(record)
       validate_fare_details_key(record, :base_fare, :numeric)
       validate_fare_details_key(record, :mileage_rate, :numeric)
@@ -184,7 +188,8 @@ module FareHelper
         flat: [:base_fare],
         mileage: [:base_fare, :mileage_rate, :trip_type],
         taxi_fare_finder: [:taxi_fare_finder_city],
-        zone: []
+        zone: [],
+        url: [:url]
       }
     )
 
@@ -249,6 +254,10 @@ module FareHelper
       convert_param(:base_fare) { |v| v.to_f }
       convert_param(:mileage_rate) { |v| v.to_f }
       convert_param(:trip_type) { |v| v.underscore.to_sym }
+    end
+
+    def package_url
+      convert_param(:url) { |v| v.to_s }
     end
 
     def package_taxi_fare_finder
