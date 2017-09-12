@@ -35,13 +35,12 @@ class Alert < ApplicationRecord
     end
 
     # Deal with setting up alerts for specific users.
-    warnings = []
     if self.audience == "specific_users" and alert_params["audience_details"]
-        warnings << self.handle_specific_users(alert_params["audience_details"])
+      warnings = self.handle_specific_users(alert_params["audience_details"])
     end
 
-    unless warnings.empty?
-      warnings = "No users found with the following emails #{warnings.join(', ')}"
+    unless warnings.nil?
+      warnings = "No users found with the following emails #{warnings}"
     end  
 
     return warnings
@@ -91,10 +90,10 @@ class Alert < ApplicationRecord
   	new_user_string = []
     no_user_found = []
     audience_details["user_emails"].strip.split(',').each do |email|
-      user = User.find_by(email: email)
+      user = User.find_by(email: email.strip)
       if user
       	UserAlert.where(user: user, alert: self).first_or_create
-      	new_user_string << email
+      	new_user_string << email.strip
       else
         no_user_found << email
       end
