@@ -75,6 +75,9 @@ Rails.application.routes.draw do
       # Users/StompingGrounds
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
+      # Alerts
+      resources :alerts, only: [:index, :update]
+
 
       # Trips
       resources :trips, only: [:create]

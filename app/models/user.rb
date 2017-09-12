@@ -57,10 +57,6 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validates :password_confirmation, presence: true, on: :create
   
-  ### Class Methods ###
-
-
-  
   ### Instance Methods ###
   
   # To String prints out user's email address
@@ -103,6 +99,18 @@ class User < ApplicationRecord
   # Returns the (count) most recent places from trips planned by the user.
   def recent_waypoints(count=nil)
     trips.waypoints.order(created_at: :desc).limit(count)
+  end
+
+  # Instead of creating potentially thousands of user_alerts each time an alert is created,
+  # create them whenever this call is run.  Run this call before you return alerts for a user.
+  def update_alerts
+    alerts_for_everybody = Alert.current.is_published.for_everyone
+    my_alerts = self.alerts.current.is_published
+    alerts_to_add = alerts_for_everybody - my_alerts
+
+    alerts_to_add.each do |alert|
+      UserAlert.create!(user: self, alert: alert)
+    end
   end
 
 
