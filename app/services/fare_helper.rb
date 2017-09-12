@@ -121,18 +121,6 @@ module FareHelper
       true
     end
 
-    def validate_empty(record)
-      true
-    end
-
-<<<<<<< HEAD
-=======
-
->>>>>>> Merge cracy1.0 into mastre
-    def validate_url(record)
-      true
-    end
-
     def validate_mileage(record)
       validate_fare_details_key(record, :mileage_base_fare, :numeric)
       validate_fare_details_key(record, :mileage_rate, :numeric)
