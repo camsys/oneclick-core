@@ -30,6 +30,10 @@ module Api
         # Builds the request to be sent to OTP
         def build_request origin, service, mode="TRANSIT,WALK"
 
+          if service.latlng.nil? 
+            return nil
+          end
+
           {
             from: [
               origin[0],
@@ -51,11 +55,12 @@ module Api
 
         # Acts as a serializer for refernet services
         def service_hash service, duration_hash={}
+
           { "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
-            "lat": service.lat,
-            "lng": service.lng,
+            "lat": service.latlng? ? service.lat : nil,
+            "lng": service.latlng? ? service.lng : nil,
             "address": service.address,
             "phone": service['details']["Number_Phone1"],
             "drive_time": duration_hash["#{service.id}_CAR"],
@@ -76,7 +81,10 @@ module Api
           services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
-                requests << build_request(origin, service, mode)
+                new_request = build_request(origin, service, mode)
+                unless new_request.nil? 
+                  requests << new_request
+                end
               end 
             end
           end 
@@ -85,11 +93,20 @@ module Api
           plans = otp.multi_plan([requests])
 
           ### Unack the requests and build a hash of durations
+<<<<<<< HEAD
           plans[:callback].each do |label, plan|
             response = otp.unpack(plan.response)
             puts response.ai 
             itinerary = response.extract_itineraries.first
             duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
+=======
+          unless plans.nil? or plans[:callback].nil?
+            plans[:callback].each do |label, plan|
+              response = otp.unpack(plan.response)
+              itinerary = response.extract_itineraries.first
+              duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
+            end
+>>>>>>> 1.1.0
           end
           return duration_hash
         end
