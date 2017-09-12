@@ -202,7 +202,10 @@ module Api
         if object.legs?
           object.legs.each do |leg|
             if leg['agencyId']
-              leg["serviceFareInfo"] = Service.find_by(gtfs_agency_id: leg['agencyId']).try(:url) 
+              service = Service.find_by(gtfs_agency_id: leg['agencyId'])
+              if service.fare_structure == "url"
+                leg["serviceFareInfo"] = service.fare_details[:url] 
+              end
             end
           end
         end
