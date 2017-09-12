@@ -125,6 +125,10 @@ module FareHelper
       true
     end
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Merge cracy1.0 into mastre
     def validate_url(record)
       true
     end
