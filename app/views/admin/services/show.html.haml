@@ -7,6 +7,7 @@
 -case @service.type
 -when 'Transit'
   =render partial: 'transit_details', layout: '/layouts/panel'
+  =render partial: 'service_fares', layout: '/layouts/panel'
 -when 'Paratransit'
   =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel'
   =render partial: 'paratransit_purposes', layout: '/layouts/panel'

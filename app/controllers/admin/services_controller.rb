@@ -79,7 +79,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def transit_params
-    [:gtfs_agency_id]
+    [:gtfs_agency_id, :fare_structure] + FareParamPermitter.new(params[:service]).permit
   end
 
   def paratransit_params
