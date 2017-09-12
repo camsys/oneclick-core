@@ -90,7 +90,7 @@ class Alert < ApplicationRecord
   	
     new_user_string = [] #Collected because we will update audience details with what actually worked.
     no_user_found = [] #Collected to return a list of emails that didn't work
-    self.audience_details["user_emails"].strip.split(',').each do |email|
+    self.audience_details["user_emails"].split(',').each do |email|
       user = User.find_by(email: email.strip)
       if user
       	UserAlert.where(user: user, alert: self).first_or_create
