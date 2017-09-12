@@ -121,7 +121,7 @@ module Api
       end
 
       def json_legs
-        object.legs
+        augmented_legs
       end
 
       def logo_url
@@ -197,6 +197,17 @@ module Api
       
 
       private
+
+      def augmented_legs
+        if object.legs?
+          object.legs.each do |leg|
+            if leg['agencyId']
+              leg["serviceFareInfo"] = Service.find_by(gtfs_agency_id: leg['agencyId']).try(:url) 
+            end
+          end
+        end
+        object.legs
+      end
 
       def location_hash(waypoint)
         {
