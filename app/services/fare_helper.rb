@@ -1,11 +1,7 @@
 module FareHelper
   include GeoKitchen
 
-<<<<<<< HEAD
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty]
-=======
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url]
->>>>>>> crazy1.0
   TRIP_TYPES = Trip::TRIP_TYPES
   NO_FARE = nil
 
@@ -121,13 +117,11 @@ module FareHelper
       true
     end
 
-<<<<<<< HEAD
-=======
+
     def validate_url(record)
       true
     end
 
->>>>>>> crazy1.0
     def validate_mileage(record)
       validate_fare_details_key(record, :base_fare, :numeric)
       validate_fare_details_key(record, :mileage_rate, :numeric)
