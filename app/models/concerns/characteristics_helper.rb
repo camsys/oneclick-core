@@ -22,19 +22,19 @@ module CharacteristicsHelper
 
   # To Label is used by SimpleForm to Get the Label
   def to_label locale=:en
-    self.name locale
+    self.name locale || :en
   end
 
   def name locale=:en
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_name")
+    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_name")
   end
 
   def note locale=:en
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_note")
+    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_note")
   end
 
   def question locale=:en
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_question")
+    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_question")
   end
 
   # set translations e.g.,  locale="en", object="name", value="medical"
