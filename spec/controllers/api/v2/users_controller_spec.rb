@@ -154,9 +154,8 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     expect(response).to be_success
 
     parsed_response = JSON.parse(response.body)["data"]["user"]
-    expect('transit'.in? parsed_response["preferred_trip_types"]).to eq(true)
-    expect('unicycle'.in? parsed_response["preferred_trip_types"]).to eq(true)
-    expect('car'.in? parsed_response["preferred_trip_types"]).to eq(false)
+    expect(parsed_response["trip_types"].first["code"]).to eq("transit")
+    expect(parsed_response["trip_types"].first["value"]).to eq(true)
   end
 
   it 'returns the users eligibilities' do

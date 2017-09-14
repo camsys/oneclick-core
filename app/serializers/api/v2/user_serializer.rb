@@ -9,7 +9,7 @@ module Api
                   :accommodations,
                   :eligibilities,
                   :preferred_locale,
-                  :preferred_trip_types
+                  :trip_types
 
       # Returns a list of the user's eligibilities
       def eligibilities
@@ -31,6 +31,18 @@ module Api
             }
           )}
       end
+
+      def trip_types
+        Trip::TRIP_TYPES.map {
+          |trip_type| 
+            { 
+              code: trip_type,
+              name: SimpleTranslationEngine.translate(object.preferred_locale.try(:name) || :en, "mode_#{trip_type}_name"),
+              value: (trip_type.to_s.in? (object.preferred_trip_types || []))
+            }
+        }
+      end
+
 
       def preferred_locale
         object.preferred_locale ? object.preferred_locale.name : 'en'
