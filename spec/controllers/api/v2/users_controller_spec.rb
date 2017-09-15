@@ -285,7 +285,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     request.headers['X-User-Token'] = traveler.authentication_token
     request.headers['X-User-Email'] = traveler.email
 
-    params = {attributes: {first_name: "Jorge", last_name: "Burdell", email: "gpburdell@email.net", preferred_locale: "en"}, preferred_trip_types: ['clown_car']}
+    params = {attributes: {first_name: "Jorge", last_name: "Burdell", email: "gpburdell@email.net", preferred_locale: "en"}, trip_types: {transit: true, paratransit: false}}
 
     put :update, params: params
     
@@ -300,7 +300,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     expect(traveler.last_name).to eq("Burdell")
     expect(traveler.email).to eq("gpburdell@email.net")
     expect(traveler.preferred_locale).to eq(Locale.find_by(name:"en"))
-    expect(traveler.preferred_trip_types).to eq(['clown_car'])
+    expect(traveler.preferred_trip_types).to eq(['transit'])
 
   end
 

@@ -64,19 +64,19 @@ module TravelerProfileUpdater
 
   end
 
-  # The new way
+  # The new way V2
   # {"transit": true, "paratransit": false}
   def update_preferred_trip_types params
     self.preferred_trip_types = []
     params.each do |code, value|
-      if value
+      if value == true or value == "true" #This is mostly for rspec, rspec is converting booleans to strings. 
         self.preferred_trip_types << code
       end
     end
     self.save
   end
 
-  # The old way
+  # The old way V1
   # [:transit, :paratransit]
   def update_preferred_modes params
     self.preferred_trip_types = params.map{ |m| m.to_s.gsub('mode_',"")}
