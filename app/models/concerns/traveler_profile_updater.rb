@@ -9,7 +9,7 @@ module TravelerProfileUpdater
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
     update_eligibilities params[:eligibilities] unless params[:eligibilities].nil?
     update_accommodations params[:accommodations] unless params[:accommodations].nil?
-    update_preferred_modes params[:preferred_trip_types] unless params[:preferred_trip_types].nil?
+    update_preferred_trip_types params[:trip_types] unless params[:trip_types].nil?
     update_preferred_modes params[:preferred_modes] unless params[:preferred_modes].blank? #This is depracated after api/v1. Preferred Modes are updated as part of attributes
     update_booking_profile params[:booking] unless params[:booking].nil?
     return true
@@ -64,6 +64,20 @@ module TravelerProfileUpdater
 
   end
 
+  # The new way
+  # {"transit": true, "paratransit": false}
+  def update_preferred_trip_types params
+    self.preferred_trip_types = []
+    params.each do |code, value|
+      if value
+        self.preferred_trip_types << code
+      end
+    end
+    self.save
+  end
+
+  # The old way
+  # [:transit, :paratransit]
   def update_preferred_modes params
     self.preferred_trip_types = params.map{ |m| m.to_s.gsub('mode_',"")}
     self.save
