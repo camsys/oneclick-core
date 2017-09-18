@@ -53,6 +53,8 @@ module OneclickCore
       YAML.load(File.open(env_file)).each do |key, value|
         ENV[key.to_s] = value
       end if File.exists?(env_file)
+      
+      require './config/oneclick_modules.rb' # Loads names of installed modules into ENV variables
     end
 
 

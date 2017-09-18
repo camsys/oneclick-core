@@ -1,2 +1,4 @@
 # Configure an API Token
-OneclickRefernet.api_token = 'KIXUUKWX'
+if ENV["ONECLICK_REFERNET"]
+  OneclickRefernet.api_token = 'KIXUUKWX'
+end
