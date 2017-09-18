@@ -175,15 +175,6 @@ RSpec.describe Admin::ServicesController, type: :controller do
         taxi_fare_finder: { taxi_fare_finder_city: 'Boston' }
       }.with_indifferent_access
 
-      # The above params will get converted to this upon saving.
-      # This you can't have two fields in the same form called base_fare which is why
-      # the above fields were created.
-      expected_fare_details_params = {
-        flat: { base_fare: 5.0 },
-        mileage: { base_fare: 2, mileage_rate: 1.0, trip_type: :taxi },
-        taxi_fare_finder: { taxi_fare_finder_city: 'Boston' }
-      }.with_indifferent_access
-
       # For each fare structure type, test service update
       [:flat, :mileage, :taxi_fare_finder].each do |fare_structure|
         old_fare_structure = service.fare_structure
@@ -200,7 +191,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
         service.reload
         expect(old_fare_structure).not_to eq(service.fare_structure) # should have changed fare_structure
         expect(old_fare_details).not_to eq(service.fare_details) # should have changed fare_details
-        expect(service.fare_details).to eq(expected_fare_details_params[fare_structure]) # fare_details should match params
+        expect(service.fare_details).to eq(fare_details_params[fare_structure]) # fare_details should match params
       end
       
     end
