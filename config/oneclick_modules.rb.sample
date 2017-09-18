@@ -1,0 +1,6 @@
+### SAMPLE MODULE CONFIGURATION FILE ###
+
+# NOTE: Set OneClick engine modules to include as ENV variables.
+# This file is required in both the gemfile and the application.rb before_config block.
+
+# ENV["ONECLICK_REFERNET"] = "true"

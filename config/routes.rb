@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  
   devise_for :users
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
@@ -91,8 +92,10 @@ Rails.application.routes.draw do
       delete 'sign_out' => 'users#end_session'
 
       # Refernet
-      get 'oneclick_refernet/services' => 'refernet/services#index'
-      mount OneclickRefernet::Engine => "/oneclick_refernet"
+      if ENV["ONECLICK_REFERNET"]
+        get 'oneclick_refernet/services' => 'refernet/services#index'
+        mount OneclickRefernet::Engine => "/oneclick_refernet"
+      end
       
     end #v2
 
