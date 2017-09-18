@@ -93,13 +93,15 @@ gem 'em-http-request'
 ############################################
 
 
-### ONECLICK MODULES
+### ONECLICK MODULES #######################
 
-# NOTE: For each OneClick module engine that can be included, add an if block that
-# checks the ENV for that module's name. ENV is loaded with module name variables
-# in the config/oneclick_modules.rb file
+# Loads names of modules to install into ENV variables
+require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
 
-require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb') # loads names of modules to install into ENV variables
+
+# NOTE: For each OneClick module engine that can be included, set the `require`
+# option to equal true if the ENV variable is set for that engine, and false if not
+# e.g. ` gem 'some_engine', require: !!ENV["SOME_ENGINE"] `
 
 # Download the oneclick_refernet gem, but only require it if env var is set
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', require: !!ENV["ONECLICK_REFERNET"]
