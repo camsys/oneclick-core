@@ -54,7 +54,8 @@ module OneclickCore
         ENV[key.to_s] = value
       end if File.exists?(env_file)
       
-      require './config/oneclick_modules.rb' # Loads names of installed modules into ENV variables
+      # Loads names of installed modules into ENV variables
+      require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
     end
 
 

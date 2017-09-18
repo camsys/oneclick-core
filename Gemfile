@@ -99,7 +99,7 @@ gem 'em-http-request'
 # checks the ENV for that module's name. ENV is loaded with module name variables
 # in the config/oneclick_modules.rb file
 
-require './config/oneclick_modules.rb' # loads names of modules to install into ENV variables
+require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb') # loads names of modules to install into ENV variables
 
 if ENV["ONECLICK_REFERNET"]
   gem 'oneclick_refernet', github: 'camsys/oneclick_refernet'
