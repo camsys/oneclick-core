@@ -101,9 +101,8 @@ gem 'em-http-request'
 
 require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb') # loads names of modules to install into ENV variables
 
-if ENV["ONECLICK_REFERNET"]
-  gem 'oneclick_refernet', github: 'camsys/oneclick_refernet'
-end
+# Download the oneclick_refernet gem, but only require it if env var is set
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', require: !!ENV["ONECLICK_REFERNET"]
 
 ############################################
 
