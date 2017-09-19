@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: c8aac11f3ef9ba3c41c63098faf100a3d7d96d0c
+  revision: 8495725847c6dc0dbc24bede51250efabb3d1448
   specs:
     oneclick_refernet (0.1.0)
       active_model_serializers
