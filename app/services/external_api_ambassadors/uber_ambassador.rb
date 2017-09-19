@@ -13,7 +13,7 @@ class UberAmbassador
     @http_request_bundler.add(request[:label], request[:url], request[:action], request[:options])#'uber_estimates_fares', request[:url], :get, headers = {})
   end
 
-    # Prepares HTTP requests based on available services, to pass to HTTP Request Bundler
+  # Prepares HTTP requests based on available services, to pass to HTTP Request Bundler
   def prepare_http_requests
     {
       label: :uber_prices,
