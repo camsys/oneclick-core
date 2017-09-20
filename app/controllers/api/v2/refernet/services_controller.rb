@@ -56,6 +56,8 @@ module Api
         # Acts as a serializer for refernet services
         def service_hash service, duration_hash={}
 
+          display_url = service['details']['url'] || service['details']['PUrl'] || service['details']['LUrl']
+
           { "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
@@ -65,7 +67,8 @@ module Api
             "phone": service['details']["Number_Phone1"],
             "drive_time": duration_hash["#{service.id}_CAR"],
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
-            "url": service['details']['url'],
+            "display_url": display_url,
+            "url": full_url(display_url), #Ensure that the URL starts with http://
             "description":  service['details']["Label_Service Description"] || "#{service['details']['Note1']} #{service['details']['Note2']}" 
           }
         end
@@ -101,6 +104,14 @@ module Api
             end
           end
           return duration_hash
+        end
+
+        # Check to see if we need to prepend http:// onto the display URL
+        def full_url display_url
+          if display_url.blank?
+            return nil
+          end
+          return (display_url[0..6] == "http://" or display_url[0..7] == "https://") ? display_url : "http://#{display_url}"
         end
       
       end
