@@ -49,10 +49,16 @@ module OneclickCore
     
     # Loads application.yml file for local ENV variables
     config.before_configuration do
-      env_file = File.join(Rails.root, 'config', 'local_env.yml')
-      YAML.load(File.open(env_file)).each do |key, value|
-        ENV[key.to_s] = value
-      end if File.exists?(env_file)
+      env_files = [
+        File.join(Rails.root, 'config', 'local_env.yml'),
+        File.join(Rails.root, 'config', 'local_env.yml.travis') # For QA/prod
+      ]
+
+      env_files.each do |env_file|
+        YAML.load(File.open(env_file)).each do |key, value|
+          ENV[key.to_s] = value
+        end if File.exists?(env_file)
+      end
       
       # Loads names of installed modules into ENV variables
       require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')

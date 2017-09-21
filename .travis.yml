@@ -6,6 +6,7 @@ before_script:
 - pwd
 - ls -a
 - mv config/database.yml.travis config/database.yml
+- mv config/local_env.yml.travis config/local_env.yml
 ###############################################################
 ## Done because travis stopped playing nice with postgis
 ## From: https://github.com/travis-ci/travis-ci/issues/7048
