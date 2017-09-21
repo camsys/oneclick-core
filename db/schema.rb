@@ -349,7 +349,7 @@ ActiveRecord::Schema.define(version: 20170908021007) do
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
-    t.datetime "trip_time",             default: '2017-09-18 18:12:57'
+    t.datetime "trip_time",             default: '2017-04-21 18:12:00'
     t.boolean  "arrive_by",             default: false
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
