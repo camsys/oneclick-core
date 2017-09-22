@@ -9,7 +9,8 @@ module Api
         :transit_time,
         :walk_distance,
         :wait_time,
-        :legs
+        :legs,
+        :duration
     
       belongs_to :service
       
