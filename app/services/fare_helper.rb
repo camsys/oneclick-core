@@ -34,9 +34,14 @@ module FareHelper
       return fare.to_f.round(2) # Send back a float rounded to 2 decimal places
     end
 
-    # Calculate an Empty Fare
+    # Calculate an Empty Fare (no calculation)
     def calculate_empty
-      nil
+      NO_FARE
+    end
+    
+    # Calculates a URL Fare (no calculation)
+    def calculate_url
+      NO_FARE
     end
 
     # Calculates a flat fare
