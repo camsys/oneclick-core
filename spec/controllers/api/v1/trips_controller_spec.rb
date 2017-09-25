@@ -212,7 +212,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       post :book, params: booking_params_w_return
       response_body = JSON.parse(response.body)
       bookable_itinerary.reload
-            
+                  
       return_trip = Trip.find_by(id: response_body["booking_results"][1]["trip_id"])
       return_itin = Itinerary.find_by(id: response_body["booking_results"][1]["itinerary_id"])
       

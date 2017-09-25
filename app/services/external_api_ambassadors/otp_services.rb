@@ -8,7 +8,7 @@ module OTPServices
   class OTPService
     attr_accessor :base_url
 
-    def initialize(base_url)
+    def initialize(base_url="")
       @base_url = base_url
     end
 
