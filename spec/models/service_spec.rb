@@ -218,6 +218,8 @@ RSpec.describe Service, type: :model do
     let(:mileage_fare_service) { create(:paratransit_service, :mileage_fare) }
     let(:zone_fare_service) { create(:paratransit_service, :zone_fare) }
     let(:tff_fare_service) { create(:taxi_service, :taxi_fare_finder_fare) }
+    let(:empty_fare_service) { create(:paratransit_service, :empty_fare) }
+    let(:url_fare_service) { create(:paratransit_service, :url_fare) }    
     let(:trip_ab) { trip_1 }
     let(:trip_ba) { trip_1_flipped }
     let(:trip_aa) { create(:trip, origin: create(:waypoint_02139), destination: create(:waypoint_02139))}
@@ -267,6 +269,15 @@ RSpec.describe Service, type: :model do
       hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
       expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
     end
+    
+    it 'should calculate empty fare' do
+      expect(empty_fare_service.fare_for(trip_1)).to be_nil
+    end
+    
+    it 'should calculate url fare' do
+      expect(url_fare_service.fare_for(trip_1)).to be_nil
+    end
+
     
   end
   

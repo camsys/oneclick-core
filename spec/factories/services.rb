@@ -132,6 +132,16 @@ FactoryGirl.define do
         }.with_indifferent_access
       end
     end
+    
+    trait :empty_fare do
+      fare_structure :empty
+      fare_details { {} }
+    end
+    
+    trait :url_fare do
+      fare_structure :url
+      fare_details { { url: "www.some_url_for_fare_details.gov" } }
+    end
 
     trait :taxi_fare_finder_fare do
       fare_structure :taxi_fare_finder
