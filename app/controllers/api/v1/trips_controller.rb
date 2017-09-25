@@ -221,10 +221,17 @@ module Api
         [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
       end
 
+      # Converts mode code from Legacy to OCC
       # Removes "mode_" from the start of mode code string
       # Also lets mode_ride_hailing act as an alias for mode_uber
       def demodeify(string)
         string.sub("mode_", "").sub("ride_hailing","uber")
+      end
+      
+      # Converts mode code from OCC to Legacy
+      # subs "uber" for "ride_hailing", and prepends "mode_"
+      def remodeify(code)
+        "mode_" + code.to_s.sub("uber", "ride_hailing")
       end
 
       # Serializes trips in the hash format demanded by the past_trips and future_trips
@@ -262,7 +269,7 @@ module Api
             fare: itinerary.cost.to_f,
             id: itinerary.id,
             json_legs: itinerary.legs,
-            mode: itinerary.trip_type.nil? ? nil : "mode_#{itinerary.trip_type.to_s}",
+            mode: itinerary.trip_type.nil? ? nil : remodeify(itinerary.trip_type),
             product_id: nil, #itinerary.product_id,
             status: "active", # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?
