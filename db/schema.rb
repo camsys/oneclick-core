@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(version: 20170908021007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "pg_stat_statements"
   enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
@@ -349,7 +350,7 @@ ActiveRecord::Schema.define(version: 20170908021007) do
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
-    t.datetime "trip_time",             default: '2017-04-21 18:12:00'
+    t.datetime "trip_time",             default: '2017-06-19 03:02:26'
     t.boolean  "arrive_by",             default: false
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"

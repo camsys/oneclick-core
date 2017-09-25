@@ -3,7 +3,7 @@ module FareHelper
 
   VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url]
   TRIP_TYPES = Trip::TRIP_TYPES
-  NO_FARE = nil
+  NO_FARE = nil # Could be changed to 0 or "" if desired
 
   # Helper class for calculating trip fares
   class FareCalculator
