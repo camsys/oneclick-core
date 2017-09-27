@@ -23,9 +23,7 @@ module Feedbackable
   end
   
   # Include class methods
-  def self.included(base)
-    puts "INCLUDING FEEDBACKABLE FOR #{base.name}"
-    
+  def self.included(base)    
     @@feedbackables << base.name
     base.has_many :feedbacks, as: :feedbackable
     base.extend(ClassMethods)
