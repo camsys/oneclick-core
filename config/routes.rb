@@ -67,18 +67,18 @@ Rails.application.routes.draw do
       # Agencies
       resources :agencies, only: [:index]
       
+      # Alerts
+      resources :alerts, only: [:index, :update]
+      
       # Feedbacks
       resources :feedbacks, only: [:create]
       
-      # Places
+      # Places, Stomping Grounds, Landmarks
       resources :places, only: [:index]
-      
-      # Users/StompingGrounds
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
-      # Alerts
-      resources :alerts, only: [:index, :update]
-
+      # Services
+      resources :services, only: [:index]
 
       # Trips
       resources :trips, only: [:create]
