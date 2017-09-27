@@ -26,7 +26,7 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
-  has_many :feedbacks, as: :feedbackable
+  # has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations
   has_and_belongs_to_many :eligibilities
   has_and_belongs_to_many :purposes

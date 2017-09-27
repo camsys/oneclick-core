@@ -6,15 +6,28 @@
 module Feedbackable
   @@feedbackables = []
 
-  # Returns the average rating for the record
+  # Returns the average rating for the feedbackable
   def rating
-    ratings = self.feedbacks.pluck(:rating).compact.map {|r| r.to_f }
-    ratings.reduce(&:+) / ratings.length
+    return nil if ratings.empty?
+    ratings.reduce(&:+) / ratings.length.to_f
+  end
+  
+  # Returns the number of ratings for this feedbackable
+  def ratings_count
+    ratings.count
+  end
+  
+  # All of the scores in feedbacks associated with this feedbackable
+  def ratings
+    self.feedbacks.pluck(:rating).compact.map {|r| r.to_f }
   end
   
   # Include class methods
   def self.included(base)
+    puts "INCLUDING FEEDBACKABLE FOR #{base.name}"
+    
     @@feedbackables << base.name
+    base.has_many :feedbacks, as: :feedbackable
     base.extend(ClassMethods)
   end
 
