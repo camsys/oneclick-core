@@ -6,6 +6,8 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
   let!(:agency_3) { create(:transportation_agency)}
   let!(:agency_4) { create(:partner_agency)}
   let!(:agency_5) { create(:partner_agency)}
+  let!(:partner_agency_unpublished) { create(:partner_agency, published: false)}
+  let!(:transpo_agency_unpublished) { create(:transportation_agency, published: false)}
   
   it "indexes all the agencies with all necessary attributes" do
     
@@ -16,7 +18,7 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
     response_body = JSON.parse(response.body)
     agencies = response_body["data"]["agencies"]
         
-    expect(agencies.count).to eq(Agency.all.count)
+    expect(agencies.count).to eq(Agency.published.count)
     
     # Expect each of the following attributes to be present in the JSON results
     [:id, :type, :name, :phone, :email, :url].each do |attr|
@@ -35,7 +37,7 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
     response_body = JSON.parse(response.body)
     agencies = response_body["data"]["agencies"]
     
-    expect(agencies.count).to eq(TransportationAgency.all.count)
+    expect(agencies.count).to eq(TransportationAgency.published.count)
     
     # Now for Partner Agencies
     get :index, params: {type: "partner"}
@@ -45,7 +47,7 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
     response_body = JSON.parse(response.body)
     agencies = response_body["data"]["agencies"]
     
-    expect(agencies.count).to eq(PartnerAgency.all.count)
+    expect(agencies.count).to eq(PartnerAgency.published.count)
     
   end
   
