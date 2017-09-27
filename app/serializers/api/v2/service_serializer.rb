@@ -3,7 +3,7 @@ module Api
     class ServiceSerializer < ActiveModel::Serializer
 
       attributes :id, :name, :type, :url, :email, :phone, :formatted_phone, 
-                 :comments
+                 :comments, :rating, :ratings_count
       
       def comments
         object.comments_hash

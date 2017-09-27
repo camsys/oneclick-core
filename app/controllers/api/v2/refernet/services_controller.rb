@@ -58,7 +58,8 @@ module Api
 
           display_url = service['details']['url'] || service['details']['PUrl'] || service['details']['LUrl']
 
-          { "service_id": service["Service_ID"],
+          { 
+            "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
             "lat": service.latlng? ? service.lat : nil,
@@ -69,7 +70,9 @@ module Api
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
             "display_url": display_url,
             "url": full_url(display_url), #Ensure that the URL starts with http://
-            "description":  service['details']["Label_Service Description"] || "#{service['details']['Note1']} #{service['details']['Note2']}" 
+            "description":  service['details']["Label_Service Description"] || "#{service['details']['Note1']} #{service['details']['Note2']}",
+            "rating": service.rating,
+            "ratings_count": service.ratings_count
           }
         end
 
