@@ -6,6 +6,8 @@ RSpec.describe Api::V2::AgenciesController, type: :controller do
   let!(:agency_3) { create(:transportation_agency)}
   let!(:agency_4) { create(:partner_agency)}
   let!(:agency_5) { create(:partner_agency)}
+  let!(:partner_agency_unpublished) { create(:partner_agency, published: false)}
+  let!(:transpo_agency_unpublished) { create(:transportation_agency, published: false)}
   
   it "indexes all the agencies with all necessary attributes" do
     
