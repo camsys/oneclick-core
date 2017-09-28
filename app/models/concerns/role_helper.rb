@@ -25,6 +25,9 @@ module RoleHelper
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
     base.scope :registered_travelers, -> { base.travelers.registered }
     base.scope :except_user, -> (user) { where.not(id: user.id) }
+    base.scope :partner_staff, -> { base.staff_for_any(Agency.partner_agencies) }
+    base.scope :transportation_staff, -> { base.staff_for_any(Agency.transportation_agencies) }
+
     
     # ASSOCIATIONS
     base.has_many :transportation_agencies, 
