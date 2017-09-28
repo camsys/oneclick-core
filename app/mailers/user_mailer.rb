@@ -52,6 +52,10 @@ class UserMailer < ApplicationMailer
     # If this email is for a service with staff, let them know. Otherwise, let the admin and partners know
     service = (feedback.feedbackable_type == "Service") ? @feedback.feedbackable : nil
     if service and service.agency and service.agency.staff.count > 0
+      puts 'DEREK'
+      puts service.ai
+      puts service.agency.ai
+      puts service.agency.staff.ai
       mail(to: service.agency.staff.pluck(:email), subject: subject)
     else
       mail(to: (User.admins + User.partner_staff).uniq.pluck(:email), subject: subject)
