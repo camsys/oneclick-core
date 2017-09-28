@@ -29,10 +29,9 @@ class UserMailer < ApplicationMailer
 
   # Let admins know when Feedback isn't being acknowledge
   def admin_feedback_reminder(feedbacks)
-    admins = User.with_role :admin
     subject = 'Feedback needs to be acknowledged'  
     @feedbacks = feedbacks
-    mail(to: admins.pluck(:email), subject: subject)
+    mail(to: (User.admins + User.partner_staff).uniq.pluck(:email), subject: subject)
   end
 
   private
