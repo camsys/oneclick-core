@@ -64,7 +64,7 @@ namespace :scheduled do
     end
 
     # Send Transportation Agencies Feedback
-    Feedback.service.each do |feedback|
+    Feedback.service.needs_reminding.each do |feedback|
       if feedback.feedbackable_type == "Service"
         UserMailer.transportation_agency_feedback_reminder(feedback).deliver_now
       end 
