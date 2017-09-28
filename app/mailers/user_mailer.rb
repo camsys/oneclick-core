@@ -27,6 +27,14 @@ class UserMailer < ApplicationMailer
     mail(to: addresses, subject: subject)
   end
 
+  # Let admins know when Feedback isn't being acknowledge
+  def admin_feedback_reminder(feedbacks)
+    admins = User.with_role :admin
+    subject = 'Feedback needs to be acknowledged'  
+    @feedbacks = feedbacks
+    mail(to: admins.pluck(:email), subject: subject)
+  end
+
   private
 
   # Attaches an asset to the email based on its filename (including extension)
@@ -36,5 +44,7 @@ class UserMailer < ApplicationMailer
       attachments.inline[icon] = File.read(url)
     end
   end
+
+
   
 end

@@ -1,0 +1,23 @@
+Here is a list of user feedback that has not been acknowledged in at least 5 days.
+%hr
+
+%table{:style=>"text-align: left; border: 1px; width: 100%"}
+	%tr
+		%th
+			Name
+		%th
+			Review
+		%th
+			Submitted
+
+	-@feedbacks.each do |feedback|
+		%tr
+			%td
+				=feedback.user.try(:full_name) || "n/a"
+			%td 
+				=feedback.review	
+			%td
+				=feedback.created_at.strftime("%m-%d-%Y at %l:%M%p")
+%hr
+
+=link_to "Click here to acknowledge feedback.", admin_feedbacks_url
