@@ -36,9 +36,12 @@ class UserMailer < ApplicationMailer
 
   # Let admins know when Feedback isn't being acknowledge
   def transportation_agency_feedback_reminder(feedback)
-    subject = 'Overdue Feedback'  
+    subject = 'Overdue Feedback'   
     @feedback = feedback
-    mail(to: 'dedwards8@gmail.com', subject: subject)
+    service = @feedback.feedbackable
+    if service.agency and service.agency.staff.count > 0
+      mail(to: service.agency.staff.pluck(:email), subject: subject)
+    end
   end
 
   private
