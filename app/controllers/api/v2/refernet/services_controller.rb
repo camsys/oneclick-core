@@ -59,6 +59,7 @@ module Api
           display_url = service['details']['url'] || service['details']['PUrl'] || service['details']['LUrl']
 
           { 
+            id: service.id,
             "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
