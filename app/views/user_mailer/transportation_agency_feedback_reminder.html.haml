@@ -1,25 +1,5 @@
 ="This feedback has not been acknowledge for #{(Config.feedback_overdue_days || 5)} days."
 %hr
 
-%table{:style=>"text-align: left; border: 1px; width: 100%"}
-	%tr
-		%th Date
-		%th Service
-		%th Rating
-		%th Review
-		%th Contact
-	%tr
-		%td.text-nowrap
-			=@feedback.created_at.strftime("%Y-%m-%d")
-		%td
-			=@feedback.feedbackable.try(:name) || "General"
-		%td
-			-if @feedback.rating.present?
-				="#{@feedback.rating}/5"
-		%td
-			=truncate(@feedback.review, length: 50)
-		%td
-			=@feedback.contact
-%hr
+= render :partial => 'feedback', :locals => { :feedback => @feedback }
 
-=link_to "Click here to acknowledge feedback.", admin_feedback_url(@feedback)
