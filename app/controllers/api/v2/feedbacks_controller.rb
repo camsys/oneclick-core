@@ -12,6 +12,7 @@ module Api
         end
         
         if @feedback.save # Render a success response only if feedback saves successfully
+          UserMailer.new_feedback(@feedback).deliver_now # Alert proper people that new feedback was submitted.
           render(success_response(message: "Feedback successfully created"))
         else
           render(fail_response(errors: @feedback.errors.to_h))
