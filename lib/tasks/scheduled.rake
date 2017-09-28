@@ -52,5 +52,15 @@ namespace :scheduled do
     end
     
   end
+
+  # Email Agencies and the Admin when Feedback is not being dealt with.
+  desc "Send Feedback Follow Up Reminders"
+  task feedback_followup: :environment do
+    all_feedback = Feedback.needs_reminding
+    if all_feedback.count > 0
+      UserMailer.admin_feedback_reminder(all_feedback).deliver_now
+    end
+
+  end
     
 end

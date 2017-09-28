@@ -11,6 +11,9 @@
       %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
         %td.text-nowrap
           =feedback.created_at.strftime("%Y-%m-%d")
+          -if feedback.created_at < (Time.now - 5.days)
+            %span.label.label-danger Overdue
+
         %td
           =feedback.feedbackable.try(:name) || "General"
         %td
