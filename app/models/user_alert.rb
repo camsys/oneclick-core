@@ -8,10 +8,10 @@ class UserAlert < ApplicationRecord
  	scope :is_current, -> { joins(:alert).where('alerts.expiration >= ?', DateTime.now.in_time_zone).order('expiration ASC') }
 
 	def subject
-		alert.subject user.preferred_locale.name || :en
+		alert.subject (user.preferred_locale.try(:name) || :en)
 	end
 
 	def message
-		alert.message user.preferred_locale.name || :en
+		alert.message (user.preferred_locale.try(:name) || :en)
 	end
 end
