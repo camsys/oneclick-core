@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170908021007) do
+ActiveRecord::Schema.define(version: 20171002211440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -196,9 +196,10 @@ ActiveRecord::Schema.define(version: 20170908021007) do
 
   create_table "oneclick_refernet_categories", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
-    t.boolean  "confirmed",  default: false
+    t.datetime "created_at",                   null: false
+    t.datetime "updated_at",                   null: false
+    t.boolean  "confirmed",    default: false
+    t.integer  "sequence_nbr"
     t.index ["name"], name: "index_oneclick_refernet_categories_on_name", using: :btree
   end
 
