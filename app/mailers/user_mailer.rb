@@ -42,7 +42,6 @@ class UserMailer < ApplicationMailer
     if service.agency and service.agency.staff.count > 0
       mail(to: service.agency.staff.pluck(:email), subject: subject)
     end
-<<<<<<< HEAD
   end
 
   # New Feedback Email
@@ -57,8 +56,6 @@ class UserMailer < ApplicationMailer
     else
       mail(to: (User.admins + User.partner_staff).uniq.pluck(:email), subject: subject)
     end
-=======
->>>>>>> master
   end
 
   private
