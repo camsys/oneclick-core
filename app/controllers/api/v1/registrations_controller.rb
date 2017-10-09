@@ -16,8 +16,7 @@ module Api
           }
         else
           @user.errors.add(:password_confirmation, "can't be blank") unless params[:password_confirmation]
-          render status: 422,
-            json: json_response(:fail, data: {user: @user.errors})
+          render status: 422, json: @user.errors.messages
         end
 
       end
