@@ -55,10 +55,19 @@ namespace :scheduled do
 
   # Email Agencies and the Admin when Feedback is not being dealt with.
   desc "Send Feedback Follow Up Reminders"
-  task feedback_followup: :environment do
+  task feedback_reminders: :environment do
+    
+    # Send Admins and Partners a Summary of all Outstanding Feedback
     all_feedback = Feedback.needs_reminding
     if all_feedback.count > 0
       UserMailer.admin_feedback_reminder(all_feedback).deliver_now
+    end
+
+    # Send Transportation Agencies Feedback
+    Feedback.service.needs_reminding.each do |feedback|
+      if feedback.feedbackable_type == "Service"
+        UserMailer.transportation_agency_feedback_reminder(feedback).deliver_now
+      end 
     end
 
   end

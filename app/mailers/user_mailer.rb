@@ -29,10 +29,33 @@ class UserMailer < ApplicationMailer
 
   # Let admins know when Feedback isn't being acknowledge
   def admin_feedback_reminder(feedbacks)
-    admins = User.with_role :admin
-    subject = 'Feedback needs to be acknowledged'  
+    subject = 'List of Overdue Feedback'  
     @feedbacks = feedbacks
-    mail(to: admins.pluck(:email), subject: subject)
+    mail(to: (User.admins + User.partner_staff).uniq.pluck(:email), subject: subject)
+  end
+
+  # Let admins know when Feedback isn't being acknowledge
+  def transportation_agency_feedback_reminder(feedback)
+    subject = 'Overdue Feedback'   
+    @feedback = feedback
+    service = @feedback.feedbackable
+    if service.agency and service.agency.staff.count > 0
+      mail(to: service.agency.staff.pluck(:email), subject: subject)
+    end
+  end
+
+  # New Feedback Email
+  def new_feedback(feedback)
+    subject = 'New Feedback'   
+    @feedback = feedback
+
+    # If this email is for a service with staff, let them know. Otherwise, let the admin and partners know
+    service = (feedback.feedbackable_type == "Service") ? @feedback.feedbackable : nil
+    if service and service.agency and service.agency.staff.count > 0
+      mail(to: service.agency.staff.pluck(:email), subject: subject)
+    else
+      mail(to: (User.admins + User.partner_staff).uniq.pluck(:email), subject: subject)
+    end
   end
 
   private

@@ -10,6 +10,7 @@ class Admin::ConfigsController < Admin::AdminController
     :uber_token,
     :ride_pilot_url,
     :ride_pilot_token,
+    :feedback_overdue_days,
     daily_scheduled_tasks: []
   ].freeze
 
@@ -86,6 +87,8 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
+    when :feedback_overdue_days
+      return value.to_i
     else
       return value
     end

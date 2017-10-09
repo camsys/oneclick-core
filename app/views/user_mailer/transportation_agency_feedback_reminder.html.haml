@@ -1,0 +1,5 @@
+="This feedback has not been acknowledge for #{(Config.feedback_overdue_days || 5)} days."
+%hr
+
+= render :partial => 'feedback', :locals => { :feedback => @feedback }
+

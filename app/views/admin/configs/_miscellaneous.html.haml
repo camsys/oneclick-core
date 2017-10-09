@@ -1,0 +1,22 @@
+=content_for :header do
+  = "Miscellaneous"
+
+=simple_form_for Config,
+  url: admin_configs_path,
+  remote: true, 
+  html: { class: 'form-horizontal', 
+          id: form_id_from_path, 
+          multipart: true, 
+          method: 'patch' },
+  authenticity_token: true do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  = f.input :feedback_overdue_days, required: true,
+    label: "Days before sending feedback reminders",
+    input_html: {value: (Config.find_by(key: :feedback_overdue_days).try(:value) || 5)},
+    as: :integer
+    
+:javascript
+  $(document).ready(function() {    
+    new FormHandler($('#{form_selector_from_id}'));
+  });

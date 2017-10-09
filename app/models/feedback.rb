@@ -18,10 +18,10 @@ class Feedback < ApplicationRecord
   scope :pending, -> { where(acknowledged: false).newest_first }
   scope :acknowledged, -> { where(acknowledged: true).newest_first }
   scope :about, -> (feedbackable) { where(feedbackable: feedbackable) }
+  scope :service, -> { where(feedbackable_type: Service) }
 
   #TODO: MAKE DEFAULT FEEDBACK TIME A CONFIG
-  DEFAULT_FEEDBACK_TIME = 5.days
-  scope :needs_reminding, -> { where('acknowledged = ? and created_at < ?', false, Time.now - DEFAULT_FEEDBACK_TIME ).newest_first }
+  scope :needs_reminding, -> { where('acknowledged = ? and created_at < ?', false, Time.now - (Config.feedback_overdue_days || 5).days).newest_first }
     
   ### VALIDATIONS ###
   
