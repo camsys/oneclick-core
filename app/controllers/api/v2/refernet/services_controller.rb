@@ -61,6 +61,7 @@ module Api
 
           { 
             id: service.id,
+            refernet_service_id: service['details']['Service_ID'],
             "service_id": service["Service_ID"],
             "agency_name": service['agency_name'],
             "site_name": service['site_name'],
@@ -72,7 +73,6 @@ module Api
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
             "display_url": display_url,
             "url": full_url(display_url), #Ensure that the URL starts with http://
-            #"description":  service['details']["Label_Service Description"] || "#{service['details']['Note1']} #{service['details']['Note2']}",
             "description":  refernet_description(service, @traveler.nil? ? "en" : @traveler.preferred_locale.try(:name)),
             "rating": service.rating,
             "ratings_count": service.ratings_count
@@ -80,7 +80,7 @@ module Api
         end
 
         def refernet_description service, locale=:en
-          SimpleTranslationEngine.translate(locale || :en, "REFERNET_#{service.id}_description")
+          SimpleTranslationEngine.translate(locale || :en, "REFERNET_SERVICE_#{service['details']['Service_ID']}_description")
         end 
 
         # Call OTP and Pull out the durations
