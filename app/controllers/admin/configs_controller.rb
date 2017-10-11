@@ -1,9 +1,15 @@
+# TO ADD A NEW CONFIG:
+#   1. Add its key (as a symbol) to this PERMITTED_CONFIGS array below.
+#   2. If the config's value is NOT a string, add a when statement to the 
+#      format_config_value method to preformat the incoming value, converting
+#      it to the proper data format (e.g. value.to_f )
+
 class Admin::ConfigsController < Admin::AdminController
   include RemoteFormResponder
   
   authorize_resource
   before_action :load_configs, only: [:index, :update]
-  
+
   PERMITTED_CONFIGS = [
     :open_trip_planner,
     :tff_api_key,
@@ -30,47 +36,6 @@ class Admin::ConfigsController < Admin::AdminController
                             .to_sentence unless @errors.empty?
     respond_with_partial    
   end
-
-  # def set_open_trip_planner
-  #   set_config config_params[:value], 'open_trip_planner'
-  # end
-  # 
-  # def set_tff_api_key
-  #   set_config config_params[:value], 'tff_api_key'  
-  # end
-  # 
-  # def set_uber_token
-  #   set_config config_params[:value], 'uber_token'
-  # end
-  # 
-  # def set_daily_scheduled_tasks
-  #   daily_scheduled_tasks = config_params(true)[:value].select(&:present?).map(&:to_sym)
-  #   set_config daily_scheduled_tasks, 'daily_scheduled_tasks'
-  # end
-  # 
-  # def set_config value, key
-  #   @config = Config.where(key: key).first_or_initialize
-  #   
-  #   @config.value = value
-  #   if @config.save
-  #     flash[:success] = "#{key} successfully updated"
-  #   else
-  #     present_error_messages(@config)
-  #   end
-  # 
-  #   respond_to do |format|
-  #     format.js
-  #     format.html {redirect_to admin_configs_path}
-  #   end
-  # end
-  # 
-  # def config_params(value_serialized=false)
-  #   if value_serialized
-  #     params.require(:config).permit(value: [])
-  #   else
-  #     params.require(:config).permit(:value)
-  #   end
-  # end
   
   def configs_params
     params.require(:config).permit(PERMITTED_CONFIGS)
