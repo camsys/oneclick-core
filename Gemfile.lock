@@ -1,7 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: e164d054a5996455d4017ede028d7a66b7e9d25e
-  branch: translations
+  revision: ca1e1956a73f640daf9daabf392903f86d209e5a
   specs:
     oneclick_refernet (0.1.0)
       active_model_serializers
@@ -226,7 +225,7 @@ GEM
       multi_json (~> 1.10)
     fog-local (0.4.0)
       fog-core (~> 1.27)
-    fog-openstack (0.1.21)
+    fog-openstack (0.1.22)
       fog-core (>= 1.40)
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
