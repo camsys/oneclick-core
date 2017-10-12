@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 79a2e9308775216ba40550c8bab1cf343facd9a0
+  revision: ca1e1956a73f640daf9daabf392903f86d209e5a
   specs:
     oneclick_refernet (0.1.0)
       active_model_serializers
@@ -11,7 +11,7 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: 071e2f826f78ff1fcd186022436aab288a9c0ed4
+  revision: 4683e78149d6a14421b6dd23c4299f22c90ccd0c
   specs:
     simple_translation_engine (1.0.0)
       pg
@@ -73,7 +73,7 @@ GEM
     arel (7.1.4)
     attr_encrypted (3.0.3)
       encryptor (~> 3.0.0)
-    autoprefixer-rails (7.1.4.1)
+    autoprefixer-rails (7.1.5)
       execjs
     awesome_print (1.8.0)
     bcrypt (3.1.11)
@@ -85,7 +85,7 @@ GEM
     builder (3.2.3)
     byebug (9.1.0)
     cancancan (2.0.0)
-    carrierwave (1.2.0)
+    carrierwave (1.2.1)
       activemodel (>= 4.0.0)
       activesupport (>= 4.0.0)
       mime-types (>= 1.16)
@@ -225,7 +225,7 @@ GEM
       multi_json (~> 1.10)
     fog-local (0.4.0)
       fog-core (~> 1.27)
-    fog-openstack (0.1.21)
+    fog-openstack (0.1.22)
       fog-core (>= 1.40)
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
@@ -432,7 +432,7 @@ GEM
     ruby_parser (3.10.1)
       sexp_processor (~> 4.9)
     rubyzip (1.2.1)
-    sass (3.5.1)
+    sass (3.5.2)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
