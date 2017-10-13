@@ -7,8 +7,10 @@ class TripPlanner
 
   # Constant list of trip types that can be planned.
   TRIP_TYPES = Trip::TRIP_TYPES
-  attr_reader :trip, :options, :router, :errors, :trip_types, :available_services, :http_request_bundler
-  attr_reader :relevant_purposes, :relevant_accommodations, :relevant_eligibilities
+  attr_reader :trip, :options, :router, :errors, 
+              :trip_types, :available_services, :http_request_bundler,
+              :relevant_purposes, :relevant_accommodations, :relevant_eligibilities,
+              :only_filters, :except_filters, :filters
   attr_accessor :master_service_scope
 
   # Initialize with a Trip object, and an options hash
@@ -22,6 +24,11 @@ class TripPlanner
     # This bundler is passed to the ambassadors, so that all API calls can be made asynchronously
     @http_request_bundler = options[:http_request_bundler] || HTTPRequestBundler.new
     @relevant_eligibilities = @relevant_purposes = @relevant_accommodations = []
+
+    # Allow user to request that certain service availability filters be included or skipped
+    @only_filters = (options[:only_filters] || Service::AVAILABILITY_FILTERS) & Service::AVAILABILITY_FILTERS
+    @except_filters = options[:except_filters] || []
+    @filters = @only_filters - @except_filters
     
     # Initialize ambassadors if passed as options
     @router = options[:router] #This is the otp_ambassador
@@ -51,6 +58,7 @@ class TripPlanner
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
+  # Only filter by filters included in the @filters array
   def set_available_services
     # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
@@ -59,7 +67,7 @@ class TripPlanner
     @available_services = @available_services.by_trip_type(*@trip_types)
     
     # Find all the services that are available for your time and locations
-    @available_services = @available_services.available_for(@trip, except_by: [:purpose, :eligibility, :accommodation])
+    @available_services = @available_services.available_for(@trip, only_by: @filters, except_by: [:purpose, :eligibility, :accommodation])
 
     # Pull out the relevant purposes, eligbilities, and accommodations of these services
     @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
@@ -67,7 +75,7 @@ class TripPlanner
     @relevant_accommodations = Accommodation.all
 
     # Now finish filtering by purpose, eligibility, and accommodation
-    @available_services = @available_services.available_for(@trip, only_by: [:purpose, :eligibility, :accommodation])
+    @available_services = @available_services.available_for(@trip, only_by: @filters & [:purpose, :eligibility, :accommodation])
     
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)

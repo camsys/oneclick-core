@@ -20,6 +20,7 @@ module Api
         @trip.user = @traveler
         trip_planner = TripPlanner.new(@trip, trip_planner_options)
         
+        
         # Plan the trip (build itineraries and save it)
         if trip_planner.plan          
           @trip.relevant_purposes = trip_planner.relevant_purposes
@@ -76,7 +77,9 @@ module Api
       # Pulls out TripPlanner options from the params
       def trip_planner_options
         {
-          trip_types: params.delete(:trip_types).try(:map, &:to_sym) # convert strings to symbols
+          trip_types: params[:trip_types].try(:map, &:to_sym), # convert strings to symbols
+          only_filters: params[:only_filters].try(:map, &:to_sym),
+          except_filters: params[:except_filters].try(:map, &:to_sym)
         }
       end
       
