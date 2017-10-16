@@ -8,7 +8,7 @@ module Api
       # Creates a new trip and associated itineraries based on the passed params,
       # and returns JSON with information about that trip.
       def create
-      
+              
         # Update the traveler's user profile before planning the trip.        
         update_traveler_profile
         
@@ -18,14 +18,13 @@ module Api
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
         @trip.user = @traveler
-        trip_planner = TripPlanner.new(@trip, trip_planner_options)
-        
-        
+        @trip_planner = TripPlanner.new(@trip, trip_planner_options)
+
         # Plan the trip (build itineraries and save it)
-        if trip_planner.plan          
-          @trip.relevant_purposes = trip_planner.relevant_purposes
-          @trip.relevant_eligibilities = trip_planner.relevant_eligibilities
-          @trip.relevant_accommodations = trip_planner.relevant_accommodations
+        if @trip_planner.plan
+          @trip.relevant_purposes = @trip_planner.relevant_purposes
+          @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities
+          @trip.relevant_accommodations = @trip_planner.relevant_accommodations
           render success_response(@trip)
         end
         

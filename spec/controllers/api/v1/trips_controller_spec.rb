@@ -22,10 +22,10 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
   describe "planning" do
     
-    let(:plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_basic.json"))}
-    let(:walk_plan_call_params) {JSON.parse(File.read("spec/files/sample_plan_call_walk.json"))}
-    let(:plan_paratransit_call_without_purpose) {JSON.parse(File.read("spec/files/sample_plan_call_without_purpose.json"))}
-    let(:plan_paratransit_call_with_purpose) {JSON.parse(File.read("spec/files/sample_plan_call_with_purpose.json"))}
+    let(:plan_call_params) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_basic.json"))}
+    let(:walk_plan_call_params) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_walk.json"))}
+    let(:plan_paratransit_call_without_purpose) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_without_purpose.json"))}
+    let(:plan_paratransit_call_with_purpose) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_with_purpose.json"))}
     
     let(:trip_planner) { TripPlanner.new(trip, trip_types: []) }
 
