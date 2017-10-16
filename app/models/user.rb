@@ -112,6 +112,22 @@ class User < ApplicationRecord
       UserAlert.create!(user: self, alert: alert)
     end
   end
+  
+  # Add accommodations to the user by code(s)
+  def add_accommodations(*codes)
+    accs = codes.map {|code| Accommodation.find_by(code: code) }
+                .compact.uniq
+                .select { |acc| !self.accommodations.include?(acc) }
+    self.accommodations << accs
+  end
+  
+  # Adds eligibilities to the user by code(s)
+  def add_eligibilities(*codes)
+    eligs = codes.map {|code| Eligibility.find_by(code: code) }
+                .compact.uniq
+                .select { |elig| !self.eligibilities.include?(elig) }
+    self.eligibilities << eligs
+  end
 
 
 end

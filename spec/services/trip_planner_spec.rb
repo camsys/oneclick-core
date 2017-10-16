@@ -5,12 +5,13 @@ RSpec.describe TripPlanner do
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
   let(:trip) {create :trip}
+  let(:accommodating_trip) { create(:trip, user: create(:user, :needs_accommodation)) }
   let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
   let!(:transit) { create(:transit_service)}
-  let(:strict_paratransit) { create(:paratransit_service, :medical_only, :strict) }
-  let(:accommodating_paratransit) { create(:paratransit_service, :medical_only, :accommodating) }
+  let!(:strict_paratransit) { create(:paratransit_service, :medical_only, :strict) }
+  let!(:accommodating_paratransit) { create(:paratransit_service, :medical_only, :accommodating) }
 
   # OTP RESPONSES
   let!(:otp_responses) { {
@@ -37,6 +38,8 @@ RSpec.describe TripPlanner do
   let(:bicycle_tp) { create(:trip_planner, options: {router: otps[:bicycle]})}
   let(:car_tp) { create(:trip_planner, options: {router: otps[:car]})}
   let(:error_tp) { create(:trip_planner, options: {router: otps[:error]})}
+  let(:skip_accom_filter_tp) { create(:trip_planner, options: {router: otps[:car], except_filters: [:accommodation]})}
+  let(:only_accom_filter_tp) { create(:trip_planner, options: {router: otps[:car], only_filters: [:accommodation]})}
   
   before(:each) do
     [ generic_trip_planner, transit_tp, paratransit_tp, 
@@ -127,16 +130,52 @@ RSpec.describe TripPlanner do
   end
 
   it 'should find relevant eligibilities' do
-    strict_paratransit
     paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_eligibilities).to eq(Eligibility.where(code: "over_65"))
   end
 
   it 'should find relevant accommodations' do
-    strict_paratransit
-    accommodating_paratransit
     paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_accommodations).to eq(accommodating_paratransit.accommodations)
+  end
+  
+  it 'skips or includes service filters when requested' do
+    
+    # Plan the trip normally
+    generic_trip_planner.trip = accommodating_trip
+    generic_trip_planner.plan
+    
+    # Expect the accommodating services array to include all services returned by the trip planner
+    expect(accommodating_trip.services.pluck(:id)).to eq(Service.available_for(accommodating_trip).pluck(:id))
+     
+    # reset the trip
+    accommodating_trip.itineraries.destroy_all
+    accommodating_trip.reload
+    
+    # Plan the trip with the accommodations filter skipped
+    skip_accom_filter_tp.trip = accommodating_trip
+    skip_accom_filter_tp.plan
+
+    # Except the services returned by the trip planner to include non-accommodating services
+    expect(accommodating_trip.services.pluck(:id)).to eq(
+      Service.available_for(accommodating_trip, except_by: [:accommodation])
+             .by_trip_type(:paratransit, :taxi, :uber) # Ignore transit, since doesn't have a belongs_to relationship with itineraries
+             .pluck(:id)
+    )
+    
+    # reset the trip
+    accommodating_trip.itineraries.destroy_all
+    accommodating_trip.reload
+    
+    # PLan the trip with ONLY the accommodations filter
+    only_accom_filter_tp.trip = accommodating_trip
+    only_accom_filter_tp.plan
+    
+    # Expect the services returned by the trip planner to be the same as the list of accommodating services
+    expect(accommodating_trip.services.pluck(:id)).to eq(
+      Service.available_for(accommodating_trip, only_by: [:accommodation]).pluck(:id)
+    )
+    
   end
 
 end
