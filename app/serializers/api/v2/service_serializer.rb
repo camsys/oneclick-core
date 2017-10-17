@@ -4,9 +4,15 @@ module Api
 
       attributes :id, :name, :type, :url, :email, :phone, :formatted_phone, 
                  :comments, :rating, :ratings_count
+                 
+      has_many :schedules
       
       def comments
         object.comments_hash
+      end
+      
+      def schedules
+        object.schedules.for_display
       end
 
     end

@@ -25,7 +25,7 @@ module Api
           @trip.relevant_purposes = @trip_planner.relevant_purposes
           @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities
           @trip.relevant_accommodations = @trip_planner.relevant_accommodations
-          render success_response(@trip)
+          render success_response(@trip, serializer_opts: {include: ['*.*.*']})
         end
         
       end
