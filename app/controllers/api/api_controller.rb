@@ -130,7 +130,8 @@ module Api
     # Also, set the root key to the appropriate singular, if it hasn't been set already.
     def package_record(record, opts={})
       @root ||= record.class.name.underscore
-      (@serializer.new(record, opts) || get_serializer(record, opts)).serializable_hash
+      serializer_instance = @serializer ? @serializer.new(record, opts) : get_serializer(record, opts)
+      serializer_instance.serializable_hash
     end
 
     # Renders a failure response (client error), passing along a given object as data
