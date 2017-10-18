@@ -11,13 +11,10 @@
       %tr{style: "cursor: pointer", data: {url: admin_feedback_path(feedback)}}
         %td.text-nowrap
           =feedback.created_at.strftime("%Y-%m-%d")
-          -puts feedback.created_at
-          -puts (Time.now - Config.feedback_overdue_days.days)
           -if feedback.created_at < (Time.now - (Config.feedback_overdue_days || 5).days) and not feedback.acknowledged
             %span.label.label-danger Overdue
-
         %td
-          =feedback.feedbackable.try(:name) || "General"
+          =feedback.subject
         %td
           -if feedback.rating.present?
             =rating_stars(feedback.rating)
