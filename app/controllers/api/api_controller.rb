@@ -97,6 +97,7 @@ module Api
       status = opts.delete(:status) || 200 # Status code is 200 by default
       serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
       @root = opts.delete(:root) || nil # By default, no root key
+      @serializer = opts.delete(:serializer) || nil # If specifying serializer
       
       # Check if an ActiveRecord object or collection was passed, and if so, serialize it
       if data.is_a?(ActiveRecord::Relation)
@@ -129,7 +130,7 @@ module Api
     # Also, set the root key to the appropriate singular, if it hasn't been set already.
     def package_record(record, opts={})
       @root ||= record.class.name.underscore
-      get_serializer(record, opts).serializable_hash
+      (@serializer.new(record, opts) || get_serializer(record, opts)).serializable_hash
     end
 
     # Renders a failure response (client error), passing along a given object as data

@@ -7,9 +7,7 @@ module Api
 
       # Get the user profile 
       def show
-        render(success_response(
-                @traveler, 
-                serializer: UserSerializer))
+        render(success_response(@traveler))
       end
 
       # Update's the user's profile

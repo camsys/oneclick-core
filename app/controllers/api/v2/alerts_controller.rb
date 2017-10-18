@@ -8,8 +8,7 @@ module Api
         if authentication_successful?
           @traveler.update_alerts
           render(success_response(
-                @traveler.user_alerts.is_published.is_current.is_not_acknowledged, 
-                serializer: UserAlertSerializer, 
+                @traveler.user_alerts.is_published.is_current.is_not_acknowledged,
                 root: "user_alerts"))
         else
           alerts = Alert.current.is_published.for_everyone.map { |alert| {id: nil, subject: alert.en_subject, message: alert.en_message} } 

@@ -6,8 +6,7 @@ module Api
       #Get all the Stomping Grounds for a user
       def index
         render(success_response(
-                @traveler.stomping_grounds, 
-                serializer: StompingGroundSerializer, 
+                @traveler.stomping_grounds,
                 root: "stomping_grounds"))
       end
 
