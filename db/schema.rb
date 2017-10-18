@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171010230326) do
+ActiveRecord::Schema.define(version: 20171018171612) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -355,12 +355,12 @@ ActiveRecord::Schema.define(version: 20171010230326) do
   end
 
   create_table "trips", force: :cascade do |t|
-    t.datetime "created_at",                                            null: false
-    t.datetime "updated_at",                                            null: false
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
-    t.datetime "trip_time",             default: '2017-06-19 03:02:26'
+    t.datetime "trip_time"
     t.boolean  "arrive_by",             default: false
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
