@@ -19,12 +19,14 @@ class Trip < ApplicationRecord
   
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
+  
+  before_validation :set_trip_time
 
   attr_accessor :relevant_purposes, :relevant_eligibilities, :relevant_accommodations
   write_to_csv with: Admin::TripsReportCSVWriter
 
   ### VALIDATIONS ###
-  validates_presence_of :origin, :destination
+  validates_presence_of :origin, :destination, :trip_time
 
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
@@ -124,6 +126,13 @@ class Trip < ApplicationRecord
       arrive_by: false,
       trip_time: arrival_time + duration
     }.merge(attrs))
+  end
+  
+  private
+  
+  # Sets trip time to current time, unless already set
+  def set_trip_time
+    self.trip_time = self.trip_time || DateTime.now.in_time_zone
   end
   
 
