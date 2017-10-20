@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171018171612) do
+ActiveRecord::Schema.define(version: 20171020203048) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -211,6 +211,7 @@ ActiveRecord::Schema.define(version: 20171018171612) do
     t.geometry "latlng",      limit: {:srid=>4326, :type=>"st_point"}
     t.string   "agency_name"
     t.string   "site_name"
+    t.text     "description"
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
   end
 
