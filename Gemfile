@@ -106,9 +106,6 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # Download the oneclick_refernet gem, but only require it if env var is set
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', 
                          require: !!ENV["ONECLICK_REFERNET"]
-gem 'sunspot', require: !!ENV["ONECLICK_REFERNET"]
-gem 'sunspot_rails', require: !!ENV["ONECLICK_REFERNET"] # Need to include this explicitly for refernet keyword search to work properly
-gem 'sunspot_solr', require: !!ENV["ONECLICK_REFERNET"]
 
 ############################################
 
