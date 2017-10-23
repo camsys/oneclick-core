@@ -38,7 +38,7 @@ class Service < ApplicationRecord
   validates_presence_of :name, :type
   validates_with FareValidator # For validating fare_structure and fare_details
   validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
-  contact_fields phone: :phone, email: :email
+  contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
   after_save :consolidate_schedules
 
@@ -233,6 +233,11 @@ class Service < ApplicationRecord
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
   end
+  
+  # formatted_phone method defined in the Contactable module.
+  # Returns a prettily formatted phone number string, like ""(555) 555-5555"
+  # def formatted_phone
+  # end
 
   ###################
   private # PRIVATE #

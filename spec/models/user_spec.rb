@@ -15,6 +15,8 @@ RSpec.describe User, type: :model do
   it { should have_many(:feedbacks) }
   it { should have_many(:alerts) }
   
+  it_behaves_like "contactable", { email: :email }
+  
   it 'returns a locale for a user' do
     expect(english_traveler.locale).to eq(english_traveler.preferred_locale) #This user has a preferred locale, so that one should be found
     expect(traveler.locale).to eq(Locale.find_by(name: "en")) #This user does not have a preferred locale, so English should be returned.

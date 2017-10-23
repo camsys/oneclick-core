@@ -16,6 +16,8 @@ RSpec.describe Feedback, type: :model do
     it { should belong_to(:user) }
     it { should belong_to(:feedbackable)}
     it { should have_one(:acknowledgement_comment) }
+    
+    it_behaves_like "contactable", { phone: :phone, email: :email }
   
   end
   
