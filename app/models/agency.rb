@@ -17,7 +17,7 @@ class Agency < ApplicationRecord
   validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
   validates :name, presence: true
   validates :type, presence: true
-  contact_fields email: :email, phone: :phone
+  contact_fields email: :email, phone: :phone, url: :url
     
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
   scope :partner_agencies, -> { where(type: "PartnerAgency") }

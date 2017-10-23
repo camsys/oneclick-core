@@ -146,7 +146,9 @@ RSpec.describe TripPlanner do
     generic_trip_planner.plan
     
     # Expect the accommodating services array to include all services returned by the trip planner
-    expect(accommodating_trip.services.pluck(:id)).to eq(Service.available_for(accommodating_trip).pluck(:id))
+    expect(accommodating_trip.services.pluck(:id)).to match_array(
+      Service.available_for(accommodating_trip).pluck(:id)
+    )
      
     # reset the trip
     accommodating_trip.itineraries.destroy_all
@@ -157,7 +159,7 @@ RSpec.describe TripPlanner do
     skip_accom_filter_tp.plan
 
     # Except the services returned by the trip planner to include non-accommodating services
-    expect(accommodating_trip.services.pluck(:id)).to eq(
+    expect(accommodating_trip.services.pluck(:id)).to match_array(
       Service.available_for(accommodating_trip, except_by: [:accommodation])
              .by_trip_type(:paratransit, :taxi, :uber) # Ignore transit, since doesn't have a belongs_to relationship with itineraries
              .pluck(:id)
@@ -172,7 +174,7 @@ RSpec.describe TripPlanner do
     only_accom_filter_tp.plan
     
     # Expect the services returned by the trip planner to be the same as the list of accommodating services
-    expect(accommodating_trip.services.pluck(:id)).to eq(
+    expect(accommodating_trip.services.pluck(:id)).to match_array(
       Service.available_for(accommodating_trip, only_by: [:accommodation]).pluck(:id)
     )
     
