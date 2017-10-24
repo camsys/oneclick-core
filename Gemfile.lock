@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 61bc2cda6eab93611501ca42880ee98d3fcbe585
+  revision: b315094666da1c89ee32b8877167617401376c96
   branch: proximity
   specs:
     oneclick_refernet (0.2.0)
@@ -286,7 +286,7 @@ GEM
       fog-core
       nokogiri (>= 1.5.11, < 2.0.0)
     formatador (0.2.5)
-    globalid (0.4.0)
+    globalid (0.4.1)
       activesupport (>= 4.2.0)
     groupdate (3.2.0)
       activesupport (>= 3)
