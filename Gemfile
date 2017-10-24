@@ -105,7 +105,8 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 
 # Download the oneclick_refernet gem, but only require it if env var is set
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', 
-                         require: !!ENV["ONECLICK_REFERNET"]
+                         require: !!ENV["ONECLICK_REFERNET"],
+                         branch: 'proximity'
 
 ############################################
 
