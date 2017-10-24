@@ -10,7 +10,7 @@ module Api
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
-          services = sub_sub_category.services.confirmed.uniq.limit(10)
+          services = sub_sub_category.services.confirmed.within_X_meters(28.540375, -81.373170, 30000).uniq.limit(10)
           
           if params[:lat] and params[:lng]
             duration_hash = build_duration_hash(params, services)
