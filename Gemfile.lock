@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: f75856bd65bce929c254b43c1a86b8187f38840a
+  revision: 1c3284d58fd83a55ea571d44ac67fea1fb7e6034
   branch: proximity
   specs:
     oneclick_refernet (0.2.0)
@@ -126,10 +126,10 @@ GEM
     eventmachine (1.2.5)
     excon (0.59.0)
     execjs (2.7.0)
-    factory_girl (4.8.1)
+    factory_girl (4.9.0)
       activesupport (>= 3.0.0)
-    factory_girl_rails (4.8.0)
-      factory_girl (~> 4.8.0)
+    factory_girl_rails (4.9.0)
+      factory_girl (~> 4.9.0)
       railties (>= 3.0.0)
     ffi (1.9.18)
     fission (0.5.0)
