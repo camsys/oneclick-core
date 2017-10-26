@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: e15a8294612ad45a647e0308c080570a2bdfc196
+  revision: 3345908b8da9dd14e5584b53772cc546eeba0a51
   specs:
     oneclick_refernet (0.2.0)
       active_model_serializers
@@ -285,7 +285,7 @@ GEM
       fog-core
       nokogiri (>= 1.5.11, < 2.0.0)
     formatador (0.2.5)
-    globalid (0.4.0)
+    globalid (0.4.1)
       activesupport (>= 4.2.0)
     groupdate (3.2.0)
       activesupport (>= 3)
@@ -385,7 +385,7 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.1.0)
+    rake (12.2.1)
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
