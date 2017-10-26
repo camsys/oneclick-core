@@ -9,7 +9,7 @@
 		%td.text-nowrap
 			=feedback.created_at.strftime("%Y-%m-%d")
 		%td
-			=feedback.feedbackable.try(:name) || "General"
+			=feedback.subject
 		%td
 			-if feedback.rating.present?
 				="#{feedback.rating}/5"
