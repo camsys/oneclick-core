@@ -56,34 +56,17 @@ module Api
           }
         end
 
-        # Acts as a serializer for refernet services
+        # Augments the ReferNET engine's service serializer, by adding in trip times from OTP
         def service_hash service, duration_hash={}, locale=:en
-
-          display_url = service['details']['url'] || service['details']['PUrl'] || service['details']['LUrl']
-
-          { 
-            id: service.id,
-            refernet_service_id: service['details']['Service_ID'],
-            "service_id": service["Service_ID"],
-            "agency_name": service['agency_name'],
-            "site_name": service['site_name'],
-            "lat": service.latlng? ? service.lat : nil,
-            "lng": service.latlng? ? service.lng : nil,
-            "address": service.address,
-            "phone": service['details']["Number_Phone1"],
+          base_service_hash = OneclickRefernet::ServiceSerializer
+                              .new(service, 
+                                   { scope: { locale: locale} })
+                              .to_hash
+          base_service_hash.merge({
             "drive_time": duration_hash["#{service.id}_CAR"],
-            "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
-            "display_url": display_url,
-            "url": full_url(display_url), #Ensure that the URL starts with http://
-            "description":  refernet_description(service, @traveler.nil? ? locale.to_s : @traveler.preferred_locale.try(:name)),
-            "rating": service.rating,
-            "ratings_count": service.ratings_count
-          }
+            "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],              
+          })
         end
-
-        def refernet_description service, locale=:en
-          service.translated_description(locale)
-        end 
 
         # Call OTP and Pull out the durations
         def build_duration_hash(params, services)
