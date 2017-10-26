@@ -6,6 +6,9 @@ module Api
                  :comments, :rating, :ratings_count
                  
       has_many :schedules
+      has_many :accommodations
+      has_many :eligibilities
+      has_many :purposes
       
       def comments
         object.comments_hash
@@ -13,6 +16,18 @@ module Api
       
       def schedules
         object.schedules.for_display
+      end
+      
+      def accommodations
+        (object.accommodations || []).map(&:to_hash)
+      end
+      
+      def eligibilities
+        (object.eligibilities || []).map(&:to_hash)
+      end
+      
+      def purposes
+        (object.purposes || []).map(&:to_hash)
       end
 
     end
