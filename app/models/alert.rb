@@ -7,7 +7,6 @@ class Alert < ApplicationRecord
   attr_accessor :translations
 
   ### CALLBACKS ###
-  # after_initialize :create_translation_helpers
   before_destroy :delete_translations
   before_create :set_expiration
 

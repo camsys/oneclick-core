@@ -3,8 +3,8 @@ class Service < ApplicationRecord
   ### INCLUDES & CONFIGURATION ###
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include BookingHelpers::ServiceHelpers
-  include Commentable # has_many :comments
   include Contactable
+  include Describable # has translated descriptions for each available locale
   include FareHelper
   include FareHelper::ZoneFareable
   include Feedbackable
