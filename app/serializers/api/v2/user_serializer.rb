@@ -29,7 +29,7 @@ module Api
           |trip_type| 
             { 
               code: trip_type,
-              name: SimpleTranslationEngine.translate(object.preferred_locale.try(:name) || :en, "mode_#{trip_type}_name"),
+              name: SimpleTranslationEngine.translate(locale, "mode_#{trip_type}_name"),
               value: (trip_type.to_s.in? (object.preferred_trip_types || []))
             }
         }

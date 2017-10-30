@@ -59,15 +59,15 @@ class Alert < ApplicationRecord
   end
 
   # To Label is used by SimpleForm to Get the Label
-  def to_label locale=:en
+  def to_label locale=I18n.default_locale
     self.subject locale
   end
 
-  def message locale=:en
+  def message locale=I18n.default_locale
     SimpleTranslationEngine.translate(locale, "alert_#{self.id}_message")
   end
 
-  def subject locale=:en
+  def subject locale=I18n.default_locale
     SimpleTranslationEngine.translate(locale, "alert_#{self.id}_subject")
   end
 

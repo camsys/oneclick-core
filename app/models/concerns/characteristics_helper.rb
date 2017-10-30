@@ -21,34 +21,35 @@ module CharacteristicsHelper
   end
 
   # To Label is used by SimpleForm to Get the Label
-  def to_label locale=:en
-    self.name locale || :en
+  def to_label locale=I18n.default_locale
+    self.name(locale)
   end
 
-  def name locale=:en
-    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_name")
+  def name locale=I18n.default_locale
+    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_name")
   end
 
-  def note locale=:en
-    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_note")
+  def note locale=I18n.default_locale
+    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_note")
   end
 
-  def question locale=:en
-    SimpleTranslationEngine.translate(locale || :en, "#{self.class.name.downcase}_#{self.code}_question")
+  def question locale=I18n.default_locale
+    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_question")
   end
 
   # set translations e.g.,  locale="en", object="name", value="medical"
   def set_translation(locale, translation, value)
     SimpleTranslationEngine.set_translation(locale, "#{self.class.name.downcase}_#{self.code}_#{translation}", value)
   end
-  
-  def to_hash locale=:en
-    {
-      name: self.try(:name, locale),
-      code: self.try(:code),
-      note: self.try(:note, locale),
-      question: self.try(:question, locale)
-    }
-  end
+
+  # DEPRECATED -- done by serializers
+  # def to_hash locale=:en
+  #   {
+  #     name: self.try(:name, locale),
+  #     code: self.try(:code),
+  #     note: self.try(:note, locale),
+  #     question: self.try(:question, locale)
+  #   }
+  # end
 
 end
