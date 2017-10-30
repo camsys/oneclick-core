@@ -102,12 +102,24 @@ module Api
     ### RESPONSE METHODS ###
     # Based on JSend Specification
     
+    # Constructs default serializer options hash based on current locale
+    def default_serializer_options
+      {
+        include: ['*.*'],  # By default, serialize 2 levels of nesting
+        scope: {locale: @locale } # By default, pass locale to serializer scope
+      }
+    end
+    
     # Renders a successful response, passing along a given object as data
     # If the serializer option is passed, will attempt to serialize the data
     # with the passed serializer
     def success_response(data={}, opts={})
       status = opts.delete(:status) || 200 # Status code is 200 by default
-      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
+      
+      # Set serializer options by starting with the default options and then overwriting
+      # or amending with any additional options passed.
+      serializer_opts = default_serializer_options.merge(opts.delete(:serializer_opts) || {})
+      
       @root = opts.delete(:root) || nil # By default, no root key
       @serializer = opts.delete(:serializer) || nil # If specifying serializer
       
