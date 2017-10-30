@@ -9,7 +9,7 @@ module Api
     # end
 
     # Places serializer API V1 (past/future trips, recent places, etc.)
-    class StompingGroundSerializer < ActiveModel::Serializer
+    class StompingGroundSerializer < ApiSerializer
       attributes  :id, :name,
                   :address_components, :formatted_address, :geometry
 

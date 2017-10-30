@@ -1,6 +1,6 @@
 module Api
   module V2
-    class ServiceSerializer < ActiveModel::Serializer
+    class ServiceSerializer < ApiSerializer
 
       attributes :id, :name, :type, :url, :email, :phone, :formatted_phone, 
                  :comments, :rating, :ratings_count
@@ -16,18 +16,6 @@ module Api
       
       def schedules
         object.schedules.for_display
-      end
-      
-      def accommodations
-        (object.accommodations || []).map(&:to_hash)
-      end
-      
-      def eligibilities
-        (object.eligibilities || []).map(&:to_hash)
-      end
-      
-      def purposes
-        (object.purposes || []).map(&:to_hash)
       end
 
     end

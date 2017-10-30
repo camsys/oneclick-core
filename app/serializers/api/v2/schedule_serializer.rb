@@ -1,6 +1,6 @@
 module Api
   module V2
-    class ScheduleSerializer < ActiveModel::Serializer
+    class ScheduleSerializer < ApiSerializer
 
       attributes :day, :start_time, :end_time
 

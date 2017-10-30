@@ -1,10 +1,9 @@
 module Api
   module V2
-    class UserAlertSerializer < ActiveModel::Serializer
+    class UserAlertSerializer < ApiSerializer
 		  
 		  attributes :id, :subject, :message
     
     end
   end
 end
-

@@ -1,7 +1,7 @@
 module Api
   module V2
 
-    class TripSerializer < ActiveModel::Serializer
+    class TripSerializer < ApiSerializer
       
       attributes  :id, 
                   :arrive_by, 
@@ -10,20 +10,23 @@ module Api
                   :eligibilities,
                   :purposes
       has_many :itineraries
+      has_many :accommodations
+      has_many :eligibilities
+      has_many :purposes
       belongs_to :user
       belongs_to :origin
       belongs_to :destination
       
       def accommodations
-        (object.relevant_accommodations || []).map(&:to_hash)
+        object.relevant_accommodations
       end
 
       def eligibilities
-        (object.relevant_eligibilities || []).map(&:to_hash)
+        object.relevant_eligibilities
       end
 
       def purposes
-        (object.relevant_purposes || []).map(&:to_hash)
+        object.relevant_purposes
       end
       
     end

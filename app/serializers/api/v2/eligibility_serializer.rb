@@ -2,7 +2,7 @@ module Api
   module V2
     
     # Parent serializer for Accommodations, Eligibilities, and Purposes
-    class EligibilitySerializer < Api::V2::CharacteristicSerializer
+    class EligibilitySerializer < CharacteristicSerializer
       
       # Only serialize value if this is called from a user serializer, 
       # and a user has been passed in the scope
