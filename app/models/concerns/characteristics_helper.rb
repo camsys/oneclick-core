@@ -4,12 +4,16 @@ module CharacteristicsHelper
 
   def self.included(base)
 
-  	# This block of code creates the following helpers
+  	# This block of code creates the following setters and getters
   	# en_name, es_name, en_note, es_note, etc. 
   	I18n.available_locales.each do |locale|
   	  ["to_label", "name", "note", "question"].each do |custom_method|
         define_method("#{locale}_#{custom_method}") do
           self.send(custom_method, locale)
+        end
+        
+        define_method("#{locale}_#{custom_method}=") do |value|
+          self.send(:set_translation, locale, custom_method, value)
         end
       end
     end
