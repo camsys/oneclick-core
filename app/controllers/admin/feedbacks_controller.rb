@@ -14,7 +14,7 @@ class Admin::FeedbacksController < Admin::AdminController
   def show
     @acknowledgement_comment = @feedback.acknowledgement_comment || @feedback.build_acknowledgement_comment(
       commenter: current_user, 
-      locale: current_user.preferred_locale.try(:name)
+      locale: @locale # Set in parent ApiController before_action
     )
   end
   

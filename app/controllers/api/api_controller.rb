@@ -15,7 +15,7 @@ module Api
     attr_reader :traveler, :errors
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
-    before_action :initialize_errors_hash
+    before_action :initialize_errors_hash, :set_locale
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -43,13 +43,25 @@ module Api
     def no_route
       render status: 404, json: json_response(:error, message: "Route does not exist")
     end
-
+    
+    # Set the locale based on passed param, user's preferred locale, or default
+    def set_locale
+      @locale = Locale.find_by(name: params[:locale]).try(:name) || 
+                @traveler.try(:preferred_locale).try(:name) || 
+                I18n.default_locale.to_s
+    end
+    
+    # Sets the @traveler variable to the current api user
+    def set_traveler
+      @traveler = current_api_user
+    end
+    
     protected
 
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication
     def after_successful_token_authentication
-      @traveler = current_api_user # Sets the @traveler variable to the current api user
+      set_traveler
     end
 
     # Finds the User associated with auth headers.

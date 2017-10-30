@@ -12,6 +12,8 @@ FactoryGirl.define do
     factory :locale_es do
       name "es"
     end
+    
+    initialize_with { Locale.find_or_create_by(name: name) }
 
   end
   
