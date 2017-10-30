@@ -1,7 +1,7 @@
 module Api
   module V2
     class AgencySerializer < ApiSerializer
-      attributes  :id, :name, :type, :logo, :phone, :formatted_phone, :email, :url, :comments
+      attributes  :id, :name, :type, :logo, :phone, :formatted_phone, :email, :url, :description
       
       def self.collection_serialize(collection)
         ActiveModelSerializers::SerializableResource.new(collection, each_serializer: self)
@@ -11,8 +11,8 @@ module Api
         object.full_logo_url
       end
       
-      def comments
-        object.comments_hash
+      def description
+        object.description(locale)
       end
       
     end

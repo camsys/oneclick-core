@@ -27,7 +27,7 @@ class Admin::ServicesController < Admin::AdminController
 
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
-    @service.build_comments # Builds a comment for each available locale
+    # @service.build_comments # Builds a comment for each available locale
   end
 
   def update    
@@ -74,9 +74,8 @@ class Admin::ServicesController < Admin::AdminController
     [
       :name, :type, :logo,
       :url, :email, :phone,
-      :agency_id, :published, :updated_at,
-      comments_attributes: [:id, :comment, :locale]
-    ]
+      :agency_id, :published, :updated_at
+    ] + description_params
   end
 
   def transit_params
@@ -111,6 +110,11 @@ class Admin::ServicesController < Admin::AdminController
       {accommodation_ids: []},
       trip_within_area_attributes: [:recipe]
     ]
+  end
+  
+  # returns an array of localized description param names
+  def description_params
+    I18n.available_locales.map { |l| "#{l}_description".to_sym }
   end
 
 

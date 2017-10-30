@@ -6,7 +6,7 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  =render partial: "shared/comments_fields", locals: { form: f, record: @service }
+  =render partial: "shared/description_fields", locals: { form: f, record: @service }
 
 
 :javascript

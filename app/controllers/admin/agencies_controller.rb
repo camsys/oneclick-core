@@ -7,7 +7,6 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def show
-    @agency.build_comments # Builds a comment for each available locale
   end
   
   def create
@@ -48,15 +47,25 @@ class Admin::AgenciesController < Admin::AdminController
     end
     
     params.require(:agency).permit(
+      base_agency_params + description_params
+    )
+  end
+  
+  def base_agency_params
+    [
       :type,
       :name,
       :url,
       :phone,
       :email,
       :logo,
-      :published,
-      comments_attributes: [:id, :comment, :locale]
-    )
+      :published
+    ]
+  end
+  
+  # returns an array of localized description param names
+  def description_params
+    I18n.available_locales.map { |l| "#{l}_description".to_sym }
   end
   
 end

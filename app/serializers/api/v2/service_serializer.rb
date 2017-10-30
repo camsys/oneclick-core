@@ -3,15 +3,15 @@ module Api
     class ServiceSerializer < ApiSerializer
 
       attributes :id, :name, :type, :url, :email, :phone, :formatted_phone, 
-                 :comments, :rating, :ratings_count
+                 :description, :rating, :ratings_count
                  
       has_many :schedules
       has_many :accommodations
       has_many :eligibilities
       has_many :purposes
       
-      def comments
-        object.comments_hash
+      def description
+        object.description(locale)
       end
       
       def schedules

@@ -21,7 +21,7 @@ RSpec.describe Api::V2::ServicesController, type: :controller do
     expect(services.count).to eq(Service.published.count)
     
     # Expect each of the following attributes to be present in the JSON results
-    [:id, :type, :name, :phone, :email, :url].each do |attr|
+    [:id, :type, :name, :phone, :email, :url, :description].each do |attr|
       expect(services.first[attr.to_s]).to be
     end
   end
