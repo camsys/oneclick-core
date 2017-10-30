@@ -1,7 +1,5 @@
 module Api
   module V2
-    
-    # Parent serializer for Accommodations, Eligibilities, and Purposes
     class EligibilitySerializer < CharacteristicSerializer
       
       # Only serialize value if this is called from a user serializer, 
