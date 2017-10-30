@@ -122,10 +122,12 @@ module Api
       
       @root = opts.delete(:root) || nil # By default, no root key
       @serializer = opts.delete(:serializer) || nil # If specifying serializer
-      
+            
       # Check if an ActiveRecord object or collection was passed, and if so, serialize it
       if data.is_a?(ActiveRecord::Relation)
         data = package_collection(data, serializer_opts)
+      elsif data.is_a?(Array) # If it's an array of record objects, rather than a collection
+        data = data.map { |rec| package_record(rec, serializer_opts) }
       elsif data.is_a?(ActiveRecord::Base)
         data = package_record(data, serializer_opts)
       end

@@ -2,17 +2,19 @@ module Api
   module V2
     class AlertsController < ApiController
             
-      # POST /api/v1/feedbacks
-      # Create a feedback for the logged in user
+      # GET /api/v2/alerts
       def index
+        
+        # If traveler is authenticated serve back their user alerts
         if authentication_successful?
           @traveler.update_alerts
           render(success_response(
                 @traveler.user_alerts.is_published.is_current.is_not_acknowledged,
                 root: "user_alerts"))
-        else
-          alerts = Alert.current.is_published.for_everyone.map { |alert| {id: nil, subject: alert.en_subject, message: alert.en_message} } 
-          render(success_response(alerts, root: "user_alerts"))
+        else # Otherwise, build temporary user alerts for each global alert and serve those
+          global_alerts = Alert.current.is_published.for_everyone
+                               .map { |alert| alert.user_alerts.build }
+          render(success_response(global_alerts, {root: "user_alerts"}))
         end
       end
 
