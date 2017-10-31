@@ -6,8 +6,6 @@ module Api
       attributes  :first_name, 
                   :last_name, 
                   :email,
-                  :accommodations,
-                  :eligibilities,
                   :preferred_locale,
                   :trip_types
       
