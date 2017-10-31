@@ -11,5 +11,15 @@ FactoryGirl.define do
       audience_details user_emails_hash
     end
     
+    # Create translations for the alert
+    trait :with_translations do
+      after(:create) do |a|      
+        I18n.available_locales.each do |l|
+          a.set_translation(l, :subject, "alert #{l} subject")
+          a.set_translation(l, :message, "alert #{l} message")
+        end
+      end
+    end
+    
   end
 end
