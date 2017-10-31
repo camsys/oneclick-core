@@ -33,9 +33,19 @@ module GooglePlace
       end
   end
   
-  # Creates a formatted address from streat number and route
+  # Creates a formatted address from address components
   def formatted_address
-    "#{self.street_number} #{self.route}"
+    [
+      [self.street_number, self.route].compact.join(' '),
+      self.city,
+      [self.state, self.zip].compact.join(' ')
+    ].compact.join(', ')
+
+  end
+  
+  # A shorter version of the formatted address
+  def short_formatted_address
+    [self.street_number, self.route].compact.join(' ')
   end
   
   # Creates a geometry hash from lat and lng
