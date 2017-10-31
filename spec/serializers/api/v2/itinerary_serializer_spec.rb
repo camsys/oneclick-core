@@ -31,7 +31,7 @@ RSpec.describe Api::V2::ItinerarySerializer, type: :serializer do
     attributes.each do |attr|
       expect(paratransit_serialization[attr]).to eq(paratransit_itinerary.send(attr))
     end
-    expect(paratransit_serialization[:service]).to be_a Hash
+    expect(paratransit_serialization[:service]).to be_a Service
   end
 
 end
