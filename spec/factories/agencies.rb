@@ -44,11 +44,11 @@ FactoryGirl.define do
       end
     end
     
-    trait :with_comments do
+    trait :with_descriptions do
       after(:create) do |agency|
-        create(:comment, commentable: agency)
-        create(:es, commentable: agency)
-        create(:fr, commentable: agency)
+        I18n.available_locales.each do |loc|
+          agency.send("#{loc}_description=", "#{loc.upcase} Description")
+        end
       end
     end
     

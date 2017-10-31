@@ -7,7 +7,7 @@ RSpec.describe Api::V2::ServicesController, type: :controller do
     # Create a random number of services of each type, and randomly decide whether
     # or not to publish them
     Service::SERVICE_TYPES.each do |type|
-      rand(3..6).times { |_| create(:service, type: type, published: [true, false].sample) }
+      rand(3..6).times { |_| create(:service, :with_descriptions, type: type, published: [true, false].sample) }
     end
   end
   
@@ -21,8 +21,8 @@ RSpec.describe Api::V2::ServicesController, type: :controller do
     expect(services.count).to eq(Service.published.count)
     
     # Expect each of the following attributes to be present in the JSON results
-    [:id, :type, :name, :phone, :email, :url].each do |attr|
-      expect(services.first[attr.to_s]).to be
+    [:id, :type, :name, :phone, :email, :url, :description].each do |attr|
+      expect(services.first.has_key?(attr.to_s)).to be true
     end
   end
   

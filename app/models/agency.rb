@@ -7,14 +7,13 @@ class Agency < ApplicationRecord
   
   # mount_uploader :logo, LogoUploader  
   # resourcify  # This rolify call must live in the inheriting classes to work with Single-Table Inheritance
-  include Commentable # has_many :comments
   include Contactable
+  include Describable # has translated descriptions for each available locale
   include Logoable
   include Publishable
   
   ### SCOPES, CONSTANTS, & VALIDATIONS ###
   
-  validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
   validates :name, presence: true
   validates :type, presence: true
   contact_fields email: :email, phone: :phone, url: :url

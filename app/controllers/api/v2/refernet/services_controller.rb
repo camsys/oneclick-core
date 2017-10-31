@@ -16,11 +16,9 @@ module Api
             duration_hash = build_duration_hash(params, services)
           end
 
-          locale = params[:locale] || :en
-
           # TODO: NO HARD LIMIT. LIMIT BASED ON SOMETHING SMART E.G. DISTANCE
           services.each do |service|
-            svc_data = service_hash(service, duration_hash, locale)
+            svc_data = service_hash(service, duration_hash)
             data << svc_data
           end 
 
@@ -57,7 +55,7 @@ module Api
         end
 
         # Acts as a serializer for refernet services
-        def service_hash service, duration_hash={}, locale=:en
+        def service_hash service, duration_hash={}
 
           display_url = service['details']['url'] || service['details']['PUrl'] || service['details']['LUrl']
 
@@ -75,14 +73,14 @@ module Api
             "transit_time": duration_hash["#{service.id}_TRANSIT,WALK"],
             "display_url": display_url,
             "url": full_url(display_url), #Ensure that the URL starts with http://
-            "description":  refernet_description(service, @traveler.nil? ? locale.to_s : @traveler.preferred_locale.try(:name)),
+            "description":  refernet_description(service),
             "rating": service.rating,
             "ratings_count": service.ratings_count
           }
         end
 
-        def refernet_description service, locale=:en
-          service.translated_description(locale)
+        def refernet_description service
+          service.translated_description(@locale)
         end 
 
         # Call OTP and Pull out the durations

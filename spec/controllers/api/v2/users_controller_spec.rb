@@ -277,7 +277,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
 
     # It should NOT be a veteran
     expect(parsed_response["eligibilities"].last['code']).to eq('veteran')
-    expect(parsed_response["eligibilities"].last['value']).to eq(nil)
+    expect(parsed_response["eligibilities"].last['value']).to eq(false)
   end 
 
   it 'updates basic attributes for a user' do

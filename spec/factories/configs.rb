@@ -22,7 +22,8 @@ FactoryGirl.define do
 
     factory :otp_config do
       key "open_trip_planner"
-      value "http://otp-ma.camsys-apps.com:8080/otp/routers/default"
+      value "http://fake-otp-url" # We shouldn't be making external calls in spec
+      # value "http://otp-ma.camsys-apps.com:8080/otp/routers/default"
     end
 
     factory :tff_config do

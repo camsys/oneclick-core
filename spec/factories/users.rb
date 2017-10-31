@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :user, aliases: [:commenter] do
+  factory :user, aliases: [:commenter, :traveler] do
     sequence(:email) {|i| "test_user_#{rand(1000).to_s.rjust(3, "0")}_#{i}@camsys.com" }
     password "welcome1"
     password_confirmation "welcome1"
@@ -51,7 +51,15 @@ FactoryGirl.define do
       email "george@co.uk"
       first_name "George"
       last_name "Williams"
-      preferred_locale {create(:locale)}
+      preferred_locale {create(:locale_en)}
+      preferred_trip_types ['transit', 'unicycle']
+    end
+    
+    factory :spanish_speaker do
+      email "hispanohablante@email.es"
+      first_name "Hispano"
+      last_name "Hablanto"
+      preferred_locale {create(:locale_es)}
       preferred_trip_types ['transit', 'unicycle']
     end
 

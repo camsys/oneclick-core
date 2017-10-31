@@ -7,7 +7,6 @@ class Alert < ApplicationRecord
   attr_accessor :translations
 
   ### CALLBACKS ###
-  after_initialize :create_translation_helpers
   before_destroy :delete_translations
   before_create :set_expiration
 
@@ -44,30 +43,34 @@ class Alert < ApplicationRecord
   end
 
   ### Translations ###
-  def create_translation_helpers
   	
-    # This block of code creates the following getters
-  	# en_subject, es_subject, en_message, es_message, etc. 
-  	I18n.available_locales.each do |locale|
-  	  Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
-        define_singleton_method("#{locale}_#{custom_method}") do
-          self.send(custom_method, locale)
-        end
+  # This block of code creates the following getters and setters
+	# en_subject, es_subject, en_message, es_message, etc. 
+	I18n.available_locales.each do |locale|
+	  Alert::CUSTOM_TRANSLATIONS.each do |custom_method|
+      
+      # Define a getter, e.g. en_subject
+      define_method("#{locale}_#{custom_method}") do
+        self.send(custom_method, locale)
+      end
+      
+      # Define a setter, e.g. en_subject=value
+      define_method("#{locale}_#{custom_method}=") do |value|
+        self.send(:set_translation, locale, custom_method, value)
       end
     end
-
   end
 
   # To Label is used by SimpleForm to Get the Label
-  def to_label locale=:en
+  def to_label locale=I18n.default_locale
     self.subject locale
   end
 
-  def message locale=:en
+  def message locale=I18n.default_locale
     SimpleTranslationEngine.translate(locale, "alert_#{self.id}_message")
   end
 
-  def subject locale=:en
+  def subject locale=I18n.default_locale
     SimpleTranslationEngine.translate(locale, "alert_#{self.id}_subject")
   end
 

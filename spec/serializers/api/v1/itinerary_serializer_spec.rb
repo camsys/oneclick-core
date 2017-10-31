@@ -22,14 +22,6 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
       ).to_json
     )
   end
-  #
-  # let(:paratransit_service_serialization) do
-  #   JSON.parse(
-  #     ActiveModelSerializers::Adapter.create(
-  #       ServiceSerializer.new(paratransit_itinerary.service)
-  #     ).to_json
-  #   )
-  # end
 
   it 'faithfully serializes itineraries' do
     expect(transit_serialization['cost']).to eq(transit_itinerary.cost)
@@ -62,8 +54,8 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
     expect(transit_serialization['segment_index']).to eq(0)
     # expect(transit_serialization['service_bookable']).to eq( ? )
     # Check each comment:
-    paratransit_itinerary.service.comments.each do |comment|
-      expect(paratransit_serialization['service_comments'][comment.locale]).to eq(comment.comment)
+    paratransit_itinerary.service.descriptions.each do |loc, desc|
+      expect(paratransit_serialization['service_comments'][loc.to_s]).to eq(desc)
     end
     expect(transit_serialization['service_id']).to eq(transit_itinerary.service.id)
     expect(transit_serialization['service_name']).to eq(transit_itinerary.service.name)

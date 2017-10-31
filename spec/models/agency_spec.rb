@@ -14,7 +14,7 @@ RSpec.describe Agency, type: :model do
   it { should have_many(:services) }
   
   it_behaves_like "publishable"
-  it_behaves_like "commentable"
+  it_behaves_like "describable"
   it_behaves_like "contactable", { phone: :phone, email: :email, url: :url }
   
   it "can be a TransportationAgency or a PartnerAgency" do

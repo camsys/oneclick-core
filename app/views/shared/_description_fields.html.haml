@@ -1,0 +1,6 @@
+-record = local_assigns[:record] || nil
+-form = local_assigns[:form] || nil
+
+-if record
+  -I18n.available_locales.each do |locale|
+    = form.input "#{locale}_description", label:"Description (#{locale})", :as => :text

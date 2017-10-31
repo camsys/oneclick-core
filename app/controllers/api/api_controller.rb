@@ -15,7 +15,7 @@ module Api
     attr_reader :traveler, :errors
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
-    before_action :initialize_errors_hash
+    before_action :initialize_errors_hash, :set_locale
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
@@ -43,13 +43,25 @@ module Api
     def no_route
       render status: 404, json: json_response(:error, message: "Route does not exist")
     end
-
+    
+    # Set the locale based on passed param, user's preferred locale, or default
+    def set_locale
+      @locale = Locale.find_by(name: params[:locale]).try(:name) || 
+                @traveler.try(:preferred_locale).try(:name) || 
+                I18n.default_locale.to_s
+    end
+    
+    # Sets the @traveler variable to the current api user
+    def set_traveler
+      @traveler = current_api_user
+    end
+    
     protected
 
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication
     def after_successful_token_authentication
-      @traveler = current_api_user # Sets the @traveler variable to the current api user
+      set_traveler
     end
 
     # Finds the User associated with auth headers.
@@ -90,18 +102,32 @@ module Api
     ### RESPONSE METHODS ###
     # Based on JSend Specification
     
+    # Constructs default serializer options hash based on current locale
+    def default_serializer_options
+      {
+        include: ['*.*'],  # By default, serialize 2 levels of nesting
+        scope: {locale: @locale } # By default, pass locale to serializer scope
+      }
+    end
+    
     # Renders a successful response, passing along a given object as data
     # If the serializer option is passed, will attempt to serialize the data
     # with the passed serializer
     def success_response(data={}, opts={})
       status = opts.delete(:status) || 200 # Status code is 200 by default
-      serializer_opts = opts.delete(:serializer_opts) || { include: ['*.*'] } # By default, serialize 2 levels of nesting
+      
+      # Set serializer options by starting with the default options and then overwriting
+      # or amending with any additional options passed.
+      serializer_opts = default_serializer_options.merge(opts.delete(:serializer_opts) || {})
+      
       @root = opts.delete(:root) || nil # By default, no root key
       @serializer = opts.delete(:serializer) || nil # If specifying serializer
-      
+            
       # Check if an ActiveRecord object or collection was passed, and if so, serialize it
       if data.is_a?(ActiveRecord::Relation)
         data = package_collection(data, serializer_opts)
+      elsif data.is_a?(Array) # If it's an array of record objects, rather than a collection
+        data = data.map { |rec| package_record(rec, serializer_opts) }
       elsif data.is_a?(ActiveRecord::Base)
         data = package_record(data, serializer_opts)
       end

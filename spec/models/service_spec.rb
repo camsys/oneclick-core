@@ -14,7 +14,7 @@ RSpec.describe Service, type: :model do
   
   it_behaves_like "publishable"
   it_behaves_like "archivable"
-  it_behaves_like "commentable"
+  it_behaves_like "describable"
   it_behaves_like "contactable", { phone: :phone, email: :email, url: :url }
 
   let(:service) { create(:service) }

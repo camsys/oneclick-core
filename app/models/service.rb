@@ -3,8 +3,8 @@ class Service < ApplicationRecord
   ### INCLUDES & CONFIGURATION ###
   include Archivable # SETS DEFAULT SCOPE TO where.not(archived: true)
   include BookingHelpers::ServiceHelpers
-  include Commentable # has_many :comments
   include Contactable
+  include Describable # has translated descriptions for each available locale
   include FareHelper
   include FareHelper::ZoneFareable
   include Feedbackable
@@ -37,7 +37,6 @@ class Service < ApplicationRecord
   ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type
   validates_with FareValidator # For validating fare_structure and fare_details
-  validates_comment_uniqueness_by_locale # From Commentable--requires only one comment per locale
   contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
   after_save :consolidate_schedules

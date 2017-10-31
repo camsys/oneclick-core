@@ -15,27 +15,47 @@ module GooglePlace
   def google_place_hash
     #Based on Google Place Details
     GooglePlaceHash[
-        address_components: self.google_address_components,
-        formatted_address: "#{self.street_number} #{self.route}",
-        geometry: {
-          location: {
-              lat: self.lat.to_s,
-              lng: self.lng.to_s,
-          }
-        },
+        address_components: self.address_components,
+        formatted_address: self.formatted_address,
+        geometry: self.geometry,
         id: self.id,
         name: self.name
     ]
   end
 
   # Returns an array of google address components hashes based on the place's attributes
-  def google_address_components
+  def address_components
     return ADDRESS_COMPONENTS
       .map do |occ_name, google_types|
         { long_name: self.send(occ_name),
           short_name: self.send(occ_name),
           types: google_types }
       end
+  end
+  
+  # Creates a formatted address from address components
+  def formatted_address
+    [
+      [self.street_number, self.route].compact.join(' '),
+      self.city,
+      [self.state, self.zip].compact.join(' ')
+    ].compact.join(', ')
+
+  end
+  
+  # A shorter version of the formatted address
+  def short_formatted_address
+    [self.street_number, self.route].compact.join(' ')
+  end
+  
+  # Creates a geometry hash from lat and lng
+  def geometry
+    {
+      location: {
+          lat: self.lat.to_s,
+          lng: self.lng.to_s,
+      }
+    }
   end
 
   class GooglePlaceHash < HashWithIndifferentAccess

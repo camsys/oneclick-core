@@ -5,7 +5,7 @@
   = "Last Updated: #{@service.updated_at.strftime('%b %e, %Y at %I:%M %p')}"
 
 =render partial: 'service_general_info', layout: '/layouts/panel'
-=render partial: 'service_comments', layout: '/layouts/panel'
+=render partial: 'service_description', layout: '/layouts/panel'
 
 -case @service.type
 -when 'Transit'

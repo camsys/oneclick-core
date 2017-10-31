@@ -1,7 +1,7 @@
 module Api
   module V2
 
-    class ItinerarySerializer < ActiveModel::Serializer
+    class ItinerarySerializer < ApiSerializer
       
       attributes :trip_type,
         :cost,

@@ -18,11 +18,16 @@ FactoryGirl.define do
 
     factory :paratransit_itinerary do
       trip_type "paratransit"
-      service {create(:paratransit_service, :medical_only, :with_schedules, :with_comments)}
+      service {create(:paratransit_service, :medical_only, :with_schedules, :with_descriptions)}
       transit_time 2336
       
       factory :strict_and_accommodating_paratransit_itinerary do
-        service {create(:paratransit_service, :medical_only, :strict, :accommodating, :with_schedules, :with_comments)}
+        service {create(:paratransit_service, 
+                        :medical_only,
+                        :strict, 
+                        :accommodating, 
+                        :with_schedules, 
+                        :with_descriptions)}
       end
       
       factory :ride_pilot_itinerary do

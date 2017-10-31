@@ -12,7 +12,7 @@
   =f.input :url
   =f.input :phone
   =f.input :email
-  =render partial: "shared/comments_fields", locals: { form: f, record: @agency }
+  =render partial: "shared/description_fields", locals: { form: f, record: @agency }
 
   -# For type-specific fields
   -case @agency.type

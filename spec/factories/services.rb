@@ -148,11 +148,11 @@ FactoryGirl.define do
       fare_details { { taxi_fare_finder_city: "Boston" }.with_indifferent_access }
     end
 
-    trait :with_comments do
+    trait :with_descriptions do
       after(:create) do |service|
-        create(:comment, commentable: service)
-        create(:es, commentable: service)
-        create(:fr, commentable: service)
+        I18n.available_locales.each do |loc|
+          service.send("#{loc}_description=", "#{loc.upcase} Description")
+        end
       end
     end
 
