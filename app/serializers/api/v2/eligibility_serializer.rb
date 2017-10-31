@@ -8,7 +8,7 @@ module Api
       
       # Value boolean is true if user has a UserEligibility associated with that eligibility
       def value
-        UserEligibility.find_by(eligibility: object, user: scope[:user]).try(:value)
+        !!UserEligibility.find_by(eligibility: object, user: scope[:user]).try(:value)
       end
                   
       def user_present?

@@ -4,6 +4,7 @@ require File.expand_path('../../config/environment', __FILE__)
 
 # Require shared examples files
 Dir[Rails.root.join("spec/models/shared_examples/**/*.rb")].each {|f| require f}
+Dir[Rails.root.join("spec/serializers/shared_examples/**/**/*.rb")].each {|f| require f}
 
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?

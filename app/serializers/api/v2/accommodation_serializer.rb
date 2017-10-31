@@ -7,11 +7,11 @@ module Api
       attribute :value, if: :user_present?
       
       def value
-        object.in?(scope[:user].accommodations)
+        object.in?((scope || {})[:user].accommodations)
       end
       
       def user_present?
-        scope[:user].present?
+        (scope || {})[:user].present?
       end
       
     end

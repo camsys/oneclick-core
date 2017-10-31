@@ -6,15 +6,15 @@ module Api
       attributes :code, :name, :note, :question
       
       def name
-        object.try(:name, scope[:locale])
+        object.try(:name, locale)
       end
       
       def note
-        object.try(:note, scope[:locale])
+        object.try(:note, locale)
       end
       
       def question
-        object.try(:question, scope[:locale])
+        object.try(:question, locale)
       end
       
     end
