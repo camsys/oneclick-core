@@ -1,5 +1,6 @@
 namespace :update do
   
+  # For Version 1.5.0
   desc "transfer service and agency comments to description translations" 
   task transfer_comments_to_descriptions: :environment do
     [Agency, Service].each do |table|
