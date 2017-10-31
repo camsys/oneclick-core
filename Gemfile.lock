@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: dd2739e45460b49f73cce0507a192caaf4437ce3
+  revision: 44e0f99174da2d1836c1ed5a9611af1e8e44f809
   branch: proximity
   specs:
     oneclick_refernet (0.2.0)
