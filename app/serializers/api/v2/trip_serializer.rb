@@ -5,10 +5,7 @@ module Api
       
       attributes  :id, 
                   :arrive_by, 
-                  :trip_time,
-                  :accommodations,
-                  :eligibilities,
-                  :purposes
+                  :trip_time
       has_many :itineraries
       has_many :accommodations
       has_many :eligibilities
