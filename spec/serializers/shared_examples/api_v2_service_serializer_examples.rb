@@ -43,6 +43,7 @@ RSpec.shared_examples "api_v2_service_serializer" do
       
       array_attributes.each do |attr|
         expect(service_hash[attr]).to be_a Array
+        expect(service_hash[attr].count).to eq service.send(attr).count
       end
 
       # Check custom attributes
