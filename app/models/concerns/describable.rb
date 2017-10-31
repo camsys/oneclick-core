@@ -42,4 +42,9 @@ module Describable
     "#{self.class.name.downcase}_#{self.id}_description"
   end
   
+  # Returns a hash of all description translations, keyed by locale
+  def descriptions
+    I18n.available_locales.map {|l| [l, description(l)] }.to_h
+  end
+  
 end

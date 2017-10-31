@@ -154,7 +154,9 @@ module Api
 
       def service_comments
         return {} unless object.service
-        Hash[object.service.comments.map {|c| [c.locale, c.comment]}]
+        I18n.available_locales
+            .map {|l| [l, object.service.description(l)] }
+            .to_h
       end
 
       def service_id
