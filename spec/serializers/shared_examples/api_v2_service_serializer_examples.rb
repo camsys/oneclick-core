@@ -1,7 +1,8 @@
-# Pass it a service record, and a serialized hash of the service
 RSpec.shared_examples "api_v2_service_serializer" do
   
-  # Set service variable in the it_behaves_like block
+  ###
+  # NOTE: Set service variable in the it_behaves_like block
+  ###
   
   # Make a serialization for each locale
   let(:serializations) do

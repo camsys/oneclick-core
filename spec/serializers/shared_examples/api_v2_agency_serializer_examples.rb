@@ -1,7 +1,8 @@
-# Pass it a agency record, and a serialized hash of the agency
 RSpec.shared_examples "api_v2_agency_serializer" do
   
-  # Set agency variable in the it_behaves_like block
+  ###
+  # NOTE: Set agency variable in the it_behaves_like block
+  ###
   
   # Make a serialization for each locale
   let(:serializations) do

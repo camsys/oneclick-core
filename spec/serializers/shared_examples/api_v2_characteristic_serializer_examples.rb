@@ -1,7 +1,8 @@
-# Pass it a characteristic record, and a serialized hash of the characteristic
 RSpec.shared_examples "api_v2_characteristic_serializer" do
   
-  # Set characteristic variable in the it_behaves_like block
+  ###
+  # NOTE: Set characteristic variable in the it_behaves_like block
+  ###
   
   # Make a serialization for each locale
   let(:serializations) do
