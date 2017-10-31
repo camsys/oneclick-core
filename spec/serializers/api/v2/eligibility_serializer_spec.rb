@@ -6,7 +6,7 @@ RSpec.describe Api::V2::EligibilitySerializer, type: :serializer do
   let(:user_with_elig) { create(:user) }
   let(:user_no_elig) { create(:user) }
   
-  it_behaves_like "characteristic_serializer" do
+  it_behaves_like "api_v2_characteristic_serializer" do
     let(:characteristic) { create(:eligibility, :with_translations) }
   end
   

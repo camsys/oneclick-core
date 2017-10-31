@@ -6,7 +6,7 @@ RSpec.describe Api::V2::AccommodationSerializer, type: :serializer do
   let(:user_with_acc) { create(:user) }
   let(:user_no_acc) { create(:user) }
   
-  it_behaves_like "characteristic_serializer" do
+  it_behaves_like "api_v2_characteristic_serializer" do
     let(:characteristic) { create(:accommodation, :with_translations) }
   end
   
