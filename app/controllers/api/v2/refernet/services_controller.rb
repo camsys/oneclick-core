@@ -10,10 +10,13 @@ module Api
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
-          services = sub_sub_category.services.confirmed.within_box(28.540375, -81.373170, 30000).uniq.limit(10)
+
           
           if params[:lat] and params[:lng]
+            services = sub_sub_category.services.confirmed.within_box(params[:lat], params[:lng], 30000).uniq.limit(10)
             duration_hash = build_duration_hash(params, services)
+          else
+            services = sub_sub_category.services.confirmed.uniq.limit(10)
           end
 
           locale = params[:locale] || :en
