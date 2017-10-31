@@ -17,9 +17,7 @@ RSpec.describe Api::V2::ServicesController, type: :controller do
     expect(response).to be_success
     
     services = JSON.parse(response.body)["data"]["services"]
-    
-    puts "SERVICES", Service.all.ai, services.ai
-    
+        
     expect(services.count).to eq(Service.published.count)
     
     # Expect each of the following attributes to be present in the JSON results

@@ -46,8 +46,8 @@ RSpec.describe Api::V2::StompingGroundsController, type: :controller do
     expect(place["name"]).to eq("Work")
     expect(place["formatted_address"]).to eq("101 Station Landing, Medford, MA 02155")
     expect(place["address_components"]).to be
-    expect(place["geometry"]["location"]["lat"]).to eq(42.401697)
-    expect(place["geometry"]["location"]["lng"]).to eq(-71.081818)
+    expect(place["geometry"]["location"]["lat"]).to eq("42.401697")
+    expect(place["geometry"]["location"]["lng"]).to eq("-71.081818")
 
   end
 
