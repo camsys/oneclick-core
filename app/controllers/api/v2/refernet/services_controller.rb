@@ -14,7 +14,8 @@ module Api
           
           if params[:lat] and params[:lng]
             #services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], params[:meters] || 48280.3).uniq.limit(10)
-            services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], 48280.3).limit(10)
+            meters = (params[:meters].to_f > 0.0 ? params[:meters].to_f : 48280.3)
+            services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], meters).limit(10)
             duration_hash = build_duration_hash(params, services)
           else
             services = sub_sub_category.services.confirmed.uniq.limit(10)
