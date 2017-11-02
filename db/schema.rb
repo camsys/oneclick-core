@@ -212,9 +212,7 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.string    "agency_name"
     t.string    "site_name"
     t.text      "description"
-    t.geography "latlngg",     limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
-    t.index ["latlngg"], name: "index_oneclick_refernet_services_on_latlngg", using: :gist
   end
 
   create_table "oneclick_refernet_services_sub_sub_categories", force: :cascade do |t|
