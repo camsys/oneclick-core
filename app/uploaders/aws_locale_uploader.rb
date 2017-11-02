@@ -1,6 +1,6 @@
 
 # Uploads locale (i18n/translations) JSON files to AWS S3 bucket
-class LocaleUploader
+class AwsLocaleUploader
   
   def initialize(opts={})
     # AwsUploader class handles basic logic of configuring, uploading to, 
