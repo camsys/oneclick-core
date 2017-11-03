@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171020203048) do
+ActiveRecord::Schema.define(version: 20171024203532) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -204,14 +204,14 @@ ActiveRecord::Schema.define(version: 20171020203048) do
   end
 
   create_table "oneclick_refernet_services", force: :cascade do |t|
-    t.datetime "created_at",                                                           null: false
-    t.datetime "updated_at",                                                           null: false
-    t.boolean  "confirmed",                                            default: false
-    t.text     "details"
-    t.geometry "latlng",      limit: {:srid=>4326, :type=>"st_point"}
-    t.string   "agency_name"
-    t.string   "site_name"
-    t.text     "description"
+    t.datetime  "created_at",                                                                              null: false
+    t.datetime  "updated_at",                                                                              null: false
+    t.boolean   "confirmed",                                                               default: false
+    t.text      "details"
+    t.geometry  "latlng",      limit: {:srid=>4326, :type=>"st_point"}
+    t.string    "agency_name"
+    t.string    "site_name"
+    t.text      "description"
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
   end
 
