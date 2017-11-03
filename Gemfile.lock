@@ -11,8 +11,7 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: 621ffb4c901e44c6b778e684e45dd8eee11e23d8
-  branch: load-json-locales
+  revision: e0575fc42b50996c0f725bf77c57b9e2529121f9
   specs:
     simple_translation_engine (1.0.0)
       pg

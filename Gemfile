@@ -67,8 +67,7 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 ### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', 
-      github: 'camsys/simple_translation_engine', 
-      branch: 'load-json-locales'
+      github: 'camsys/simple_translation_engine'
 
 ############################################
 
