@@ -1,4 +1,5 @@
-module TranslationModelExtensions
+# Sets a translation model to trigger an AWS upload of the whole locale every time it changes
+module AwsLocaleUploadable
   
   # Initialize a single AwsLocaleUploader that all including classes will have access to.
   mattr_accessor :aws_locale_uploader

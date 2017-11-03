@@ -14,7 +14,7 @@ class AwsLocaleUploader
   def upload_all
 
     # Check to see if there's already a live thread in the upload_thread value.
-    # If so, terminate it and replace it with a new one.
+    # If so, terminate it before starting a new one.
     if @upload_thread.try(:alive?)
       @upload_thread.try(:kill)
     end

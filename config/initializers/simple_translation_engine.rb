@@ -21,12 +21,14 @@ Rails.configuration.to_prepare do
     authorize_resource
   end
 
-  Translation.class_eval do
-    include TranslationModelExtensions
-  end
-  
-  TranslationKey.class_eval do
-    include TranslationModelExtensions
+  # If AWS_LOCALE_STORAGE is set, trigger upload of locale to AWS every time a record is updated
+  if ENV['AWS_LOCALE_STORAGE'].present?
+    Translation.class_eval do
+      include AwsLocaleUploadable
+    end  
+    TranslationKey.class_eval do
+      include AwsLocaleUploadable
+    end
   end
 
 end
