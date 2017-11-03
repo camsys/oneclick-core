@@ -2,6 +2,12 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::TranslationsController, type: :controller do
 
+  # Create sample translations
+  before(:all) do
+    SimpleTranslationEngine.set_translation(:en, "save", "Save")
+    SimpleTranslationEngine.set_translation(:es, "save", "Guardar")    
+  end
+
   it 'gets the save translation' do    
     post :find, params: {"locale":"en","translations":["save"]}, format: :json
 
