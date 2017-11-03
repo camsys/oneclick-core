@@ -10,19 +10,20 @@ class AwsUploader
                 :aws_secret_access_key
                 
   attr_reader   :bucket # A bucket object created based on the above configs
-  
+                
   def initialize(opts={})
     
     @root_path = opts[:root_path] || "/"
     
-    #TODO: DON'T HARD CODE THESE!
-    @s3_region = opts[:s3_region] || ENV['S3_REGION'] || 'us-east-2'
-    @aws_bucket_name = opts[:aws_bucket_name] || ENV['AWS_BUCKET'] || 'occ-lynx-dev'
-    @aws_access_key_id = opts[:aws_access_key_id] || ENV['AWS_ACCESS_KEY_ID'] || 'AKIAIEL5TSQORNZKDZEA'
-    @aws_secret_access_key = opts[:aws_secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY'] || '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'
+    @s3_region = opts[:s3_region] || ENV['S3_REGION']
+    @aws_bucket_name = opts[:aws_bucket_name] || ENV['AWS_BUCKET']
+    @aws_access_key_id = opts[:aws_access_key_id] || ENV['AWS_ACCESS_KEY_ID']
+    @aws_secret_access_key = opts[:aws_secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
   
-    update_aws_config
-    setup_bucket
+    if valid?
+      update_aws_config
+      setup_bucket
+    end
     
   end
   
@@ -47,6 +48,7 @@ class AwsUploader
   # Uploads a file from the local file system to the given path in the bucket
   # Accepts public: true or public: false options
   def upload_file(from_path, file_name, opts={})
+    return false unless valid?
     pub = !!opts[:public]
     object(file_name).upload_file(from_path)
     make_public(file_name) if pub
@@ -55,6 +57,7 @@ class AwsUploader
   # Uploads hash as JSON directly to the given path
   # Accepts public: true or public: false options
   def upload_json(hash, file_name, opts={})
+    return false unless valid?
     pub = !!opts[:public]
     object(file_name).put(body: hash.to_json)
     make_public(file_name) if pub
@@ -68,6 +71,11 @@ class AwsUploader
   # Makes a given file on the bucket private
   def make_private(file_name)
     object(file_name).acl.put({acl: "private"})
+  end
+  
+  # Uploader is valid if all AWS variables are set
+  def valid?
+    @s3_region && @aws_bucket_name && @aws_access_key_id && @aws_secret_access_key
   end
   
 end

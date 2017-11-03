@@ -1,17 +1,19 @@
-
 # Uploads locale (i18n/translations) JSON files to AWS S3 bucket
 class AwsLocaleUploader
   
   def initialize(opts={})
-    # AwsUploader class handles basic logic of configuring, uploading to, 
+    # AwsUploader object handles basic logic of configuring, uploading to, 
     # and setting permissions on AWS buckets
     @aws_uploader = AwsUploader.new(root_path: "i18n/")
   end
   
   # Uploads translations json files for all available locales, as well as keys
   def upload_all
-    I18n.available_locales.each { |loc| upload_locale(loc) }
-    upload_keys
+    # Do it in a new thread, so that method can return before all the building and uploading is done
+    Thread.new do
+      I18n.available_locales.each { |loc| upload_locale(loc) }
+      upload_keys
+    end
   end
   
   # build and uploads a json file of translations for the given locale
