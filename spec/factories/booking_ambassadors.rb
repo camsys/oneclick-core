@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   
   factory :ride_pilot_ambassador do
     skip_create

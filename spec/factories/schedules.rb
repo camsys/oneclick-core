@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :schedule do
     service nil
     day 1

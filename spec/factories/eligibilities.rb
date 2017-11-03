@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :eligibility do
 
     code 'over_65'

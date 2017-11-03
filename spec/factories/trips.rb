@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :trip do
     user
     association :origin, factory: :waypoint_02139

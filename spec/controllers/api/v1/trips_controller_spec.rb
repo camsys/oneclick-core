@@ -7,9 +7,9 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
   let(:user) { trip.user }
   let(:hacker) { create(:english_speaker) }
-  let!(:eligibility) { FactoryGirl.create :eligibility }
-  let!(:paratransit_service) { FactoryGirl.create(:paratransit_service, :medical_only, :no_geography) }
-  let!(:metallica_concert) { FactoryGirl.create(:metallica_concert) }
+  let!(:eligibility) { FactoryBot.create :eligibility }
+  let!(:paratransit_service) { FactoryBot.create(:paratransit_service, :medical_only, :no_geography) }
+  let!(:metallica_concert) { FactoryBot.create(:metallica_concert) }
 
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:hacker_headers)  { {"X-USER-EMAIL" => hacker.email, "X-USER-TOKEN" => hacker.authentication_token} }

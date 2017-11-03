@@ -1,7 +1,7 @@
 require './spec/helpers/r_geo_spec_helpers'
 include RGeoSpecHelpers
 
-FactoryGirl.define do
+FactoryBot.define do
 
   factory :zipcode, class: 'Zipcode' do
     name "00000"

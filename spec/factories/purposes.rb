@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :purpose do
 
     code 'medical'

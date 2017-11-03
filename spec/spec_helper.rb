@@ -48,7 +48,7 @@ RSpec.configure do |config|
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
   config.before(:all) do
-    FactoryGirl.reload
+    FactoryBot.reload
     OneclickCore::Application.load_tasks
     
     # Clean and prepare the database

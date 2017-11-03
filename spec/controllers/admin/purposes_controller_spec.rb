@@ -5,7 +5,7 @@ RSpec.describe Admin::PurposesController, type: :controller do
   let(:admin) { create(:admin) }
   let(:staff) { create(:staff_user) }
   let(:traveler) { create(:user) }
-  let(:metallica_concert) { FactoryGirl.create :metallica_concert }
+  let(:metallica_concert) { FactoryBot.create :metallica_concert }
   
   context "while signed in as an admin" do
     

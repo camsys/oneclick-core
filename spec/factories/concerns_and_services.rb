@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
 
   # FareCalculator
   factory :fare_calculator, class: FareHelper::FareCalculator do
@@ -7,7 +7,7 @@ FactoryGirl.define do
     initialize_with do
       fare_structure = attributes[:fare_structure] || nil
       fare_details = attributes[:fare_details] || {}
-      trip = attributes[:trip] || FactoryGirl.build(:guest_trip)
+      trip = attributes[:trip] || FactoryBot.build(:guest_trip)
       options = attributes[:options] || {}
       new(fare_structure, fare_details, trip, options)
     end
@@ -24,9 +24,9 @@ FactoryGirl.define do
     skip_create
 
     initialize_with do
-      trip = attributes[:trip] || FactoryGirl.build(:guest_trip)
+      trip = attributes[:trip] || FactoryBot.build(:guest_trip)
       trip_types = attributes[:trip_types] || Trip::TRIP_TYPES
-      http_request_bundler = attributes[:http_request_bundler] || FactoryGirl.create(:http_request_bundler)
+      http_request_bundler = attributes[:http_request_bundler] || FactoryBot.create(:http_request_bundler)
       new(trip, trip_types, http_request_bundler)
     end
   end

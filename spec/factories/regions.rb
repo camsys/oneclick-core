@@ -1,6 +1,6 @@
 include GeoKitchen
 
-FactoryGirl.define do
+FactoryBot.define do
 
   factory :region do
     recipe do

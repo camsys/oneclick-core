@@ -1,11 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::UserSerializer, type: :serializer do
-  let!(:traveler) { FactoryGirl.create :user }
+  let!(:traveler) { FactoryBot.create :user }
   let!(:traveler_serializer) { Api::V1::UserSerializer.new(traveler)}
   let!(:traveler_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(traveler_serializer).to_json) }
 
-  let!(:english_traveler) { FactoryGirl.create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
+  let!(:english_traveler) { FactoryBot.create(:english_speaker, :eligible, :not_a_veteran, :needs_accommodation) }
   let!(:eng_traveler_serializer) { Api::V1::UserSerializer.new(english_traveler)}
   let!(:eng_traveler_serialization) { JSON.parse(ActiveModelSerializers::Adapter.create(eng_traveler_serializer).to_json) }
 
