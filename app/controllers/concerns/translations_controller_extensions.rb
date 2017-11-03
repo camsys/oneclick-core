@@ -1,4 +1,5 @@
-module TranslationsExtensions
+# Inject auth functionality into TranslationsController
+module TranslationsControllerExtensions
   extend ActiveSupport::Concern
 
   included do
@@ -6,7 +7,6 @@ module TranslationsExtensions
 
     before_action :confirm_admin
     before_action :get_admin_pages
-
   end
 
 end

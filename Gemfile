@@ -66,7 +66,9 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 
 ### i18n Tools #############################
 gem 'rails-i18n'
-gem 'simple_translation_engine', github: 'camsys/simple_translation_engine'
+gem 'simple_translation_engine', 
+      github: 'camsys/simple_translation_engine'
+
 ############################################
 
 
@@ -75,6 +77,10 @@ gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
 gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
+
+# For uploading files to AWS S3 bucket, e.g. for translations json
+gem 'aws-sdk-s3'
+
 ############################################
 
 
