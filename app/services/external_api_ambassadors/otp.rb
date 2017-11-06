@@ -3,7 +3,9 @@
 # require 'eventmachine' # For multi_plan
 # require 'em-http' # For multi_plan
 
-module OTPServices
+# Namespaced module for containing helper classes for interacting with OTP via rails.
+# Doesn't know about 1-Click models, controllers, etc.
+module OTP
 
   class OTPService
     attr_accessor :base_url
@@ -253,7 +255,7 @@ module OTPServices
 
   # Wrapper class for OTP Legs array, providing helper methods
   class OTPLegs
-    attr_accessor :legs
+    attr_reader :legs
     
     # Pass an OTP legs array (e.g. parsed or un-parsed JSON) to initialize
     def initialize(legs)
@@ -262,21 +264,33 @@ module OTPServices
       legs = JSON.parse(legs) if legs.is_a?(String)
       
       # Make the legs array an array of hashes with indifferent access
-      @legs = legs.map {|l| l.try(:with_indifferent_access) }.compact
+      @legs = legs.map { |l| l.try(:with_indifferent_access) }.compact
     end
     
+    # Return legs array on to_a
     def to_a
       @legs
     end
     
+    # Pass to_s method along to legs array
     def to_s
       @legs.to_s
+    end
+    
+    # Pass map method along to legs array
+    def map &block
+      @legs.map &block
+    end
+    
+    # Pass each method along to legs array
+    def each &block
+      @legs.each &block
     end
     
     # Returns first instance of an attribute from the legs, or the first leg if
     # no attribute is passed
     def first(attribute=nil)
-      return @legs.pluck(attribute).first if attribute
+      return self.pluck(attribute).first if attribute
       @legs.first || {}
     end
     

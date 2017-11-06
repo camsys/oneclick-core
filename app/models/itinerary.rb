@@ -21,6 +21,12 @@ class Itinerary < ApplicationRecord
 
   
   ### INSTANCE METHODS ###
+  
+  # Returns the legs array, with each leg translated into the given locale
+  def translated_legs(locale=I18n.default_locale)
+    puts "TRANSLATED LEGS"
+    return OTP::OTPLegs.new(legs)
+  end
 
   # Duration virtual attribute sums all trip_time attributes
   def duration # (in seconds)
