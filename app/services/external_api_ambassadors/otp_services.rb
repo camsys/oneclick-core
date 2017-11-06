@@ -240,31 +240,56 @@ module OTPServices
 
     # Getter method for itinerary's legs
     def legs
-      @itinerary['legs'] || []
+      OTPLegs.new(@itinerary['legs'] || [])
     end
 
     # Setter method for itinerary's legs
     def legs=(new_legs)
-      @itinerary['legs'] = new_legs
+      @itinerary['legs'] = new_legs.try(:to_a)
     end
+    
+  end
 
+
+  # Wrapper class for OTP Legs array, providing helper methods
+  class OTPLegs
+    attr_accessor :legs
+    
+    # Pass an OTP legs array (e.g. parsed or un-parsed JSON) to initialize
+    def initialize(legs)
+      
+      # Parse the legs array if it's a JSON string
+      legs = JSON.parse(legs) if legs.is_a?(String)
+      
+      # Make the legs array an array of hashes with indifferent access
+      @legs = legs.map {|l| l.try(:with_indifferent_access) }.compact
+    end
+    
+    def to_a
+      @legs
+    end
+    
+    def to_s
+      @legs.to_s
+    end
+    
     # Returns first instance of an attribute from the legs, or the first leg if
     # no attribute is passed
-    def first_leg(attribute=nil)
-      return pluck_from_legs(attribute).first if attribute
-      legs.first || {}
+    def first(attribute=nil)
+      return @legs.pluck(attribute).first if attribute
+      @legs.first || {}
     end
-
+    
     # Returns an array of all non-nil instances of the given value in the legs
-    def pluck_from_legs(attribute)
-      legs.pluck(attribute).compact
+    def pluck(attribute)
+      @legs.pluck(attribute).compact
     end
-
+    
     # Sums up an attribute across all legs, ignoring nil and non-numeric values
-    def sum_legs_by(attribute)
-      pluck_from_legs(attribute).select{|i| i.is_a?(Numeric)}.reduce(&:+)
+    def sum_by(attribute)
+      @legs.pluck(attribute).select{|i| i.is_a?(Numeric)}.reduce(&:+)
     end
-
+  
   end
 
 end
