@@ -14,6 +14,11 @@ module Api
     
       belongs_to :service
       
+      # Translate legs based on the locale in scope
+      def legs
+        object.translated_legs(locale)
+      end
+      
     end
     
   end

@@ -92,7 +92,7 @@ module Api
         def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
-          otp = OTPServices::OTPService.new(Config.open_trip_planner)
+          otp = OTP::OTPService.new(Config.open_trip_planner)
             
           ### Build the requests
           requests = []

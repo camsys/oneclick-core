@@ -1,5 +1,5 @@
 class OTPAmbassador
-  include OTPServices
+  include OTP
 
   attr_reader :otp, :trip, :trip_types, :http_request_bundler, :services
 
@@ -50,14 +50,14 @@ class OTPAmbassador
 
   def get_gtfs_ids
     itineraries = ensure_response(:transit).itineraries
-    return itineraries.map{|i| i.pluck_from_legs("agencyId")}
+    return itineraries.map{|i| i.legs.pluck("agencyId")}
   end
 
   # Returns an array of 1-Click-ready itinerary hashes.
   def get_itineraries(trip_type)
     return [] if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
-    return itineraries.map {|i| translate_itinerary(i, trip_type)}
+    return itineraries.map {|i| convert_itinerary(i, trip_type)}
   end
 
   # Extracts a trip duration from the OTP response.
@@ -111,9 +111,9 @@ class OTPAmbassador
   end
 
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
-  def translate_itinerary(otp_itin, trip_type)
+  def convert_itinerary(otp_itin, trip_type)
     associate_legs_with_services(otp_itin)
-    service_id = otp_itin.first_leg('serviceId')
+    service_id = otp_itin.legs.first('serviceId')
     return {
       start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
       end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
@@ -122,7 +122,7 @@ class OTPAmbassador
       wait_time: get_wait_time(otp_itin),
       walk_distance: get_walk_distance(otp_itin),
       cost: extract_cost(otp_itin, trip_type),
-      legs: otp_itin.legs,
+      legs: otp_itin.legs.to_a,
       trip_type: trip_type, #TODO: Make this smarter
       service_id: service_id
     }
@@ -194,7 +194,7 @@ class OTPAmbassador
   # Extracts total distance from OTP itinerary
   # default conversion factor is for converting meters to miles
   def extract_distance(otp_itin, trip_type=:car, conversion_factor=0.000621371)
-    otp_itin.sum_legs_by(:distance) * conversion_factor
+    otp_itin.legs.sum_by(:distance) * conversion_factor
   end
 
 
