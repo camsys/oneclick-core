@@ -12,7 +12,7 @@ class OTPTranslator
   
   # Translates an array of legs into the given locale
   def translate_legs(legs)
-    legs.map { |leg| translate_leg(leg) }
+    (legs || []).map { |leg| translate_leg(leg) }
   end
   
   # Translates an OTP Leg into the given locale
