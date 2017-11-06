@@ -12,7 +12,8 @@ class OTPTranslator
   
   # Translates an array of legs into the given locale
   def translate_legs(legs)
-    (legs || []).map { |leg| translate_leg(leg) }
+    return legs unless legs.is_a?(Array)
+    legs.map { |leg| translate_leg(leg) }
   end
   
   # Translates an OTP Leg into the given locale
@@ -27,7 +28,12 @@ class OTPTranslator
     step = step.is_a?(Hash) ? step : {}
     
     STEP_ATTRS_FOR_TRANSLATION.each do |attr|
-      step[attr] = SimpleTranslationEngine.translate(@locale, "otp.#{attr}.#{step[attr]}")
+      tkey = "otp.#{attr}.#{step[attr]}"
+      
+      # Only translate step attribute if a translation key exists for it
+      if TranslationKey.find_by(name: tkey)
+        step[attr] = SimpleTranslationEngine.translate(@locale, tkey)
+      end
     end
     
     return step
