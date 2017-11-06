@@ -54,9 +54,9 @@ RSpec.describe Service, type: :model do
   ### CHARACTERISTICS ###
   describe "characteristics" do
     
-    let!(:jacuzzi) { FactoryGirl.create :jacuzzi }
-    let!(:wheelchair) { FactoryGirl.create :wheelchair }
-    let!(:eligibility) { FactoryGirl.create :eligibility }
+    let!(:jacuzzi) { FactoryBot.create :jacuzzi }
+    let!(:wheelchair) { FactoryBot.create :wheelchair }
+    let!(:eligibility) { FactoryBot.create :eligibility }
     
     it { should have_and_belong_to_many :accommodations }
     it { should have_and_belong_to_many :eligibilities }

@@ -21,7 +21,7 @@ RSpec.describe ReturnTripPlanner do
 
   it "builds a return trip based on the outbound trip" do
     
-    # NOTE: In an example of rspec/FactoryGirl weirdness, previous_trip_id isn't
+    # NOTE: In an example of rspec/FactoryBot weirdness, previous_trip_id isn't
     # being set properly, only in the context of the ReturnTripPlanner object--
     # but it works fine in the normal environment. Can't figure out why.
     expect(rtp.trip.attributes.except(:previous_trip_id))

@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :service, class: 'Service' do
     name "Test Service"
     logo Rails.root.join("spec/files/mbta.png").open
@@ -48,21 +48,21 @@ FactoryGirl.define do
 
       trait :with_schedules do
         after(:create) do |s|
-          (1..5).each { |i| s.schedules << FactoryGirl.create(:schedule, day: i) }
+          (1..5).each { |i| s.schedules << FactoryBot.create(:schedule, day: i) }
         end
       end
 
       trait :with_micro_schedules do
         after(:create) do |s|
-          s.schedules << FactoryGirl.create(:micro_schedule)
+          s.schedules << FactoryBot.create(:micro_schedule)
         end
       end
       
       trait :with_overlapping_schedules do
         after(:create) do |s|
-          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 3600, end_time: 10800)
-          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 7200, end_time: 14400)
-          s.schedules << FactoryGirl.create(:schedule, day: 1, start_time: 14400, end_time: 18000)
+          s.schedules << FactoryBot.create(:schedule, day: 1, start_time: 3600, end_time: 10800)
+          s.schedules << FactoryBot.create(:schedule, day: 1, start_time: 7200, end_time: 14400)
+          s.schedules << FactoryBot.create(:schedule, day: 1, start_time: 14400, end_time: 18000)
         end
       end
 

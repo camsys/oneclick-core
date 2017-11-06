@@ -14,8 +14,8 @@ ActiveRecord::Schema.define(version: 20171024203532) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -212,7 +212,9 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.string    "agency_name"
     t.string    "site_name"
     t.text      "description"
+    t.geography "latlngg",     limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
+    t.index ["latlngg"], name: "index_oneclick_refernet_services_on_latlngg", using: :gist
   end
 
   create_table "oneclick_refernet_services_sub_sub_categories", force: :cascade do |t|

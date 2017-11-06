@@ -128,7 +128,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   ##########################################
 end
 

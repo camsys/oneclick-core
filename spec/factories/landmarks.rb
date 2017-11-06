@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :landmark do
     street_number "201"
     route "Station Landing"

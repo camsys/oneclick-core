@@ -1,10 +1,10 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :multiday_trip_planner do
 
     skip_create
 
     initialize_with do
-      trip = attributes[:trip] || FactoryGirl.create(:trip)
+      trip = attributes[:trip] || FactoryBot.create(:trip)
       options = attributes[:options] || {}
       trip_times = attributes[:trip_times] || [
           DateTime.current, 

@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :config do
     initialize_with { Config.find_or_create_by(key: key) }
 

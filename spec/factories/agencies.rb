@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :agency do
     name "Test Transportation Agency"
     logo Rails.root.join("spec/files/mbta.png").open

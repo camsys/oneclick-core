@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe UserEligibility, type: :model do
-  let!(:traveler) { FactoryGirl.create :user }
-  let!(:user_eligibility) { FactoryGirl.create :user_eligibility, :confirmed, user: traveler}
+  let!(:traveler) { FactoryBot.create :user }
+  let!(:user_eligibility) { FactoryBot.create :user_eligibility, :confirmed, user: traveler}
 
   it { should belong_to :user }
   it { should belong_to :eligibility }

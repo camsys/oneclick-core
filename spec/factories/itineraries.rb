@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :itinerary do
     
     trip { create(:trip) }

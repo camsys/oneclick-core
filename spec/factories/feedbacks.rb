@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :feedback do
     user
     review "Pretty good, would use again."
