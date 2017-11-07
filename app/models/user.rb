@@ -71,7 +71,7 @@ class User < ApplicationRecord
   
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
-    self.preferred_locale || Locale.find_by(name: "en") || Locale.first
+    self.preferred_locale || Locale.find_by(name: I18n.default_locale) || Locale.first
   end
 
   # Check to see if this user owns the object

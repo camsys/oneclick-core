@@ -34,7 +34,7 @@ module Api
       end
 
       def preferred_locale
-        locale
+        object.locale.try(:name)
       end
 
     end
