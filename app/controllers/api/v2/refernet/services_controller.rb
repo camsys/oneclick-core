@@ -11,21 +11,31 @@ module Api
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
 
+          # Base service queries on a collection of UNIQUE services
+          services = OneclickRefernet::Service.where(id: sub_sub_category
+                                                          .services
+                                                          .pluck(:id)
+                                                          .uniq)
           
           if params[:lat] and params[:lng]
             #services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], params[:meters] || 48280.3).uniq.limit(10)
             meters = (params[:meters].to_f > 0.0 ? params[:meters].to_f : 48280.3)
-            services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], meters).limit(10)
+            services = services.closest(params[:lat], params[:lng])
+                               .confirmed
+                               .within_box(params[:lat], params[:lng], meters)
+                               .limit(10)           
             duration_hash = build_duration_hash(params, services)
           else
-            services = sub_sub_category.services.confirmed.uniq.limit(10)
+            services = services.confirmed
+                               .limit(10)
           end
+          
 
           # TODO: NO HARD LIMIT. LIMIT BASED ON SOMETHING SMART E.G. DISTANCE
           services.each do |service|
             svc_data = service_hash(service, duration_hash)
             data << svc_data
-          end 
+          end
 
           render json: data
 
