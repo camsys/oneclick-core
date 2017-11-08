@@ -17,7 +17,7 @@ module OTP
     # Makes multiple OTP requests in parallel, and returns once they're all done.
     # Send it a list or array of request hashes.
     def multi_plan(*requests)
-      requests = requests.flatten
+      requests = requests.flatten.uniq {|req| req[:label]} # Discard any requests with duplicate labels
       responses = nil
       EM.run do
         multi = EM::MultiRequest.new
