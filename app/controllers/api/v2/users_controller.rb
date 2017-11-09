@@ -39,24 +39,36 @@ module Api
       
       # Signs in an existing user, returning auth token
       # POST /sign_in
+      # Leverages devise lockable module: https://github.com/plataformatec/devise/blob/master/lib/devise/models/lockable.rb
       def new_session
         @user = User.find_by(email: user_params[:email])
         
+        # Check if a user was found based on the passed email. If so, continue authentication.
         if @user.present?
-          if @user.valid_password?(user_params[:password])
+          # checks if password is incorrect and user is locked, and unlocks if lock is expired
+          if @user.valid_for_authentication? { @user.valid_password?(user_params[:password]) } 
             @user.ensure_authentication_token
-            render(success_response(
-                message: "User Signed In Successfully", 
-                session: session_hash(@user)
-              )) and return
           else
-            @errors[:password] = "Incorrect password for #{@user.email}."
-            @errors = @errors.merge(@user.errors.to_h)
+            # Otherwise, add some errors to the response depending on what went wrong./
+            @errors[:last_attempt] = "You have one more attempt before account is locked for #{User.unlock_in / 60} minutes." if @user.on_last_attempt?
+            @errors[:locked] = "User account is temporarily locked. Try again in #{@user.time_until_unlock} minutes." if @user.access_locked?
+            @errors[:password] = "Incorrect password for #{@user.email}." unless @user.access_locked? || @user.valid_password?(user_params[:password])
+            @errors = @errors.merge(@user.errors.to_h)            
           end
         else
           @errors[:email] = "Could not find user with email #{user_params[:email]}"
         end
-        render(fail_response(errors: @errors))
+
+        # Check if any errors were recorded. If not, send a success response.
+        if @errors.empty?
+          render(success_response(
+              message: "User Signed In Successfully", 
+              session: session_hash(@user)
+            )) and return
+        else # If there are any errors, send back a failure response.
+          render(fail_response(errors: @errors))
+        end
+        
       end
       
       # Signs out a user based on email and auth token headers

@@ -9,7 +9,8 @@ class User < ApplicationRecord
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :trackable, :validatable
+         :recoverable, :rememberable, :trackable, :validatable,
+         :lockable
   write_to_csv with: Admin::UsersReportCSVWriter
 
 
