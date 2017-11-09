@@ -64,6 +64,14 @@ class UserMailer < ApplicationMailer
     @reset_password_path = "#{Config.api_v1_ui_url}?reset_password_token=#{token}"
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
+  
+  # API V2 password reset email
+  # Sends an email to the user with the given new password
+  def api_v2_reset_password_instructions(user, new_password)
+    @user = user
+    @new_password = new_password
+    mail(to: @user.email, subject: 'Password Reset Instructions')
+  end
 
   private
 

@@ -3,7 +3,7 @@ module Api
     class UsersController < ApiController
       # include Devise::Controllers::SignInOut
       
-      before_action :require_authentication, except: [:create, :new_session]
+      before_action :require_authentication, except: [:create, :new_session, :reset_password]
 
       # Get the user profile 
       def show
@@ -70,6 +70,22 @@ module Api
         end
         
       end
+      
+      # Resets the user's password to a random string and sends it to them via email
+      # POST /reset_password
+      def reset_password
+        email = user_params[:email]
+        @user = User.find_by(email: email)
+        
+        # Send a failure response if no account exists with the given email
+        unless @user.present?
+          render(fail_response(message: "User #{email} does not exist")) and return
+        end
+      
+        @user.send_api_v2_reset_password_instructions
+        
+      end
+      
       
       # Signs out a user based on email and auth token headers
       # DELETE /sign_out
