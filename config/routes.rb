@@ -48,6 +48,8 @@ Rails.application.routes.draw do
           get 'get_guest_token'
           post 'update'
           post 'password'
+          post 'request_reset'
+          post 'reset'
         end
       end
       

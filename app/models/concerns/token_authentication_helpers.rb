@@ -18,4 +18,13 @@ module TokenAuthenticationHelpers
     return ((User.unlock_in - (Time.current - locked_at)) / 60).round
   end
   
+  # Resets reset password token and send reset password instructions by email.
+  # Email will link to front end password reset URL. Returns the token sent in the e-mail.
+  # Similar to devise method send_reset_password_instructions: https://github.com/plataformatec/devise/blob/master/lib/devise/models/recoverable.rb
+  def send_api_v1_reset_password_instructions
+    token = set_reset_password_token
+    UserMailer.api_v1_reset_password_instructions(self, token).deliver
+    token
+  end
+  
 end
