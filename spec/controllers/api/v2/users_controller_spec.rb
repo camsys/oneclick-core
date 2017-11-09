@@ -106,6 +106,40 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       expect(traveler.authentication_token).to eq(original_auth_token)
     end
     
+    it 'locks out user after three attempts' do
+      
+      pw = "somerandombadpw"
+
+      expect(traveler.access_locked?).to be false
+      expect(traveler.failed_attempts).to eq(0)
+      
+      # Attempt 1
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+      
+      traveler.reload
+      expect(traveler.access_locked?).to be false
+      expect(traveler.failed_attempts).to eq(1)
+      
+      # Attempt 2
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+
+      traveler.reload
+      expect(traveler.access_locked?).to be false
+      expect(traveler.failed_attempts).to eq(2)
+      
+      # Attempt 3
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+
+      traveler.reload
+      expect(traveler.access_locked?).to be true
+      expect(traveler.failed_attempts).to eq(3)
+      
+      # Attempt 4 (with correct pw)
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: attributes_for(:user)[:password] } }
+      expect(response).to have_http_status(:bad_request)
+
+    end
+    
   end
   
   it 'returns the first and last name of a user profile' do
