@@ -458,7 +458,22 @@ RSpec.describe Api::V2::UsersController, type: :controller do
   
   describe "password reset" do
     
-    pending "resets a user's password and sends them an email"
+    it "resets a user's password and sends them an email" do
+    
+      old_pw_enc = traveler.encrypted_password
+    
+      expect(User).to receive(:find_by).and_return(traveler)
+      expect(UserMailer).to receive(:api_v2_reset_password_instructions)
+                        .and_return(UserMailer.api_v2_reset_password_instructions(traveler, "new_password"))
+    
+      params = { user: { email: traveler.email } }      
+      post :reset_password, params: params
+      
+      traveler.reload
+      expect(response).to be_success
+      expect(traveler.encrypted_password).not_to eq(old_pw_enc)
+    
+    end
     
   end
 
