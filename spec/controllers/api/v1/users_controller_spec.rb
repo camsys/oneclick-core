@@ -324,9 +324,13 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       # Confirm that all the attributes were updated
       expect(traveler.encrypted_password).to eq(old_token)
     end
+  
+    pending 'sends a password reset email'
+    
+    pending 'resets password with token'
     
   end
-  
+    
   
   describe 'get guest token' do
 

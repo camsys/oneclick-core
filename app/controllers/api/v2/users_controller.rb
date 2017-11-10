@@ -84,6 +84,8 @@ module Api
       
         @user.send_api_v2_reset_password_instructions
         
+        render(success_response(message: "Password reset email sent to #{email}."))
+        
       end
       
       
