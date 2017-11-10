@@ -324,9 +324,47 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       # Confirm that all the attributes were updated
       expect(traveler.encrypted_password).to eq(old_token)
     end
+  
+    it 'sends a password reset email and sets a reset token' do
+      
+      # PW reset token should start nil
+      expect(traveler.reset_password_token).to be_nil
+      
+      # During the call, UserMailer should be called to send the reset instructions email
+      expect(UserMailer).to receive(:api_v1_reset_password_instructions)
+                        .and_return(UserMailer.api_v1_reset_password_instructions(traveler, "token"))
+      
+      post :request_reset, params: { "email": traveler.email }
+      expect(response).to be_success
+      
+      # After API call, reset token should not be nil anymore
+      traveler.reload
+      expect(traveler.reset_password_token).to be
+    end
+    
+    it 'resets password with token' do
+      old_pw_enc = traveler.encrypted_password
+      
+      # Send the reset password instructions and set the reset token
+      token = traveler.send_api_v1_reset_password_instructions
+      
+      params = {
+        "reset_password_token": token,
+        "password": "newpassword1",
+        "password_confirmation": "newpassword1"
+      }
+      
+      post :reset, params: params
+      traveler.reload
+      
+      # Expect response to be success, reset token to set to nil, and password to change
+      expect(response).to be_success
+      expect(traveler.reset_password_token).to be nil
+      expect(traveler.encrypted_password).not_to eq(old_pw_enc)
+    end
     
   end
-  
+    
   
   describe 'get guest token' do
 

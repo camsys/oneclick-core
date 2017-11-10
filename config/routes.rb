@@ -48,6 +48,8 @@ Rails.application.routes.draw do
           get 'get_guest_token'
           post 'update'
           post 'password'
+          post 'request_reset'
+          post 'reset'
         end
       end
       
@@ -86,7 +88,11 @@ Rails.application.routes.draw do
       post 'trips/plan_multiday' => 'trips#plan_multiday'
       
       # Users
-      resource :users, only: [:show, :update, :create]
+      resource :users, only: [:show, :update, :create] do
+        collection do
+          post 'reset_password'
+        end
+      end
       post 'sign_up' => 'users#create'
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'

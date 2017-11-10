@@ -22,7 +22,8 @@ Rails.configuration.to_prepare do
   end
 
   # If AWS_LOCALE_STORAGE is set, trigger upload of locale to AWS every time a record is updated
-  if ENV['AWS_LOCALE_STORAGE'].present?
+  if ENV['AWS_LOCALE_STORAGE'] == "true" && 
+     ENV["RAILS_ENV"] == "production" # Only upload locales in production environment
     Translation.class_eval do
       include AwsLocaleUploadable
     end  
