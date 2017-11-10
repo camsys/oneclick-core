@@ -75,7 +75,6 @@ module Api
           return
         else
           @traveler.send_api_v1_reset_password_instructions
-          # user.send_api_user_reset_password_instructions
           render status: 200, json: {message: "Password reset instructions sent to #{@traveler.email}."}
           return
         end
