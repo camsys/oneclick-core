@@ -17,7 +17,7 @@ module Api
 
         # user.update_profile call filters out any unsafe params
         if @traveler.update_profile(params)
-          render(success_response(@traveler, serializer: UserSerializer))
+          render(success_response(@traveler))
         else
           render(fail_response(status: 500, message: "Unable to update."))
         end
