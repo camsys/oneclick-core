@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171024203532) do
+ActiveRecord::Schema.define(version: 20171114170039) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
@@ -200,6 +200,7 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.datetime "updated_at",                   null: false
     t.boolean  "confirmed",    default: false
     t.integer  "sequence_nbr"
+    t.string   "code"
     t.index ["name"], name: "index_oneclick_refernet_categories_on_name", using: :btree
   end
 
@@ -233,6 +234,7 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.datetime "updated_at",                           null: false
     t.boolean  "confirmed",            default: false
     t.integer  "refernet_category_id"
+    t.string   "code"
     t.index ["category_id"], name: "index_oneclick_refernet_sub_categories_on_category_id", using: :btree
     t.index ["name"], name: "index_oneclick_refernet_sub_categories_on_name", using: :btree
   end
@@ -243,6 +245,7 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
     t.boolean  "confirmed",       default: false
+    t.string   "code"
     t.index ["name"], name: "index_oneclick_refernet_sub_sub_categories_on_name", using: :btree
     t.index ["sub_category_id"], name: "index_oneclick_refernet_sub_sub_categories_on_sub_category_id", using: :btree
   end
@@ -435,11 +438,15 @@ ActiveRecord::Schema.define(version: 20171024203532) do
     t.string   "last_name"
     t.integer  "preferred_locale_id"
     t.text     "preferred_trip_types"
+    t.integer  "failed_attempts",                   default: 0,  null: false
+    t.string   "unlock_token"
+    t.datetime "locked_at"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
     t.index ["last_name", "first_name"], name: "index_users_on_last_name_and_first_name", using: :btree
     t.index ["preferred_locale_id"], name: "index_users_on_preferred_locale_id", using: :btree
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
+    t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true, using: :btree
   end
 
   create_table "users_roles", id: false, force: :cascade do |t|

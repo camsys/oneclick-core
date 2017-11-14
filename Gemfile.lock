@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 2ce3ab39b87a7f069ae7a81e39f947ecb088ef0a
+  revision: e861a884a64de03e77dcb42bfd261c14b8e24185
   specs:
-    oneclick_refernet (0.2.0)
+    oneclick_refernet (0.3.2)
       active_model_serializers
       activerecord-postgis-adapter
       pg
@@ -60,7 +60,7 @@ GEM
       activemodel (= 5.0.6)
       activesupport (= 5.0.6)
       arel (~> 7.0)
-    activerecord-postgis-adapter (4.0.4)
+    activerecord-postgis-adapter (4.0.5)
       activerecord (~> 5.0.0)
       rgeo-activerecord (~> 5.0.0)
     activesupport (5.0.6)
@@ -114,7 +114,7 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
     cookiejar (0.3.3)
-    crass (1.0.2)
+    crass (1.0.3)
     dbf (3.1.1)
     devise (4.3.0)
       bcrypt (~> 3.0)
@@ -507,7 +507,7 @@ GEM
       railties (>= 5.0)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.2)
+    websocket-extensions (0.1.3)
     xml-simple (1.1.5)
 
 PLATFORMS
@@ -568,4 +568,4 @@ DEPENDENCIES
   web-console (>= 3.3.0)
 
 BUNDLED WITH
-   1.14.3
+   1.16.0

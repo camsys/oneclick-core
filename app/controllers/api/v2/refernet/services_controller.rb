@@ -9,11 +9,11 @@ module Api
           data = []
           duration_hash = {}
           
-          sub_sub_category = OneclickRefernet::SubSubCategory.find_by(name: params[:sub_sub_category])
+          sub_sub_category = OneclickRefernet::SubSubCategory.find_by(code: params[:sub_sub_category])
+          sub_sub_category_services = sub_sub_category.try(:services) || []
 
           # Base service queries on a collection of UNIQUE services
-          services = OneclickRefernet::Service.where(id: sub_sub_category
-                                                          .services
+          services = OneclickRefernet::Service.where(id: sub_sub_category_services
                                                           .pluck(:id)
                                                           .uniq)
           
