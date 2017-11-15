@@ -15,6 +15,11 @@
     label: "Days before sending feedback reminders",
     input_html: {value: (Config.find_by(key: :feedback_overdue_days).try(:value) || 5)},
     as: :integer
+
+  = f.input :ui_url, required: true,
+    label: "Traveler UI URL",
+    input_html: {value: (Config.find_by(key: :ui_url).try(:value) || "")},
+    as: :string
     
 :javascript
   $(document).ready(function() {    
