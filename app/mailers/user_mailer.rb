@@ -9,6 +9,12 @@ class UserMailer < ApplicationMailer
     mail(to: email_list, subject: "Reminder to Set Up #{@agency.name}")
   end
 
+  def new_traveler(user)
+    @user = user
+    @subject = "TRANSLATED WELCOME MESSAGE"
+    mail(to: user.email, subject: @subject)
+  end
+
   # Here to Support API/V1 
   def user_trip_email(addresses, trip)
     @trip = trip
@@ -61,7 +67,7 @@ class UserMailer < ApplicationMailer
   # API V1 password reset email
   def api_v1_reset_password_instructions(user, token)
     @user = user
-    @reset_password_path = "#{Config.api_v1_ui_url}?reset_password_token=#{token}"
+    @reset_password_path = "#{Config.ui_url}?reset_password_token=#{token}"
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
   

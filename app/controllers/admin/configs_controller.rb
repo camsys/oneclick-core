@@ -17,7 +17,8 @@ class Admin::ConfigsController < Admin::AdminController
     :ride_pilot_url,
     :ride_pilot_token,
     :feedback_overdue_days,
-    daily_scheduled_tasks: []
+    :ui_url,
+    daily_scheduled_tasks: []    
   ].freeze
 
   def index
