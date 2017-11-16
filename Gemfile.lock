@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: e861a884a64de03e77dcb42bfd261c14b8e24185
+  revision: 3a38cf2e508cf774eb9e316db102b8f3b8a84abc
   specs:
-    oneclick_refernet (0.3.2)
+    oneclick_refernet (0.4.0)
       active_model_serializers
       activerecord-postgis-adapter
       pg
@@ -46,11 +46,11 @@ GEM
       erubis (~> 2.7.0)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_model_serializers (0.10.6)
+    active_model_serializers (0.10.7)
       actionpack (>= 4.1, < 6)
       activemodel (>= 4.1, < 6)
       case_transform (>= 0.2)
-      jsonapi-renderer (>= 0.1.1.beta1, < 0.2)
+      jsonapi-renderer (>= 0.1.1.beta1, < 0.3)
     activejob (5.0.6)
       activesupport (= 5.0.6)
       globalid (>= 0.3.6)
@@ -334,7 +334,7 @@ GEM
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (2.1.0)
-    jsonapi-renderer (0.1.3)
+    jsonapi-renderer (0.2.0)
     leaflet-rails (1.2.0)
       rails (>= 4.2.0)
     listen (3.0.8)
