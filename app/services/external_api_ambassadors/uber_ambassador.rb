@@ -17,7 +17,7 @@ class UberAmbassador
   def prepare_http_requests
     {
       label: :uber_prices,
-      url: @uber_api_service.estimates_price_url([@trip.destination.lat, @trip.destination.lng], [@trip.origin.lat, @trip.destination.lng]),
+      url: @uber_api_service.estimates_price_url([@trip.destination.lat, @trip.destination.lng], [@trip.origin.lat, @trip.origin.lng]),
       action: :get,
       options: {
         head: @uber_api_service.headers 
