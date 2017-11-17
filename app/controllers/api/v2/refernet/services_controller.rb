@@ -70,10 +70,10 @@ module Api
         end
 
         # Augments the ReferNET engine's service serializer, by adding in trip times from OTP
-        def service_hash service, duration_hash={}, locale=:en
+        def service_hash service, duration_hash={}
           base_service_hash = OneclickRefernet::ServiceSerializer
                               .new(service, 
-                                   { scope: { locale: locale} })
+                                   { scope: { locale: @locale} })
                               .to_hash
           base_service_hash.merge({
             "drive_time": duration_hash["#{service.id}_CAR"],
