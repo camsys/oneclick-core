@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 3a38cf2e508cf774eb9e316db102b8f3b8a84abc
+  revision: dbe434c043990c0c2b6fdcf00acb67d3ef6c9301
   specs:
-    oneclick_refernet (0.4.0)
+    oneclick_refernet (0.4.1)
       active_model_serializers
       activerecord-postgis-adapter
       pg
@@ -400,7 +400,7 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.2.1)
+    rake (12.3.0)
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
