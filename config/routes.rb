@@ -88,7 +88,7 @@ Rails.application.routes.draw do
       post 'trips/plan_multiday' => 'trips#plan_multiday'
       
       # Users
-      resource :users, only: [:show, :update, :create] do
+      resource :users, only: [:show, :update, :create, :destroy] do
         collection do
           post 'reset_password'
         end
