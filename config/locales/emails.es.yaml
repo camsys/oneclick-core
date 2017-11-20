@@ -1,0 +1,9 @@
+es:
+  emails:
+    confirmation:
+      confirm:
+        "Confirmar mi cuenta"
+      message:
+        "Haga clic en el enlace a continuación para confirmar su correo electrónico y abrir la aplicación"
+      welcome:
+        "Bienvenido"

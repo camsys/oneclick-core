@@ -1,0 +1,11 @@
+en:
+  emails:
+    confirmation:
+      confirm:
+        "Confirm my account"
+      message:
+        "Click the link below to confirm your email and open the application"
+      welcome:
+        "Welcome"
+
+
