@@ -9,12 +9,6 @@ class UserMailer < ApplicationMailer
     mail(to: email_list, subject: "Reminder to Set Up #{@agency.name}")
   end
 
-  def new_traveler(user)
-    @user = user
-    @subject = "TRANSLATED WELCOME MESSAGE"
-    mail(to: user.email, subject: @subject)
-  end
-
   # Here to Support API/V1 
   def user_trip_email(addresses, trip)
     @trip = trip
