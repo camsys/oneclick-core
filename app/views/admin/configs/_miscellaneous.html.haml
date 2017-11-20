@@ -20,6 +20,11 @@
     label: "Traveler UI URL",
     input_html: {value: (Config.find_by(key: :ui_url).try(:value) || "")},
     as: :string
+
+  = f.input :require_user_confirmation, require: true, include_blank: false,
+    lable: "Require new users to confirm email addresses",
+    input_html: {value: (Config.find_by(key: :require_user_confirmation).try(:value) || false)},
+    as: :select
     
 :javascript
   $(document).ready(function() {    
