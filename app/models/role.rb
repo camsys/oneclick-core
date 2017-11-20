@@ -1,7 +1,7 @@
 class Role < ApplicationRecord
   
   ROLES = [ :admin, :staff ]
-  
+
   belongs_to :resource,
              :polymorphic => true,
              :optional => true
