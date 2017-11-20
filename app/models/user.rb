@@ -130,5 +130,11 @@ class User < ApplicationRecord
     self.eligibilities << eligs
   end
 
+  protected
+  
+  # Set Require Confirmation to be true
+  def confirmation_required?
+    Config.require_user_confirmation || false
+  end
 
 end
