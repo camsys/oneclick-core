@@ -101,6 +101,10 @@ module Api
         end
         
       end
+
+      def destroy
+        puts params.ai
+      end
       
       private
       
