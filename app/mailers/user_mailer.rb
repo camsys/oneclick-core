@@ -13,6 +13,7 @@ class UserMailer < ApplicationMailer
   def user_trip_email(addresses, trip)
     @trip = trip
     @traveler = trip.user
+    @locale = @traveler.locale.try(:name)
     subject = 'Your Trip Details'
     @itinerary = @trip.selected_itinerary
     unless @itinerary
@@ -61,6 +62,7 @@ class UserMailer < ApplicationMailer
   # API V1 password reset email
   def api_v1_reset_password_instructions(user, token)
     @user = user
+    @locale = @user.locale.try(:name)
     @reset_password_path = "#{Config.api_v1_ui_url}?reset_password_token=#{token}"
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
