@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   
-  devise_for :users
+  devise_for :users, controllers: { confirmations: 'confirmations' }
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   ### JSON API ###
@@ -88,7 +88,7 @@ Rails.application.routes.draw do
       post 'trips/plan_multiday' => 'trips#plan_multiday'
       
       # Users
-      resource :users, only: [:show, :update, :create, :destroy] do
+      resource :users, only: [:show, :update, :create] do
         collection do
           post 'reset_password'
         end
