@@ -20,6 +20,45 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  global: 
+    otp: 
+      relative_direction:
+        left: "Left"
+        right: "Right"
+        hard_left: "Hard left"
+        hard_right: "Hard right"
+        slightly_left: "Slightly left"
+        slightly_right: "Slightly right"
+        continiue: "Continue"
+      absolute_direction:
+        north: "North"
+        northeast: "Northeast"
+        east: "East"
+        southeast: "Southeast"
+        south: "South"
+        southwest: "Southwest"
+        west: "West"
+        northwest: "Northwest"
+      misc:
+        onto: "onto"
+        Walk: "Walk"
+        walk_to: "Walk to"
+        drive_to: "Drive to"
+        bike_to: "Bike to"
+        to: "to"
+      
+    time:
+      minute: "minute"
+      minutes: "minutes"
+      hour: "hour"
+      hours: "hours"
+      
+    distance:
+      miles: "miles"
+      feet: "feet"
+      
+    
+    
   # ### Support the Standard UI ###
   # fare_sorter: "Fare"
   # travel_time_sorter: "Travel Time"

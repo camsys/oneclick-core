@@ -9,6 +9,12 @@ class UserMailer < ApplicationMailer
     mail(to: email_list, subject: "Reminder to Set Up #{@agency.name}")
   end
 
+  def new_traveler(user)
+    @user = user
+    @subject = "TRANSLATED WELCOME MESSAGE"
+    mail(to: user.email, subject: @subject)
+  end
+
   # Here to Support API/V1 
   def user_trip_email(addresses, trip)
     @trip = trip
@@ -69,6 +75,7 @@ class UserMailer < ApplicationMailer
   # Sends an email to the user with the given new password
   def api_v2_reset_password_instructions(user, new_password)
     @user = user
+    @locale = @user.locale.try(:name)
     @new_password = new_password
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end

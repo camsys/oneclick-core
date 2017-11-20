@@ -4,7 +4,7 @@
       =image_tag(attachments["start.png"].url, height: 26, width: 26, style: 'vertical-align: top;')
     %td
       %h3
-        = "#{translate("start")} #{itinerary.trip.origin.name}"
+        = "#{translate("api_v1.emails.user_trip.start")} #{itinerary.trip.origin.name}"
       = itinerary.start_time.in_time_zone.strftime('%l:%M %p').strip
   %br
   -itinerary.legs.each do |leg|
@@ -24,6 +24,5 @@
       =image_tag(attachments["stop.png"].url, height: 26, width: 26, style: 'vertical-align: top;')
     %td
       %h3
-        ="#{translate("arrive")} #{itinerary.trip.destination.name}"
+        ="#{translate("api_v1.emails.user_trip.arrive")} #{itinerary.trip.destination.name}"
       = itinerary.end_time.in_time_zone.strftime('%l:%M %p').strip
-
