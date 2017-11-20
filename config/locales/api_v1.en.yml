@@ -1,0 +1,28 @@
+# English locale for API V1 responses
+
+en:
+  api_v1:
+    emails:
+      reset_password:
+        greeting: "Hello"
+        intro_sentence: "Someone has requested a link to change your password. You can do this through the link below."
+        reset_password_link: "Change my password"
+        body_1: "If you didn't request this, please ignore this email."
+        body_2: "Your password won't change until you access the link above and create a new one."
+    
+      user_trip:
+        fare: "Fare"
+        depart_at: "Depart at"
+        arrive_by: "Arrive by"
+        duration: "Duration"
+        walking: "Walking"
+        estimated: "Estimated"
+        origin: "Origin"
+        destination: "Destination"
+        date: "Date"
+        start: "Start"
+        directions: "Directions"
+        start: "Start"
+        end: "End"
+        depart: "Depart"
+        arrive: "Arrive"

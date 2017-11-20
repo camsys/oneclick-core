@@ -69,6 +69,7 @@ class UserMailer < ApplicationMailer
   # Sends an email to the user with the given new password
   def api_v2_reset_password_instructions(user, new_password)
     @user = user
+    @locale = @user.locale.try(:name)
     @new_password = new_password
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
