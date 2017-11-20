@@ -8,21 +8,21 @@
   %tr
     %td{style: "color:grey; padding-right: 10px;"}
       %strong.trip_header_detail
-        = "#{translate('Origin')}: "
+        = "#{translate('api_v1.emails.user_trip.origin')}: "
     %td{style: "padding-right: 10px;"}
       %strong.trip_header_detail
         =@trip.origin.to_s
   %tr
     %td{style: "color:grey; weight:strong; padding-right: 10px;"}
       %strong.trip_header_detail
-        ="#{translate('Destination')}: "
+        ="#{translate(translate('api_v1.emails.user_trip.destination')}: "
     %td{style: "padding-right: 10px;"}
       %strong.trip_header_detail
         =@trip.destination.to_s
   %tr
     %td{style: "color:grey; padding-right: 10px;"}
       %strong.trip_header_detail
-        ="#{translate('Date')}: "
+        ="#{translate('api_v1.emails.user_trip.date')}: "
     %td{style: "padding-right: 10px;"}
       %strong
         =@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")
@@ -38,6 +38,3 @@
 %td{style: "text-align: center;", colspan: 2}
   %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
     =image_tag(attachments[@itinerary.id.to_s + ".png"].url)
-
-
-

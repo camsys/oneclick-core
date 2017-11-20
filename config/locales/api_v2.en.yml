@@ -1,0 +1,10 @@
+# English locale for API V1 responses
+
+en:
+  api_v2:
+    emails:
+      reset_password:
+        greeting: "Hello"
+        intro: "Your password has been reset. Please sign on with your new password and reset it to a password of your choosing as soon as possible."
+        your_username: "Your Username"
+        your_new_password: "Your New Password"

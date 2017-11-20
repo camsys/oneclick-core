@@ -2,35 +2,34 @@
   %tr
   %td.trip_summary{style: "valign: middle; font-family: 'Helvetica Neue', Arial; font-size: 0.88em;"}
     -if itinerary.cost
-      %span{style: "font-weight: bold;"}= translate("fare")
+      %span{style: "font-weight: bold;"}= translate("api_v1.emails.user_trip.fare")
       %span=' : '
       -if itinerary.trip_type == 'taxi' || itinerary.trip_type == 'uber' 
-        %span="#{number_to_currency(itinerary.cost.round)} #{translate('estimated')}"
+        %span="#{number_to_currency(itinerary.cost.round)} #{translate('api_v1.emails.user_trip.estimated')}"
       -else
         %span=number_to_currency(itinerary.cost)
 
     -if itinerary.start_time
       -if itinerary.cost
         %span{style: "font-size: 0.6em; padding-left:12px; padding-right: 12px; color: grey;"}=' | '
-      %span{style: "font-weight: bold;"}= translate("depart_at")
+      %span{style: "font-weight: bold;"}= translate("api_v1.emails.user_trip.depart_at")
       %span=' : '
       %span=itinerary.start_time.in_time_zone.strftime('%l:%M %p').strip
 
     -if itinerary.end_time
       %span{style: "font-size: 0.6em; padding: 0px 12px; color: #b1b1b1;"}=' | '
-      %span{style: "font-weight: bold;"}= translate("arrive_by")
+      %span{style: "font-weight: bold;"}= translate("api_v1.emails.user_trip.arrive_by")
       %span=' : '
       %span=itinerary.end_time.in_time_zone.strftime('%l:%M %p').strip
 
     -if itinerary.duration
       %span{style: "font-size: 0.6em; padding: 0px 12px; color: #b1b1b1;"}=' | '
-      %span{style: "font-weight: bold;"}= translate('duration')
+      %span{style: "font-weight: bold;"}= translate('api_v1.emails.user_trip.duration')
       %span=' : '
       %span.duration= duration_to_words(itinerary.duration)
 
     -if itinerary.walk_time && itinerary.walk_time > 0
       %span{style: "font-size: 0.6em; padding: 0px 12px; color: #b1b1b1;"}=' | '
-      %span{style: "font-weight: bold;"}=  translate('walking')
+      %span{style: "font-weight: bold;"}=  translate('api_v1.emails.user_trip.walking')
       %span=' : '
       %span=duration_to_words(itinerary.walk_time)
-
