@@ -17,7 +17,10 @@ class Admin::ConfigsController < Admin::AdminController
     :ride_pilot_url,
     :ride_pilot_token,
     :feedback_overdue_days,
-    daily_scheduled_tasks: []
+    :ui_url,
+    :require_user_confirmation,
+    :allow_unconfirmed_access_minutes,
+    daily_scheduled_tasks: []    
   ].freeze
 
   def index
@@ -54,6 +57,10 @@ class Admin::ConfigsController < Admin::AdminController
       return value.select(&:present?).map(&:to_sym)
     when :feedback_overdue_days
       return value.to_i
+    when :allow_unconfirmed_access_minutes
+      return value.to_i
+    when :require_user_confirmation
+      return (value == "true")
     else
       return value
     end

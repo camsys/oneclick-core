@@ -10,7 +10,7 @@ class User < ApplicationRecord
   include TravelerProfileUpdater   # Update Profile from API Call
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
-         :lockable
+         :lockable, :confirmable
   write_to_csv with: Admin::UsersReportCSVWriter
 
 
@@ -130,5 +130,11 @@ class User < ApplicationRecord
     self.eligibilities << eligs
   end
 
+  protected
+  
+  # Set Require Confirmation to be true
+  def confirmation_required?
+    Config.require_user_confirmation || false
+  end
 
 end

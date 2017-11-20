@@ -31,6 +31,7 @@ module Api
         
         if @user.save
           @user.ensure_authentication_token
+          UserMailer.new_traveler(@user).deliver_now
           render(success_response(message: "User Signed Up Successfully", session: session_hash(@user)))
         else
           render(fail_response(errors: @user.errors.to_h))
@@ -99,6 +100,10 @@ module Api
           render(fail_response)
         end
         
+      end
+
+      def destroy
+        puts params.ai
       end
       
       private
