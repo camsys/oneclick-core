@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Api::V2::TripsController, type: :controller do
   
   # Create necessary configs, purposes, and characteristics
-  before(:each) do 
+  before(:each) do
     create(:otp_config)
     create(:tff_config)
     create(:uber_token)
@@ -97,6 +97,24 @@ RSpec.describe Api::V2::TripsController, type: :controller do
       expect(created_trip.relevant_purposes).to eq(Purpose.all)
       expect(created_trip.relevant_accommodations).to eq(Accommodation.all)
       expect(created_trip.relevant_eligibilities).to eq(Eligibility.all)
+    end
+    
+    # Spot check if the ApiRequestLogger is working properly
+    it "logs api requests" do
+      request_logs_count = RequestLog.count
+      
+      request.headers.merge!(user_headers)
+      post :create, params: plan_call_params
+      
+      expect(RequestLog.count).to eq(request_logs_count + 1)
+      
+      log = RequestLog.last
+      
+      expect(log.status_code).to eq('200')
+      expect(log.controller).to eq("Api::V2::TripsController")
+      expect(log.action).to eq("create")
+      expect(log.auth_email).to eq(user.email)
+      expect(log.params).to be
     end
     
   end
