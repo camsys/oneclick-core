@@ -12,11 +12,9 @@ module Api
 
       # Update's the user's profile
       def update
-
-        Rails.logger.info params.ai 
-
         # user.update_profile call filters out any unsafe params
         if @traveler.update_profile(params)
+          set_locale # based on traveler's new preferred locale
           render(success_response(@traveler))
         else
           render(fail_response(status: 500, message: "Unable to update."))
