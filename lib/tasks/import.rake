@@ -103,7 +103,7 @@ namespace :import do
       provider_attrs[:phone] = provider_attrs.delete("phone")
       ta = TransportationAgency.find_or_initialize_by(name: provider_attrs["name"])
       ta.assign_attributes(provider_attrs)
-      ta.build_comments_from_hash(comments)
+      ta.set_descriptions_from_hash(comments)
       save_and_log_result(ta)
     end
     
@@ -219,7 +219,7 @@ namespace :import do
       
       svc = Service.find_or_initialize_by(name: service_attrs["name"])
       svc.assign_attributes(service_attrs)
-      svc.build_comments_from_hash(comments)
+      svc.set_descriptions_from_hash(comments)
       svc.accommodations = Accommodation.where(code: accommodations)
       svc.eligibilities = Eligibility.where(code: eligibilities)
       svc.purposes = Purpose.where(code: purposes)

@@ -1,6 +1,8 @@
 # Provides helper methods for dealing with accommodations, 
 # eligibilities, and purposes.
 module CharacteristicsHelper
+  
+  TRANSLATION_TYPES = [:name, :note, :question]
 
   def self.included(base)
 
@@ -30,30 +32,39 @@ module CharacteristicsHelper
   end
 
   def name locale=I18n.default_locale
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_name")
+    SimpleTranslationEngine.translate(locale, tkey_code(:name))
   end
 
   def note locale=I18n.default_locale
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_note")
+    SimpleTranslationEngine.translate(locale, tkey_code(:note))
   end
 
   def question locale=I18n.default_locale
-    SimpleTranslationEngine.translate(locale, "#{self.class.name.downcase}_#{self.code}_question")
+    SimpleTranslationEngine.translate(locale, tkey_code(:question))
   end
 
   # set translations e.g.,  locale="en", object="name", value="medical"
   def set_translation(locale, translation, value)
-    SimpleTranslationEngine.set_translation(locale, "#{self.class.name.downcase}_#{self.code}_#{translation}", value)
+    SimpleTranslationEngine.set_translation(locale, tkey_code(translation), value)
   end
-
-  # DEPRECATED -- done by serializers
-  # def to_hash locale=:en
-  #   {
-  #     name: self.try(:name, locale),
-  #     code: self.try(:code),
-  #     note: self.try(:note, locale),
-  #     question: self.try(:question, locale)
-  #   }
-  # end
+  
+  # Builds name, note, and question translation keys (not saved to db)
+  def build_translation_keys
+    TRANSLATION_TYPES.map do |t|
+      TranslationKey.find_or_initialize_by(name: tkey_code(t))
+    end
+  end
+  
+  # Creates name, not, and question translation keys (saved to db)
+  def create_translation_keys
+    TRANSLATION_TYPES.map do |t|
+      TranslationKey.find_or_create_by(name: tkey_code(t))
+    end
+  end
+  
+  # Builds a translation key code of the given type (e.g. :name)
+  def tkey_code(t)
+    "#{self.class.name.downcase}_#{self.code}_#{t}"
+  end
 
 end

@@ -47,4 +47,11 @@ module Describable
     I18n.available_locales.map {|l| [l, description(l)] }.to_h
   end
   
+  # Sets the descriptions from a hash of locale:value pairs
+  def set_descriptions_from_hash(desc_hash={})
+    desc_hash.each do |loc, desc|
+      set_description_translation(loc, desc)
+    end
+  end
+  
 end

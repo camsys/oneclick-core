@@ -1,5 +1,9 @@
 namespace :db do
   namespace :sample do
+    
+    require 'tasks/helpers/samples_helper'
+    include SamplesHelper
+    
     desc "Setup Sample Landmarks"
     task landmarks: :environment do
 
@@ -19,65 +23,153 @@ namespace :db do
       end
     end
 
-    desc "Setup Sample Eligibilities"
+    desc "Setup Sample Eligibilities, with translations for each"
     task eligibilities: :environment do
-      eligs = [
-        { code: 'medicaid' },
-        { code: 'physically_disabled' },
-        { code: 'ada' },
-        { code: 'veteran' },
-        { code: 'over_65' }
-      ]
-
-      eligs.each do |elig|
-        Eligibility.where(code: elig[:code]).first_or_create!(elig)
-        tk = TranslationKey.where(name: 'eligibility_' + elig[:code] + '_name').first_or_create 
-        locale = Locale.find_by(name: "en")
-        Translation.where(locale: locale, translation_key: tk, value: elig[:code].titleize).first_or_create
-      end
+      CharacteristicBuilder.new(:eligibility).build_all([
+        { 
+          code: 'medicaid',
+          name: "Medicaid",
+          note: "I am eligible for Medicaid.",
+          question: "Are you eligible for Medicaid?" 
+        },
+        { 
+          code: 'physically_disabled',
+          name: "Physically Disabled",
+          note: "I am physically disabled.",
+          question: "Are you physically disabled?" 
+        },
+        { 
+          code: 'ada',
+          name: "ADA",
+          note: "I am eligible for ADA.",
+          question: "Are you eligible for ADA?" 
+        },
+        { 
+          code: 'veteran',
+          name: "Veteran",
+          note: "I am a veteran.",
+          question: "Are you a veteran?" 
+        },
+        { 
+          code: 'over_65',
+          name: "Over 65",
+          note: "I am over 65.",
+          question: "Are you over 65?" 
+        }
+      ])
     end
 
     desc "Setup Sample Accommodations"
     task accommodations: :environment do
-      accs = [
-        { code: 'folding_wheelchair' },
-        { code: 'motorized_wheelchair' },
-        { code: 'driver_assistance' },
-        { code: 'curb_to_curb' },
-        { code: 'door_to_door' }
-      ]
-
-      accs.each do |acc|
-        Accommodation.where(code: acc[:code]).first_or_create!(acc)
-        tk = TranslationKey.where(name: 'accommodation_' + acc[:code] + '_name').first_or_create 
-        locale = Locale.find_by(name: "en")
-        Translation.where(locale: locale, translation_key: tk, value: acc[:code].titleize).first_or_create
-      end
+      CharacteristicBuilder.new(:accommodation).build_all([
+        { 
+          code: 'folding_wheelchair',
+          name: "Folding Wheelchair",
+          note: "I have a folding wheelchair.",
+          question: "Do you have a folding wheelchair?" 
+        },
+        { 
+          code: 'motorized_wheelchair',
+          name: "Motorized Wheelchair",
+          note: "I have a motorized wheelchair.",
+          question: "Do you have a motorized wheelchair?" 
+        },
+        { 
+          code: 'driver_assistance',
+          name: "Driver Assistance",
+          note: "I need driver assistance.",
+          question: "Do you need driver assistance?" 
+        },
+        { 
+          code: 'curb_to_curb',
+          name: "Curb to Curb",
+          note: "I need curb to curb service.",
+          question: "Do you need curb to curb service?" 
+        },
+        { 
+          code: 'door_to_door',
+          name: "Door to Door",
+          note: "I need door to door service.",
+          question: "Do you need door to door service?" 
+        }
+      ])
     end
 
 
     desc "Setup Sample Purposes"
     task purposes: :environment do
-      purps = [{code: "grocery"}, {code: "medical"}, {code: 'shopping'}]
-      purps.each do |purp|
-        Purpose.where(code: purp[:code]).first_or_create!(purp)
-        tk = TranslationKey.where(name: 'purpose_' + purp[:code] + '_name').first_or_create 
-        locale = Locale.find_by(name: "en")
-        Translation.where(locale: locale, translation_key: tk, value: purp[:code].titleize).first_or_create
-      end
+      CharacteristicBuilder.new(:purpose).build_all([
+        { 
+          code: 'grocery',
+          name: "Grocery",
+          note: "This is a grocery trip.",
+          question: "Is this a grocery trip?" 
+        },
+        { 
+          code: 'medical',
+          name: "Medical",
+          note: "This is a medical trip.",
+          question: "Is this a medical trip?" 
+        },
+        { 
+          code: 'shopping',
+          name: "Shopping",
+          note: "This is a shopping trip.",
+          question: "Is this a shopping trip?" 
+        }
+      ])
     end
 
     desc "Setup Sample Services"
     task services: :environment do
-      transit_service = Transit.find_or_create_by(name: "Sample Transit Service")
-      transit_service.update_attributes(gtfs_agency_id: "1",
-        phone: "555-555-5555", url: "http://www.mbta.com", published: true)
+      [
+        {
+          type: "Transit",
+          name: "Sample Transit Service",
+          gtfs_agency_id: "1",
+          phone: "555-555-5555", 
+          url: "http://www.mbta.com", 
+          published: true
+        },
+        {
+          type: "Paratransit",
+          name: "Sample Paratransit Service 1",
+          phone: "555-555-5555", 
+          url: "http://www.mbta.com",
+          accommodations: Accommodation.all,
+          eligibilities: Eligibility.all,
+          purposes: Purpose.all,
+          published: true
+        },
+        {
+          type: "Paratransit",
+          name: "Sample Paratransit Service 2",
+          phone: "555-555-5555", 
+          url: "http://www.mbta.com",
+          published: true
+        },
+        {
+          type: "Taxi",
+          name: "Sample Taxi Service",
+          phone: "555-555-5555", 
+          url: "http://www.taxi.com",
+          fare_structure: :mileage,
+          fare_details: { mileage_base_fare: 5.0, mileage_rate: 0.5 },
+          published: true
+        },
+        {
+          type: "Uber",
+          name: "Sample Uber Service",
+          phone: "555-555-5555", 
+          url: "http://www.uber.com",
+          published: true
+        }
+      ].each do |svc|
+        puts "Creating #{svc[:type]} Service: #{svc[:name]}"
+        Service.find_or_create_by(type: svc[:type], name: svc[:name])
+               .update_attributes(svc)
+      end
 
-      paratransit_service = Paratransit.find_or_create_by(name: "Sample Paratransit Service")
-      paratransit_service.accommodations << Accommodation.first << Accommodation.last
-      paratransit_service.eligibilities << Eligibility.first << Eligibility.last
-      paratransit_service.published = true
-      paratransit_service.save
     end
 
     desc "Set Default Config Values"
