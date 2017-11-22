@@ -285,7 +285,7 @@ module Api
             service_hash = {
               logo_url: svc.logo ? ActionController::Base.helpers.asset_path(svc.logo.thumb.url.to_s) : nil,
               phone: svc.phone,
-              service_comments: I18n.available_locales.map {|loc| [loc, svc.description(loc)] }``.to_h,
+              service_comments: I18n.available_locales.map {|loc| [loc, svc.description(loc)] }.to_h,
               service_name: svc.name,
               url: svc.url
             }
