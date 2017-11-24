@@ -1,29 +1,29 @@
 # Service object for Logging requests made to API Controllers
 class ApiRequestLogger
   
-  attr_reader :include_controllers, :exclude_controllers, :exclude_actions
+  attr_accessor :root_path, :exclude_controllers, :exclude_actions
+
+  # Initialize with a root_path string, e.g. "/", "/api", "/api/v2"...
+  # Also accepts an options hash to configure which actions to log:
+  #  * exclude_controllers: Pass an array of controller name strings/substrings.
+  #    Will not log requests to any of those controllers.
+  #  * exclude_actions: Pass a hash with keys that are controller names, and 
+  #    values that are arrays of action names to be excluded for that controller.
+  def initialize(root_path, opts={})
+    @root_path = root_path
+    configure(opts)
+  end
   
-  # Accepts an options hash to configure which actions to log.
-  # *** OPTIONS: ***
-  # => include_controllers: Pass an array of strings which are either controller
-  # class names or substrings of those names. Will only log requests to controllers
-  # that match one of the names on the list. Defaults to 'Api::'.
-  # => exclude_controllers: Pass an array of controller name strings/substrings.
-  # Will not log requests to any of those controllers.
-  # => exclude_actions: Pass a hash with keys that are controller names, and 
-  # values that are arrays of action names to be excluded for that controller.
-  def initialize(opts={})
-    
-    # By default, only log requests for Api-namespaced controllers.
-    # Do not exclude any controllers or controller actions.
-    @include_controllers = opts[:include_controllers] || ["Api::"]
+  # By default, only log requests for Api-namespaced controllers.
+  # Do not exclude any controllers or controller actions.
+  def configure(opts={})
     @exclude_controllers = opts[:exclude_controllers] || []
     @exclude_actions = Hash.new([]).merge(opts[:exclude_actions] || {})
+    return self
   end
   
   # Start logging requests
   def start
-    
     # Subscribes to an event that occurs whenever a controller request is made
     ActiveSupport::Notifications.subscribe 'process_action.action_controller' do |*args|
       event = ActiveSupport::Notifications::Event.new(*args)
@@ -31,7 +31,7 @@ class ApiRequestLogger
       
       # The controller and action are included and not excluded, create a 
       # RequestLog object for the request.
-      if log?(payload[:controller], payload[:action])
+      if should_log?(payload)
         RequestLog.create({
           controller: payload[:controller],
           action: payload[:action],
@@ -49,13 +49,16 @@ class ApiRequestLogger
   def stop
     ActiveSupport::Notifications.unsubscribe 'process_action.action_controller'
   end
-  
-  # Pass it a controller class name and action name, and returns boolean for 
-  # whether or not that class and action should be logged
-  def log?(controller_class_name, action_name)
-    @include_controllers.any? { |ctrl| controller_class_name.include?(ctrl) } &&
-    @exclude_controllers.none? { |ctrl| controller_class_name.include?(ctrl) } &&
-    @exclude_actions[controller_class_name].exclude?(action_name)
+
+  # Pass it the event payload. Will determine whether or not to log request
+  # based on:
+  #  * If the start of the request path matches the mount path
+  #  * The controller matches any excluded controllers
+  #  * The controller & action match any excluded controller/action pairs
+  def should_log?(payload)
+    payload[:path].index(@root_path) == 0 &&
+    @exclude_controllers.none? { |ctrl| payload[:controller].include?(ctrl) } &&
+    @exclude_actions[payload[:controller]].exclude?(payload[:action])
   end
   
 end

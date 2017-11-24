@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   before_action :configure_permitted_parameters, if: :devise_controller?
   
   helper_method :can_access_all?
-  
+    
   # If user is not authorized to visit a page, go the the root url and show a message
   rescue_from CanCan::AccessDenied do |exception|
     respond_to do |format|

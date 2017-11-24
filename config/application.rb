@@ -4,7 +4,8 @@ require 'rails/all'
 # require 'active_record/connection_adapters/postgis_adapter/railtie'
 # require "./lib/middleware/catch_json_parse_errors.rb"
 require './app/controllers/concerns/json_response_helper.rb'
-
+require './app/services/api_request_logger.rb' # For logging API controller requests to DB
+# require './lib/api_request_logger.rb' # For logging API controller requests to DB
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -63,7 +64,13 @@ module OneclickCore
       # Loads names of installed modules into ENV variables
       require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
     end
-
+    
+    # Logs all API requests to DB. See app/services/api_request_logger.rb for details.
+    config.api_request_logger = ApiRequestLogger.new('/api', {
+      exclude_controllers: [],
+      exclude_actions: {}
+    })
+    config.api_request_logger.start
 
   end
 end
