@@ -19,7 +19,6 @@ class Admin::ConfigsController < Admin::AdminController
     :feedback_overdue_days,
     :ui_url,
     :require_user_confirmation,
-    :allow_unconfirmed_access_minutes,
     daily_scheduled_tasks: []    
   ].freeze
 
@@ -56,8 +55,6 @@ class Admin::ConfigsController < Admin::AdminController
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
     when :feedback_overdue_days
-      return value.to_i
-    when :allow_unconfirmed_access_minutes
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
