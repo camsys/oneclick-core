@@ -69,7 +69,7 @@ class UserMailer < ApplicationMailer
   def api_v1_reset_password_instructions(user, token)
     @user = user
     @locale = @user.locale.try(:name)
-    @reset_password_path = "#{Config.api_v1_ui_url}?reset_password_token=#{token}"
+    @reset_password_path = "#{Config.ui_url}?reset_password_token=#{token}"
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
   
