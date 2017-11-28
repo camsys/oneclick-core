@@ -27,9 +27,9 @@ class Service < ApplicationRecord
     end
   end
   # has_many :feedbacks, as: :feedbackable
-  has_and_belongs_to_many :accommodations
-  has_and_belongs_to_many :eligibilities
-  has_and_belongs_to_many :purposes
+  has_and_belongs_to_many :accommodations, -> { distinct }
+  has_and_belongs_to_many :eligibilities, -> { distinct }
+  has_and_belongs_to_many :purposes, -> { distinct }
   belongs_to :agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
@@ -39,7 +39,7 @@ class Service < ApplicationRecord
   validates_with FareValidator # For validating fare_structure and fare_details
   contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
-  after_save :consolidate_schedules
+  after_save :consolidate_schedules # Combine overlapping schedules
 
   ##########
   # SCOPES #
