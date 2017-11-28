@@ -111,7 +111,8 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 
 # Download the oneclick_refernet gem, but only require it if env var is set
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet',
-                         require: !!ENV["ONECLICK_REFERNET"]
+                         require: !!ENV["ONECLICK_REFERNET"],
+                         branch: 'email'
 
 
 ############################################
@@ -139,6 +140,7 @@ group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
+  gem "letter_opener"
 end
 
 

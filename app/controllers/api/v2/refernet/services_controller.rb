@@ -41,6 +41,11 @@ module Api
 
         end
 
+        def email 
+          OneclickRefernet::UserMailer.services(params[:email],params[:services])
+          render json: true
+        end
+
         protected
 
         # Builds the request to be sent to OTP

@@ -14,8 +14,8 @@ ActiveRecord::Schema.define(version: 20171121180334) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",       null: false
