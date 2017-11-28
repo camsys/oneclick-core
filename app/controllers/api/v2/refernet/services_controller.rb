@@ -2,7 +2,8 @@ module Api
   module V2
     module Refernet
       class ServicesController < ApiController
-      
+
+
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
 
@@ -39,6 +40,11 @@ module Api
 
           render json: data
 
+        end
+
+        def email 
+          OneclickRefernet::UserMailer.services(params[:email], params[:services], @locale).deliver!
+          render json: true
         end
 
         protected
