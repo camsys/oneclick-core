@@ -1,6 +1,6 @@
 .row
   -@dashboard_reports.each do |report|
-    .col-md-4.text-center
-      =render partial: report[:partial_path], locals: { data: report[:data], grouping: report[:grouping] }
+    .text-center{ class: "col-md-#{12 / @dashboard_reports.count}"}
+      =report.html
 
 =render partial: 'shared/navbar'

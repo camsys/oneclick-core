@@ -1,6 +1,7 @@
 =content_for :title do
   Planned Trips Dashboard
 
-=render partial: 'planned_trips_chart', locals: { data: @trips, grouping: @grouping }
+= DashboardReport.new(:planned_trips, trips: @trips, grouping: @grouping).html
+-# =render partial: 'planned_trips_chart', locals: { trips: @trips, grouping: @grouping }
 
 =back_link admin_reports_path

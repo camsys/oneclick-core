@@ -1,2 +1,7 @@
-= column_chart  data.send("group_by_#{grouping}", :trip_time).count, 
-                title: "Trips Planned by #{grouping.titleize}"
+-group_opts = {}
+-group_opts[:format] = "%m/%d" if grouping.to_s == "day"
+-group_opts[:format] = "%a" if grouping.to_s == "day_of_week"
+
+= column_chart trips.send("group_by_#{grouping}", :trip_time, group_opts).count, 
+  title: local_assigns[:title] || "Trips Planned by #{grouping.to_s.titleize}",
+  library: { vAxis: { format: '#' }}

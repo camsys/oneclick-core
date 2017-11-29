@@ -6,7 +6,11 @@ class Admin::AdminController < ApplicationController
   before_action :get_admin_pages
   
   def index
-    @dashboard_reports = get_dashboard_reports
+    @dashboard_reports = [ 
+      :planned_trips_this_week,
+      :unique_users_this_week
+    ].map { |rep| DashboardReport.new(rep) }
+    .select { |rep| rep.valid? }
   end
   
   private

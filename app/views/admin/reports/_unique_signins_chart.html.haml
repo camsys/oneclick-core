@@ -1,0 +1,7 @@
+-group_opts = {}
+-group_opts[:format] = "%m/%d" if grouping.to_s == "day"
+-group_opts[:format] = "%a" if grouping.to_s == "day_of_week"
+
+= column_chart sign_ins.send("group_by_#{grouping}", :created_at, group_opts).distinct.count(:auth_email), 
+  title: local_assigns[:title] || "Unique Active Users by #{grouping.to_s.titleize}",
+  library: { vAxis: { format: '#' }}
