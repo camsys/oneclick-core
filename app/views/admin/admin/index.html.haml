@@ -1,1 +1,6 @@
-= render partial: 'shared/navbar'
+.row
+  -@dashboard_reports.each do |report|
+    .col-md-4.text-center
+      =render partial: report[:partial_path], locals: { data: report[:data], grouping: report[:grouping] }
+
+=render partial: 'shared/navbar'

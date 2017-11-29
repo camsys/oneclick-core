@@ -6,6 +6,7 @@ class Admin::AdminController < ApplicationController
   before_action :get_admin_pages
   
   def index
+    @dashboard_reports = get_dashboard_reports
   end
   
   private

@@ -24,4 +24,31 @@ module AdminHelpers
     .sort_by { |page| page[:label] }
   end
   
+  # Returns an array of hashes for rendering dashboard report partials, dependent
+  # on the current user.
+  def get_dashboard_reports
+    
+    if(can?(:read, :report))    
+      return [
+        {
+          partial_path: "admin/reports/planned_trips_chart",
+          data: Trip.all,
+          grouping: "month"
+        },
+        {
+          partial_path: "admin/reports/planned_trips_chart",
+          data: Trip.all,
+          grouping: "week"
+        },
+        {
+          partial_path: "admin/reports/planned_trips_chart",
+          data: Trip.all,
+          grouping: "day"
+        }
+      ]  
+    else
+      return []
+    end
+  end
+  
 end
