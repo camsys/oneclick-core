@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 7b0346b83b04f233c5cd08ef411d186467e4097e
+  revision: ceb57d6576730947cc4f62a5324c8cd465650307
   specs:
     oneclick_refernet (0.4.4)
       active_model_serializers
@@ -76,8 +76,8 @@ GEM
     autoprefixer-rails (7.1.6)
       execjs
     awesome_print (1.8.0)
-    aws-partitions (1.40.0)
-    aws-sdk-core (3.9.0)
+    aws-partitions (1.41.0)
+    aws-sdk-core (3.10.0)
       aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
@@ -251,7 +251,7 @@ GEM
       fog-core (~> 1.27)
       fog-json (~> 1.0)
       fog-xml (~> 0.1)
-    fog-profitbricks (4.0.0)
+    fog-profitbricks (4.1.0)
       fog-core (~> 1.42)
       fog-json (~> 1.0)
     fog-rackspace (0.1.5)
