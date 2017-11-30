@@ -5,8 +5,8 @@ class Admin::AdminController < ApplicationController
   before_action :confirm_admin
   before_action :get_admin_pages
   
-  # Available Dashboard Reports for the Home Page
-  DASHBOARD_REPORTS = {
+  # Add some prebuilt reports for displaying on the homepage
+  DashboardReport.prebuilt_reports.merge!({
     planned_trips_this_week: [  
       :planned_trips,
       trips: Trip.where(trip_time: DateTime.this_week),
@@ -19,14 +19,14 @@ class Admin::AdminController < ApplicationController
       grouping: :day,
       title: "Unique Users this Week"
     ]
-  }
+  })
   
   def index
+    # Configure dashboard reports to display in an array of symbols under Config.dashboard_reports
     @dashboard_reports = (Config.dashboard_reports || [])
-    .map { |rep| DashboardReport.new(*DASHBOARD_REPORTS[rep]) }
+    .map { |rep| DashboardReport.prebuilt(rep) }
+    .compact
     .select { |rep| rep.valid? }
-    
-    puts @dashboard_reports.map(&:html)
   end
   
   private

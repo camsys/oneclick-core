@@ -6,4 +6,14 @@ if ENV["ONECLICK_REFERNET"]
   
   # Make refernet services feedbackable
   OneclickRefernet::Service.send(:include, Feedbackable)
+  
+  # Add some refernet-specific dashboard reports
+  DashboardReport.prebuilt_reports.merge!({
+    popular_refernet_categories: [
+      :popular_requests,
+      requests: RequestLog.where(controller: "OneclickRefernet::SubCategoriesController"),
+      grouping_param: "category"
+    ]
+  })
+  
 end
