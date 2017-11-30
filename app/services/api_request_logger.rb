@@ -9,17 +9,13 @@ class ApiRequestLogger
   #    Will not log requests to any of those controllers.
   #  * exclude_actions: Pass a hash with keys that are controller names, and 
   #    values that are arrays of action names to be excluded for that controller.
-  def initialize(root_path, opts={})
+  def initialize(root_path="/", opts={})
     @root_path = root_path
-    configure(opts)
-  end
-  
-  # By default, only log requests for Api-namespaced controllers.
-  # Do not exclude any controllers or controller actions.
-  def configure(opts={})
+
+    # By default, only log requests for Api-namespaced controllers.
+    # Do not exclude any controllers or controller actions.
     @exclude_controllers = opts[:exclude_controllers] || []
     @exclude_actions = Hash.new([]).merge(opts[:exclude_actions] || {})
-    return self
   end
   
   # Start logging requests

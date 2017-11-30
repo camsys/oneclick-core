@@ -4,8 +4,8 @@ class DashboardReport
   
   include Chartkick::Helper
   
-  def initialize(report_type, params={})
-    @report_type = report_type.to_sym
+  def initialize(report_type=nil, params={})
+    @report_type = report_type.try(:to_sym)
     @params = params
   end
   
@@ -13,30 +13,28 @@ class DashboardReport
   def html
     case @report_type
     when :planned_trips
+      trips = @params[:trips]
+      grouping = @params[:grouping]
+      grouped_trips = trips.send("group_by_#{grouping}", :trip_time, date_grouping_options(grouping)).count
+      
       return column_chart(
-        planned_trips_data(@params[:trips], @params[:grouping]), 
-        {
-          title: "Trips Planned by #{@params[:grouping]}",
-          library: { vAxis: { format: '#' } }
-        }
+        grouped_trips,
+        id: "trips-planned-by-#{grouping}",
+        title: @params[:title] || "Trips Planned by #{grouping.to_s.titleize}",
+        library: { vAxis: { format: '#' } }
       )
-    when :planned_trips_this_week
+    when :unique_users
+      user_requests = @params[:user_requests]
+      grouping = @params[:grouping]
+      grouped_user_requests = user_requests.send("group_by_#{grouping}", :created_at, date_grouping_options(grouping))
+                                           .distinct.count(:auth_email)
+      
       return column_chart(
-        planned_trips_data(Trip.where(trip_time: this_week), :day), 
-        {
-          title: "Trips Planned this Week",
-          library: { vAxis: { format: '#' } }
-        }
+        grouped_user_requests,
+        id: "unique-users-by-#{grouping}",
+        title: @params[:title] || "Unique Users by #{grouping.to_s.titleize}",
+        library: { vAxis: { format: '#' } }
       )
-    when :unique_users_this_week
-      # return {
-      #   partial: "admin/reports/unique_signins_chart",
-      #   locals: {
-      #     sign_ins: RequestLog.where(created_at: this_week),
-      #     grouping: :day,
-      #     title: "Unique Users this Week"
-      #   }
-      # }
     else
       return nil
     end
@@ -49,15 +47,12 @@ class DashboardReport
   
   private
   
-  # Returns a datetime range for the last 7 days
-  def this_week
-    (DateTime.current - 7.days)..DateTime.current
-  end
-  
-  def planned_trips_data(trips, grouping)
+  # Groups a collection of trips data by trip time
+  def trips_grouped_by_date(trips, grouping)
     trips.send("group_by_#{grouping}", :trip_time, date_grouping_options(grouping)).count
   end
   
+  # Formats date groupings for a column chart, based on type of grouping
   def date_grouping_options(grouping)
     {
       format: {
