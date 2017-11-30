@@ -1,12 +1,14 @@
 class Admin::ReportsController < Admin::AdminController
   
   DOWNLOAD_TABLES = ['Trips', 'Users', 'Services']
-  DASHBOARDS = ['Planned Trips']
-  GROUPINGS = [:hour, :day, :week, :month, :quarter, :year]
+  DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
+  GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
   # Set filters on Dashboards
   before_action :set_dashboard_filters, only: [
-    :planned_trips_dashboard
+    :planned_trips_dashboard,
+    :unique_users_dashboard,
+    :popular_destinations_dashboard
   ]
   
   # Set filters on CSV table downloads
@@ -39,7 +41,14 @@ class Admin::ReportsController < Admin::AdminController
   def planned_trips_dashboard
     @trips = Trip.from_date(@from_date).to_date(@to_date)
   end
+
+  def unique_users_dashboard 
+    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+  end
   
+  def popular_destinations_dashboard
+    @trips = Trip.from_date(@from_date).to_date(@to_date)
+  end
 
   ### CSV TABLE DOWNLOADS ###
   
@@ -129,7 +138,7 @@ class Admin::ReportsController < Admin::AdminController
   
   def set_dashboard_filters
     
-    # PLANNED TRIPS FILTERS
+    # DATE FILTERS
     @from_date = parse_date_param(params[:from_date])
     @to_date = parse_date_param(params[:to_date])
     @grouping = params[:grouping]

@@ -174,12 +174,19 @@ Rails.application.routes.draw do
     # Reports
     resources :reports, only: [:index] do
       collection do
+        
+        # DASHBOARD REPORTS
         post 'dashboard'
         get 'planned_trips_dashboard'
+        get 'unique_users_dashboard'
+        get 'popular_destinations_dashboard'
+        
+        # CSV TABLE DOWNLOADS
         post 'download_table'        
         get 'users_table'
         get 'trips_table'
         get 'services_table'
+        
       end
     end
 

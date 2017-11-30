@@ -11,13 +11,16 @@
     label: "Select Dashboard"
   
   -# DATE RANGE SELECTORS
-  .dashboard-options.planned-trips.hidden
+  .dashboard-options.planned-trips.unique-users.popular-destinations.hidden
     =f.input :from_date, required: false,
       input_html: {class: 'datepicker'}, 
       as: :string, label: "From Date"
     =f.input :to_date, required: false,
       input_html: {class: 'datepicker'}, 
       as: :string, label: "To Date"
+      
+  -# DATE GROUPING
+  .dashboard-options.planned-trips.unique-users.hidden
     =f.input :grouping,
       collection: @groupings, include_blank: false,
       label: "Group By", selected: :month
