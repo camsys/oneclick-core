@@ -40,7 +40,7 @@ module Api
       # POST /sign_in
       # Leverages devise lockable module: https://github.com/plataformatec/devise/blob/master/lib/devise/models/lockable.rb
       def new_session
-        @user = User.find_by(email: user_params[:email])
+        @user = User.find_by(email: user_params[:email].downcase)
         
         # Check if a user was found based on the passed email. If so, continue authentication.
         if @user.present?

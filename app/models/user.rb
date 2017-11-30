@@ -57,6 +57,7 @@ class User < ApplicationRecord
   contact_fields email: :email
   validates :email, presence: true, uniqueness: true
   validates :password_confirmation, presence: true, on: :create
+  before_save :downcase_email
   
   ### Instance Methods ###
   
@@ -131,6 +132,11 @@ class User < ApplicationRecord
   end
 
   protected
+
+  #All Emails are Lower Case
+  def downcase_email
+    self.email.downcase!
+  end
   
   # Set Require Confirmation to be true
   def confirmation_required?

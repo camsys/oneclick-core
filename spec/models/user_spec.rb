@@ -36,6 +36,12 @@ RSpec.describe User, type: :model do
     expect(traveler.preferred_trip_types).to eq(['recumbent_bicycle', 'roller_blades'])
   end
 
+  it 'ensures email is always lowercase' do
+    params = {first_name: "George", last_name: "Burdell", email: "gpbURdell@email.com", lang: "en", preferred_trip_types: ['recumbent_bicycle', 'roller_blades']}
+    traveler.update_basic_attributes params
+    expect(traveler.email).to eq('gpburdell@email.com')
+  end
+
   it 'updates the password' do
     old_password_token = traveler.encrypted_password
     params = {password: "welcome_test_test1", password_confirmation: "welcome_test_test1"}
