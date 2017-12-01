@@ -1,6 +1,6 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services']
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests']
   DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
@@ -15,7 +15,8 @@ class Admin::ReportsController < Admin::AdminController
   before_action :set_download_table_filters, only: [
     :trips_table, 
     :users_table, 
-    :services_table
+    :services_table,
+    :requests_table
   ]  
 
   before_action :authorize_reports
@@ -49,6 +50,9 @@ class Admin::ReportsController < Admin::AdminController
   def popular_destinations_dashboard
     @trips = Trip.from_date(@from_date).to_date(@to_date)
   end
+  
+  ### / graphical dashboards
+  
 
   ### CSV TABLE DOWNLOADS ###
   
@@ -97,12 +101,21 @@ class Admin::ReportsController < Admin::AdminController
     @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?
     @services = @services.with_eligibilities(@eligibilities) unless @eligibilities.empty?
     @services = @services.with_purposes(@purposes) unless @purposes.empty?
-
     
     respond_to do |format|
       format.csv { send_data @services.to_csv }
     end
   end
+  
+  def requests_table
+    @requests = RequestLog.from_date(@request_from_date).to_date(@request_to_date)
+    
+    respond_to do |format|
+      format.csv { send_data @requests.to_csv }
+    end
+  end
+  
+  ### / csv table downloads
   
   
   protected
@@ -134,6 +147,10 @@ class Admin::ReportsController < Admin::AdminController
     # @eligibilities = parse_id_list(params[:eligibilities])
     # @purposes = parse_id_list(params[:purposes])
     
+    # REQUEST FILTERS
+    @request_from_date = parse_date_param(params[:request_from_date])
+    @request_to_date = parse_date_param(params[:request_to_date])
+    
   end
   
   def set_dashboard_filters
@@ -164,10 +181,15 @@ class Admin::ReportsController < Admin::AdminController
       :user_active_to_date,
       
       # SERVICE FILTERS
-      :service_type
+      :service_type,
       # {accommodations: []},
       # {eligibilities: []},
       # {purposes: []}
+      
+      # REQUEST FILTERS
+      :request_from_date,
+      :request_to_date
+      
     )
   end
   

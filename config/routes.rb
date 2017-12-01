@@ -186,6 +186,7 @@ Rails.application.routes.draw do
         get 'users_table'
         get 'trips_table'
         get 'services_table'
+        get 'requests_table'
         
       end
     end
