@@ -90,7 +90,7 @@ class DashboardReport
                         .map { |k,v| [k, v.count] }.to_h
     return pie_chart(grouped_requests,
       id: "popular-requests-by-#{grouping_param}",
-      title: "Popular Requests by #{grouping_param.to_s.titleize}",
+      title: @params[:title] || "Popular Requests by #{grouping_param.to_s.titleize}",
       library: DEFAULT_CHART_OPTIONS)
   end
   
@@ -119,7 +119,7 @@ class DashboardReport
           "day" => "%m/%d",
           "day_of_week" => "%a",
           "month_of_year" => "%b"
-      }[grouping]
+      }[grouping.to_s]
     }
   end
   
