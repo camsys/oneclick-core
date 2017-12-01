@@ -3,45 +3,6 @@
 =content_for :title do
   Popular Destinations Dashboard
 
-#popular-destinations-chart
--# = DashboardReport.new(:popular_destinations, trips: @trips).html
+= DashboardReport.new(:popular_destinations, trips: @trips).html
 
 =back_link admin_reports_path
-
-:javascript
-  $(document).ready(function() {
-  
-    google.charts.load('current', {
-      'packages': ['geochart'],
-      'mapsApiKey': 'AIzaSyAELZ3K_3wIKhJwkwRjt8l1aCxGOFIQdhY'
-    });
-    google.charts.setOnLoadCallback(drawMarkersMap);
-  
-    var data = [
-      [28.4810971,-81.5088339,277173],
-      [25.7823907,-80.2994984,453579]
-    ];
-    
-    var options = {
-      region: 'US-FL',
-      displayMode: 'markers',
-      resolution: 'provinces',
-      colorAxis: {colors: ['green', 'blue']}
-    };
-    
-    function drawMarkersMap() {
-    
-      console.log("BUILDING GOOGLE CHART");
-      var dataTable = new google.visualization.DataTable();
-      dataTable.addColumn("number", "lat");
-      dataTable.addColumn("number", "lng");
-      dataTable.addColumn("number", "pop");
-      dataTable.addRows(data);
-      
-      console.log(dataTable);
-      
-      var chart = new google.visualization.GeoChart(document.getElementById('popular-destinations-chart'));
-      chart.draw(dataTable, options);
-  
-    }
-  });

@@ -54,7 +54,7 @@ class DashboardReport
   
   private
   
-  ### REPORT BUILDER METHODS
+  ### REPORT BUILDER METHODS ###
   
   # Builds the html for a planned trips report, based on the passed params
   def planned_trips_html
@@ -102,28 +102,11 @@ class DashboardReport
                            .where.not(lat: nil, lng: nil)
                            .group(:lat, :lng, :name).count
                            .sort_by {|k,v| v }.reverse.take(limit).to_h
-                           .map { |k,v| k.last.present? ? [k.last,v] : ["#{k[0]}, #{k[1]}",v] }.to_h
-
-    # return geo_chart(
-    #   [
-    #     [41.883170, 12.490082, 2761477],
-    #     [45.464203, 9.189981,     1324110],
-    #     [40.862611, 14.261363,    959574],
-    #   ],
-    #   library: {
-    #     dataMode: 'markers',
-    #     # resolution: 'provinces',
-    #     region: 'IT',
-    #     colorAxis: {colors: ['green', 'blue']},
-    #     sizeAxis: { minValue: 10, maxValue: 100 }
-    #   }
-    # )
-    
-    
-    # return pie_chart(destinations,
-    #   id: "popular-destinations",
-    #   title: "Popular Trip Destinations",
-    #   library: DEFAULT_CHART_OPTIONS)
+                           .map { |k,v| k.last.present? ? [k.last,v] : ["#{k[0]}, #{k[1]}",v] }.to_h    
+    return pie_chart(destinations,
+      id: "popular-destinations",
+      title: "Popular Trip Destinations",
+      library: DEFAULT_CHART_OPTIONS)
   end
   
   ### /report builder methods
