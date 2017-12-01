@@ -126,17 +126,20 @@ RSpec.describe TripPlanner do
 
   it 'should find relevant purposes' do
     paratransit_tp.set_available_services
-    expect(paratransit_tp.relevant_purposes).to eq(Purpose.where(code: "medical"))
+    expect(paratransit_tp.relevant_purposes.pluck(:code).sort)
+      .to eq(Purpose.where(code: "medical").pluck(:code).sort)
   end
 
   it 'should find relevant eligibilities' do
     paratransit_tp.set_available_services
-    expect(paratransit_tp.relevant_eligibilities).to eq(Eligibility.where(code: "over_65"))
+    expect(paratransit_tp.relevant_eligibilities.pluck(:code).sort)
+      .to eq(Eligibility.where(code: "over_65").pluck(:code).sort)
   end
 
   it 'should find relevant accommodations' do
     paratransit_tp.set_available_services
-    expect(paratransit_tp.relevant_accommodations).to eq(accommodating_paratransit.accommodations)
+    expect(paratransit_tp.relevant_accommodations.pluck(:code).sort)
+      .to eq(accommodating_paratransit.accommodations.pluck(:code).sort)
   end
   
   it 'skips or includes service filters when requested' do
