@@ -1,0 +1,6 @@
+=content_for :title do
+  Unique Users Dashboard
+
+= DashboardReport.new(:unique_users, user_requests: @user_requests, grouping: @grouping).html
+
+=back_link admin_reports_path

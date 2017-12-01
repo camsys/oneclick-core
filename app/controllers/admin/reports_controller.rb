@@ -1,19 +1,22 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services']
-  DASHBOARDS = ['Planned Trips']
-  GROUPINGS = [:hour, :day, :week, :month, :quarter, :year]
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests']
+  DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
+  GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
   # Set filters on Dashboards
   before_action :set_dashboard_filters, only: [
-    :planned_trips_dashboard
+    :planned_trips_dashboard,
+    :unique_users_dashboard,
+    :popular_destinations_dashboard
   ]
   
   # Set filters on CSV table downloads
   before_action :set_download_table_filters, only: [
     :trips_table, 
     :users_table, 
-    :services_table
+    :services_table,
+    :requests_table
   ]  
 
   before_action :authorize_reports
@@ -39,6 +42,16 @@ class Admin::ReportsController < Admin::AdminController
   def planned_trips_dashboard
     @trips = Trip.from_date(@from_date).to_date(@to_date)
   end
+
+  def unique_users_dashboard 
+    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+  end
+  
+  def popular_destinations_dashboard
+    @trips = Trip.from_date(@from_date).to_date(@to_date)
+  end
+  
+  ### / graphical dashboards
   
 
   ### CSV TABLE DOWNLOADS ###
@@ -88,12 +101,21 @@ class Admin::ReportsController < Admin::AdminController
     @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?
     @services = @services.with_eligibilities(@eligibilities) unless @eligibilities.empty?
     @services = @services.with_purposes(@purposes) unless @purposes.empty?
-
     
     respond_to do |format|
       format.csv { send_data @services.to_csv }
     end
   end
+  
+  def requests_table
+    @requests = RequestLog.from_date(@request_from_date).to_date(@request_to_date)
+    
+    respond_to do |format|
+      format.csv { send_data @requests.to_csv }
+    end
+  end
+  
+  ### / csv table downloads
   
   
   protected
@@ -125,11 +147,15 @@ class Admin::ReportsController < Admin::AdminController
     # @eligibilities = parse_id_list(params[:eligibilities])
     # @purposes = parse_id_list(params[:purposes])
     
+    # REQUEST FILTERS
+    @request_from_date = parse_date_param(params[:request_from_date])
+    @request_to_date = parse_date_param(params[:request_to_date])
+    
   end
   
   def set_dashboard_filters
     
-    # PLANNED TRIPS FILTERS
+    # DATE FILTERS
     @from_date = parse_date_param(params[:from_date])
     @to_date = parse_date_param(params[:to_date])
     @grouping = params[:grouping]
@@ -155,10 +181,15 @@ class Admin::ReportsController < Admin::AdminController
       :user_active_to_date,
       
       # SERVICE FILTERS
-      :service_type
+      :service_type,
       # {accommodations: []},
       # {eligibilities: []},
       # {purposes: []}
+      
+      # REQUEST FILTERS
+      :request_from_date,
+      :request_to_date
+      
     )
   end
   

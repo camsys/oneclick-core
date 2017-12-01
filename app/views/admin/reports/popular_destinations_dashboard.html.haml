@@ -1,0 +1,8 @@
+
+  
+=content_for :title do
+  Popular Destinations Dashboard
+
+= DashboardReport.new(:popular_destinations, trips: @trips).html
+
+=back_link admin_reports_path

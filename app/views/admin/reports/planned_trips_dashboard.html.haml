@@ -1,7 +1,6 @@
 =content_for :title do
   Planned Trips Dashboard
-  
-= column_chart  @trips.send("group_by_#{@grouping}", :trip_time).count, 
-                title: "Trips Planned by #{@grouping.titleize}"
+
+= DashboardReport.new(:planned_trips, trips: @trips, grouping: @grouping).html
 
 =back_link admin_reports_path
