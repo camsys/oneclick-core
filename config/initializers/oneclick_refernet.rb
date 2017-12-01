@@ -11,8 +11,10 @@ if ENV["ONECLICK_REFERNET"]
   DashboardReport.prebuilt_reports.merge!({
     popular_refernet_categories: [
       :popular_requests,
-      requests: RequestLog.where(controller: "OneclickRefernet::SubCategoriesController"),
-      grouping_param: "category"
+      requests: RequestLog.where(controller: "OneclickRefernet::SubCategoriesController")
+                          .where(created_at: DateTime.this_week),
+      grouping_param: "category",
+      title: "Popular 211 Category Requests this Week"
     ]
   })
   
