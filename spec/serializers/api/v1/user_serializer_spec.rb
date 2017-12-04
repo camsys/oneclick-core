@@ -28,17 +28,19 @@ RSpec.describe Api::V1::UserSerializer, type: :serializer do
   end
 
   it 'returns the eligibilities_hash' do
-  	expect(eng_traveler_serialization["characteristics"][0]["code"]).to eq('over_65')
-    expect(eng_traveler_serialization["characteristics"][0]["name"]).to eq('missing key eligibility_over_65_name')
-    expect(eng_traveler_serialization["characteristics"][0]["note"]).to eq('missing key eligibility_over_65_note')
-    expect(eng_traveler_serialization["characteristics"][0]["question"]).to eq('missing key eligibility_over_65_question')
+    characteristics = eng_traveler_serialization["characteristics"].sort { |a,b| a["code"] <=> b["code"] }
+  	expect(characteristics[0]["code"]).to eq('over_65')
+    expect(characteristics[0]["name"]).to eq('missing key eligibility_over_65_name')
+    expect(characteristics[0]["note"]).to eq('missing key eligibility_over_65_note')
+    expect(characteristics[0]["question"]).to eq('missing key eligibility_over_65_question')
   end
 
   it 'returns the accommodations_hash' do
-  	expect(eng_traveler_serialization["accommodations"][0]["code"]).to eq('wheelchair')
-  	expect(eng_traveler_serialization["accommodations"][0]["name"]).to eq('missing key accommodation_wheelchair_name')
-    expect(eng_traveler_serialization["accommodations"][0]["note"]).to eq('missing key accommodation_wheelchair_note')
-    expect(eng_traveler_serialization["accommodations"][0]["question"]).to eq('missing key accommodation_wheelchair_question')
-    expect(eng_traveler_serialization["accommodations"][0]["value"]).to eq true
+    accommodations = eng_traveler_serialization["accommodations"].sort { |a,b| a["code"] <=> b["code"] }
+  	expect(accommodations[1]["code"]).to eq('wheelchair')
+  	expect(accommodations[1]["name"]).to eq('missing key accommodation_wheelchair_name')
+    expect(accommodations[1]["note"]).to eq('missing key accommodation_wheelchair_note')
+    expect(accommodations[1]["question"]).to eq('missing key accommodation_wheelchair_question')
+    expect(accommodations[1]["value"]).to eq true
   end
 end
