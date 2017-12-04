@@ -59,6 +59,7 @@ module Api
     # Ensure that a user object is created and loaded as @traveler
     def ensure_traveler
       set_traveler if @traveler.nil?
+      ensure_guest_user if @traveler.nil?
       @traveler
     end
     
@@ -183,12 +184,12 @@ module Api
         }
       }
     end
-    
 
     def ensure_guest_user
       u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
-      session[:guest_user_id] = u.id
+      @traveler = u
+      session[:guest_user_id] = u.id # DEPRECATE? What is this?
       u
     end
     
