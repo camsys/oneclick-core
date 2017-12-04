@@ -56,6 +56,12 @@ module Api
       @traveler = current_api_user
     end
     
+    # Ensure that a user object is created and loaded as @traveler
+    def ensure_traveler
+      set_traveler if @traveler.nil?
+      @traveler
+    end
+    
     protected
 
     # Actions to take after successfully authenticated a user token.
@@ -67,14 +73,6 @@ module Api
     # Finds the User associated with auth headers.
     def current_api_user
       auth_headers.present? ? User.find_by(auth_headers) : nil
-    end
-
-    # Ensure that a user object is created and loaded as @traveler
-    def current_or_guest_user
-      if @traveler.nil?
-        @traveler = create_guest_user
-      end
-      @traveler
     end
 
     # Returns a hash of authentication headers, or an empty hash if not present
@@ -187,7 +185,7 @@ module Api
     end
     
 
-    def create_guest_user
+    def ensure_guest_user
       u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       session[:guest_user_id] = u.id

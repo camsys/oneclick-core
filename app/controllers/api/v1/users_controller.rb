@@ -2,7 +2,7 @@ module Api
   module V1
     class UsersController < ApiController
       before_action :require_authentication, only: [:update]
-      before_action :current_or_guest_user, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
+      before_action :ensure_traveler, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
 
       # Sends back a profile hash via the API::V1::UserSerializer
       def profile

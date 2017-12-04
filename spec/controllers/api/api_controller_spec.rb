@@ -9,13 +9,22 @@ RSpec.describe Api::ApiController, type: :controller do
     create(:locale_fr)
   }
   let(:user) { create(:spanish_speaker) }
+  let(:guest) { create(:guest) }
   let(:request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
   let(:bad_request_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => "abcdefghijklmnop"} }
+  let(:guest_request_headers) { { "X-USER-EMAIL" => guest.email } }
 
   it 'authenticates user from token & sets @traveler' do
     expect(controller.traveler).to be_nil
     request.headers.merge!(request_headers) # Send user email and token headers
     controller.authenticate_user_from_token
+    expect(controller.traveler.email).to eq(request.headers["X-User-Email"])
+  end
+  
+  it 'recognizes guest user email and sets @traveler' do
+    expect(controller.traveler).to be_nil
+    request.headers.merge!(guest_request_headers)
+    controller.ensure_traveler
     expect(controller.traveler.email).to eq(request.headers["X-User-Email"])
   end
 
