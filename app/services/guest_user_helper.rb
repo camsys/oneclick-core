@@ -4,14 +4,14 @@ class GuestUserHelper
   def initialize
   end
   
-  # Return a new guest user, but don't persist to database
+  # Return a new (or existing) guest user, but don't persist to database
   def build_guest(params={})
-    User.new(default_params.merge(params))
+    User.find_or_initialize_by(default_params.merge(params))
   end
   
-  # Return a new guest user and save it to the database
+  # Return a new (or existing) guest user and save it to the database
   def create_guest(params={})
-    User.create(default_params.merge(params))
+    User.find_or_create_by(default_params.merge(params))
   end
   
   # Default guest user params

@@ -66,7 +66,7 @@ module Api
 
     # Finds the User associated with auth headers.
     def current_api_user
-      auth_headers ? User.find_by(auth_headers) : nil
+      auth_headers.present? ? User.find_by(auth_headers) : nil
     end
 
     # Ensure that a user object is created and loaded as @traveler
@@ -77,13 +77,15 @@ module Api
       @traveler
     end
 
-    # Returns a hash of authentication headers, or false if not present
+    # Returns a hash of authentication headers, or an empty hash if not present
     def auth_headers
-      if request.headers["X-User-Email"] && request.headers["X-User-Token"]
-        return {  email: request.headers["X-User-Email"],
-                  authentication_token: request.headers["X-User-Token"]}
+      email, token = request.headers["X-User-Email"], request.headers["X-User-Token"]
+      if email && GuestUserHelper.new.is_guest_email?(email) # If email is present and it's a guest user, return just email
+        return { email: email }
+      elsif email && token # If email and token are both present, return a hash with both
+        return { email: email, authentication_token: token }
       else
-        return false
+        return {}
       end
     end
 
