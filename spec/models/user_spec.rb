@@ -105,6 +105,15 @@ RSpec.describe User, type: :model do
   ### ROLES & CANCAN ABILITIES ###
   describe 'abilities & roles' do
     
+    it "generates an auth token automatically on save" do
+      expect(traveler.authentication_token).to be
+      old_auth_token = traveler.authentication_token
+      traveler.update_attributes(authentication_token: nil)
+      traveler.reload
+      expect(traveler.authentication_token).to be
+      expect(traveler.authentication_token).not_to eq(old_auth_token)
+    end
+    
     describe "admin users" do
       
       let(:admin) { create(:admin) }
@@ -236,6 +245,13 @@ RSpec.describe User, type: :model do
       
       # shouldn't be able to do anything, this is just a test example
       it{ should_not  be_able_to(:read, Service) }
+      
+      it "does NOT automatically generate an auth token" do
+        expect(guest.authentication_token).to be_nil
+        guest.save
+        guest.reload
+        expect(guest.authentication_token).to be_nil
+      end
       
     end
     

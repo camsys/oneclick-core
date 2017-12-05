@@ -25,6 +25,9 @@ module Api
     # Use before_action :require_authentication to require authentication,
     # and respond with a 401 if it fails.
     #
+    # Use before_action :allow_authentication to attempt authentication, throw
+    # a 401 if it fails, and otherwise ensure that a guest traveler is set
+    #
     # To perform an action only if authentication was successful, use the
     # authentication_successful? boolean method.
     ##################################
@@ -32,6 +35,18 @@ module Api
     # Renders a 401 failure response if authentication was not successful
     def require_authentication
       render_failed_auth_response unless authentication_successful?
+    end
+    
+    # If non-guest email and token are provided, attempt to token authenticate and 
+    # render a 401 if failed. 
+    # If guest user email is provided, set that user as traveler with no authentication.
+    # If no authentication is provided, create a new guest user
+    def allow_authentication
+      email = auth_headers[:email]
+      if email && !GuestUserHelper.new.is_guest_email?(email)
+        require_authentication
+      end
+      ensure_traveler
     end
 
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
@@ -59,7 +74,7 @@ module Api
     # Ensure that a user object is created and loaded as @traveler
     def ensure_traveler
       set_traveler if @traveler.nil?
-      ensure_guest_user if @traveler.nil?
+      create_guest_user if @traveler.nil?
       @traveler
     end
     
@@ -73,19 +88,15 @@ module Api
 
     # Finds the User associated with auth headers.
     def current_api_user
-      auth_headers.present? ? User.find_by(auth_headers) : nil
+      User.find_by(auth_headers) if auth_headers.present? 
     end
 
     # Returns a hash of authentication headers, or an empty hash if not present
     def auth_headers
-      email, token = request.headers["X-User-Email"], request.headers["X-User-Token"]
-      if email && GuestUserHelper.new.is_guest_email?(email) # If email is present and it's a guest user, return just email
-        return { email: email }
-      elsif email && token # If email and token are both present, return a hash with both
-        return { email: email, authentication_token: token }
-      else
-        return {}
-      end
+      {
+        email: request.headers["X-User-Email"], 
+        authentication_token: request.headers["X-User-Token"]
+      }
     end
 
     # Renders a failed user auth response
@@ -185,7 +196,7 @@ module Api
       }
     end
 
-    def ensure_guest_user
+    def create_guest_user
       u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       @traveler = u

@@ -1,7 +1,7 @@
 module Api
   module V2
     class TripsController < ApiController
-      before_action :ensure_traveler, only: [:create] #If @traveler is not set, then create a guest user account
+      before_action :allow_authentication, only: [:create] #If @traveler is not set, then create a guest user account
 
       # POST trips/
       # POST trips/plan
