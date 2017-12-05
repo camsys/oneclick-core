@@ -24,7 +24,7 @@ RSpec.describe Api::ApiController, type: :controller do
   it 'recognizes guest user email and sets @traveler' do
     expect(controller.traveler).to be_nil
     request.headers.merge!(guest_request_headers)
-    controller.ensure_traveler
+    controller.allow_authentication
     expect(controller.traveler.email).to eq(request.headers["X-User-Email"])
   end
 

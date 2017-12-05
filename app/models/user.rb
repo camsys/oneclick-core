@@ -5,13 +5,15 @@ class User < ApplicationRecord
   include BookingHelpers::UserHelpers #has_many :booking_profiles, etc.
   include Contactable
   include RoleHelper
-  acts_as_token_authenticatable
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
          :lockable, :confirmable
   write_to_csv with: Admin::UsersReportCSVWriter
+
+  # acts_as_token_authenticatable unless it's a guest user
+  before_save :ensure_authentication_token, unless: :guest_user?
 
 
   ### Serialized Attributes ###
@@ -74,6 +76,11 @@ class User < ApplicationRecord
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: I18n.default_locale) || Locale.first
+  end
+  
+  # Returns true/false if a user is a guest user, based on email form
+  def guest_user?
+    GuestUserHelper.new.is_guest_email?(email)
   end
 
   # Check to see if this user owns the object
