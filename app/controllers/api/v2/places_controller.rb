@@ -1,7 +1,9 @@
 module Api
   module V2
     class PlacesController < ApiController
-
+      
+      before_action :ensure_traveler
+      
       def index
         search_string = "%#{params[:name]}%" # Pad the query string with %s to get all matching strings
 

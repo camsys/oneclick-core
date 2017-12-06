@@ -25,8 +25,11 @@ module Api
     # Use before_action :require_authentication to require authentication,
     # and respond with a 401 if it fails.
     #
-    # Use before_action :allow_authentication to attempt authentication, throw
+    # Use before_action :attempt_authentication to attempt authentication, throw
     # a 401 if it fails, and otherwise ensure that a guest traveler is set
+    #
+    # Use before_action :ensure_traveler to make sure that a traveler is set,
+    # either guest or registered, but not throw a 401 error if user can't be authenticated
     #
     # To perform an action only if authentication was successful, use the
     # authentication_successful? boolean method.
@@ -41,7 +44,7 @@ module Api
     # render a 401 if failed. 
     # If guest user email is provided, set that user as traveler with no authentication.
     # If no authentication is provided, create a new guest user
-    def allow_authentication
+    def attempt_authentication
       email = auth_headers[:email]
       if email && !GuestUserHelper.new.is_guest_email?(email)
         require_authentication

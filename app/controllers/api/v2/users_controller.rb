@@ -5,7 +5,7 @@ module Api
       
       # before_action :require_authentication, except: [:create, :new_session, :reset_password]
       before_action :require_authentication, only: [:end_session, :destroy]
-      before_action :allow_authentication, only: [:show, :update]
+      before_action :attempt_authentication, only: [:show, :update]
 
       # Get the user profile 
       def show

@@ -1,7 +1,9 @@
 module Api
   module V2
     class StompingGroundsController < ApiController
-      before_action :require_authentication
+
+      # Check for user auth info, but don't require it
+      before_action :attempt_authentication
 
       #Get all the Stomping Grounds for a user
       def index
