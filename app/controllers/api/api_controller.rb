@@ -16,11 +16,13 @@ module Api
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
     before_action :initialize_errors_hash, :set_locale
+    before_action :set_guest_traveler, if: :guest_headers?
 
     ### TOKEN AUTHENTICATION NOTES ###
     # By default: Will attempt to authenticate user and set @traveler if
     # X-User-Email and X-User-Token headers are passed, but will not throw
-    # an error if authentication fails.
+    # an error if authentication fails. If an existing guest's email is passed, 
+    # will set that guest user as traveler.
     #
     # Use before_action :require_authentication to require authentication,
     # and respond with a 401 if it fails.
@@ -37,7 +39,7 @@ module Api
 
     # Renders a 401 failure response if authentication was not successful
     def require_authentication
-      render_failed_auth_response unless authentication_successful?
+      render_failed_auth_response unless authentication_successful? # render a 401 error
     end
     
     # If non-guest email and token are provided, attempt to token authenticate and 
@@ -45,13 +47,32 @@ module Api
     # If guest user email is provided, set that user as traveler with no authentication.
     # If no authentication is provided, create a new guest user
     def attempt_authentication
-      email = auth_headers[:email]
-      if email && !GuestUserHelper.new.is_guest_email?(email)
+      if auth_headers.present? && auth_headers[:email] && !guest_headers?
         require_authentication
       end
       ensure_traveler
     end
-
+    
+    # Ensure that a user object is created and loaded as @traveler
+    def ensure_traveler
+      set_traveler
+      create_guest_user if @traveler.nil?
+      @traveler
+    end
+    
+    # Sets guest traveler based on auth email only
+    def set_guest_traveler
+      return nil unless auth_headers.present?
+      @traveler = User.guests.find_by(email: auth_headers[:email])
+    end
+    
+    # Sets registered traveler based on complete auth headers
+    def set_registered_traveler
+      return nil unless auth_headers.present? && auth_headers[:email] && auth_headers[:authentication_token]
+      @traveler = User.find_by(email: auth_headers[:email], 
+                               authentication_token: auth_headers[:authentication_token])
+    end
+    
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
     def handle_options_request
       head(:ok) if request.request_method == "OPTIONS"
@@ -69,19 +90,26 @@ module Api
                 I18n.default_locale.to_s
     end
     
-    # Sets the @traveler variable to the current api user
+    # Sets the @traveler variable to the current api user -- registered or guest
     def set_traveler
-      @traveler = current_api_user
+      set_guest_traveler
+      set_registered_traveler
     end
     
-    # Ensure that a user object is created and loaded as @traveler
-    def ensure_traveler
-      set_traveler if @traveler.nil?
-      create_guest_user if @traveler.nil?
-      @traveler
+    # dummy action for testing API Controller
+    def test
+      if params[:before_action]
+        self.send(params[:before_action])
+      end
     end
     
     protected
+    
+    # Returns true if auth header email is a guest email
+    def guest_headers?
+      email = auth_headers[:email]
+      email && GuestUserHelper.new.is_guest_email?(email)
+    end
 
     # Actions to take after successfully authenticated a user token.
     # This is run automatically on successful token authentication
@@ -108,9 +136,11 @@ module Api
         json: json_response(:fail, data: {user: "Valid user email and token must be present."})
     end
 
-    # Returns true if authentication has successfully completed
+    # Returns true if authentication of a registered traveler (not a guest) has successfully completed
     def authentication_successful?
-      !!@traveler
+      auth_headers.present? && 
+      auth_headers[:authentication_token].present? && 
+      @traveler.present?
     end
     
     

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::TripsController, type: :controller do
-
+  
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary, trip: nil) }
   let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }

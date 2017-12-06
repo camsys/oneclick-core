@@ -5,6 +5,8 @@ Rails.application.routes.draw do
 
   ### JSON API ###
   namespace :api do
+    
+    get 'test' => 'api#test' # Dummy action for testing generic ApiController
 
     ### API V1 (LEGACY) ###
     namespace :v1 do
