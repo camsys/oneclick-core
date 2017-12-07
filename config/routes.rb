@@ -75,7 +75,7 @@ Rails.application.routes.draw do
       resources :alerts, only: [:index, :update]
       
       # Feedbacks
-      resources :feedbacks, only: [:create]
+      resources :feedbacks, only: [:index, :create]
       
       # Places, Stomping Grounds, Landmarks
       resources :places, only: [:index]

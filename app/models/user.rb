@@ -72,7 +72,7 @@ class User < ApplicationRecord
   
   # Returns the user's full name
   def full_name
-    "#{first_name} #{last_name}"
+    [first_name, last_name].select(&:present?).join(' ')
   end
   
   #Return a locale for a user, even if the users preferred locale is not set
