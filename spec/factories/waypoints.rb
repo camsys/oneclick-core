@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :waypoint do
-    street_number "201"
+    street_number "101"
     route "Station Landing"
     city "Medford"
     state "MA"

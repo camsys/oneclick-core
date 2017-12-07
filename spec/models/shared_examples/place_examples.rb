@@ -17,7 +17,9 @@ RSpec.shared_examples "place" do
   it { should respond_to :to_point, 
                          :build_geometry, 
                          :update_from_google_place_attributes, 
-                         :similar_to? }
+                         :similar_to?,
+                         :formatted_address,
+                         :short_formatted_address }
   it "should respond to class methods" do
     expect(described_class).to respond_to(
       :get_by_query_str, 
@@ -47,6 +49,14 @@ RSpec.shared_examples "place" do
     expect(new_place.city).to eq("Medford")
     expect(new_place.state).to eq("MA")
     expect(new_place.zip).to eq("02155")
+  end
+  
+  it "produces a formatted address" do
+    expect(place.formatted_address).to eq("#{place.street_number} #{place.route}, #{place.city}, #{place.state} #{place.zip}")
+  end
+  
+  it "produces a short formatted address" do
+    expect(place.short_formatted_address).to eq("#{place.street_number} #{place.route}")
   end
   
   it "compares similar places by name, lat, and lng" do

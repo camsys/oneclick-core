@@ -54,6 +54,20 @@ class Place < ApplicationRecord
     lat == other_place[:lat] &&
     lng == other_place[:lng]
   end
+  
+  # Combines the various address components into a pretty string
+  def formatted_address        
+    [
+      [street_number, route].select(&:present?).join(' '),
+      city,
+      [state, zip].select(&:present?).join(' ')
+    ].select(&:present?).join(', ')
+  end
+  
+  # A shorter version of the formatted address
+  def short_formatted_address
+    [self.street_number, self.route].select(&:present?).join(' ')
+  end
     
 
 end

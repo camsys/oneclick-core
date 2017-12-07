@@ -49,14 +49,6 @@ module Api
 
       end
 
-      def formatted_address
-        [
-          [object.street_number, object.route].compact.join(' '),
-          object.city,
-          [object.state, object.zip].compact.join(' ')
-        ].compact.join(', ')
-      end
-
       def geometry
         {
           location: {
