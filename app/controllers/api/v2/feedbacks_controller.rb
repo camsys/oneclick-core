@@ -7,7 +7,7 @@ module Api
       # GET /api/v2/feedbacks
       # Returns a list of the authenticated user's feedbacks, along with their status
       def index
-        @feedbacks = @traveler.feedbacks
+        @feedbacks = @traveler.feedbacks.order(created_at: :desc)
         render(success_response(@feedbacks))
       end
             
