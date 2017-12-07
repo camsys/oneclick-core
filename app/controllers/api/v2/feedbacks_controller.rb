@@ -1,11 +1,20 @@
 module Api
   module V2
     class FeedbacksController < ApiController
+      
+      before_action :attempt_authentication
+      
+      # GET /api/v2/feedbacks
+      # Returns a list of the authenticated user's feedbacks, along with their status
+      def index
+        @feedbacks = @traveler.feedbacks
+        render(success_response(@feedbacks))
+      end
             
-      # POST /api/v1/feedbacks
+      # POST /api/v2/feedbacks
       # Create a feedback for the logged in user
       def create
-        if authentication_successful?
+        if @traveler.present?
           @feedback = @traveler.feedbacks.build(feedback_params) # Builds a feedback belonging to the logged-in user
         else
           @feedback = Feedback.new(feedback_params)

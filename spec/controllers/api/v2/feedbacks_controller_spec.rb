@@ -42,6 +42,20 @@ RSpec.describe Api::V2::FeedbacksController, type: :controller do
     expect(Feedback.last.email).to eq(feedback_params[:email])
     expect(Feedback.last.phone).to eq(PhonyRails.normalize_number(feedback_params[:phone]))
   end
+  
+  it 'returns a list of user feedbacks' do
+    rand(1..5).times do
+      traveler.feedbacks << create(:feedback)
+    end
+    
+    request.headers.merge!(request_headers)
+    get :index
+    
+    expect(response).to be_success
+    
+    parsed_response = JSON.parse(response.body)
+    expect(parsed_response["data"]["feedbacks"].count).to eq(traveler.feedbacks.count)    
+  end
 
   
 end
