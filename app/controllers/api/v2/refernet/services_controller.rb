@@ -43,7 +43,7 @@ module Api
         end
 
         def email 
-          OneclickRefernet::UserMailer.services(params[:email], params[:services], @locale).deliver!
+          OneclickRefernet::UserMailer.services(params[:email], params[:services], @locale).deliver
           render json: true
         end
 
