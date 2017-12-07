@@ -106,6 +106,11 @@ class User < ApplicationRecord
   def future_trips(count=nil)
     trips.future.limit(count)
   end
+  
+  # Returns an unordered collection of the traveler's waypoints
+  def waypoints
+    trips.waypoints
+  end
 
   # Returns the (count) most recent places from trips planned by the user.
   def recent_waypoints(count=nil)

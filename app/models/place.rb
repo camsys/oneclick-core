@@ -47,5 +47,13 @@ class Place < ApplicationRecord
   def build_geometry
     self.geom = to_point
   end
+  
+  # Returns true if place's name, lat, and lng match the given place
+  def similar_to?(other_place)
+    name == other_place[:name] &&
+    lat == other_place[:lat] &&
+    lng == other_place[:lng]
+  end
+    
 
 end

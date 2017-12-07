@@ -11,20 +11,28 @@ module Api
         results= []
         
         # Get Matching Stomping Grounds
-        results += @traveler.stomping_grounds.get_by_query_str(search_string).limit(limit)
+        results += @traveler.stomping_grounds
+                            .get_by_query_str(search_string)
+                            .limit(limit)
         
         # Get Matching Landmarks
-        results += Landmark.get_by_query_str(search_string).limit(limit)
+        results += Landmark.get_by_query_str(search_string)
+                           .limit(limit)
           
-        # Placeholder for get matching recent waypoints
-        # Combine exact matches with approximate matches, then take unique results by name/lat/lng and limit
-        recent_waypoints = (
-          @traveler.recent_waypoints.where(name: params[:name]) + 
-          @traveler.recent_waypoints.get_by_query_str(search_string)
-        )
-        .take(limit)
+        # Get Matching Recent Waypoints
+        # exact matches
+        results += @traveler.waypoints
+                            .where(name: params[:name])
+                            .order(created_at: :desc)
+                            .limit(limit)
+        # substring matches
+        results += @traveler.waypoints
+                            .get_by_query_str(search_string)
+                            .order(created_at: :desc)
+                            .limit(limit)
         
-        results += recent_waypoints
+        # Filter out any duplicate results that remain
+        results.uniq! { |p| [p.name, p.lat, p.lng] }
         
         render(success_response(results, root: "places", serializer: Api::GooglePlaceSerializer))
       end
