@@ -2,6 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Landmark, type: :model do
   let(:landmark) { create :landmark }
+  
+  it_behaves_like "place"
 
   it "builds a google_place_hash with proper address components" do
     expect(landmark.google_place_hash[:address_components]).to eq([

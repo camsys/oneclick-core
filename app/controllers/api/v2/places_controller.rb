@@ -10,19 +10,33 @@ module Api
         limit = params[:max_results] || 5
         results= []
         
-        if @traveler
-          # Get Matching Stomping Grounds
-          results += StompingGround.get_by_query_str(search_string, limit, @traveler)
-          
-          # Placeholder for get matching recent waypoints
-        end
-
+        # Get Matching Stomping Grounds
+        results += @traveler.stomping_grounds
+                            .get_by_query_str(search_string)
+                            .limit(limit)
+        
         # Get Matching Landmarks
-        landmarks = Landmark.get_by_query_str(search_string, limit)
-        results += landmarks
+        results += Landmark.get_by_query_str(search_string)
+                           .limit(limit)
+          
+        # Get Matching Recent Waypoints
+        # exact matches
+        results += @traveler.waypoints
+                            .where(name: params[:name])
+                            .order(created_at: :desc)
+                            .limit(limit)
+        # substring matches
+        results += @traveler.waypoints
+                            .get_by_query_str(search_string)
+                            .order(created_at: :desc)
+                            .limit(limit)
+        
+        # Filter out any duplicate results that remain
+        results.uniq! { |p| [p.name, p.lat, p.lng] }
         
         render(success_response(results, root: "places", serializer: Api::GooglePlaceSerializer))
       end
+      
     end
   end
 end

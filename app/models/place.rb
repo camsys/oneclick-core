@@ -3,19 +3,19 @@ class Place < ApplicationRecord
   self.abstract_class = true
   attr_accessor :google_place_attributes
   before_save :build_geometry
-  
+    
   #### Includes ####
   include GooglePlace
 
   # Search over all classes that inherit from place by query string
-  def self.get_by_query_str(query_str, limit=nil, user=nil)
-    rel = nil
-    if user
-      rel = self.where(user: user).arel_table[:name].lower().matches(query_str)
-    else
-      rel = self.arel_table[:name].lower().matches(query_str)
-    end
-    self.where(rel).limit(limit)
+  def self.get_by_query_str(query_str)
+    rel = self.arel_table[:name].lower().matches(query_str)
+    self.unique.where(rel)
+  end
+
+  # Returns a collection of each of the first unique records by name, lat, and lng
+  def self.unique
+    where(id: self.group(:name,:lat,:lng).maximum(:id).values)
   end
 
   # If a google_place_attributes param is passed, will create a Place based on the JSON contained therein.
@@ -47,5 +47,13 @@ class Place < ApplicationRecord
   def build_geometry
     self.geom = to_point
   end
+  
+  # Returns true if place's name, lat, and lng match the given place
+  def similar_to?(other_place)
+    name == other_place[:name] &&
+    lat == other_place[:lat] &&
+    lng == other_place[:lng]
+  end
+    
 
 end

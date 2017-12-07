@@ -39,6 +39,8 @@ class User < ApplicationRecord
   ### Associations ###
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
+  has_many :origins, through: :trips
+  has_many :destinations, through: :trips
   has_and_belongs_to_many :accommodations, -> { distinct }
   belongs_to :preferred_locale, class_name: 'Locale', foreign_key: :preferred_locale_id
   has_many :user_eligibilities, dependent: :destroy
@@ -103,6 +105,11 @@ class User < ApplicationRecord
   # Returns the user's (count) future trips, in descending order of trip time
   def future_trips(count=nil)
     trips.future.limit(count)
+  end
+  
+  # Returns an unordered collection of the traveler's waypoints
+  def waypoints
+    trips.waypoints
   end
 
   # Returns the (count) most recent places from trips planned by the user.
