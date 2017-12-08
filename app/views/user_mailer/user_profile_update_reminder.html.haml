@@ -1,0 +1,15 @@
+%p
+  Dear
+  %b #{@user.full_name_or_email}:
+%p 
+  It looks like you haven't updated your LYNX account in a while. 
+  Please 
+  %a{href: Config.ui_url}="log in to your account" 
+  to confirm that your information is still up-to-date.
+
+%p Sincerely,
+%p
+  %b
+    LYNX VTRACS
+  %br
+  %a{href: root_url}="Click here to unsubscribe from these emails"

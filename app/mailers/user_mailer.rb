@@ -15,6 +15,12 @@ class UserMailer < ApplicationMailer
     
     mail(to: email_list, subject: "Reminder to Update #{@agency.name}")
   end
+  
+  def user_profile_update_reminder(user)
+    @user = user
+    @subject = "Hello from LYNX!"
+    mail(to: user.email, subject: @subject)
+  end
 
   def new_traveler(user)
     @user = user

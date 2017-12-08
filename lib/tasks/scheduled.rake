@@ -33,7 +33,21 @@ namespace :scheduled do
       # reset the agency's updated_at time to now, so that this message doesn't send again for 6 months
       agency.update_attributes(updated_at: DateTime.current)
     end
-    
+  end
+  
+  desc "Periodically Send Registered Travelers Reminders to Update their Profile"
+  task user_profile_update_emails: :environment do
+    # To all users on the email list that haven't been updated in over a year, send a reminder email
+    User.registered_travelers
+    .subscribed_to_emails
+    .where('updated_at < ?', DateTime.current - 1.year)
+    .each do |user|
+      Rails.logger.info "Sending profile update reminder emails to user #{user.email}..."
+      UserMailer.user_profile_update_reminder(user).deliver_now
+      
+      # reset the user's updated_at time to now, so this message doesn't send again for 12 months
+      user.update_attributes(updated_at: DateTime.current)
+    end
   end
   
   # For each service with a RidePilot booking profile, make a get_purposes
