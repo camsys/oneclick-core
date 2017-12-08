@@ -6,39 +6,30 @@ module Api
 
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
-
-          data = []
           duration_hash = {}
           
           sub_sub_category = OneclickRefernet::SubSubCategory.find_by(code: params[:sub_sub_category])
           sub_sub_category_services = sub_sub_category.try(:services) || []
 
           # Base service queries on a collection of UNIQUE services
-          services = OneclickRefernet::Service.where(id: sub_sub_category_services
-                                                          .pluck(:id)
-                                                          .uniq)
+          services = OneclickRefernet::Service.confirmed.where(id: sub_sub_category_services.pluck(:id).uniq)
           
-          if params[:lat] and params[:lng]
-            #services = sub_sub_category.services.closest(params[:lat], params[:lng]).confirmed.within_box(params[:lat], params[:lng], params[:meters] || 48280.3).uniq.limit(10)
-            meters = (params[:meters].to_f > 0.0 ? params[:meters].to_f : 48280.3)
-            services = services.closest(params[:lat], params[:lng])
-                               .confirmed
-                               .within_box(params[:lat], params[:lng], meters)
-                               .limit(10)           
+          lat, lng = params[:lat], params[:lng]
+          meters = params[:meters].to_f
+          limit = params[:limit] || 10
+          
+          if lat && lng
+            meters = meters > 0.0 ? meters : (30 * 1609.34) # Default to 30 miles
+            
+            services = services.closest(lat, lng)
+                               .within_x_meters(lat, lng, meters)
+                               .limit(limit)                  
             duration_hash = build_duration_hash(params, services)
           else
-            services = services.confirmed
-                               .limit(10)
+            services = services.limit(limit)
           end
           
-
-          # TODO: NO HARD LIMIT. LIMIT BASED ON SOMETHING SMART E.G. DISTANCE
-          services.each do |service|
-            svc_data = service_hash(service, duration_hash)
-            data << svc_data
-          end
-
-          render json: data
+          render json: services.map { |svc| service_hash(svc, duration_hash) }
 
         end
 
