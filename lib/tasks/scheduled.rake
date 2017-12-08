@@ -17,10 +17,23 @@ namespace :scheduled do
             Time.current - (i*5).days,
             Time.current - (i*5+1).days)
       .each do |agency|
-        Rails.logger.info "Sending reminder emails to staff for #{agency.name}..."
+        Rails.logger.info "Sending setup reminder emails to staff for #{agency.name}..."
         UserMailer.agency_setup_reminder(agency).deliver_now
       end
     end
+  end
+  
+  desc "Periodically Send Agency Staff Reminders to Update their Agencies"
+  task agency_update_reminder_emails: :environment do
+    # send an update email to agency staff if the agency hasn't been updated in 6 months
+    Agency.where('updated_at < ?', DateTime.current - 6.months).each do |agency|
+      Rails.logger.info "Sending update reminder emails to staff for #{agency.name}..."
+      UserMailer.agency_update_reminder(agency).deliver_now
+      
+      # reset the agency's updated_at time to now, so that this message doesn't send again for 6 months
+      agency.update_attributes(updated_at: DateTime.current)
+    end
+    
   end
   
   # For each service with a RidePilot booking profile, make a get_purposes

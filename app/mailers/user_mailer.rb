@@ -8,6 +8,13 @@ class UserMailer < ApplicationMailer
     
     mail(to: email_list, subject: "Reminder to Set Up #{@agency.name}")
   end
+  
+  def agency_update_reminder(agency)
+    @agency = agency
+    email_list = (agency.staff.pluck(:email) + [@agency.email] + User.admins.pluck(:email)).compact
+    
+    mail(to: email_list, subject: "Reminder to Update #{@agency.name}")
+  end
 
   def new_traveler(user)
     @user = user
