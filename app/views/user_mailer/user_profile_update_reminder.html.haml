@@ -12,4 +12,15 @@
   %b
     LYNX VTRACS
   %br
-  %a{href: root_url}="Click here to unsubscribe from these emails"
+    %a#unsubscribe-user{href: '#'}="Click here to unsubscribe from these emails"
+
+:javascript
+  // HTTP POST request to unsubscribe user from email updates
+  var unsubscribeButton = document.getElementById("unsubscribe-user");
+  unsubscribeButton.addEventListener('click', function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '#{unsubscribe_api_v2_users_url}');
+    xhr.setRequestHeader('X-User-Email', '#{@user.email}');
+    xhr.setRequestHeader('X-User-Token', '#{@user.authentication_token}');
+    xhr.send();
+  }, false);

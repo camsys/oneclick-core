@@ -93,6 +93,8 @@ Rails.application.routes.draw do
       resource :users, only: [:show, :update, :create, :destroy] do
         collection do
           post 'reset_password'
+          post 'subscribe'
+          post 'unsubscribe'
         end
       end
       post 'sign_up' => 'users#create'
