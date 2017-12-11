@@ -1,18 +1,17 @@
 %p
-  Dear
+  =translate("api_v2.emails.user_profile_update_reminder.greeting")
   %b #{@user.full_name_or_email}:
-%p 
-  It looks like you haven't updated your LYNX account in a while. 
-  Please 
-  %a{href: Config.ui_url}="log in to your account" 
-  to confirm that your information is still up-to-date.
+%p
+  =translate("api_v2.emails.user_profile_update_reminder.part_1")
+  %a{href: Config.ui_url}=translate("api_v2.emails.user_profile_update_reminder.part_2a")
+  =translate("api_v2.emails.user_profile_update_reminder.part_2b")
 
-%p Sincerely,
+%p=translate("api_v2.emails.user_profile_update_reminder.sign_off")
 %p
   %b
-    LYNX VTRACS
+    =translate("api_v2.emails.user_profile_update_reminder.from")
   %br
-    %a#unsubscribe-user{href: '#'}="Click here to unsubscribe from these emails"
+    %a#unsubscribe-user{href: '#'}=translate("api_v2.emails.user_profile_update_reminder.unsubscribe")
 
 :javascript
   // HTTP POST request to unsubscribe user from email updates

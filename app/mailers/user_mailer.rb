@@ -1,6 +1,7 @@
 class UserMailer < ApplicationMailer
 
-  helper :email 
+  include TranslationHelper # translate(key) in @locale using SimpleTranslationEngine
+  helper :email
 
   def agency_setup_reminder(agency)
     @agency = agency
@@ -18,7 +19,8 @@ class UserMailer < ApplicationMailer
   
   def user_profile_update_reminder(user)
     @user = user
-    @subject = "Hello from LYNX!"
+    @locale = @user.locale.try(:name)
+    @subject = translate("api_v2.emails.user_profile_update_reminder.subject")
     mail(to: user.email, subject: @subject)
   end
 

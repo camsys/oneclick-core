@@ -1,4 +1,4 @@
-# English locale for API V1 responses
+# English locale for API V2 responses
 
 en:
   api_v2:
@@ -8,3 +8,12 @@ en:
         intro: "Your password has been reset. Please sign on with your new password and reset it to a password of your choosing as soon as possible."
         your_username: "Your Username"
         your_new_password: "Your New Password"
+      user_profile_update_reminder:
+        subject: "Hello from LYNX!"
+        greeting: "Dear "
+        part_1: "It looks like you haven't updated your LYNX account in a while. "
+        part_2a: "Please log into your account"
+        part_2b: " to confirm that your information is still up-to-date."
+        sign_off: "Sincerely, "
+        from: "LYNX VTRACS"
+        unsubscribe: "Click here to unsubscribe from these emails"
