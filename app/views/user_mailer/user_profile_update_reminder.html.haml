@@ -21,6 +21,5 @@
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '#{unsubscribe_api_v2_users_url}');
     xhr.setRequestHeader('X-User-Email', '#{@user.email}');
-    xhr.setRequestHeader('X-User-Token', '#{@user.authentication_token}');
     xhr.send();
   }, false);

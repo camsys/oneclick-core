@@ -4,7 +4,7 @@ module Api
       # include Devise::Controllers::SignInOut
       
       # before_action :require_authentication, except: [:create, :new_session, :reset_password]
-      before_action :require_authentication, only: [:end_session, :destroy, :subscribe, :unsubscribe]
+      before_action :require_authentication, only: [:end_session, :destroy]
       before_action :attempt_authentication, only: [:show, :update]
 
       # Get the user profile 
@@ -108,20 +108,22 @@ module Api
       end
       
       
-      # Subscribe user to email updates by email and token
+      # Subscribe user to email updates by email (no token required)
       # POST api/v2/users/subscribe
       def subscribe
-        if(@traveler.update_attributes(subscribed_to_emails: true))
+        @traveler = User.find_by(email: auth_headers[:email])
+        if(@traveler && @traveler.update_attributes(subscribed_to_emails: true))
           render(success_response(message: "User #{@traveler.email} subscribed to email updates."))
         else
           render(fail_response)
         end
       end
       
-      # Unsubscribe user from email updated by email and token
+      # Unsubscribe user from email updated by email (no token required)
       # POST api/v2/users/unsubscribe
-      def unsubscribe
-        if(@traveler.update_attributes(subscribed_to_emails: false))
+      def unsubscribe        
+        @traveler = User.find_by(email: auth_headers[:email])
+        if(@traveler && @traveler.update_attributes(subscribed_to_emails: false))
           render(success_response(message: "User #{@traveler.email} unsubscribed from email updates."))
         else
           render(fail_response)

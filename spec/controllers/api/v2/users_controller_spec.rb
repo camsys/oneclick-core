@@ -483,7 +483,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       
       expect(traveler.subscribed_to_emails).to be true
       
-      request.headers['X-User-Token'] = traveler.authentication_token
+      # request.headers['X-User-Token'] = traveler.authentication_token # NO TOKEN NEEDED
       request.headers['X-User-Email'] = traveler.email
       
       post :unsubscribe
@@ -499,7 +499,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       
       expect(traveler.subscribed_to_emails).to be false
       
-      request.headers['X-User-Token'] = traveler.authentication_token
+      # request.headers['X-User-Token'] = traveler.authentication_token # NO TOKEN NEEDED
       request.headers['X-User-Email'] = traveler.email
       
       post :subscribe
