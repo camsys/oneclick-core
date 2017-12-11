@@ -476,5 +476,39 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     end
     
   end
+  
+  describe "subscribe/unsubscribe" do
+    
+    it "unsubscribes a user from email updates" do
+      
+      expect(traveler.subscribed_to_emails).to be true
+      
+      # request.headers['X-User-Token'] = traveler.authentication_token # NO TOKEN NEEDED
+      request.headers['X-User-Email'] = traveler.email
+      
+      post :unsubscribe
+      
+      traveler.reload
+      expect(response).to be_success
+      expect(traveler.subscribed_to_emails).to be false
+      
+    end
+    
+    it "subscribes a user to email updates" do
+      traveler.update_attributes(subscribed_to_emails: false)
+      
+      expect(traveler.subscribed_to_emails).to be false
+      
+      # request.headers['X-User-Token'] = traveler.authentication_token # NO TOKEN NEEDED
+      request.headers['X-User-Email'] = traveler.email
+      
+      post :subscribe
+      
+      traveler.reload
+      expect(response).to be_success
+      expect(traveler.subscribed_to_emails).to be true
+    end
+    
+  end
 
 end

@@ -34,6 +34,9 @@ class User < ApplicationRecord
   scope :active_until, -> (date) do
     joins(:trips).merge(Trip.to_date(date))
   end
+  
+  # Users with the subscribed_to_emails flag set to true
+  scope :subscribed_to_emails, -> { where(subscribed_to_emails: true) }
 
 
   ### Associations ###
@@ -75,6 +78,11 @@ class User < ApplicationRecord
     [first_name, last_name].select(&:present?).join(' ')
   end
   
+  # Returns the user's full name, or email if that's blank
+  def full_name_or_email
+    full_name.strip.present? ? full_name : email
+  end
+  
   #Return a locale for a user, even if the users preferred locale is not set
   def locale
     self.preferred_locale || Locale.find_by(name: I18n.default_locale) || Locale.first
@@ -83,6 +91,11 @@ class User < ApplicationRecord
   # Returns true/false if a user is a guest user, based on email form
   def guest_user?
     GuestUserHelper.new.is_guest_email?(email)
+  end
+  
+  # Alias for subscribed_to_emails boolean
+  def subscribed_to_emails?
+    self.subscribed_to_emails
   end
 
   # Check to see if this user owns the object

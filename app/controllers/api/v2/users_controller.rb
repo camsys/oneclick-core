@@ -102,8 +102,32 @@ module Api
         
       end
 
+      # Placeholder for possible future destroy user call
       def destroy
         puts params.ai
+      end
+      
+      
+      # Subscribe user to email updates by email (no token required)
+      # POST api/v2/users/subscribe
+      def subscribe
+        @traveler = User.find_by(email: auth_headers[:email])
+        if(@traveler && @traveler.update_attributes(subscribed_to_emails: true))
+          render(success_response(message: "User #{@traveler.email} subscribed to email updates."))
+        else
+          render(fail_response)
+        end
+      end
+      
+      # Unsubscribe user from email updated by email (no token required)
+      # POST api/v2/users/unsubscribe
+      def unsubscribe        
+        @traveler = User.find_by(email: auth_headers[:email])
+        if(@traveler && @traveler.update_attributes(subscribed_to_emails: false))
+          render(success_response(message: "User #{@traveler.email} unsubscribed from email updates."))
+        else
+          render(fail_response)
+        end
       end
       
       private
