@@ -2,8 +2,6 @@ module Api
   module V2
     class PlacesController < ApiController
       
-      before_action :ensure_traveler
-      
       def index
         search_string = "%#{params[:name]}%" # Pad the query string with %s to get all matching strings
 
@@ -13,7 +11,7 @@ module Api
         # Get Matching Stomping Grounds
         results += @traveler.stomping_grounds
                             .get_by_query_str(search_string)
-                            .limit(limit)
+                            .limit(limit) if @traveler
         
         # Get Matching Landmarks
         results += Landmark.get_by_query_str(search_string)
@@ -24,12 +22,12 @@ module Api
         results += @traveler.waypoints
                             .where(name: params[:name])
                             .order(created_at: :desc)
-                            .limit(limit)
+                            .limit(limit) if @traveler
         # substring matches
         results += @traveler.waypoints
                             .get_by_query_str(search_string)
                             .order(created_at: :desc)
-                            .limit(limit)
+                            .limit(limit) if @traveler
         
         # Filter out any duplicate results that remain
         results.uniq! { |p| [p.name, p.lat, p.lng] }
