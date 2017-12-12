@@ -30,6 +30,7 @@ class Ability
       can :manage, Service,             # Can CRUD services under their agency
         id: user.services.pluck(:id)
       can :create, Service              # Can create new services
+      can :manage, Alert                # Can manage alerts
       
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?

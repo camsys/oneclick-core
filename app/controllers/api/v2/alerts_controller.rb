@@ -1,10 +1,10 @@
 module Api
   module V2
     class AlertsController < ApiController
-            
+
       # GET /api/v2/alerts
       def index
-        
+
         # If traveler is authenticated serve back their user alerts
         if authentication_successful?
           @traveler.update_alerts

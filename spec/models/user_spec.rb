@@ -168,6 +168,9 @@ RSpec.describe User, type: :model do
         expect(staff.services.all?{|s| s.is_a?(Service)}).to be true
       end
       
+      # Alerts
+      it{ should      be_able_to( :manage,            Alert) }
+      
       describe "transportation staff users" do
         
         let(:transportation_agency) { create(:transportation_agency, :with_services) }
