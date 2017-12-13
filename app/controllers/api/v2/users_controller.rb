@@ -43,17 +43,32 @@ module Api
       # Leverages devise lockable module: https://github.com/plataformatec/devise/blob/master/lib/devise/models/lockable.rb
       def new_session
         @user = User.find_by(email: user_params[:email].downcase)
+        @fail_status = 400
         
         # Check if a user was found based on the passed email. If so, continue authentication.
         if @user.present?
           # checks if password is incorrect and user is locked, and unlocks if lock is expired
-          if @user.valid_for_authentication? { @user.valid_password?(user_params[:password]) } 
+          if @user.valid_for_api_authentication?(user_params[:password])
             @user.ensure_authentication_token
           else
-            # Otherwise, add some errors to the response depending on what went wrong./
-            @errors[:last_attempt] = "You have one more attempt before account is locked for #{User.unlock_in / 60} minutes." if @user.on_last_attempt?
-            @errors[:locked] = "User account is temporarily locked. Try again in #{@user.time_until_unlock} minutes." if @user.access_locked?
-            @errors[:password] = "Incorrect password for #{@user.email}." unless @user.access_locked? || @user.valid_password?(user_params[:password])
+            # Otherwise, add some errors to the response depending on what went wrong.
+            if !@user.confirmed?
+              @errors[:unconfirmed] = "You must confirm your account by clicking the link in the confirmation email that was sent."
+            end
+            
+            if @user.on_last_attempt?
+              @errors[:last_attempt] = "You have one more attempt before account is locked for #{User.unlock_in / 60} minutes."
+            end
+
+            if @user.access_locked?
+              @errors[:locked] = "User account is temporarily locked. Try again in #{@user.time_until_unlock} minutes."
+            end
+            
+            unless @user.access_locked? || @user.valid_password?(user_params[:password])
+              @errors[:password] = "Incorrect password for #{@user.email}."
+            end
+            
+            @fail_status = 401
             @errors = @errors.merge(@user.errors.to_h)            
           end
         else
@@ -67,7 +82,7 @@ module Api
               session: session_hash(@user)
             )) and return
         else # If there are any errors, send back a failure response.
-          render(fail_response(errors: @errors))
+          render(fail_response(errors: @errors, status: @fail_status))
         end
         
       end
