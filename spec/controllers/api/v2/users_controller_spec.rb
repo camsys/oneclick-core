@@ -75,7 +75,17 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       pw = "somerandombadpw"
       post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
       
-      expect(response).to have_http_status(:bad_request)
+      expect(response).to have_http_status(:unauthorized)
+    end
+    
+    it 'requires user to be confirmed' do
+      pw = attributes_for(:user)[:password]
+      traveler = create(:user, :unconfirmed)
+      expect(traveler.confirmed?).to be false
+      
+      post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
+      
+      expect(response).to have_http_status(:unauthorized)
     end
     
     it 'signs out a user' do
@@ -136,7 +146,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       
       # Attempt 4 (with correct pw)
       post :new_session, format: :json, params: { user: { email: traveler.email, password: attributes_for(:user)[:password] } }
-      expect(response).to have_http_status(:bad_request)
+      expect(response).to have_http_status(:unauthorized)
 
     end
     

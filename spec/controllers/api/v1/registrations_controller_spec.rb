@@ -36,8 +36,9 @@ RSpec.describe Api::V1::RegistrationsController, type: :controller do
     post :create, params: user_attrs, as: :json
     created_user = User.find_by(email: user_attrs[:email])
     attrs = user_attrs.keys
+    excluded_attrs = [:password, :password_confirmation, :format, :confirmed_at]
     attrs_match = attrs.all? do |att|
-      (user_attrs[att] == created_user[att] || [:password, :password_confirmation, :format].include?(att))
+      (user_attrs[att] == created_user[att] || excluded_attrs.include?(att))
     end
 
     expect(attrs_match).to be_truthy

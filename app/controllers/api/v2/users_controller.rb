@@ -43,6 +43,7 @@ module Api
       # Leverages devise lockable module: https://github.com/plataformatec/devise/blob/master/lib/devise/models/lockable.rb
       def new_session
         @user = User.find_by(email: user_params[:email].downcase)
+        @fail_status = 400
         
         # Check if a user was found based on the passed email. If so, continue authentication.
         if @user.present?
@@ -67,6 +68,7 @@ module Api
               @errors[:password] = "Incorrect password for #{@user.email}."
             end
             
+            @fail_status = 401
             @errors = @errors.merge(@user.errors.to_h)            
           end
         else
@@ -80,7 +82,7 @@ module Api
               session: session_hash(@user)
             )) and return
         else # If there are any errors, send back a failure response.
-          render(fail_response(errors: @errors))
+          render(fail_response(errors: @errors, status: @fail_status))
         end
         
       end

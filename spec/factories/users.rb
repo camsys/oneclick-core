@@ -5,6 +5,7 @@ FactoryBot.define do
     password_confirmation "welcome1"
     first_name "Test"
     last_name "McUser"
+    confirmed
     
     transient do
       staff_agency nil
@@ -111,6 +112,16 @@ FactoryBot.define do
         u.booking_profiles << create(:ride_pilot_user_profile, user: u)
         u.booking_profiles << create(:ride_pilot_user_profile, user: u)
       end
+    end
+    
+    trait :confirmed do
+      confirmed_at { DateTime.current }
+    end
+    
+    trait :unconfirmed do
+      confirmed_at nil
+      confirmation_sent_at { DateTime.current - 10.days }
+      confirmation_token "bloop"
     end
 
   end
