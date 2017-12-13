@@ -11,15 +11,31 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  %h4.text-center RidePilot
   = f.input :ride_pilot_url, required: true,
     label: "RidePilot API URL",
     input_html: {value: @configs.find_by(key: :ride_pilot_url).try(:value)},
     as: :string
-    
   =f.input :ride_pilot_token, required: true,
     label: "RidePilot API Token",
     input_html: {value: @configs.find_by(key: :ride_pilot_token).try(:value)},
     as: :string
+
+  %h4.text-center Trapeze
+
+  = f.input :trapeze_url, required: true,
+    label: "Trapeze API URL",
+    input_html: {value: @configs.find_by(key: :trapeze_url).try(:value)},
+    as: :string
+  = f.input :trapeze_user, required: true,
+    label: "Trapeze API User",
+    input_html: {value: @configs.find_by(key: :trapeze_user).try(:value)},
+    as: :string
+  = f.input :trapeze_token, required: true,
+    label: "Trapeze API Token",
+    input_html: {value: @configs.find_by(key: :trapeze_token).try(:value)},
+    as: :string
+    
 
 :javascript
   $(document).ready(function() {    
