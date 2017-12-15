@@ -9,11 +9,19 @@ module Api
 
       # Get the user profile 
       def show
-        render(success_response(@traveler))
+        if @traveler.present?
+          render(success_response(@traveler))
+        else
+          render(fail_response(status: 404, message: "Not found"))
+        end
       end
 
       # Update's the user's profile
       def update
+        unless @traveler.present?
+          render(fail_response(status: 404, message: "Not found"))
+        end
+        
         # user.update_profile call filters out any unsafe params
         if @traveler.update_profile(params)
           set_locale # based on traveler's new preferred locale

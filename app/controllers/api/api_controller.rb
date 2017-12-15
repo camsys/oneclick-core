@@ -16,6 +16,8 @@ module Api
     include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
     before_action :initialize_errors_hash, :set_locale
+    
+    # By default, will attempt to set guest traveler if guest headers are sent
     before_action :set_guest_traveler, if: :guest_headers?
 
     ### TOKEN AUTHENTICATION NOTES ###
@@ -38,19 +40,20 @@ module Api
     ##################################
 
     # Renders a 401 failure response if authentication was not successful
+    # Disallows guest traveler auth
     def require_authentication
       render_failed_auth_response unless authentication_successful? # render a 401 error
     end
     
     # If non-guest email and token are provided, attempt to token authenticate and 
-    # render a 401 if failed. 
-    # If guest user email is provided, set that user as traveler with no authentication.
-    # If no authentication is provided, create a new guest user
+    # render a 401 if failed. Allows guest travelers
     def attempt_authentication
       if auth_headers.present? && auth_headers[:email] && !guest_headers?
         require_authentication
       end
-      ensure_traveler
+      
+      # If no authentication is provided, create a new guest user
+      # ensure_traveler
     end
     
     # Ensure that a user object is created and loaded as @traveler

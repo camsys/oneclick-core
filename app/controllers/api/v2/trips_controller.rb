@@ -2,6 +2,18 @@ module Api
   module V2
     class TripsController < ApiController
       before_action :ensure_traveler, only: [:create] #If @traveler is not set, then create a guest user account
+      before_action :attempt_authentication, only: [:show]
+
+      # GET trips/:id
+      # Gets an already planned trip. Must authenticate user.
+      def show
+        @trip = @traveler.present? ? @traveler.trips.find(params[:id]) : nil
+        if @trip
+          render success_response(@trip, serializer_opts: {include: ['*.*.*']})
+        else
+          render(fail_response(status: 404, message: "Not found"))
+        end
+      end
 
       # POST trips/
       # POST trips/plan
