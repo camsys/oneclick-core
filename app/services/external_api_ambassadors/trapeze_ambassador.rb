@@ -1,11 +1,21 @@
 class TrapezeAmbassador < BookingAmbassador
+
+  attr_accessor :user, :client, :client_id, :client_password
   
   # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
     super(opts)
     @url ||= Config.trapeze_url
     @user ||= Config.trapeze_user
-    @trapeze ||= Config.trapeze_token
+    @token ||= Config.trapeze_token
+    @client = Savon.client do
+      endpoint @url
+      namespace @url
+      basic_auth [@user, @token]
+      convert_request_keys_to :camelcase
+    end
+    @client_id = opts[:client_id]
+    @client_password = opts[:client_password]
   end
 
   # Returns symbol for identifying booking api type
@@ -13,21 +23,18 @@ class TrapezeAmbassador < BookingAmbassador
     :trapeze
   end
 
-  # Returns boolean true/false if user is a RidePilot user
-  def authenticate_user?
-    authenticate_customer == "200 OK"
-  end
+  def pass_validate_client_password
+    #begin
+      response = @client.call(:pass_validate_client_password, message: {client_id: @client_id, password: @client_password})
+    #rescue
+    #  return false
+    #end
 
-  def authenticate_customer    
-    label = request_label(:authenticate_customer, customer_id)
-        
-    @http_request_bundler.add(
-      label, 
-      @url + "/authenticate_customer", 
-      :get,
-      head: headers,
-      query: { provider_id: provider_id, customer_id: customer_id, customer_token: customer_token }
-    ).status!(label)
+    if response.to_hash[:pass_validate_client_password_response][:validation][:item][:code] == "RESULTOK"
+      return true
+    else
+      return false
+    end
   end
 
 
