@@ -4,6 +4,9 @@ if ENV["ONECLICK_REFERNET"]
   # Set the refernet API token
   OneclickRefernet.api_token = 'KIXUUKWX'
   
+  # Sets the base controller for OneclickRefernet Controllers
+  OneclickRefernet.base_controller = Api::ApiController
+  
   # Make refernet services feedbackable
   OneclickRefernet::Service.send(:include, Feedbackable)
   

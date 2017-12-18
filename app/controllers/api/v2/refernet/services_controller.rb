@@ -3,7 +3,6 @@ module Api
     module Refernet
       class ServicesController < ApiController
 
-
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
           duration_hash = {}
@@ -32,7 +31,7 @@ module Api
           render json: services.map { |svc| service_hash(svc, duration_hash) }
 
         end
-
+        
         def email 
           OneclickRefernet::UserMailer.services(params[:email], params[:services], @locale).deliver
           render json: true

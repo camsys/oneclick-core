@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 4c149c3b52eb7122137f2f63c0856aeca9828a1c
+  revision: ae6d3f710df30504ab41ac71ab60c0e74ae5a0a0
   specs:
-    oneclick_refernet (0.5.4)
+    oneclick_refernet (0.5.8)
       active_model_serializers
       activerecord-postgis-adapter
       pg
