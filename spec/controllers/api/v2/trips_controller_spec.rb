@@ -118,5 +118,21 @@ RSpec.describe Api::V2::TripsController, type: :controller do
     end
     
   end
+  
+  
+  ### OTHER CALLS ###
+  
+  it "gets a trip by ID if user headers are passed" do
+    trip = create(:trip, user: user)
+    
+    request.headers.merge!(user_headers)
+    
+    get :show, params: { id: trip.id }
+    
+    response_body = JSON.parse(response.body)
+    
+    expect(response).to be_success    
+    expect(response_body["data"]["trip"]).to be
+  end
 
 end

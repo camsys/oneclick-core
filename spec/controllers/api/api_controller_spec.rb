@@ -152,11 +152,10 @@ RSpec.describe Api::ApiController, type: :controller do
       expect(controller.traveler).to eq(guest)
     end
     
-    it 'creates a guest traveler if no auth headers are passed' do
+    it 'does not automatically a guest traveler if no auth headers are passed' do
       get :test, format: :json, params: {before_action: :attempt_authentication}
       expect(response).to be_success
-      expect(controller.traveler).to be
-      expect(controller.traveler.guest?).to be true
+      expect(controller.traveler).to be_nil
     end
     
   end

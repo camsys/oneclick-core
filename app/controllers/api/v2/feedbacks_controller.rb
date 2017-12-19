@@ -3,6 +3,7 @@ module Api
     class FeedbacksController < ApiController
       
       before_action :attempt_authentication
+      before_action :ensure_traveler
       
       # GET /api/v2/feedbacks
       # Returns a list of the authenticated user's feedbacks, along with their status
