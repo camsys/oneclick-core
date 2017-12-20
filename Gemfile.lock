@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: ae6d3f710df30504ab41ac71ab60c0e74ae5a0a0
+  revision: 1690c44ca561f4e578ac5b8a46ff328390f15fde
   specs:
-    oneclick_refernet (0.5.8)
+    oneclick_refernet (0.5.9)
       active_model_serializers
       activerecord-postgis-adapter
       pg
@@ -11,9 +11,9 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: e0575fc42b50996c0f725bf77c57b9e2529121f9
+  revision: a5353cd82cff045ca1b001ee0ba0a606c07fd626
   specs:
-    simple_translation_engine (1.0.0)
+    simple_translation_engine (1.1.0)
       pg
       rails (~> 5.0)
       sass-rails
@@ -452,7 +452,7 @@ GEM
     ruby_parser (3.10.1)
       sexp_processor (~> 4.9)
     rubyzip (1.2.1)
-    sass (3.5.3)
+    sass (3.5.4)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)

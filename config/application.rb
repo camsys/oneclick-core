@@ -16,10 +16,6 @@ module OneclickCore
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
-
-    config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
-    config.i18n.available_locales = [:en, :es]
-    config.i18n.default_locale = :en
     
     # Load model sub-classes and other custom folders
     config.autoload_paths += %W(#{config.root}/app/models/service_types)
@@ -70,7 +66,14 @@ module OneclickCore
       exclude_controllers: [],
       exclude_actions: {}
     })
-    config.api_request_logger.start
+    config.api_request_logger.start    
+    
+    config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
+    
+    # I18n Internationalization
+    config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
+    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+
 
   end
 end
