@@ -2,7 +2,6 @@
 module Describable
   
   def self.included(base)
-
     # This block of code creates localized description setters and getters
     I18n.available_locales.each do |locale|
       
