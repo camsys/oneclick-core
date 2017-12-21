@@ -49,9 +49,9 @@ module OneclickCore
 
       # Load different ENV files based on what the environment is.
       env_files = []
+      env_files << File.join(Rails.root, 'config', 'local_env.yml.travis')
       env_files << File.join(Rails.root, 'config', 'local_env.yml') if Rails.env.development?
       env_files << File.join(Rails.root, 'config', 'test_env.yml') if Rails.env.test?
-      env_files << File.join(Rails.root, 'config', 'local_env.yml.travis') if Rails.env.production? || Rails.env.qa?
 
       env_files.each do |env_file|
         YAML.load(File.open(env_file)).each do |key, value|
