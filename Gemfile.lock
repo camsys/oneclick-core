@@ -11,9 +11,9 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: b0f27955b1537de9d53a48ecc37b55bb6384b321
+  revision: 9b12753f94e4f509f182412cdde8b84246167333
   specs:
-    simple_translation_engine (1.1.2)
+    simple_translation_engine (1.1.3)
       pg
       rails (~> 5.0)
       sass-rails
