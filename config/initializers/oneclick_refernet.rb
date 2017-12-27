@@ -16,6 +16,7 @@ if ENV["ONECLICK_REFERNET"]
       popular_refernet_categories: [
         :popular_requests,
         requests: RequestLog.where(controller: "OneclickRefernet::SubCategoriesController")
+                            .where(action: "index")
                             .where(created_at: DateTime.this_week),
         grouping_param: "category",
         title: "Popular 211 Category Requests this Week"

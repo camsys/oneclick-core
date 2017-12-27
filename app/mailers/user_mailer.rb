@@ -21,6 +21,7 @@ class UserMailer < ApplicationMailer
     @user = user
     @locale = @user.locale.try(:name)
     @subject = translate("api_v2.emails.user_profile_update_reminder.subject")
+    @unsubscribe_path = "#{Config.ui_url}/unsubscribe/#{@user.email}"
     mail(to: user.email, subject: @subject)
   end
 
