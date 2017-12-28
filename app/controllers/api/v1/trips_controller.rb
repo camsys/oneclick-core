@@ -151,8 +151,15 @@ module Api
       # Unselects and cancels the target itinerary
       def cancel
         results = bookingcancellation_request_params.map do |bc_req|
-          itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
-                  @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
+          if @traveler && !@traveler.guest?
+            itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
+                    @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
+          else
+            # If it's a guest user, don't worry about whether the itinerary is associated with them specifically; just make sure it's associated with a guest user.
+            itin = Itinerary.find_by(id: bc_req[:itinerary_id]) ||
+                   Booking.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
+            itin = nil unless itin.user.guest?
+          end
           
           response = booking_response_base(itin).merge({success: false})
           next response unless itin
