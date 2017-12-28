@@ -94,7 +94,7 @@ module Api
         results = {}
         select_itineraries.each do |itin|
           itinerary = Itinerary.find_by(id: itin[:itinerary_id].to_i)
-          if @traveler.owns? itinerary
+          if itinerary && (@traveler.owns?(itinerary) || itinerary.user.try(:guest?))
             itinerary.select
             results[itinerary.id] = true
           else
