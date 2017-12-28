@@ -156,7 +156,8 @@ module Api
                     @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
           else
             # If it's a guest user, don't worry about whether the itinerary is associated with them specifically; just make sure it's associated with a guest user.
-            itin = Itinerary.find_by(id: bc_req[:itinerary_id])
+            itin = Itinerary.find_by(id: bc_req[:itinerary_id]) ||
+                   Booking.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
             itin = nil unless itin.user.guest?
           end
           
