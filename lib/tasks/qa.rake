@@ -150,9 +150,40 @@ namespace :qa do
       end
     end
 
+    desc "Sample Alerts"
+    task alerts: :environment do
+      expiration = Time.now + (60 * 60 * 24 * 365)
+
+      u = User.find_or_create_by(email: 'test_user_1@camsys.com') do |user|
+        user.password = 'welcome1'
+        user.password_confirmation = 'welcome1'
+        user.first_name = 'Test User 1'
+        user.last_name = 'Test'
+      end
+
+      alerts = [
+        {expiration: expiration, audience: "everyone", published: true, audience_details: {user_emails: ""}, 
+          subject: "Test General Alert", message: "TGA Message"},
+        {expiration: expiration, audience: "specific_users", published: true, 
+          audience_details: {user_emails: "test_user_1@camsys.com"}, subject: "Test User 1 Alert", message: "TU1A Message"}
+      ]
+      alerts.each do |alert|
+        new_alert = Alert.create(alert.except(:subject, :message))
+        tk_subject = TranslationKey.where(name: 'alert_' + new_alert.id.to_s + '_subject').first_or_create
+        tk_message = TranslationKey.where(name: 'alert_' + new_alert.id.to_s + '_message').first_or_create  
+        locale = Locale.find_by(name: "en")
+        Translation.where(locale: locale, translation_key: tk_subject, value: alert[:subject]).first_or_create
+        Translation.where(locale: locale, translation_key: tk_message, value: alert[:message]).first_or_create
+        locale = Locale.find_by(name: "es")
+        Translation.where(locale: locale, translation_key: tk_subject, value: '[es] ' + alert[:subject] + ' [/es]').first_or_create
+        Translation.where(locale: locale, translation_key: tk_message, value: '[es] ' + alert[:message] + '  [/es]').first_or_create
+
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :users, :eligibilities, :accommodations, :purposes,
-                :services, :config, :feedback, :stomping_grounds]
+                :services, :config, :feedback, :stomping_grounds, :alerts]
 
   end
 end
