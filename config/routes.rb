@@ -1,16 +1,16 @@
 Rails.application.routes.draw do
-  
+
   devise_for :users, controllers: { confirmations: 'confirmations' }
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   ### JSON API ###
   namespace :api do
-    
+
     get 'test' => 'api#test' # Dummy action for testing generic ApiController
 
     ### API V1 (LEGACY) ###
     namespace :v1 do
-      
+
       # Places
       resources :places do
         collection do
@@ -20,7 +20,7 @@ Rails.application.routes.draw do
           post 'within_area'
         end
       end #places
-      
+
       # Translations
       resources :translations do
         collection do
@@ -28,9 +28,9 @@ Rails.application.routes.draw do
           get  'all'
         end
       end
-      
+
       # Trips & Itineraries/Planning
-      resources :trips, only: [:create] do 
+      resources :trips, only: [:create] do
         collection do
           post 'email'
         end
@@ -42,7 +42,7 @@ Rails.application.routes.draw do
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
       post 'itineraries/book' => 'trips#book'
-      
+
       # Users
       resources :users do
         collection do
@@ -54,7 +54,7 @@ Rails.application.routes.draw do
           post 'reset'
         end
       end
-      
+
       devise_scope :user do
         post 'sign_up' => 'registrations#create'
         post 'sign_in' => 'sessions#create'
@@ -67,16 +67,16 @@ Rails.application.routes.draw do
 
     ### API V2 ###
     namespace :v2 do
-      
+
       # Agencies
       resources :agencies, only: [:index]
-      
+
       # Alerts
       resources :alerts, only: [:index, :update]
-      
+
       # Feedbacks
       resources :feedbacks, only: [:index, :create]
-      
+
       # Places, Stomping Grounds, Landmarks
       resources :places, only: [:index]
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
@@ -88,7 +88,7 @@ Rails.application.routes.draw do
       resources :trips, only: [:create, :show]
       post 'trips/plan' => 'trips#create'
       post 'trips/plan_multiday' => 'trips#plan_multiday'
-      
+
       # Users
       resource :users, only: [:show, :update, :create, :destroy] do
         collection do
@@ -107,32 +107,32 @@ Rails.application.routes.draw do
         post 'oneclick_refernet/email' => 'refernet/services#email'
         mount OneclickRefernet::Engine => "/oneclick_refernet"
       end
-      
+
     end #v2
 
 
     ### MISC REQUEST HANDLING ###
-    
+
     match '*path', :controller => 'api', :action => 'handle_options_request', via: [:options]
     # match '*path', via: [:options], to: lambda {|_| [204, {'Content-Type' => 'text/plain'}, []]}
-    
+
     # Any unknown route should get a 404 response back
     # match '*a', via: [:get], to: lambda {|_| [404, {"Content-Type" => "application/json; charset=utf-8"}, ['']]}
     match '*a', via: :all, controller: 'api', action: 'no_route'
 
   end #api
-  
+
 
   ### ADMIN INTERFACE ###
   root "admin/admin#index"
-  
+
   namespace :admin do
 
     get '/' => 'admin#index'
 
     # Accommodations
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
-    
+
     # Agencies
     resources :agencies, only: [:index, :destroy, :create, :show, :update]
 
@@ -166,7 +166,7 @@ Rails.application.routes.draw do
     get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
-    resources :landmarks, :only => [:index] do
+    resources :landmarks, :only => [:index, :edit] do
       collection do
         patch 'update_all'
       end
@@ -178,20 +178,20 @@ Rails.application.routes.draw do
     # Reports
     resources :reports, only: [:index] do
       collection do
-        
+
         # DASHBOARD REPORTS
         post 'dashboard'
         get 'planned_trips_dashboard'
         get 'unique_users_dashboard'
         get 'popular_destinations_dashboard'
-        
+
         # CSV TABLE DOWNLOADS
-        post 'download_table'        
+        post 'download_table'
         get 'users_table'
         get 'trips_table'
         get 'services_table'
         get 'requests_table'
-        
+
       end
     end
 
