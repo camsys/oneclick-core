@@ -33,4 +33,8 @@ class Admin::LandmarksController < Admin::AdminController
     end
   end
 
+  def update
+    redirect_to edit_admin_landmark_path(@landmarks)
+  end
+
 end
