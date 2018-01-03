@@ -66,14 +66,15 @@ module Api
     # Sets guest traveler based on auth email only
     def set_guest_traveler
       return nil unless auth_headers.present?
-      @traveler = User.guests.find_by(email: auth_headers[:email])
+      @traveler = User.guests.find_by(email: auth_headers[:email]) || @traveler
     end
     
     # Sets registered traveler based on complete auth headers
     def set_registered_traveler
       return nil unless auth_headers.present? && auth_headers[:email] && auth_headers[:authentication_token]
       @traveler = User.find_by(email: auth_headers[:email], 
-                               authentication_token: auth_headers[:authentication_token])
+                               authentication_token: auth_headers[:authentication_token]) ||
+                  @traveler
     end
     
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
@@ -95,8 +96,11 @@ module Api
     
     # Sets the @traveler variable to the current api user -- registered or guest
     def set_traveler
+      puts "SETTING TRAVELER", @traveler
       set_guest_traveler
+      puts @traveler
       set_registered_traveler
+      puts @traveler
     end
     
     # dummy action for testing API Controller
@@ -233,6 +237,8 @@ module Api
     end
 
     def create_guest_user
+      puts "CREATING GUEST USER!"
+      
       u = GuestUserHelper.new.build_guest
       u.save!(:validate => false)
       @traveler = u
