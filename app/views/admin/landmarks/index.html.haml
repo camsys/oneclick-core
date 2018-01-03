@@ -32,9 +32,15 @@
       %td
         =landmark.lng
 
+= simple_form_for @landmark,
+    url: admin_landmarks_path,
+    html: {method: :post, class: "form-horizontal" },
+    authenticity_token: true do |f|
+  =render partial: 'new_landmark', layout: '/layouts/new_record_panel', locals: {f: f}
 
 =simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
   =render partial: 'update_landmarks', layout: '/layouts/new_record_panel', locals: {f: f}
+
 
 :javascript
   $(document).ready(function() {

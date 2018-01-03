@@ -1,5 +1,9 @@
 class Landmark < Place
 
+  ### Validations ####
+  validates :name, uniqueness: true
+  validates :name, presence: true
+
   #### Scopes ####
   scope :is_old, -> { where(:old => true) }
   scope :is_new, -> { where(:old => false) }
