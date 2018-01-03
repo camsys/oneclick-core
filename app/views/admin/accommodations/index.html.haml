@@ -8,7 +8,7 @@
       %th Name
       %th Note
       %th Question
-      
+
   -@accommodations.each do |accommodation|
     %tr{style: "cursor: pointer", data: {url: edit_admin_accommodation_path(accommodation)}}
       %td
@@ -25,7 +25,7 @@
 
 :javascript
   $(document).ready(function() {
-  
+
     // Link to appropriate feedback detail on row click
     $('#accommodation-table tbody tr').click(function() {
       window.location = $(this).data("url");

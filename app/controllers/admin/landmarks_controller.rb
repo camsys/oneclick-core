@@ -1,5 +1,5 @@
 class Admin::LandmarksController < Admin::AdminController
-  authorize_resource
+  load_and_authorize_resource
 
   def index
     @landmarks = Landmark.all.order(:name)
