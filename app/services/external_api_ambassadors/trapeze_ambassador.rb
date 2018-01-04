@@ -19,11 +19,13 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   def pass_validate_client_password
-    #begin
+    begin
       response = @client.call(:pass_validate_client_password, message: {client_id: @client_id, password: @client_password})
-    #rescue
-    #  return false
-    #end
+    rescue
+      return false
+    end
+
+    Rails.logger.info response.to_hash
 
     if response.to_hash[:pass_validate_client_password_response][:validation][:item][:code] == "RESULTOK"
       return true
