@@ -1,6 +1,6 @@
 class TrapezeAmbassador < BookingAmbassador
 
-  attr_accessor :user, :client, :client_id, :client_password
+  attr_accessor :url, :user, :client, :client_id, :client_password
   
   # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
@@ -8,12 +8,7 @@ class TrapezeAmbassador < BookingAmbassador
     @url ||= Config.trapeze_url
     @user ||= Config.trapeze_user
     @token ||= Config.trapeze_token
-    @client = Savon.client do
-      endpoint @url
-      namespace @url
-      basic_auth [@user, @token]
-      convert_request_keys_to :camelcase
-    end
+    @client = create_client(Config.trapeze_url, Config.trapeze_url, @user, @token)
     @client_id = opts[:client_id]
     @client_password = opts[:client_password]
   end
@@ -37,5 +32,20 @@ class TrapezeAmbassador < BookingAmbassador
     end
   end
 
+  protected
+
+  # Create a Client
+  def create_client(endpoint, namespace, username, password)
+
+    client = Savon.client do
+      endpoint endpoint
+      namespace namespace
+      basic_auth [username, password]
+      convert_request_keys_to :camelcase
+    end
+
+    client
+
+  end
 
 end
