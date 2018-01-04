@@ -49,6 +49,8 @@ module BookingHelpers
       case booking_api
       when "ride_pilot"
         return RidePilotAmbassador.new(opts)
+      when "trapeze"
+        return TrapezeAmbassador.new(opts)
       else
         return nil
       end
