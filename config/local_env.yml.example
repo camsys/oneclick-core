@@ -1,0 +1,27 @@
+### LOCAL ENV VARIABLES ###
+# This file is read by application.rb during startup, and set as ENV['KEY'] variables.
+
+### BOOKING PASSWORD ENCRYPTION ###
+# BOOKING_PASSWORD_ENCRYPTION_KEY: ""
+
+### SMTP EMAIL CONFIG ###
+# SMTP_SERVER: ""
+# SMTP_USER_NAME: ""
+# SMTP_PASSWORD: ""
+
+### AWS S3 BUCKET CONFIG ###
+# S3_REGION: ''
+# AWS_BUCKET: ''
+# AWS_ACCESS_KEY_ID: ''
+# AWS_SECRET_ACCESS_KEY: ''
+# AWS_LOCALE_STORAGE: 'false' # Configures whether or not to automatically store locale files on AWS.
+
+### API REQUEST LOGGING ###
+# LOG_API_REQUESTS: 'true' # Sets whether or not to log all API requests to the RequestLog table
+
+### I18N ###
+# DEFAULT_LOCALE: 'es' # defaults to en
+# AVAILABLE_LOCALES: 'en,es,ht,pt,vi' # defaults to en,es
+
+### DATABASE ###
+# DATABASE: 'oneclick-core_development' # change this to swap out the database being used

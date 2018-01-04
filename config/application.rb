@@ -16,10 +16,6 @@ module OneclickCore
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
-
-    config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
-    config.i18n.available_locales = [:en, :es]
-    config.i18n.default_locale = :en
     
     # Load model sub-classes and other custom folders
     config.autoload_paths += %W(#{config.root}/app/models/service_types)
@@ -50,10 +46,12 @@ module OneclickCore
     
     # Loads application.yml file for local ENV variables
     config.before_configuration do
-      env_files = [
-        File.join(Rails.root, 'config', 'local_env.yml'),
-        File.join(Rails.root, 'config', 'local_env.yml.travis') # For QA/prod
-      ]
+
+      # Load different ENV files based on what the environment is.
+      env_files = []
+      env_files << File.join(Rails.root, 'config', 'local_env.yml.travis')
+      env_files << File.join(Rails.root, 'config', 'local_env.yml') if Rails.env.development?
+      env_files << File.join(Rails.root, 'config', 'test_env.yml') if Rails.env.test?
 
       env_files.each do |env_file|
         YAML.load(File.open(env_file)).each do |key, value|
@@ -70,7 +68,14 @@ module OneclickCore
       exclude_controllers: [],
       exclude_actions: {}
     })
-    config.api_request_logger.start
+    config.api_request_logger.start    
+    
+    config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
+    
+    # I18n Internationalization
+    config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
+    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+
 
   end
 end

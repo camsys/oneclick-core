@@ -11,14 +11,4 @@
   %b
     =translate("api_v2.emails.user_profile_update_reminder.from")
   %br
-    %a#unsubscribe-user{href: '#'}=translate("api_v2.emails.user_profile_update_reminder.unsubscribe")
-
-:javascript
-  // HTTP POST request to unsubscribe user from email updates
-  var unsubscribeButton = document.getElementById("unsubscribe-user");
-  unsubscribeButton.addEventListener('click', function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '#{unsubscribe_api_v2_users_url}');
-    xhr.setRequestHeader('X-User-Email', '#{@user.email}');
-    xhr.send();
-  }, false);
+    %a#unsubscribe-user{href: "#{@unsubscribe_path}"}=translate("api_v2.emails.user_profile_update_reminder.unsubscribe")

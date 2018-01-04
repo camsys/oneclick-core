@@ -86,6 +86,7 @@ class DashboardReport
     grouped_requests = @params[:requests]
                         .pluck(:params)
                         .map {|p| p.with_indifferent_access[grouping_param] }
+                        .compact
                         .group_by(&:titleize)
                         .map { |k,v| [k, v.count] }.to_h
     return pie_chart(grouped_requests,
