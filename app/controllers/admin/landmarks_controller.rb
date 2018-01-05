@@ -53,6 +53,12 @@ class Admin::LandmarksController < Admin::AdminController
   def edit
   end
 
+  def destroy
+    @landmark.destroy
+    flash[:success] = "#{@landmark.name} Deleted"
+    redirect_to admin_landmarks_path
+  end
+
   def create
     @landmark.update_attributes(landmark_params)
 
