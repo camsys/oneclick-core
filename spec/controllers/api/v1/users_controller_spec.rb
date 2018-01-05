@@ -9,6 +9,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   let!(:jacuzzi) { create :jacuzzi }
   let!(:wheelchair) { create :wheelchair }
   let(:service) { create :paratransit_service, :ride_pilot_bookable }
+  let(:trapeze_service) { create :paratransit_service, :trapeze_bookable }
   
   let(:auth_headers) { {
     'X-User-Token' => traveler.authentication_token,
@@ -218,7 +219,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       expect(traveler.user_eligibilities.find_by(eligibility: over_65).value).to eq(true)
     end
     
-    it 'updates user booking profile' do
+    it 'updates Ridepilot user booking profile' do
       # Stub UserBookingProfile to always return true on authenticate? call
       UserBookingProfile.any_instance.stub(:authenticate?).and_return(true)
       
@@ -230,6 +231,20 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       expect(response).to be_success        
       expect(traveler.booking_profiles.count).to eq(1)
       expect(traveler.booking_profile_for(service)).to be_a(UserBookingProfile)
+    end
+
+    it 'updates trapeze user booking profile' do
+      # Stub UserBookingProfile to always return true on authenticate? call
+      UserBookingProfile.any_instance.stub(:authenticate?).and_return(true)
+      
+      expect(traveler.booking_profiles.count).to eq(0)
+
+      params = {booking: [{service_id: trapeze_service.id, user_name: "0", password: "TrapezeTOKEN"}]}
+      post :update, params: params
+      
+      expect(response).to be_success        
+      expect(traveler.booking_profiles.count).to eq(1)
+      expect(traveler.booking_profile_for(trapeze_service)).to be_a(UserBookingProfile)
     end
     
     it 'returns failure code if user booking profile not authenticated' do

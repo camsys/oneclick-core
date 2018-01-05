@@ -45,6 +45,21 @@ FactoryBot.define do
       key "ride_pilot_token"
       value "FAKERIDEPILOTTOKEN"
     end
+
+    factory :trapeze_url_config do
+      key "trapeze_url"
+      value "http://trapeze.fake-url.com"
+    end
+
+    factory :trapeze_user_config do
+      key "trapeze_user"
+      value "Trapeze"
+    end
+    
+    factory :trapeze_token_config do
+      key "trapeze_token"
+      value "token"
+    end
     
   end
   
