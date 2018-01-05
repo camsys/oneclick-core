@@ -24,7 +24,7 @@
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden
     =f.fields_for :booking_details do |bd|
-      =bd.input :provider_id, as: :integer, label: "Trapeze Provider ID", input_html: {value: booking_details[:provider_id]}
+      =bd.input :trapeze_provider_id, as: :integer, label: "Trapeze Provider ID", input_html: {value: booking_details[:trapeze_provider_id]}
 
 :javascript
   $(document).ready(function() {

@@ -46,6 +46,7 @@ module BookingHelpers
     # Returns the appropriate booking ambassador based on the booking_api field
     def booking_ambassador(opts={})
       opts = {service: self}.merge(opts)
+
       case booking_api
       when "ride_pilot"
         return RidePilotAmbassador.new(opts)

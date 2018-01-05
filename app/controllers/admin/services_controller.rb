@@ -30,7 +30,7 @@ class Admin::ServicesController < Admin::AdminController
     # @service.build_comments # Builds a comment for each available locale
   end
 
-  def update    
+  def update   
     @service.update_attributes(service_params)
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 

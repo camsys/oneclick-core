@@ -34,6 +34,11 @@ class TrapezeAmbassador < BookingAmbassador
     end
   end
 
+  def authentic_provider?
+    #TODO: Call Trapeze to Confirm that the ProviderID exists before allowing a Service to set it's ID
+    true
+  end
+
   protected
 
   # Create a Client
