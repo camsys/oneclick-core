@@ -1,10 +1,52 @@
 =content_for :title do
   Landmarks
 
-=render partial: '/shared/record_table',
-  locals: { columns: [:name, :street_number, :route,
-                      :city, :state, :zip, :lat, :lng],
-            records: @landmarks}
+%table.table.table-hover#landmark-table
+  %thead.thead-default
+    %tr
+      %th Name
+      %th Street Number
+      %th Route
+      %th City
+      %th State
+      %th Zip
+      %th Lat
+      %th Lng
+
+  -@landmarks.each do |landmark|
+    %tr{style: "cursor: pointer", data: {url: edit_admin_landmark_path(landmark)}}
+      %td
+        =landmark.name
+      %td
+        =landmark.street_number
+      %td
+        =landmark.route
+      %td
+        =landmark.city
+      %td
+        =landmark.state
+      %td
+        =landmark.zip
+      %td
+        =landmark.lat
+      %td
+        =landmark.lng
+
+= simple_form_for @landmark,
+    url: admin_landmarks_path,
+    html: {method: :post, class: "form-horizontal" },
+    authenticity_token: true do |f|
+  =render partial: 'new_landmark', layout: '/layouts/new_record_panel', locals: {f: f}
 
 =simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
   =render partial: 'update_landmarks', layout: '/layouts/new_record_panel', locals: {f: f}
+
+
+:javascript
+  $(document).ready(function() {
+
+    // Link to appropriate feedback detail on row click
+    $('#landmark-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+  });
