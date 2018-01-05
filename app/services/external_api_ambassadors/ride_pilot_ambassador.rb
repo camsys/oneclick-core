@@ -1,5 +1,6 @@
 class RidePilotAmbassador < BookingAmbassador
-  
+
+
   # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
     super(opts)

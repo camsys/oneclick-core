@@ -10,4 +10,14 @@ FactoryBot.define do
 
   end
 
+  factory :trapeze_ambassador do
+    skip_create
+    
+    initialize_with do
+      opts = attributes[:opts] || {}
+      TrapezeAmbassador.new(opts)
+    end
+
+  end
+
 end

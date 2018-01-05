@@ -19,11 +19,12 @@
 
   -# ECOLANE
   .booking-inputs.ecolane-booking.hidden
-    -# %h4 ECOLANE BOOKING FIELDS
+    -# %h4 TRAPEZE BOOKING FIELDS
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden
-    -# %h4 TRAPEZE BOOKING FIELDS
+    =f.fields_for :booking_details do |bd|
+      =bd.input :trapeze_provider_id, as: :integer, label: "Trapeze Provider ID", input_html: {value: booking_details[:trapeze_provider_id]}
 
 :javascript
   $(document).ready(function() {

@@ -11,7 +11,7 @@ class BookingAmbassador
   attr_reader :itinerary, :trip, :booking_profile, :service, :user
   attr_accessor :http_request_bundler, 
                 :url, 
-                :token, 
+                :token,
                 :booking_options
 
   # Initialize with an options hash this should contain a reference to some
@@ -24,13 +24,15 @@ class BookingAmbassador
     self.service = opts[:service] || @service
     self.user = opts[:user] || @user # Defaults to trip.user
     
-    @url = opts[:url]
-    @token = opts[:token]
-    @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new
+    @url = opts[:url] #Used for RidePilot and Trapeze
+    @token = opts[:token] #Used for Ride:ilot and Trapeze
+
+    @http_request_bundler = opts[:http_request_bundler] || HTTPRequestBundler.new #Used for RidePilot
+
     @booking_options = opts[:booking_options] || {}
   end
   
-  
+
   ### CUSTOM SETTERS FOR INSTANCE VARIABLES ###
   
   # Custom setter for itinerary also sets trip, service, and user

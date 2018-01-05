@@ -5,7 +5,7 @@ class ServiceBookingParamPermitter < HashParamPermitter
     structure: {
       ride_pilot: [ :provider_id ],
       ecolane: [],
-      trapeze: []
+      trapeze: [ :trapeze_provider_id ]
     }
   )
 end

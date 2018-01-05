@@ -85,6 +85,20 @@ FactoryBot.define do
         end
       end
 
+
+      trait :trapeze_bookable do
+        booking_api "trapeze"
+        booking_details { 
+          {
+            trapeze_provider_id: 0
+          }
+        }
+
+        after(:build) do |svc|
+          svc.stub(:valid_booking_profile).and_return true
+        end
+      end
+
     end
 
     factory :transit_service, parent: :service, class: 'Transit' do
