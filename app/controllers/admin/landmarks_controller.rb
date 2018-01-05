@@ -35,7 +35,22 @@ class Admin::LandmarksController < Admin::AdminController
   end
 
   def update
-    redirect_to edit_admin_landmark_path(@landmarks)
+    update_params = landmark_params
+    @landmark.update_attributes(update_params)
+
+    if @landmark.errors.empty?
+      flash[:success] = "#{@landmark.name} Updated"
+    else
+      present_error_messages(@landmark)
+    end
+
+    respond_to do |format|
+      format.js
+      format.html {redirect_to admin_landmarks_path}
+    end
+  end
+
+  def edit
   end
 
   def create
@@ -55,7 +70,6 @@ class Admin::LandmarksController < Admin::AdminController
         format.html {render :index}
       end
     end
-
   end
 
   private

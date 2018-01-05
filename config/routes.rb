@@ -166,7 +166,7 @@ Rails.application.routes.draw do
     get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
-    resources :landmarks, :only => [:index, :edit, :create] do
+    resources :landmarks, :only => [:index, :edit, :create, :update, :destroy] do
       collection do
         patch 'update_all'
       end
