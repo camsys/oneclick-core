@@ -1,0 +1,14 @@
+=content_for :header do
+  ="Edit Landmark"
+
+=simple_form_for @landmark,
+  url: admin_landmark_path, authenticity_token: true, data: {type: 'html'},
+  html: {id: form_id_from_path, method: :put, class: "form-horizontal" } do |f|
+
+  = render partial: "landmark_form", locals: { f: f }
+
+
+  :javascript
+    $(document).ready(function() {
+      var fh = new FormHandler($('#{form_selector_from_id}'));
+    });
