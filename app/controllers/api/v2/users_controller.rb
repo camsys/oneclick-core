@@ -111,6 +111,30 @@ module Api
         render(success_response(message: "Password reset email sent to #{email}."))
         
       end
+
+      # Resets the user's password to a random string and sends it to them via email
+      # POST /reset_password
+      def resend_email_confirmation
+
+        puts('IN resend_email_confirmation')
+
+        email = user_params[:email]
+        @user = User.find_by(email: email)
+
+        # Send a failure response if no account exists with the given email
+        unless @user.present?
+          render(fail_response(message: "User #{email} does not exist")) and return
+        end
+
+        puts('--------------------_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!_--------------------')
+        puts('ABOUT TO send_api_v2_email_confirmation_instructions')
+        @user.send_api_v2_email_confirmation_instructions
+        puts('AFTER send_api_v2_email_confirmation_instructions')
+        puts('=========================_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!_=========================')
+
+        render(success_response(message: "Email confirmation sent to#{email}."))
+
+      end
       
       
       # Signs out a user based on email and auth token headers
