@@ -126,11 +126,7 @@ module Api
           render(fail_response(message: "User #{email} does not exist")) and return
         end
 
-        puts('--------------------_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!_--------------------')
-        puts('ABOUT TO send_api_v2_email_confirmation_instructions')
         @user.send_api_v2_email_confirmation_instructions
-        puts('AFTER send_api_v2_email_confirmation_instructions')
-        puts('=========================_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!_=========================')
 
         render(success_response(message: "Email confirmation sent to#{email}."))
 

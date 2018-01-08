@@ -34,7 +34,6 @@ module TokenAuthenticationHelpers
 
   # Resets the user's password to a random and sends them an email with the new password
   def send_api_v2_email_confirmation_instructions
-    console.log('TEST in send_api_v2_email_confirmation_instructions')
     send_confirmation_instructions
   end
   
