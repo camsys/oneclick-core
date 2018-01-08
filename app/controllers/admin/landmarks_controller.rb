@@ -1,8 +1,9 @@
 class Admin::LandmarksController < Admin::AdminController
-  authorize_resource
+  load_and_authorize_resource
 
   def index
     @landmarks = Landmark.all.order(:name)
+    @landmark = Landmark.new
   end
 
   def update_all
@@ -31,6 +32,56 @@ class Admin::LandmarksController < Admin::AdminController
       format.js
       format.html {redirect_to admin_landmarks_path}
     end
+  end
+
+  def update
+    update_params = landmark_params
+    @landmark.update_attributes(update_params)
+
+    if @landmark.errors.empty?
+      flash[:success] = "#{@landmark.name} Updated"
+    else
+      present_error_messages(@landmark)
+    end
+
+    respond_to do |format|
+      format.js
+      format.html {redirect_to admin_landmarks_path}
+    end
+  end
+
+  def edit
+  end
+
+  def destroy
+    @landmark.destroy
+    flash[:success] = "#{@landmark.name} Deleted"
+    redirect_to admin_landmarks_path
+  end
+
+  def create
+    @landmark.update_attributes(landmark_params)
+
+    @landmarks = Landmark.all.order(:name)
+
+    if @landmark.save
+      flash[:success] = "Created #{@landmark.name}"
+      respond_to do |format|
+        format.js
+        format.html {redirect_to admin_landmarks_path}
+      end
+    else
+      present_error_messages(@landmark)
+      respond_to do |format|
+        format.html {render :index}
+      end
+    end
+  end
+
+  private
+
+  def landmark_params
+  	params.require(:landmark).permit(:name, :street_number, :route, :city, :state, :zip, :lat, :lng)
   end
 
 end

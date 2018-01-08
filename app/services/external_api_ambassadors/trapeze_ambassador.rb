@@ -63,7 +63,6 @@ class TrapezeAmbassador < BookingAmbassador
     @booking_profile.try(:external_password)
   end
 
-  
   # Returns an array of question objects for RidePilot booking
   def prebooking_questions
 
