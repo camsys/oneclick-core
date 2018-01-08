@@ -31,6 +31,12 @@ module TokenAuthenticationHelpers
   def send_api_v2_reset_password_instructions
     UserMailer.api_v2_reset_password_instructions(self, reset_user_password_to_random).deliver
   end
+
+  # Resets the user's password to a random and sends them an email with the new password
+  def send_api_v2_email_confirmation_instructions
+    console.log('TEST in send_api_v2_email_confirmation_instructions')
+    send_confirmation_instructions
+  end
   
   # Resets user password to a randomly generated one. If successful, returns the
   # generated password
