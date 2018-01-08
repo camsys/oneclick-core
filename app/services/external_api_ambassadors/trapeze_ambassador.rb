@@ -63,6 +63,34 @@ class TrapezeAmbassador < BookingAmbassador
     @booking_profile.try(:external_password)
   end
 
+  
+  # Returns an array of question objects for RidePilot booking
+  def prebooking_questions
+
+    # this is a patch
+    if @url.blank? or @token.blank?
+      return []
+    end
+
+    [
+      {
+        question: "How many guests will be riding with you?", 
+        choices: [0,1,2,3], 
+        code: "guests"
+      },
+      {
+        question: "How many attendants will be riding with you?", 
+        choices: [0,1,2,3], 
+        code: "attendants"
+      },
+      {
+        question: "How many mobility devices will you be bringing?", 
+        choices: [0,1,2,3], 
+        code: "mobility_devices"
+      }
+    ]
+  end
+
   protected
 
   # Create a Client
@@ -75,7 +103,6 @@ class TrapezeAmbassador < BookingAmbassador
     end
     client
   end
-
 
 
 end
