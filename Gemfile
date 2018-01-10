@@ -80,10 +80,7 @@ gem 'carrierwave', '~> 1.0'
 gem 'mini_magick' # For resizing images
 gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
-
-# For uploading files to AWS S3 bucket, e.g. for translations json
-gem 'aws-sdk-s3'
-
+gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations json
 ############################################
 
 
@@ -115,8 +112,6 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # Download the oneclick_refernet gem, but only require it if env var is set
 gem 'oneclick_refernet', github: 'camsys/oneclick_refernet',
                          require: !!ENV["ONECLICK_REFERNET"]
-
-
 ############################################
 
 
