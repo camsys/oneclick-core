@@ -171,6 +171,12 @@ class TrapezeAmbassador < BookingAmbassador
   
   end
 
+  def get_funding_source_array
+    ada_funding_sources = Config.trapeze_ada_funding_sources
+    ignore_polygon = Config.trapeze_ignore_polygon_id
+    check_polygon = Config.trapeze_check_polygon_id
+  end
+
 
   protected
 

@@ -18,6 +18,9 @@ class Admin::ConfigsController < Admin::AdminController
     :ride_pilot_token,
     :trapeze_url,
     :trapeze_user,
+    :trapeze_ada_funding_sources,
+    :trapeze_ignore_polygon_id,
+    :trapeze_check_polygon_id,
     :trapeze_token,
     :feedback_overdue_days,
     :ui_url,
@@ -61,6 +64,8 @@ class Admin::ConfigsController < Admin::AdminController
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
+    when :trapeze_ada_funding_sources
+      return value.delete(' ').split(',')
     else
       return value
     end
