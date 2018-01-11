@@ -25,6 +25,7 @@ module OneclickCore
     puts '3'
     config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
     puts I18n.available_locales
+    I18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
