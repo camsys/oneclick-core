@@ -16,7 +16,12 @@ module OneclickCore
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
+    puts 'DEREK LOOK HERE'
+    puts I18n.available_locales
+    puts (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+    puts ENV['AVAILABLE_LOCALES']
     config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+    puts I18n.available_locales
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
