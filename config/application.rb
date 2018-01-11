@@ -18,8 +18,11 @@ module OneclickCore
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
     puts 'DEREK LOOK HERE'
     puts I18n.available_locales
+    puts '1'
     puts (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+    puts '2'
     puts ENV['AVAILABLE_LOCALES']
+    puts '3'
     config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
     puts I18n.available_locales
 
