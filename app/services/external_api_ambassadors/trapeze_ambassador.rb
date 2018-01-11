@@ -1,6 +1,6 @@
 class TrapezeAmbassador < BookingAmbassador
 
-  attr_accessor :url, :user, :client, :client_id, :client_password
+  attr_accessor :url, :api_user, :api_token, :client_code
   
   # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
@@ -9,6 +9,8 @@ class TrapezeAmbassador < BookingAmbassador
     @api_user ||= Config.trapeze_user
     @api_token ||= Config.trapeze_token
     @client = create_client(Config.trapeze_url, Config.trapeze_url, @api_user, @api_token)
+    @client_code = nil
+    @cookies = nil #Cookies are used to login the user
   end
 
   #####################################################################
@@ -27,7 +29,12 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Returns True if a User is a valid Trapeze User
   def authenticate_user?
-    pass_validate_client_password
+    response = pass_validate_client_password
+    if response.to_hash[:pass_validate_client_password_response][:validation][:item][:code] == "RESULTOK"
+      return true
+    else
+      return false
+    end
   end
 
   def book
@@ -54,14 +61,8 @@ class TrapezeAmbassador < BookingAmbassador
       Rails.logger.error e.message 
       return false
     end
-
     Rails.logger.info response.to_hash
-
-    if response.to_hash[:pass_validate_client_password_response][:validation][:item][:code] == "RESULTOK"
-      return true
-    else
-      return false
-    end
+    return response 
   end
 
   # Books the passed trip via RidePilot
@@ -69,8 +70,23 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
 
+    #TODO Add Begins DEREK
+    login if @cookies.nil? 
+
+    response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies)
+    return response
+
   end
 
+  # Get Client Info
+  def pass_get_client_info
+    #TODO Add Begins DEREK
+    login if @cookies.nil? 
+    response = @client.call(:pass_get_client_info, message: {client_id: customer_id, password: customer_token}, cookies: @cookies)
+    Rails.logger.info response.to_hash
+    return response.to_hash[:pass_get_client_info_response]
+  end
+  
   #####################################################################
   ## Helper Methods
   #####################################################################
@@ -84,10 +100,19 @@ class TrapezeAmbassador < BookingAmbassador
     @booking_profile.try(:external_password)
   end
 
+  # Return the Trapeze ID of the Service
   def para_service_id
     return nil unless @service
     @service.booking_details["trapeze_provider_id"]
   end
+
+  # Login the Client
+  def login
+    result = pass_validate_client_password
+    @cookies = result.http.cookies
+    @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+  end
+
 
   # Returns an array of question objects for RidePilot booking
   def prebooking_questions
@@ -158,7 +183,7 @@ class TrapezeAmbassador < BookingAmbassador
     
     return {
       client_id: customer_id.to_i, 
-      client_code: customer_id, 
+      client_code: @client_code, 
       date: @trip.trip_time.strftime("%Y%m%d"), 
       booking_type: 'C', 
       para_service_id: para_service_id, 
