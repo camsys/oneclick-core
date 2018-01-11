@@ -51,6 +51,10 @@ class TrapezeAmbassador < BookingAmbassador
     return booking
   end
 
+  def cancel
+    pass_cancel_trip
+  end
+
   #####################################################################
   ## SOAP Calls to Trapeze
   #####################################################################
@@ -85,6 +89,15 @@ class TrapezeAmbassador < BookingAmbassador
     response = @client.call(:pass_get_client_info, message: {client_id: customer_id, password: customer_token}, cookies: @cookies)
     Rails.logger.info response.to_hash
     return response.to_hash[:pass_get_client_info_response]
+  end
+
+  # Cancel the trip
+  def pass_cancel_trip
+    #TODO Add Begins DEREK
+    login if @cookies.nil? 
+    message = {booking_id: booking_id, sched_status: 'CA'}
+    result = @client.call(:pass_cancel_trip, message: message, cookies: @cookies)
+    result.hash
   end
   
   #####################################################################
@@ -200,6 +213,11 @@ class TrapezeAmbassador < BookingAmbassador
     ada_funding_sources = Config.trapeze_ada_funding_sources
     ignore_polygon = Config.trapeze_ignore_polygon_id
     check_polygon = Config.trapeze_check_polygon_id
+  end
+
+  # Gets the Trapeze Booking Id from the booking object
+  def booking_id
+    booking.try(:confirmation)
   end
 
 
