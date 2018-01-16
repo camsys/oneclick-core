@@ -13,6 +13,12 @@ Bundler.require(*Rails.groups)
 
 module OneclickCore
   class Application < Rails::Application
+
+    # I18n Internationalization
+    config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
+    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+    I18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -71,10 +77,6 @@ module OneclickCore
     config.api_request_logger.start    
     
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
-    
-    # I18n Internationalization
-    config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
-    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
 
 
   end

@@ -4,7 +4,7 @@ module Describable
   def self.included(base)
     # This block of code creates localized description setters and getters
     I18n.available_locales.each do |locale|
-      
+
       # Create localized getter
       define_method("#{locale}_description") do
         self.send(:description, locale)
