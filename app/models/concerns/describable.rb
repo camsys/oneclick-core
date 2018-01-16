@@ -5,10 +5,6 @@ module Describable
     # This block of code creates localized description setters and getters
     I18n.available_locales.each do |locale|
 
-      puts locale 
-      puts I18n.available_locales.ai 
-      puts 'DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK DEREK '
-      
       # Create localized getter
       define_method("#{locale}_description") do
         self.send(:description, locale)
