@@ -63,7 +63,6 @@ class Landmark < Place
     if failed
       return false, message
     else
-      Landmark.is_old.delete_all
       return true, Landmark.count.to_s + " landmarks loaded"
     end
 
