@@ -53,6 +53,20 @@ class TrapezeAmbassador < BookingAmbassador
 
   def cancel
     pass_cancel_trip
+    # Derek Update the itinerary to show that it has ben un-booked
+  end
+
+  # Gets an array of RidePilot purpose for the passed service
+  def trip_purposes    
+    label = request_label(:purposes)
+        
+    @http_request_bundler.add(
+      label, 
+      @url + "/trip_purposes", 
+      :get,
+      head: headers,
+      query: { provider_id: provider_id }
+    ).response!(label)
   end
 
   #####################################################################
@@ -97,6 +111,13 @@ class TrapezeAmbassador < BookingAmbassador
     login if @cookies.nil? 
     message = {booking_id: booking_id, sched_status: 'CA'}
     result = @client.call(:pass_cancel_trip, message: message, cookies: @cookies)
+    result.hash
+  end
+
+  # Get Trip Purposes for the specific user
+  def pass_get_booking_purposes
+    login if @cookies.nil?
+    result = @client.call(:pass_get_booking_purposes, cookies: @cookies)
     result.hash
   end
   
