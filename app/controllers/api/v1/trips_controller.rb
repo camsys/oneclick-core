@@ -331,6 +331,21 @@ module Api
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
+        when 'trapeze', :trapeze
+          pickup_time = itin.start_time
+          # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
+          dropoff_time = pickup_time + itin.duration.seconds
+          confirmation_id = booking.confirmation
+          return {
+            booked: true,
+            confirmation: confirmation_id, # it needs both of these 
+            confirmation_id: confirmation_id, # for some reason
+            wait_start: (pickup_time - 15.minutes).iso8601,
+            wait_end: (pickup_time + 15.minutes).iso8601,
+            arrival: dropoff_time.iso8601,
+            message: "Booking Status: #{booking.status}",
+            negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
+          }
         else
           return {}
         end

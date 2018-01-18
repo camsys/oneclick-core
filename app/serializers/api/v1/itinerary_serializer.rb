@@ -194,7 +194,14 @@ module Api
       
       #TODO: Build this functionality
       def prebooking_questions
+        
+
+        puts 'DEREK DEREK DEREK'
+        puts object.booking_ambassador
+        puts object.booking_ambassador.try(:prebooking_questions)
+
         object.booking_ambassador.try(:prebooking_questions)
+
       end
       
 

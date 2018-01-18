@@ -43,8 +43,9 @@ class TrapezeAmbassador < BookingAmbassador
 
     # Make a create_trip call to Trapeze, passing a trip and any 
     # booking_options that have been set
-    response = create_trip
-    return false unless response && response["trip_id"].present?
+    response = pass_create_trip
+
+    return false unless response && response[:pass_create_trip_response][:pass_create_trip_result][:booking_id].to_s != "-1"
         
     # Store the status info in a Booking object and return it
     update_booking(response)
@@ -56,17 +57,31 @@ class TrapezeAmbassador < BookingAmbassador
     # Derek Update the itinerary to show that it has ben un-booked
   end
 
-  # Gets an array of RidePilot purpose for the passed service
-  def trip_purposes    
-    label = request_label(:purposes)
-        
-    @http_request_bundler.add(
-      label, 
-      @url + "/trip_purposes", 
-      :get,
-      head: headers,
-      query: { provider_id: provider_id }
-    ).response!(label)
+  # Returns an array of question objects for RidePilot booking
+  def prebooking_questions
+
+    # this is a patch
+    if @url.blank? or @api_token.blank?
+      return []
+    end
+
+    [
+      {
+        question: "What is your blah blah?", 
+        choices: [0,1,2,3], 
+        code: "guests"
+      },
+      {
+        question: "How many attendants will be riding with you?", 
+        choices: [0,1,2,3], 
+        code: "attendants"
+      },
+      {
+        question: "What is your trip purpose?", 
+        choices: [1,2,4], 
+        code: "purpose"
+      }
+    ]
   end
 
   #####################################################################
@@ -87,18 +102,14 @@ class TrapezeAmbassador < BookingAmbassador
   def pass_create_trip
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
-
-    #TODO Add Begins DEREK
     login if @cookies.nil? 
-
     response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies)
-    return response
+    return response.to_hash
 
   end
 
   # Get Client Info
   def pass_get_client_info
-    #TODO Add Begins DEREK
     login if @cookies.nil? 
     response = @client.call(:pass_get_client_info, message: {client_id: customer_id, password: customer_token}, cookies: @cookies)
     Rails.logger.info response.to_hash
@@ -107,7 +118,6 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Cancel the trip
   def pass_cancel_trip
-    #TODO Add Begins DEREK
     login if @cookies.nil? 
     message = {booking_id: booking_id, sched_status: 'CA'}
     result = @client.call(:pass_cancel_trip, message: message, cookies: @cookies)
@@ -147,33 +157,6 @@ class TrapezeAmbassador < BookingAmbassador
     @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
   end
 
-
-  # Returns an array of question objects for RidePilot booking
-  def prebooking_questions
-
-    # this is a patch
-    if @url.blank? or @token.blank?
-      return []
-    end
-
-    [
-      {
-        question: "How many guests will be riding with you?", 
-        choices: [0,1,2,3], 
-        code: "guests"
-      },
-      {
-        question: "How many attendants will be riding with you?", 
-        choices: [0,1,2,3], 
-        code: "attendants"
-      },
-      {
-        question: "How many mobility devices will you be bringing?", 
-        choices: [0,1,2,3], 
-        code: "mobility_devices"
-      }
-    ]
-  end
 
   def origin_hash
     if @itinerary.nil?
@@ -241,6 +224,29 @@ class TrapezeAmbassador < BookingAmbassador
     booking.try(:confirmation)
   end
 
+  def trapeze_purposes
+    result = pass_get_booking_purposes
+    #Derek makes this arrayify
+    result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose].map{|v| {name: v[:description],  code: v[:booking_purpose_id]}}
+    #result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose]
+  end
+
+    # returns a hash of booking attributes from a RidePilot response
+  def booking_attrs_from_response(response)
+    {
+      type: "TrapezeBooking",
+      details: response.try(:with_indifferent_access),
+      status: "saved",
+      confirmation: response.try(:with_indifferent_access).try(:[], "pass_create_trip_response").try(:[], "pass_create_trip_result").try(:[], "booking_id")
+    }
+  end
+
+  # Updates trip booking object with response
+  def update_booking(response)
+
+    return false unless response
+    booking.try(:update_attributes, booking_attrs_from_response(response))
+  end
 
   protected
 
