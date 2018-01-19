@@ -11,10 +11,11 @@ class TrapezeAmbassador < BookingAmbassador
     @client = create_client(Config.trapeze_url, Config.trapeze_url, @api_user, @api_token)
     @client_code = nil #Will be filled out after logging in
     @cookies = nil #Cookies are used to login the user
+    @passenger_types = nil # A list of all passengers types allowed for this user.  It's saved to avoid making the call multiple times.
   end
 
   #####################################################################
-  ## Top-Level Required Methods in order for BookingAmbassador to work
+  ## Top-level required methods in order for BookingAmbassador to work
   #####################################################################
   # Returns symbol for identifying booking api type
   def booking_api
@@ -54,33 +55,27 @@ class TrapezeAmbassador < BookingAmbassador
 
   def cancel
     pass_cancel_trip
-    # Derek Update the itinerary to show that it has ben un-booked
+    # TODO Update the itinerary so that OCC knows that it has been canceled
   end
 
   # Returns an array of question objects for RidePilot booking
   def prebooking_questions
 
-    # this is a patch
     if @url.blank? or @api_token.blank?
       return []
     end
 
     [
       {
-        question: "Why no working?", 
-        choices: [1,2], 
-        code: "test"
+        question: "What is your trip purpose?", 
+        choices: purpose_choices, 
+        code: "purpose"
       },
       {
         question: "Are you traveling with anyone?", 
-        choices: passenger_array, 
-        code: "passenger"
+        choices: passenger_choices, 
+        code: "guests"
       },
-      {
-        question: "What is your trip purpose?", 
-        choices: trapeze_purposes, 
-        code: "purpose"
-      }
     ]
   end
 
@@ -104,9 +99,7 @@ class TrapezeAmbassador < BookingAmbassador
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
     puts trip_hash.ai 
-    response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies)
-    return response.to_hash
-
+    @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
   end
 
   # Get Client Info
@@ -121,30 +114,28 @@ class TrapezeAmbassador < BookingAmbassador
   def pass_cancel_trip
     login if @cookies.nil? 
     message = {booking_id: booking_id, sched_status: 'CA'}
-    result = @client.call(:pass_cancel_trip, message: message, cookies: @cookies)
-    result.hash
+    @client.call(:pass_cancel_trip, message: message, cookies: @cookies).hash
   end
 
   # Get Trip Purposes for the specific user
   def pass_get_booking_purposes
     login if @cookies.nil?
-    result = @client.call(:pass_get_booking_purposes, cookies: @cookies)
-    result.hash
+    @client.call(:pass_get_booking_purposes, cookies: @cookies).hash
   end
 
   # Get a List of Passenger Types
   def pass_get_passenger_types
     login if @cookies.nil?
+    return @passenger_types unless @passenger_types.nil?
     message = {client_id: customer_id}
-    result = @client.call(:pass_get_passenger_types, message: message, cookies: @cookies)
-    result.hash
+    @passenger_types = @client.call(:pass_get_passenger_types, message: message, cookies: @cookies).hash
+    return @passenger_types
   end
   
   # Get Client Trips
   def pass_get_client_trips from_date=nil, to_date=nil
     login if @cookies.nil?
     message = {}
-    
     #Add the parameters to the request.
     if from_date 
       message[:from_date] = from_date.strftime("%Y%m%d")
@@ -152,9 +143,7 @@ class TrapezeAmbassador < BookingAmbassador
     if to_date 
       message[:to_date] = to_date.strftime("%Y%m%d")
     end
-
-    result = @client.call(:pass_get_client_trips, message: message, cookies: @cookies)
-    result.hash
+    @client.call(:pass_get_client_trips, message: message, cookies: @cookies).hash
   end
 
   #####################################################################
@@ -183,7 +172,7 @@ class TrapezeAmbassador < BookingAmbassador
     @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
   end
 
-
+  # Build a Trapeze Place Hash for the Origin
   def origin_hash
     if @itinerary.nil?
       return nil
@@ -191,6 +180,7 @@ class TrapezeAmbassador < BookingAmbassador
     place_hash @itinerary.trip.origin
   end
 
+  # Build a Trapeze Place Hash for the Destination
   def destination_hash
     if @itinerary.nil?
       return nil
@@ -198,6 +188,7 @@ class TrapezeAmbassador < BookingAmbassador
     place_hash @itinerary.trip.destination
   end
 
+  # Pass an OCC Place, get a Trapeze Place
   def place_hash place
     {
       address_mode: 'ZZ', 
@@ -213,6 +204,7 @@ class TrapezeAmbassador < BookingAmbassador
     }
   end
 
+  # Builds the payload for creating a trip
   def trip_hash
 
      # Create Pickup/Dropoff Hashes
@@ -238,15 +230,16 @@ class TrapezeAmbassador < BookingAmbassador
     }
 
     # Check to see if another passenger is coming
-    if @booking_options[:passenger] != "NONE"
+    if @booking_options[:guests] != "NONE"
       request_hash[:companion_mode] = "S"
-      request_hash[:pass_booking_passengers] = [passenger_node(@booking_options[:passenger])]
+      request_hash[:pass_booking_passengers] = [passenger_hash(@booking_options[:guests])]
     end
 
     return request_hash
   
   end
 
+  #Derek: This is not used right now.  Should it be?
   def get_funding_source_array
     ada_funding_sources = Config.trapeze_ada_funding_sources
     ignore_polygon = Config.trapeze_ignore_polygon_id
@@ -258,21 +251,23 @@ class TrapezeAmbassador < BookingAmbassador
     booking.try(:confirmation)
   end
 
-  def trapeze_purposes
+  # Builds an array of allowed purposes to ask the user.  
+  def purpose_choices
     result = pass_get_booking_purposes
     result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose].map{|v| [v[:description], v[:booking_purpose_id]]}
   end
 
-  def passenger_array
-    passenger_array = [["NONE", "NONE"]]
+  # Builds an array of allowed passengers types.  Used to ask the user about passenger.
+  def passenger_choices
+    passenger_choices_array = [["NONE", "NONE"]]
     result = pass_get_passenger_types
-    result.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type).each do |purpose|
-      passenger_array.append([purpose.try(:[], :description), purpose.try(:[], :abbreviation)])
+    passenger_types_array.each do |purpose|
+      passenger_choices_array.append([purpose.try(:[], :description), purpose.try(:[], :abbreviation)])
     end
-    passenger_array
+    passenger_choices_array
   end
 
-    # returns a hash of booking attributes from a RidePilot response
+  # returns a hash of booking attributes from a RidePilot response
   def booking_attrs_from_response(response)
     {
       type: "TrapezeBooking",
@@ -284,17 +279,31 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Updates trip booking object with response
   def update_booking(response)
-
     return false unless response
     booking.try(:update_attributes, booking_attrs_from_response(response))
   end
 
-  def passenger_node passenger
-    puts passenger.ai
-    puts 'what is this? ^^^'
-    puts 'also, how do I get the fare type?'
-    #{pass_booking_passenger: {passenger_type: passenger[:type], space_type: "AM", passenger_count: 1, fare_type: passenger[:fare_type]}}
-    {pass_booking_passenger: {passenger_type: passenger, space_type: "AM", passenger_count: 1, fare_type: 0}}
+  # Builds a hash for bringing extra passengers 
+  def passenger_hash passenger
+    # Get the fare_type for this passenger from the mapping
+    fare_type = passenger_type_funding_type_mapping[passenger]
+
+    {pass_booking_passenger: {passenger_type: passenger, space_type: "AM", passenger_count: 1, fare_type: fare_type}}
+  end
+
+  # Passenger Type to Funding Type Mapping
+  # Each extra passenger type, must have it's own funding type.
+  # 
+  def passenger_type_funding_type_mapping
+    mapping = {}
+    passenger_types_array.each do |pass|
+      mapping[pass.try(:with_indifferent_access).try(:[], :abbreviation)] = pass.try(:with_indifferent_access).try(:[], :fare_type_id)
+    end
+    mapping
+  end
+
+  def passenger_types_array 
+    pass_get_passenger_types.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type)
   end
 
   protected
@@ -309,6 +318,5 @@ class TrapezeAmbassador < BookingAmbassador
     end
     client
   end
-
 
 end
