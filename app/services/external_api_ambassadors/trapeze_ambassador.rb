@@ -12,6 +12,7 @@ class TrapezeAmbassador < BookingAmbassador
     @client_code = nil #Will be filled out after logging in
     @cookies = nil #Cookies are used to login the user
     @passenger_types = nil # A list of all passengers types allowed for this user.  It's saved to avoid making the call multiple times.
+    @booking_id = nil
   end
 
   #####################################################################
@@ -49,13 +50,22 @@ class TrapezeAmbassador < BookingAmbassador
     return false unless response && response[:pass_create_trip_response][:pass_create_trip_result][:booking_id].to_s != "-1"
         
     # Store the status info in a Booking object and return it
-    update_booking(response)
+    set_booking_id(response)
+    update_booking
+
     return booking
   end
 
   def cancel
     pass_cancel_trip
-    # TODO Update the itinerary so that OCC knows that it has been canceled
+    # Unselect the itinerary on successful cancellation
+    @itinerary.unselect
+    # Update Booking object with status info and return it
+    update_booking
+    return booking
+  end
+
+  def status
   end
 
   # Returns an array of question objects for RidePilot booking
@@ -133,9 +143,10 @@ class TrapezeAmbassador < BookingAmbassador
   end
   
   # Get Client Trips
-  def pass_get_client_trips from_date=nil, to_date=nil
+  def pass_get_client_trips from_date=nil, to_date=nil, booking_id=nil
     login if @cookies.nil?
     message = {}
+
     #Add the parameters to the request.
     if from_date 
       message[:from_date] = from_date.strftime("%Y%m%d")
@@ -143,6 +154,10 @@ class TrapezeAmbassador < BookingAmbassador
     if to_date 
       message[:to_date] = to_date.strftime("%Y%m%d")
     end
+    if booking_id
+      message[:booking_id] = booking_id
+    end
+
     @client.call(:pass_get_client_trips, message: message, cookies: @cookies).hash
   end
 
@@ -246,9 +261,13 @@ class TrapezeAmbassador < BookingAmbassador
     check_polygon = Config.trapeze_check_polygon_id
   end
 
+  def set_booking_id response
+    @booking_id = response.try(:with_indifferent_access).try(:[], "pass_create_trip_response").try(:[], "pass_create_trip_result").try(:[], "booking_id")
+  end
+
   # Gets the Trapeze Booking Id from the booking object
   def booking_id
-    booking.try(:confirmation)
+    @booking_id || booking.try(:confirmation)
   end
 
   # Builds an array of allowed purposes to ask the user.  
@@ -268,20 +287,21 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   # returns a hash of booking attributes from a RidePilot response
-  def booking_attrs_from_response(response)
+  def booking_attrs
+    response = pass_get_client_trips(nil, nil, booking_id)
     {
       type: "TrapezeBooking",
       details: response.try(:with_indifferent_access),
-      status: "saved",
-      confirmation: response.try(:with_indifferent_access).try(:[], "pass_create_trip_response").try(:[], "pass_create_trip_result").try(:[], "booking_id")
+      status:  response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).try(:[], :sched_status),
+      confirmation: booking_id
     }
   end
 
   # Updates trip booking object with response
-  def update_booking(response)
-    return false unless response
-    booking.try(:update_attributes, booking_attrs_from_response(response))
+  def update_booking
+    booking.try(:update_attributes, booking_attrs)
   end
+
 
   # Builds a hash for bringing extra passengers 
   def passenger_hash passenger
