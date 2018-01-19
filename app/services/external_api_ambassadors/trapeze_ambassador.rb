@@ -140,6 +140,23 @@ class TrapezeAmbassador < BookingAmbassador
     result.hash
   end
   
+  # Get Client Trips
+  def pass_get_client_trips from_date=nil, to_date=nil
+    login if @cookies.nil?
+    message = {}
+    
+    #Add the parameters to the request.
+    if from_date 
+      message[:from_date] = from_date.strftime("%Y%m%d")
+    end
+    if to_date 
+      message[:to_date] = to_date.strftime("%Y%m%d")
+    end
+
+    result = @client.call(:pass_get_client_trips, message: message, cookies: @cookies)
+    result.hash
+  end
+
   #####################################################################
   ## Helper Methods
   #####################################################################
