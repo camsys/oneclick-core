@@ -9,7 +9,7 @@ class TrapezeAmbassador < BookingAmbassador
     @api_user ||= Config.trapeze_user
     @api_token ||= Config.trapeze_token
     @client = create_client(Config.trapeze_url, Config.trapeze_url, @api_user, @api_token)
-    @client_code = nil
+    @client_code = nil #Will be filled out after logging in
     @cookies = nil #Cookies are used to login the user
   end
 
@@ -67,18 +67,18 @@ class TrapezeAmbassador < BookingAmbassador
 
     [
       {
-        question: "What is your blah blah?", 
-        choices: [0,1,2,3], 
-        code: "guests"
+        question: "Why no working?", 
+        choices: [1,2], 
+        code: "test"
       },
       {
-        question: "How many attendants will be riding with you?", 
-        choices: [0,1,2,3], 
-        code: "attendants"
+        question: "Are you traveling with anyone?", 
+        choices: passenger_array, 
+        code: "passenger"
       },
       {
         question: "What is your trip purpose?", 
-        choices: [1,2,4], 
+        choices: trapeze_purposes, 
         code: "purpose"
       }
     ]
@@ -103,6 +103,7 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
+    puts trip_hash.ai 
     response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies)
     return response.to_hash
 
@@ -128,6 +129,14 @@ class TrapezeAmbassador < BookingAmbassador
   def pass_get_booking_purposes
     login if @cookies.nil?
     result = @client.call(:pass_get_booking_purposes, cookies: @cookies)
+    result.hash
+  end
+
+  # Get a List of Passenger Types
+  def pass_get_passenger_types
+    login if @cookies.nil?
+    message = {client_id: customer_id}
+    result = @client.call(:pass_get_passenger_types, message: message, cookies: @cookies)
     result.hash
   end
   
@@ -198,7 +207,7 @@ class TrapezeAmbassador < BookingAmbassador
       pu_leg_hash = {req_time: @trip.trip_time.in_time_zone.seconds_since_midnight, request_address: origin_hash}
     end
     
-    return {
+    request_hash = {
       client_id: customer_id.to_i, 
       client_code: @client_code, 
       date: @trip.trip_time.strftime("%Y%m%d"), 
@@ -206,10 +215,18 @@ class TrapezeAmbassador < BookingAmbassador
       para_service_id: para_service_id, 
       auto_schedule: true, 
       calculate_pick_up_req_time: true, 
-      booking_purpose_id: 1, 
+      booking_purpose_id: @booking_options[:purpose], 
       pick_up_leg: pu_leg_hash, 
       drop_off_leg: do_leg_hash
     }
+
+    # Check to see if another passenger is coming
+    if @booking_options[:passenger] != "NONE"
+      request_hash[:companion_mode] = "S"
+      request_hash[:pass_booking_passengers] = [passenger_node(@booking_options[:passenger])]
+    end
+
+    return request_hash
   
   end
 
@@ -226,9 +243,16 @@ class TrapezeAmbassador < BookingAmbassador
 
   def trapeze_purposes
     result = pass_get_booking_purposes
-    #Derek makes this arrayify
-    result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose].map{|v| {name: v[:description],  code: v[:booking_purpose_id]}}
-    #result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose]
+    result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose].map{|v| [v[:description], v[:booking_purpose_id]]}
+  end
+
+  def passenger_array
+    passenger_array = [["NONE", "NONE"]]
+    result = pass_get_passenger_types
+    result.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type).each do |purpose|
+      passenger_array.append([purpose.try(:[], :description), purpose.try(:[], :abbreviation)])
+    end
+    passenger_array
   end
 
     # returns a hash of booking attributes from a RidePilot response
@@ -246,6 +270,14 @@ class TrapezeAmbassador < BookingAmbassador
 
     return false unless response
     booking.try(:update_attributes, booking_attrs_from_response(response))
+  end
+
+  def passenger_node passenger
+    puts passenger.ai
+    puts 'what is this? ^^^'
+    puts 'also, how do I get the fare type?'
+    #{pass_booking_passenger: {passenger_type: passenger[:type], space_type: "AM", passenger_count: 1, fare_type: passenger[:fare_type]}}
+    {pass_booking_passenger: {passenger_type: passenger, space_type: "AM", passenger_count: 1, fare_type: 0}}
   end
 
   protected
