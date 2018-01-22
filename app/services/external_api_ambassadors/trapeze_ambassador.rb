@@ -130,12 +130,19 @@ class TrapezeAmbassador < BookingAmbassador
   # Get Trip Purposes for the specific user
   def pass_get_booking_purposes
     login if @cookies.nil?
+
+    # Don't return trip purposes for a non-logged in user
+    return nil if @cookies.nil?
+
     @client.call(:pass_get_booking_purposes, cookies: @cookies).hash
   end
 
   # Get a List of Passenger Types
   def pass_get_passenger_types
+    #Login
     login if @cookies.nil?
+    return nil if @cookies.nil?
+    
     return @passenger_types unless @passenger_types.nil?
     message = {client_id: customer_id}
     @passenger_types = @client.call(:pass_get_passenger_types, message: message, cookies: @cookies).hash
@@ -182,9 +189,11 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Login the Client
   def login
+    return false unless (customer_id and customer_token) 
     result = pass_validate_client_password
     @cookies = result.http.cookies
     @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+    true 
   end
 
   # Build a Trapeze Place Hash for the Origin
@@ -273,13 +282,14 @@ class TrapezeAmbassador < BookingAmbassador
   # Builds an array of allowed purposes to ask the user.  
   def purpose_choices
     result = pass_get_booking_purposes
+    return [] if result.nil?
     result.to_hash[:envelope][:body][:pass_get_booking_purposes_response][:pass_get_booking_purposes_result][:pass_booking_purpose].map{|v| [v[:description], v[:booking_purpose_id]]}
   end
 
   # Builds an array of allowed passengers types.  Used to ask the user about passenger.
   def passenger_choices
     passenger_choices_array = [["NONE", "NONE"]]
-    result = pass_get_passenger_types
+    ##result = pass_get_passenger_types
     passenger_types_array.each do |purpose|
       passenger_choices_array.append([purpose.try(:[], :description), purpose.try(:[], :abbreviation)])
     end
@@ -323,7 +333,9 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   def passenger_types_array 
-    pass_get_passenger_types.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type)
+    result = pass_get_passenger_types
+    return [] if result.nil?
+    result.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type)
   end
 
   protected
