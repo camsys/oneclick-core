@@ -24,7 +24,26 @@ class Landmark < Place
     Landmark.update_all(old: true)
     line = 2 #Line 1 is the header, start with line 2 in the count
     begin
+      missingField = 0
+      latInvalid = false
+      lngInvalid = false
       CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
+
+        #Check to see if Name, lat, or lng are blank
+        [0,6,7].each do |field|
+          if row[field].blank?
+            missingField = field + 1
+            break
+          end
+        end
+
+        #Check to see if lat or lng are valid
+        if row[6].to_i < -90 || row[6].to_i > 90
+          latInvalid = true
+        elsif row[7].to_i < -180 || row[7].to_i > 180
+            lngInvalid = true
+        end
+
         begin
           #If we have already created this Landmark, don't create it again.
           l = Landmark.create!({
@@ -40,7 +59,15 @@ class Landmark < Place
           })
         rescue
           #Found an error, back out all changes and restore previous POIs
-          message = 'Error found on line: ' + line.to_s
+          if missingField > 0
+            message = 'Error: Column ' + missingField.to_s + ' on row ' + line.to_s + ' of .csv file cannot be blank.'
+          elsif latInvalid
+            message = 'Error: latitude on row ' + line.to_s + ' of .csv file is invalid.'
+          elsif lngInvalid
+            message = 'Error: longitude on row ' + line.to_s + ' of .csv file is invalid.'
+          else
+            message = 'Error: Duplicate landmark found on line ' + line.to_s + ' of .csv file.'
+          end
           Rails.logger.info message
           Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
           Landmark.is_new.delete_all
