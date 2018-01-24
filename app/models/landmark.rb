@@ -38,9 +38,9 @@ class Landmark < Place
         	  lng: row[7],
             old: false
           })
-        rescue
+        rescue Exception => msg
           #Found an error, back out all changes and restore previous POIs
-          message = 'Error found on line: ' + line.to_s
+          message = 'Error on line ' + line.to_s + ' of .csv file - ' + msg.to_s
           Rails.logger.info message
           Rails.logger.info 'All changes have been rolled-back and previous Landmarks have been restored'
           Landmark.is_new.delete_all
