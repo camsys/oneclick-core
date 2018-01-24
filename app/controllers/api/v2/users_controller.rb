@@ -98,7 +98,7 @@ module Api
       # Resets the user's password to a random string and sends it to them via email
       # POST /reset_password
       def reset_password
-        email = user_params[:email]
+        email = user_params[:email].downcase 
         @user = User.find_by(email: email)
         
         # Send a failure response if no account exists with the given email

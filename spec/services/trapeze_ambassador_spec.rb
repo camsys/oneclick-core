@@ -33,14 +33,4 @@ RSpec.describe TrapezeAmbassador do
     :prebooking_questions)
   }
   
-  # Stub out responses from RidePilot
-  #let(:pass_validate_client_password) { true }
-  
-  #it "authenticates a user" do
-    # Stub out status response for authenticate_customer call
-  #  http_request_bundler.stub(:status!).and_return(ride_pilot_authenticate_customer_status)
-
-  #  expect(rpa_booked.authenticate_user?).to be true
-  #end
-  
 end
