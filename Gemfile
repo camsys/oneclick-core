@@ -68,7 +68,6 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 gem 'rails-i18n'
 gem 'simple_translation_engine', 
       github: 'camsys/simple_translation_engine'
-############################################
 
 ### SOAP Support ###########################
 gem 'savon'
