@@ -14,13 +14,23 @@ RSpec.describe TrapezeAmbassador do
   # Instance variables
   it { expect(trapeze_ambassador).to respond_to(
     :url, 
-    :token) 
+    :token, 
+    :booking_options, 
+    :itinerary,
+    :service, 
+    :trip, 
+    :user   ) 
   }
   
   # Instance Methods
   it { expect(trapeze_ambassador).to respond_to(
+    :book,
+    :cancel,
+    :status,
     :authentic_provider?,
-    :authenticate_user?)
+    :booking_api,
+    :authenticate_user?,
+    :prebooking_questions)
   }
   
   # Stub out responses from RidePilot

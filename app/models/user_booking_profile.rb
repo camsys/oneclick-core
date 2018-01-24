@@ -30,5 +30,10 @@ class UserBookingProfile < ApplicationRecord
   def authenticate?
     booking_ambassador.try(:authenticate_user?)
   end
+
+  # Returns the prebooking questions for the user.  
+  def prebooking_questions
+    booking_ambassador.try(:prebooking_questions)
+  end
     
 end

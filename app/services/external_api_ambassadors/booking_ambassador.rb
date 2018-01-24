@@ -8,7 +8,7 @@
 # Also, sets up an HTTPRequestBundler for making API calls.
 class BookingAmbassador
   
-  attr_reader :itinerary, :trip, :booking_profile, :service, :user
+  attr_reader :itinerary, :trip, :booking_profile, :service, :user, :opts
   attr_accessor :http_request_bundler, 
                 :url, 
                 :token,

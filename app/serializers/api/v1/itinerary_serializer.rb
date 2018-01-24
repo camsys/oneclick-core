@@ -192,7 +192,6 @@ module Api
       def discounts
       end
       
-      #TODO: Build this functionality
       def prebooking_questions
         object.booking_ambassador.try(:prebooking_questions)
       end

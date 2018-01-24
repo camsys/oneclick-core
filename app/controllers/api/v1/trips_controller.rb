@@ -109,7 +109,10 @@ module Api
       # If return_time is passed in the booking request, create a return trip
       # as well, and attempt to book it.
       def book
+
+        puts params.ai #Derek
         outbound_itineraries = booking_request_params
+        puts outbound_itineraries.ai 
         
         responses = booking_request_params
         .map do |booking_request|
@@ -137,6 +140,8 @@ module Api
           response = booking_response_base(itin).merge({booked: false})
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
+          puts booking_request
+          puts '^^^^^^^^^^^^^^^^^^^^^^'
           booking = itin.try(:book, booking_options: booking_request)
           next response unless booking.is_a?(Booking) # Return failure response unless book was successful
           
@@ -321,6 +326,21 @@ module Api
                           booking.details.try(:[], "dropoff_time"))
                           .try(:to_datetime) || pickup_time + itin.duration.seconds
           confirmation_id = booking.details.try(:[], "trip_id")
+          return {
+            booked: true,
+            confirmation: confirmation_id, # it needs both of these 
+            confirmation_id: confirmation_id, # for some reason
+            wait_start: (pickup_time - 15.minutes).iso8601,
+            wait_end: (pickup_time + 15.minutes).iso8601,
+            arrival: dropoff_time.iso8601,
+            message: "Booking Status: #{booking.status}",
+            negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
+          }
+        when 'trapeze', :trapeze
+          pickup_time = itin.start_time
+          # NOTE: Typo in RidePilot codebase means key is "dropff_time" rather than "dropoff_time". Should be patched by 8/31/17.
+          dropoff_time = pickup_time + itin.duration.seconds
+          confirmation_id = booking.confirmation
           return {
             booked: true,
             confirmation: confirmation_id, # it needs both of these 

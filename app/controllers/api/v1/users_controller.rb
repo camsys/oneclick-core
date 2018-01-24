@@ -12,9 +12,9 @@ module Api
       # Update's the logged-in user's profile
       def update
         response = { message: "" }
-        
+
         updated_successfully = @traveler.update_profile(params)
-        
+
         # Check if booking profiles were successfully updated and authenticated, and prepare response
         if params["booking"].is_a?(Array)
           booking_authenticated = params["booking"].all? do |booking|
@@ -120,8 +120,19 @@ module Api
       def booking_authentication_response(success)
         {
           result: success,
-          message: success ? "Third-party booking profile(s) successfully authenticated." : "Third-party booking authentication failed."
+          message: success ? "Third-party booking profile(s) successfully authenticated." : "Third-party booking authentication failed.",
+          prebooking_questions: prebooking_questions_response
         }
+      end
+
+      def prebooking_questions_response
+        #TODO: This returns all of the prebooking questions for all of the users services
+        # We could change it so that it only sends questions for the new services.
+        response = {}
+        @traveler.booking_profiles.each do |bp|
+          response[bp.service_id] = bp.prebooking_questions
+        end 
+        response 
       end
 
     end
