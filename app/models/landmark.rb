@@ -23,8 +23,10 @@ class Landmark < Place
     message = ""
     Landmark.update_all(old: true)
     line = 2 #Line 1 is the header, start with line 2 in the count
+    numberOfLines = 0 #Incremented once for every line in CSV
     begin
       CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
+        numberOfLines += 1
         begin
           #If we have already created this Landmark, don't create it again.
           l = Landmark.create!({
@@ -63,7 +65,7 @@ class Landmark < Place
     if failed
       return false, message
     else
-      return true, Landmark.count.to_s + " landmarks loaded"
+      return true, numberOfLines.to_s + " landmarks loaded"
     end
 
   end #Update
