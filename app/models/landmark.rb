@@ -24,9 +24,6 @@ class Landmark < Place
     Landmark.update_all(old: true)
     line = 2 #Line 1 is the header, start with line 2 in the count
     begin
-      missingField = 0
-      latInvalid = false
-      lngInvalid = false
       CSV.foreach(landmarks_file, {:col_sep => ",", :headers => true}) do |row|
         begin
           #If we have already created this Landmark, don't create it again.
