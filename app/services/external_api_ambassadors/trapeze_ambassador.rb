@@ -263,7 +263,7 @@ class TrapezeAmbassador < BookingAmbassador
   
   end
 
-  #Derek: This is not used right now.  Should it be?
+  #TODO: This is not used right now.  Should it be?
   def get_funding_source_array
     ada_funding_sources = Config.trapeze_ada_funding_sources
     ignore_polygon = Config.trapeze_ignore_polygon_id
