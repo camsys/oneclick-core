@@ -110,9 +110,7 @@ module Api
       # as well, and attempt to book it.
       def book
 
-        puts params.ai #Derek
         outbound_itineraries = booking_request_params
-        puts outbound_itineraries.ai 
         
         responses = booking_request_params
         .map do |booking_request|
@@ -134,14 +132,14 @@ module Api
           end
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
+
           # Pull the itinerary out of the booking_request hash and set up a 
           # default (failure) booking response
-          itin = booking_request.delete(:itinerary)          
+          itin = booking_request.delete(:itinerary)       
+
           response = booking_response_base(itin).merge({booked: false})
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
-          puts booking_request
-          puts '^^^^^^^^^^^^^^^^^^^^^^'
           booking = itin.try(:book, booking_options: booking_request)
           next response unless booking.is_a?(Booking) # Return failure response unless book was successful
           
