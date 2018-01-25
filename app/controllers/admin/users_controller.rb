@@ -1,5 +1,5 @@
 class Admin::UsersController < Admin::AdminController
-  
+
   # before_action :initialize_user, only: [:index, :create]
   authorize_resource
   before_action :load_user
@@ -10,9 +10,9 @@ class Admin::UsersController < Admin::AdminController
 
   def create
     create_params = user_params
-    set_roles(create_params.delete(:admin), create_params.delete(:staff_agency))                    
+    set_roles(create_params.delete(:admin), create_params.delete(:staff_agency))
     @user.assign_attributes(create_params)
-            
+
   	if @user.save
       flash[:success] = "Created #{@user.first_name} #{@user.last_name}"
       respond_to do |format|
@@ -37,18 +37,21 @@ class Admin::UsersController < Admin::AdminController
   def edit
   end
 
+  def all
+  end
+
   def update
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
     password = update_params.delete(:password)
-    password_confirmation = update_params.delete(:password_confirmation)        
+    password_confirmation = update_params.delete(:password_confirmation)
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
-    
+
     set_roles(update_params.delete(:admin), update_params.delete(:staff_agency))
-    
+
     @user.update_attributes(update_params)
 
     if @user.errors.empty?
@@ -76,18 +79,18 @@ class Admin::UsersController < Admin::AdminController
       raise ActiveRecord::Rollback unless @user.valid?
     end
   end
-  
+
   # Set admin role on @user if current_user has permissions
   def set_admin_role(admin_param)
     return false if admin_param.nil?
     @user.set_admin(admin_param.to_bool) if can?(:manage, :admin)
   end
-  
+
   # Set staff role on @user if current_user has permissions
   def set_staff_role(staff_agency_param)
     staff_agency_id = staff_agency_param.to_i
     staff_agency = Agency.find_by(id: staff_agency_id)
-    
+
     # If staff_agency is present and the current_user can update it, set @user as staff for that agency
     if staff_agency
       if can? :update, staff_agency
@@ -103,7 +106,7 @@ class Admin::UsersController < Admin::AdminController
       end
     end
   end
-  
+
   def load_user
     @user = User.find_by(id: params[:id]) || User.new
   end
@@ -114,10 +117,10 @@ class Admin::UsersController < Admin::AdminController
 
   def user_params
   	params.require(:user).permit(
-      :email, 
-      :first_name, 
-      :last_name, 
-      :password, 
+      :email,
+      :first_name,
+      :last_name,
+      :password,
       :password_confirmation,
       :admin,
       :staff_agency
