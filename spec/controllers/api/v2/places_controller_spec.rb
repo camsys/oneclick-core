@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Api::V2::PlacesController, type: :controller do
   let!(:landmark) { create :landmark }
+  let!(:fenway_park) { create :fenway_park }
   let(:cambridge_city_hall) { create :cambridge_city_hall }
   let(:stomping_ground) { create :stomping_ground }
   let!(:user) { create :user }
@@ -60,6 +61,29 @@ RSpec.describe Api::V2::PlacesController, type: :controller do
     # Should find one unique place that matches the given name
     expect(parsed_response['data']['places'].count).to eq(1)
     recent_place = user.origins.last
+    returned_place = parsed_response['data']['places'].first
+
+    expect(returned_place["geometry"]["location"]["lat"].to_f).to eq(recent_place.lat.to_f)
+    expect(returned_place["geometry"]["location"]["lng"].to_f).to eq(recent_place.lng.to_f)
+    expect(returned_place["name"]).to eq(recent_place.name)
+  end
+
+  # When the query string is empty, only return recent places and stomping grounds
+  it "does not return landmarks when the query string is blank" do
+    3.times do
+      user.trips << create(:trip)
+    end
+    
+    query_str = ""
+
+    request.headers.merge!(request_headers) # Send user email and token headers
+    get :index, params: {name: query_str}, format: :json
+    parsed_response = JSON.parse(response.body)
+
+    # Should pull all the unique waypoints and stomping grounds 
+    # This test has no stomping grounds and 2 waypoints.
+    expect(parsed_response['data']['places'].count).to eq(2)
+    recent_place = user.waypoints.last
     returned_place = parsed_response['data']['places'].first
 
     expect(returned_place["geometry"]["location"]["lat"].to_f).to eq(recent_place.lat.to_f)

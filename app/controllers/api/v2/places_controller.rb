@@ -14,8 +14,12 @@ module Api
                             .limit(limit) if @traveler
         
         # Get Matching Landmarks
-        results += Landmark.get_by_query_str(search_string)
-                           .limit(limit)
+        # Don't do this if the search is blank. 
+        # A blank search is used to show ALL recent waypoints and ALL stomping grounds
+        unless params[:name].blank? 
+          results += Landmark.get_by_query_str(search_string)
+                             .limit(limit)
+        end
           
         # Get Matching Recent Waypoints
         # exact matches
