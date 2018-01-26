@@ -120,7 +120,7 @@ gem 'oneclick_refernet', github: 'camsys/oneclick_refernet',
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
-  
+
   ### RSPEC & TESTING TOOLS ################
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
@@ -130,6 +130,10 @@ group :development, :test do
 end
 
 group :development do
+  # Get a console in your browser in development
+  gem "better_errors"
+  gem "binding_of_caller"
+
   # Access an IRB console on exception pages or by using <%= console %> anywhere in the code.
   gem 'web-console', '>= 3.3.0'
   gem 'listen', '~> 3.0.5'

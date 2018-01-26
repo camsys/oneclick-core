@@ -13,6 +13,12 @@
     value_method: :id,
     label: "Trip Purpose"
 
+-# Partner Agency
+= f.input :partner_agency, required: false,
+    collection: PartnerAgency.all,
+    value_method: :id,
+    label: "Planned By"
+
 -# TRIP ORIGIN REGION BUILDER
 =render partial: 'admin/services/region_builder',
   locals: { wrapper_id: 'trip-origin-recipe', label_text: "Origin"}
@@ -24,6 +30,8 @@
   locals: { wrapper_id: 'trip-destination-recipe', label_text: "Destination"}
 =f.input :trip_destination_recipe, as: :hidden,
   input_html: { value: '[]'}
+
+
 
 :javascript
   $(document).ready(function() {
