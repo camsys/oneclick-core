@@ -16,8 +16,7 @@ RSpec.describe Trip, type: :model do
       :secs,
       :trip_type,
       :arrival_time,
-      :build_return_trip,
-      :partner_agency_in
+      :build_return_trip
     )}
 
   let(:itinerary) { create(:transit_itinerary) }
