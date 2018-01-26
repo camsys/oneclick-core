@@ -26,8 +26,7 @@ class Admin::ReportsController < Admin::AdminController
     @dashboards = DASHBOARDS
     @groupings = GROUPINGS
   end
-  
-  
+    
   ### GRAPHICAL DASHBOARDS ###
   
   def dashboard
@@ -41,6 +40,7 @@ class Admin::ReportsController < Admin::AdminController
   
   def planned_trips_dashboard
     @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
   end
 
   def unique_users_dashboard 
@@ -161,6 +161,7 @@ class Admin::ReportsController < Admin::AdminController
     @from_date = parse_date_param(params[:from_date])
     @to_date = parse_date_param(params[:to_date])
     @grouping = params[:grouping]
+    @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
     
   end
   
@@ -201,7 +202,8 @@ class Admin::ReportsController < Admin::AdminController
       :dashboard_name, 
       :from_date, 
       :to_date, 
-      :grouping
+      :grouping,
+      :partner_agency
     )
   end
   
