@@ -18,6 +18,14 @@
     =f.input :to_date, required: false,
       input_html: {class: 'datepicker'}, 
       as: :string, label: "To Date"
+
+
+  -# PARTNER AGENCY SELECTION
+  .dashboard-options.planned-trips.hidden
+    = f.input :partner_agency, required: false,
+      collection: PartnerAgency.all,
+      value_method: :id,
+      label: "Planned By"
       
   -# DATE GROUPING
   .dashboard-options.planned-trips.unique-users.hidden

@@ -16,6 +16,7 @@ class Trip < ApplicationRecord
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
+  has_many :partner_agencies, through: :user 
   
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
@@ -72,6 +73,11 @@ class Trip < ApplicationRecord
   scope :connecting, -> do # Connecting trips: the middle legs
     where.not(previous_trip_id: nil) # Trips with a previous trip...
     .where(id: Trip.pluck(:previous_trip)) # ...AND a next trip
+  end
+
+  # Scopes based on user
+  scope :partner_agency_in, -> (partner_agency) do
+    where(user_id: partner_agency.staff.pluck(:id))
   end
   
   ### CLASS METHODS ###

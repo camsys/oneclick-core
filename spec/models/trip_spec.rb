@@ -16,7 +16,8 @@ RSpec.describe Trip, type: :model do
       :secs,
       :trip_type,
       :arrival_time,
-      :build_return_trip
+      :build_return_trip,
+      :partner_agency_in
     )}
 
   let(:itinerary) { create(:transit_itinerary) }
@@ -43,7 +44,7 @@ RSpec.describe Trip, type: :model do
     expect(return_trip.previous_trip).to eq(trip)
     expect(trip.next_trip).to eq(return_trip)
   end
-  
+
   
   ### BOOKING ###
   

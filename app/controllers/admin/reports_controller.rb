@@ -26,8 +26,7 @@ class Admin::ReportsController < Admin::AdminController
     @dashboards = DASHBOARDS
     @groupings = GROUPINGS
   end
-  
-  
+    
   ### GRAPHICAL DASHBOARDS ###
   
   def dashboard
@@ -41,6 +40,7 @@ class Admin::ReportsController < Admin::AdminController
   
   def planned_trips_dashboard
     @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
   end
 
   def unique_users_dashboard 
@@ -89,6 +89,7 @@ class Admin::ReportsController < Admin::AdminController
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
+    @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
     
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
@@ -133,6 +134,7 @@ class Admin::ReportsController < Admin::AdminController
     @purposes = parse_id_list(params[:purposes])
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
+    @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
     
     # USER FILTERS
     @include_guests = parse_bool(params[:include_guests])
@@ -159,6 +161,7 @@ class Admin::ReportsController < Admin::AdminController
     @from_date = parse_date_param(params[:from_date])
     @to_date = parse_date_param(params[:to_date])
     @grouping = params[:grouping]
+    @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
     
   end
   
@@ -172,6 +175,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_origin_recipe,
       :trip_destination_recipe,
       {purposes: []},
+      :partner_agency,
       
       # USER FILTERS
       :include_guests,
@@ -198,7 +202,8 @@ class Admin::ReportsController < Admin::AdminController
       :dashboard_name, 
       :from_date, 
       :to_date, 
-      :grouping
+      :grouping,
+      :partner_agency
     )
   end
   

@@ -54,6 +54,25 @@ RSpec.describe Admin::ReportsController, type: :controller do
           # Date range from 3 months ago to today should contain 4 trips (includes fencepost days)
           expect(assigns(:trips).count).to eq(Trip.from_date(from_date).to_date(to_date).count)
         end
+
+        it 'filters dashboard by partner agency' do
+          partner_agency = partner_staff.agencies.first
+
+          # Assign the last trip to the partner staff
+          trip = Trip.last 
+          trip.user = partner_staff 
+          trip.save 
+
+          # Check the CSV count without a filter
+          params = {} 
+          get :planned_trips_dashboard, params: params
+          expect(assigns(:trips).count).to eq(Trip.all.count)
+
+          # Check the CSV count with a filter
+          params = { partner_agency: partner_agency.id }
+          get :planned_trips_dashboard, params: params
+          expect(assigns(:trips).count).to eq(1)
+        end
         
       end
       
@@ -140,7 +159,7 @@ RSpec.describe Admin::ReportsController, type: :controller do
             User.registered.active_since(from_date).active_until(to_date).count
           )
         end
-        
+
       end
       
       describe 'trips report' do
@@ -216,6 +235,27 @@ RSpec.describe Admin::ReportsController, type: :controller do
           
           response_body = CSV.parse(response.body)
           expect(response_body.length - 1).to eq(Trip.origin_in(origin_geom).destination_in(destination_geom).count)
+        end
+
+        it 'filters by partner agency' do
+          partner_agency = partner_staff.agencies.first
+
+          # Assign the last trip to the partner staff
+          trip = Trip.last 
+          trip.user = partner_staff 
+          trip.save 
+
+          # Check the CSV count without a filter
+          params = {} 
+          get :trips_table, format: :csv, params: params
+          response_body = CSV.parse(response.body)
+          expect(response_body.length - 1).to eq(Trip.all.count)
+
+          # Check the CSV count with a filter
+          params = { partner_agency: partner_agency.id }
+          get :trips_table, format: :csv, params: params
+          response_body = CSV.parse(response.body)
+          expect(response_body.length - 1).to eq(1)
         end
         
       end
