@@ -89,6 +89,14 @@ class TrapezeAmbassador < BookingAmbassador
     ]
   end
 
+  # Get all future trips and trips within the past month 
+  # Create 1-Click Trips for those trips if they don't already exist
+  def sync
+    pass_get_client_trips.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).each do |booking|
+      occ_trip_from_trapeze_trip booking
+    end 
+  end
+
   #####################################################################
   ## SOAP Calls to Trapeze
   #####################################################################
@@ -336,6 +344,66 @@ class TrapezeAmbassador < BookingAmbassador
     result = pass_get_passenger_types
     return [] if result.nil?
     result.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_passenger_types_response).try(:[], :pass_get_passenger_types_result).try(:[], :pass_passenger_type)
+  end
+
+  #####################################################################
+  ## Build OCC Components for Trapeze Components
+  #####################################################################
+
+  # Build OCC Trip, Itinerary, and Booking from a Trapeze Trip
+  def occ_trip_from_trapeze_trip trap_trip
+    puts trap_trip.ai 
+    booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
+    itinerary = Itinerary.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+
+    # This Trip has already been created, just update it with new times/status etc.
+    if itinerary
+      puts itinerary.trip.ai 
+      puts itinerary.id 
+      puts 'NOT CREATING'
+      return nil
+      # UPDATE IT HERE
+
+    # This Trip needs to be added to OCC
+    else
+      trip = Trip.create!(occ_trip_hash(trap_trip))
+      # CREATE ITINERARY
+      # CREATE BOOKING
+      return 1
+    end
+  end
+
+  def occ_place_from_trapeze_place trap_place
+    Waypoint.create!(occ_place_hash(trap_place))
+  end
+  
+  # Hashes
+  def occ_trip_hash trap_trip
+    origin = occ_place_from_trapeze_place(trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg))
+    destination = occ_place_from_trapeze_place(trap_trip.try(:with_indifferent_access).try(:[], :drop_off_leg))
+    {user: @user, origin: origin, destination: destination, trip_time: Time.now, arrive_by: true} #DEREK
+  end
+
+  def occ_place_hash trap_place
+    map_address = trap_place.try(:with_indifferent_access).try(:[], :map_address)
+    map_geo_code = trap_place.try(:with_indifferent_access).try(:[], :map_geo_code)
+    {
+      name:           map_address.try(:with_indifferent_access).try(:[], :addr_name),
+      street_number:  map_address.try(:with_indifferent_access).try(:[], :street_no),
+      route:          map_address.try(:with_indifferent_access).try(:[], :on_street),
+      city:           map_address.try(:with_indifferent_access).try(:[], :city),
+      zip:            map_address.try(:with_indifferent_access).try(:[], :zip_code),
+      lat:            occ_latlng_from_trapeze_latlng(map_geo_code.try(:with_indifferent_access).try(:[], :lat)),
+      lng:            occ_latlng_from_trapeze_latlng(map_geo_code.try(:with_indifferent_access).try(:[], :lon))
+    }
+  end 
+
+  # Convert from Trapeze Format to OCC Format
+  # e.g., convert "344533" to 34.4533 and convert "-817765" to -81.7765
+  def occ_latlng_from_trapeze_latlng latlng
+    precision = latlng.to_s.length
+    latlng = latlng.to_f
+    latlng < 0 ? (latlng/(10**(precision-3))) : (latlng/(10**(precision-2)))
   end
 
   protected
