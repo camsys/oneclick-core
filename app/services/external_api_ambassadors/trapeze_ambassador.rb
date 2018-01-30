@@ -358,7 +358,6 @@ class TrapezeAmbassador < BookingAmbassador
 
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
-      puts itinerary.trip.ai 
       puts itinerary.id 
       puts 'NOT CREATING'
       return nil
@@ -366,10 +365,19 @@ class TrapezeAmbassador < BookingAmbassador
 
     # This Trip needs to be added to OCC
     else
+      # Make the Trip
       trip = Trip.create!(occ_trip_hash(trap_trip))
-      # CREATE ITINERARY
-      # CREATE BOOKING
-      return 1
+
+      # Make the Itinerary
+      itinerary = Itinerary.new(occ_itinerary_hash_from_trapeze_trip(trap_trip))
+      itinerary.trip = trip
+      itinerary.save 
+      itinerary.select
+
+      # Make the Booking
+      booking = Booking.new(occ_booking_hash(trap_trip))
+      booking.itinerary = itinerary 
+      booking.save 
     end
   end
 
@@ -381,7 +389,10 @@ class TrapezeAmbassador < BookingAmbassador
   def occ_trip_hash trap_trip
     origin = occ_place_from_trapeze_place(trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg))
     destination = occ_place_from_trapeze_place(trap_trip.try(:with_indifferent_access).try(:[], :drop_off_leg))
-    {user: @user, origin: origin, destination: destination, trip_time: Time.now, arrive_by: true} #DEREK
+    arrive_by = arrive_by?(trap_trip)
+    seconds_since_midnight = (arrive_by ? trap_trip.try(:with_indifferent_access).try(:[], :drop_off_leg).try(:[], :neg_time) : trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg).try(:[], :neg_time))
+    trip_time = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time + seconds_since_midnight.to_i.seconds
+    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by} #DEREK
   end
 
   def occ_place_hash trap_place
@@ -398,12 +409,35 @@ class TrapezeAmbassador < BookingAmbassador
     }
   end 
 
+  def occ_itinerary_hash_from_trapeze_trip trap_trip
+    fare = trap_trip.try(:with_indifferent_access).try(:[], :fare_amount)
+    day = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time
+    neg_start_seconds = trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg).try(:[], :neg_time)
+    neg_end_seconds = trap_trip.try(:with_indifferent_access).try(:[], :drop_off_leg).try(:[], :neg_time)
+    {
+      start_time: (neg_start_seconds == "-1") ? nil : day + neg_start_seconds.to_i.seconds, 
+      end_time: (neg_end_seconds == "-1") ? nil : day + neg_end_seconds.to_i.seconds, 
+      transit_time: (neg_end_seconds != "-1" and neg_start_seconds != "-1") ? neg_end_seconds - neg_start_seconds : nil, 
+      cost: fare.to_f, 
+      service: @service, 
+      trip_type: 'paratransit'
+    }
+  end
+  
   # Convert from Trapeze Format to OCC Format
   # e.g., convert "344533" to 34.4533 and convert "-817765" to -81.7765
   def occ_latlng_from_trapeze_latlng latlng
     precision = latlng.to_s.length
     latlng = latlng.to_f
     latlng < 0 ? (latlng/(10**(precision-3))) : (latlng/(10**(precision-2)))
+  end
+
+  def occ_booking_hash trap_trip 
+    {confirmation: trap_trip.try(:with_indifferent_access).try(:[], :booking_id), type: "TrapezeBooking"}
+  end
+
+  def arrive_by? trap_trip
+    trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg).try(:[], :req_time) == "-1"
   end
 
   protected
