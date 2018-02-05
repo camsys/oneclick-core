@@ -58,6 +58,10 @@ module Api
         }
       end
 
+      def name
+        object.name or object.short_formatted_address
+      end
+
     end
 
   end

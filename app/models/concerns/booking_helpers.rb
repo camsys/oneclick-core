@@ -27,6 +27,12 @@ module BookingHelpers
     def has_booking_profile_for?(service) 
       booking_profile_for(service).present?
     end
+
+    def sync
+      booking_profiles.each do |bp|
+        bp.booking_ambassador.sync
+      end
+    end
     
   end
   
