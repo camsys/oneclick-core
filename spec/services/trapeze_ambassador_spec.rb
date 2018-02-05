@@ -19,7 +19,8 @@ RSpec.describe TrapezeAmbassador do
     :itinerary,
     :service, 
     :trip, 
-    :user   ) 
+    :user,
+    :sync   ) 
   }
   
   # Instance Methods

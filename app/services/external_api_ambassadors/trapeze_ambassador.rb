@@ -116,7 +116,6 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
-    puts trip_hash.ai 
     @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
   end
 
@@ -352,16 +351,12 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Build OCC Trip, Itinerary, and Booking from a Trapeze Trip
   def occ_trip_from_trapeze_trip trap_trip
-    puts trap_trip.ai 
-    booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
+     booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
     itinerary = Itinerary.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
-      puts itinerary.id 
-      puts 'NOT CREATING'
       return nil
-      # UPDATE IT HERE
 
     # This Trip needs to be added to OCC
     else
@@ -392,7 +387,7 @@ class TrapezeAmbassador < BookingAmbassador
     arrive_by = arrive_by?(trap_trip)
     seconds_since_midnight = (arrive_by ? trap_trip.try(:with_indifferent_access).try(:[], :drop_off_leg).try(:[], :neg_time) : trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg).try(:[], :neg_time))
     trip_time = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time + seconds_since_midnight.to_i.seconds
-    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by} #DEREK
+    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
   end
 
   def occ_place_hash trap_place
