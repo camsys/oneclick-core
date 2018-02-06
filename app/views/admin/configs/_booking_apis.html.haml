@@ -37,7 +37,7 @@
     as: :string
   = f.input :trapeze_ada_funding_sources, required: true,
     label: "ADA Funding Sources (Comma Separated)",
-    input_html: {value: @configs.find_by(key: :trapeze_ada_funding_sources).try(:value).join(', ')},
+    input_html: {value: @configs.find_by(key: :trapeze_ada_funding_sources).try(:value).try(:join,',')},
     as: :text
   = f.input :trapeze_ignore_polygon_id, required: true,
     label: "Ignore Polygon ID",
