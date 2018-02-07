@@ -108,7 +108,6 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
-    puts trip_hash.ai 
     @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
   end
 
@@ -192,7 +191,13 @@ class TrapezeAmbassador < BookingAmbassador
     return false unless (customer_id and customer_token) 
     result = pass_validate_client_password
     @cookies = result.http.cookies
-    @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+
+    #@client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+    @client_code = result.try(:with_indifferent_access).try(:[], "pass_validate_client_password_response").try(:[], "pass_validate_client_password_result").try(:[],"client_code")
+    unless @client_code
+      @cookies = nil 
+      return false
+    end
     true 
   end
 
