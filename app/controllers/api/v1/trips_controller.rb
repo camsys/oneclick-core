@@ -161,7 +161,7 @@ module Api
           next response unless itin
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
-          cancellation_result = itin.bookable? ? itin.cancel : itin.unselect
+          cancellation_result = itin.booked? ? itin.cancel : itin.unselect
           
           # Package response as per API V1 docs
           next response.merge(bookingcancellation_response_hash(cancellation_result))
