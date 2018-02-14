@@ -29,18 +29,22 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def destroy
+    redirect_path = @user.admin_or_staff? ? admin_users_path : travelers_admin_users_path
     @user.destroy
     flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
-    redirect_to admin_users_path
+    redirect_to redirect_path
   end
 
   def edit
   end
 
-  def all
+  def travelers
+      @all_users = User.travelers
   end
 
   def update
+
+    redirect_path = @user.admin_or_staff? ? admin_users_path : travelers_admin_users_path
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
@@ -62,7 +66,7 @@ class Admin::UsersController < Admin::AdminController
 
     respond_to do |format|
       format.js
-      format.html {redirect_to admin_users_path}
+      format.html {redirect_to redirect_path}
     end
 
   end
@@ -73,7 +77,7 @@ class Admin::UsersController < Admin::AdminController
   # so it can be rolled back if there is a validation error.
   def set_roles(admin, staff_agency)
     User.transaction do
-      @user.require_role # Will run validations that admin or staff is set
+      # @user.require_role # Will run validations that admin or staff is set
       set_admin_role(admin)
       set_staff_role(staff_agency)
       raise ActiveRecord::Rollback unless @user.valid?

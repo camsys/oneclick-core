@@ -132,7 +132,7 @@ Rails.application.routes.draw do
     get '/' => 'admin#index'
 
     # Accommodations
-    resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
+    resources :accommodations, :only => [:index, :destroy, :create, :show, :update]
 
     # Agencies
     resources :agencies, only: [:index, :destroy, :create, :show, :update]
@@ -202,11 +202,9 @@ Rails.application.routes.draw do
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
       collection do
-          get "all"
+          get "travelers"
         end
       end
-
-
 
   end #Admin
 

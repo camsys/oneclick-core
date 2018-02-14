@@ -1,0 +1,6 @@
+=content_for :header do
+  ="Create a New Staff Person"
+=content_for :body do
+  =render partial: "traveler_form", locals: { f: f }
+=content_for :footer do
+  = f.button :submit, "OK", class: 'btn action-button btn-primary', role: 'button'

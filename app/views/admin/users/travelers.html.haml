@@ -1,16 +1,14 @@
 =content_for :title do
-  Admin & Staff
+  Travelers
 %table.table.table-hover#staff-table
   %thead.thead-default
     %tr
       %th Last Name
       %th First Name
       %th Email
-      %th Admin?
-      %th Staff Agency
       %th Last Signed In
 
-  -@staff.each do |member|
+  -@all_users.each do |member|
     %tr{style: "cursor: pointer", data: {url: edit_admin_user_path(member)}}
       %td
         =member.last_name
@@ -19,11 +17,6 @@
       %td
         =member.email
       %td
-        -if member.admin?
-          %span.glyphicon.glyphicon-ok
-      %td
-        =member.staff_agency.try(:name)
-      %td
         -unless member.last_sign_in_at.nil?
           =member.last_sign_in_at.to_formatted_s(:long)
 
@@ -31,7 +24,7 @@
     url: admin_users_path,
     html: {method: :post, class: "form-horizontal" },
     authenticity_token: true do |f|
-  =render partial: 'new_user', layout: '/layouts/new_record_panel', locals: {f: f}
+  =render partial: 'new_traveler', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript
   $(document).ready(function() {
