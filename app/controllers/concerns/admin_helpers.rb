@@ -17,7 +17,8 @@ module AdminHelpers
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },
       { label: "Staff",           url: urls.admin_users_path,           show: can?(:read, User) },
       { label: "Translations",    url: simple_translation_engine.translations_path, show: can?(:read, Translation) },
-      { label: "Users",           url: urls.travelers_admin_users_path,       show: can?(:read, Config) },
+      { label: "Travelers",       url: urls.travelers_admin_users_path, show: can?(:read, Config) },
+      { label: "Admin & Staff",   url: urls.admin_users_path,           show: can?(:read, Config) },
       { label: "My Agency",
         url: current_user.staff_agency.present? ? urls.admin_agency_path(current_user.staff_agency.try(:id)) : "",
         show: current_user.staff_agency.present? }
