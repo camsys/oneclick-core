@@ -39,7 +39,11 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def travelers
-      @all_users = User.travelers
+      @travelers = User.travelers
+  end
+
+  def staff
+      @staff = User.any_role
   end
 
   def update
@@ -77,7 +81,6 @@ class Admin::UsersController < Admin::AdminController
   # so it can be rolled back if there is a validation error.
   def set_roles(admin, staff_agency)
     User.transaction do
-      # @user.require_role # Will run validations that admin or staff is set
       set_admin_role(admin)
       set_staff_role(staff_agency)
       raise ActiveRecord::Rollback unless @user.valid?

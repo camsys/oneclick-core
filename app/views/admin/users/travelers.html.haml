@@ -8,7 +8,7 @@
       %th Email
       %th Last Signed In
 
-  -@all_users.each do |member|
+  -@travelers.each do |member|
     %tr{style: "cursor: pointer", data: {url: edit_admin_user_path(member)}}
       %td
         =member.last_name
