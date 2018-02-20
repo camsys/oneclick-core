@@ -7,6 +7,6 @@
   =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 - if @user.admin_or_staff?
-  =back_link admin_users_path, label: "Admin & Staff"
+  =back_link admin_users_path, label: "All Staff"
 - else
-  =back_link travelers_admin_users_path, label: "Travelers"
+  =back_link travelers_admin_users_path, label: "All Travelers"
