@@ -54,12 +54,6 @@ RSpec.describe Admin::UsersController, type: :controller do
       expect(User.last.staff?).to be true
     end
     
-    it 'cannot create a user with no roles' do
-      user_count = User.count
-      post :create, params: { user: attributes_for(:user) }
-      expect(User.count).to eq(user_count)
-    end
-    
   end
   
   context "while signed in as a staff" do

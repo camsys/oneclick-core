@@ -200,9 +200,12 @@ Rails.application.routes.draw do
     resources :services, :only => [:index, :destroy, :create, :show, :update]
 
     # Users
-    resources :users, :only => [:index, :create, :destroy, :edit, :update]
-
-
+    resources :users, :only => [:index, :create, :destroy, :edit, :update] do
+      collection do
+          get "staff"
+          get "travelers"
+        end
+      end
 
   end #Admin
 
