@@ -201,7 +201,7 @@ class TrapezeAmbassador < BookingAmbassador
     @cookies = result.http.cookies
 
     #@client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
-    @client_code = result.try(:with_indifferent_access).try(:[], "pass_validate_client_password_response").try(:[], "pass_validate_client_password_result").try(:[],"client_code")
+    @client_code = result.to_hash.try(:with_indifferent_access).try(:[], "pass_validate_client_password_response").try(:[], "pass_validate_client_password_result").try(:[],"client_code")
     unless @client_code
       @cookies = nil 
       return false
