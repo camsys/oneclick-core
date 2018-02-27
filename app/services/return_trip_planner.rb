@@ -12,6 +12,12 @@ class ReturnTripPlanner < TripPlanner
     @outbound_trip_type = @outbound_trip.trip_type
     @outbound_service = @outbound_trip.selected_service
     return_trip = @outbound_trip.build_return_trip(return_trip_attrs)
+
+    # JTA does not want to link trips together.
+    if @outbound_service.booking_api == "trapeze"
+      return_trip.previous_trip = nil 
+    end 
+
     return_trip_opts = {
       trip_types: [@outbound_trip_type].compact,
       available_services: Service.where(id: @outbound_service.try(:id))

@@ -33,3 +33,6 @@
 
 # ruby version file
 .ruby-version
+
+# .idea file for RubyMine
+/.idea

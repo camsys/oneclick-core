@@ -98,6 +98,11 @@ class BookingAmbassador
   def booking_api
     nil
   end
+
+  # Create 1-Click Trips for Each Trip in the Booking System
+  def sync
+    nil
+  end
   
   
   private
