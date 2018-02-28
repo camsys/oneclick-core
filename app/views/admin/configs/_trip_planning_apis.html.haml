@@ -16,14 +16,19 @@
     input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
     as: :string
     
-  =f.input :tff_api_key, required: true,
+  =f.input :tff_api_key, required: false,
     label: "API Key for Taxi Fare Finder",
     input_html: {value: @configs.find_by(key: :tff_api_key).try(:value)},
     as: :string
     
-  =f.input :uber_token, required: true,
+  =f.input :uber_token, required: false,
     label: "Uber Token",
     input_html: {value: @configs.find_by(key: :uber_token).try(:value)},
+    as: :string
+
+  =f.input :lyft_client_token, required: false,
+    label: "Lyft Client Token",
+    input_html: {value: @configs.find_by(key: :lyft_client_token).try(:value)},
     as: :string
 
 :javascript
