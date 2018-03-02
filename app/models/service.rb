@@ -110,6 +110,7 @@ class Service < ApplicationRecord
   scope :paratransit_services, -> { where(type: "Paratransit") }
   scope :taxi_services, -> { where(type: "Taxi") }
   scope :uber_services, -> { where(type: "Uber") }
+  scope :lyft_services, -> { where(type: "Lyft") }
 
   ## Secondary Availability Scopes ##
   
@@ -196,7 +197,7 @@ class Service < ApplicationRecord
   #################
 
   ### CONSTANTS ###
-  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber']
+  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
 
 
 

@@ -17,6 +17,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
+  before(:each) { create(:lyft_client_token) }
 
   ### PLANNING ###
 
@@ -223,13 +224,21 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     end
     
     it 'cancels a trip' do
-      expect(bookable_itinerary.canceled?).to be false
-      
+
+      # First Lets book a trip.
+      expect(bookable_itinerary.booked?).to be false
       request.headers.merge!(request_headers)
+      post :book, params: booking_params
+      response_body = JSON.parse(response.body)
+      bookable_itinerary.reload
+      expect(response).to be_success
+      expect(bookable_itinerary.booked?).to be true
+
+      # Now cancel that trip
+      expect(bookable_itinerary.canceled?).to be false
       post :cancel, params: bookingcancellation_params
       response_body = JSON.parse(response.body)
       bookable_itinerary.reload
-                  
       expect(response).to be_success
       expect(bookable_itinerary.canceled?).to be true
     end

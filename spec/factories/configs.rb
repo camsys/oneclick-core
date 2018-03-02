@@ -35,6 +35,11 @@ FactoryBot.define do
       key "uber_token"
       value "test"
     end
+
+    factory :lyft_client_token do 
+      key "lyft_client_token"
+      value "test"
+    end
     
     factory :ride_pilot_url_config do
       key "ride_pilot_url"

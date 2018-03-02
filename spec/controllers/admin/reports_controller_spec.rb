@@ -270,6 +270,7 @@ RSpec.describe Admin::ReportsController, type: :controller do
           create(:transit_service)
           create(:taxi_service)
           create(:uber_service)
+          create(:lyft_service)
         end
         
         it 'redirects to Services report download page' do

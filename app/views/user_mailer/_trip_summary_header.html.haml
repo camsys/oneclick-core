@@ -4,7 +4,7 @@
     -if itinerary.cost
       %span{style: "font-weight: bold;"}= translate("api_v1.emails.user_trip.fare")
       %span=' : '
-      -if itinerary.trip_type == 'taxi' || itinerary.trip_type == 'uber' 
+      -if itinerary.trip_type == 'taxi' || itinerary.trip_type == 'uber' || itinerary.trip_type == 'lyft'
         %span="#{number_to_currency(itinerary.cost.round)} #{translate('api_v1.emails.user_trip.estimated')}"
       -else
         %span=number_to_currency(itinerary.cost)

@@ -1,4 +1,4 @@
-class Uber < Service
+class Lyft < Service
   accepts_nested_attributes_for :trip_within_area
 
   ### INSTANCE METHODS ###
@@ -11,4 +11,4 @@ class Uber < Service
 end
 
 # Alias UberService to Uber
-UberService = Uber
+LyftService = Lyft

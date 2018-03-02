@@ -4,11 +4,13 @@ RSpec.describe TripPlanner do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
+  before(:each) { create(:lyft_client_token) }
   let(:trip) {create :trip}
   let(:accommodating_trip) { create(:trip, user: create(:user, :needs_accommodation)) }
   let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
+  let!(:lyft) { create(:lyft_service) }
   let!(:transit) { create(:transit_service)}
   let!(:strict_paratransit) { create(:paratransit_service, :medical_only, :strict) }
   let!(:accommodating_paratransit) { create(:paratransit_service, :medical_only, :accommodating) }
@@ -164,7 +166,7 @@ RSpec.describe TripPlanner do
     # Except the services returned by the trip planner to include non-accommodating services
     expect(accommodating_trip.services.pluck(:id)).to match_array(
       Service.available_for(accommodating_trip, except_by: [:accommodation])
-             .by_trip_type(:paratransit, :taxi, :uber) # Ignore transit, since doesn't have a belongs_to relationship with itineraries
+             .by_trip_type(:paratransit, :taxi, :uber, :lyft) # Ignore transit, since doesn't have a belongs_to relationship with itineraries
              .pluck(:id)
     )
     

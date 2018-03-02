@@ -14,7 +14,8 @@ RSpec.describe Admin::ConfigsController, type: :controller do
     it 'sets string configs' do
       params = {  config: { open_trip_planner: 'http://otp-url.com',
                             tff_api_key: 'SECRETKEYS',
-                            uber_token: 'UBERTOKEN'}, 
+                            uber_token: 'UBERTOKEN',
+                            lyft_client_token: 'LYFTTOKEN'}, 
                   partial_path: "admin/configs/_trip_planning_apis" }
       patch :update, params: params
 
@@ -25,6 +26,7 @@ RSpec.describe Admin::ConfigsController, type: :controller do
       expect(Config.find_by(key: "open_trip_planner").value).to eq('http://otp-url.com')
       expect(Config.find_by(key: "tff_api_key").value).to eq('SECRETKEYS')
       expect(Config.find_by(key: "uber_token").value).to eq('UBERTOKEN')
+      expect(Config.find_by(key: "lyft_client_token").value).to eq('LYFTTOKEN')
     end
     
     it 'sets array configs' do

@@ -14,6 +14,7 @@ class Admin::ConfigsController < Admin::AdminController
     :open_trip_planner,
     :tff_api_key,
     :uber_token,
+    :lyft_client_token,
     :ride_pilot_url,
     :ride_pilot_token,
     :trapeze_url,

@@ -7,6 +7,7 @@ RSpec.describe Api::V2::TripsController, type: :controller do
     create(:otp_config)
     create(:tff_config)
     create(:uber_token)
+    create(:lyft_client_token)
     3.times { |i| create(:purpose, code: "purpose_#{i}")}
   end
   

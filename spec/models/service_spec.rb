@@ -7,6 +7,7 @@ RSpec.describe Service, type: :model do
   before(:all) { create(:otp_config) }
   before(:all) { create(:tff_config) }
   before(:all) { create(:uber_token) }
+  before(:all) { create(:lyft_client_token) }
 
   it { should respond_to :name, :logo, :type, :email, :phone, :url, :gtfs_agency_id }
   it { should have_many(:itineraries) }

@@ -163,6 +163,13 @@ namespace :db do
           phone: "555-555-5555", 
           url: "http://www.uber.com",
           published: true
+        },
+        {
+          type: "Lyft",
+          name: "Sample Lyft Service",
+          phone: "555-555-5555", 
+          url: "http://www.lyft.com",
+          published: true
         }
       ].each do |svc|
         puts "Creating #{svc[:type]} Service: #{svc[:name]}"
