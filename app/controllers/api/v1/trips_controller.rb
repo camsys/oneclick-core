@@ -156,13 +156,14 @@ module Api
         results = bookingcancellation_request_params.map do |bc_req|
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
-          
+
           response = booking_response_base(itin).merge({success: false})
+
           next response unless itin
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
-          
+
           # Package response as per API V1 docs
           next response.merge(bookingcancellation_response_hash(cancellation_result))
         end
