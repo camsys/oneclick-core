@@ -119,6 +119,12 @@ FactoryBot.define do
       trip_within_area nil
     end
 
+    factory :lyft_service, parent: :service, class: 'Lyft' do
+      name "Lyft"
+      type "Lyft"
+      trip_within_area nil
+    end
+
     trait :flat_fare do
       fare_structure :flat
       fare_details { { flat_base_fare: 5.0 } }

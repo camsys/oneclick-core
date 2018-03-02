@@ -1,0 +1,39 @@
+=content_for :header do
+  Service Area
+
+=simple_form_for @service,
+  url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
+
+  =render partial: 'admin/services/region_builder',
+    locals: { wrapper_id: 'trip-within-area', label_text: "All trips must start AND end within this area:"}
+  =f.simple_fields_for :trip_within_area do |r|
+    =r.input :recipe, as: :hidden,
+      input_html: { value: @service.trip_within_area.recipe.to_json }
+
+  -# div for holding the service area map
+  #map
+
+:javascript
+  $(document).ready(function() {
+    var map = M.setupMap('map');
+
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+
+    M.drawMaps(map, [
+      #{@service.trip_within_area && @service.trip_within_area.geom_to_array}
+    ]);
+
+    var tripWithinAreaRecipe = new M.Recipe({
+      container: $('#trip-within-area'),
+      recipeInput: $('#lyft_trip_within_area_attributes_recipe'),
+      searchPath: '#{admin_autocomplete_path}',
+      ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
+    });
+
+    fh.onReset(function() {
+      tripWithinAreaRecipe.reset();
+    });
+
+  });

@@ -5,6 +5,7 @@ RSpec.describe Api::V2::TripSerializer, type: :serializer do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
+  before(:each) { create(:lyft_client_token) }
   
   before(:each) do
     create(:paratransit_service, :accommodating, :strict, :medical_only)

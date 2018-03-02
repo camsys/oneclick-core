@@ -9,6 +9,7 @@ RSpec.describe MultidayTripPlanner do
   let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
+  let!(:lyft) { create(:lyft_service) }
   let!(:transit) { create(:transit_service)}
 
   # Stubbed HTTPRequestBundler with fake OTP response

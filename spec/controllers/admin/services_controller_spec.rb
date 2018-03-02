@@ -104,6 +104,25 @@ RSpec.describe Admin::ServicesController, type: :controller do
        expect(attributes_match).to be true
      end
 
+    it 'faithfully creates a lyft service based on passed parameters' do
+       attrs = attributes_for(:lyft_service)
+       params = {lyft: attrs}
+       count = Lyft.count
+
+       post :create, params: params
+
+       # test for the 302 status-code (redirect)
+       expect(response).to have_http_status(302)
+
+       # Confirm that a new service was created
+       expect(Lyft.count).to eq(count + 1)
+
+       # Confirm that the most recently created service matches the parameters sent
+       @service = Lyft.last
+       attributes_match = attrs.all? { |att| attrs[att] == @service[att] }
+       expect(attributes_match).to be true
+     end
+
     it 'destroys a service' do
       service
       count = Service.count

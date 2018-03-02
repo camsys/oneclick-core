@@ -17,6 +17,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
+  before(:each) { create(:lyft_client_token) }
 
   ### PLANNING ###
 
