@@ -48,7 +48,7 @@ class Admin::UsersController < Admin::AdminController
 
   def update
 
-    redirect_path = @user.admin_or_staff? ? admin_users_path : travelers_admin_users_path
+    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
