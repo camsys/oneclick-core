@@ -27,7 +27,7 @@ class LyftApiService
     puts response.ai 
 
     unless response && response['cost_estimates'].present?
-      return {product_id: "lyft", price: nil}
+      return {price_quote_id: nil, price: nil}
     end
 
     price = response['cost_estimates'].detect{ |price| price["ride_type"] == product }

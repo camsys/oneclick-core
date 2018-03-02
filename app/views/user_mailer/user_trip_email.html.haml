@@ -31,7 +31,7 @@
 = render :partial => 'trip_summary_header', :locals => { :itinerary => @itinerary }
 
 // Detailed Itinerary Info
--unless @itinerary.trip_type.in? ['taxi', 'uber', 'paratransit']
+-unless @itinerary.trip_type.in? ['taxi', 'uber', 'paratransit', 'lyft']
   = render :partial => "static_details", :locals => { :itinerary => @itinerary }
 
 // Static Map

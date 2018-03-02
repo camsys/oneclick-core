@@ -11,7 +11,8 @@ class OTPAmbassador
     walk:         { label: :otp_walk,     modes: "WALK"},
     car:          { label: :otp_car,    modes: "CAR"},
     bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"},
-    uber:         { label: :otp_car,    modes: "CAR"}
+    uber:         { label: :otp_car,    modes: "CAR"},
+    lyft:         { label: :otp_car,    modes: "CAR"}
   }
 
   # Initialize with a trip, an array of trip trips, an HTTP Request Bundler object, 

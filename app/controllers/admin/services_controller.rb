@@ -54,6 +54,7 @@ class Admin::ServicesController < Admin::AdminController
     params[:service] = params.delete :transit if params.has_key? :transit
     params[:service] = params.delete :taxi if params.has_key? :taxi
     params[:service] = params.delete :uber if params.has_key? :uber
+    params[:service] = params.delete :lyft if params.has_key? :lyft
     params[:service] = params.delete :paratransit if params.has_key? :paratransit
 
     # Package fare params if fare_structure key is present
@@ -65,6 +66,7 @@ class Admin::ServicesController < Admin::AdminController
     permitted_params += paratransit_params if service_type == "Paratransit"
     permitted_params += taxi_params if service_type == "Taxi"
     permitted_params += uber_params if service_type == "Uber"
+    permitted_params += lyft_params if service_type == "Lyft"
 
     # Permit the allowed parameters
   	params.require(:service).permit(permitted_params)
@@ -106,6 +108,13 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def uber_params
+    [
+      {accommodation_ids: []},
+      trip_within_area_attributes: [:recipe]
+    ]
+  end
+
+  def lyft_params
     [
       {accommodation_ids: []},
       trip_within_area_attributes: [:recipe]

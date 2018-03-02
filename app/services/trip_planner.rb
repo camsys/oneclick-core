@@ -34,6 +34,7 @@ class TripPlanner
     @router = options[:router] #This is the otp_ambassador
     @taxi_ambassador = options[:taxi_ambassador]
     @uber_ambassador = options[:uber_ambassador]
+    @lyft_ambassador = options[:lyft_ambassador]
   end
 
   # Constructs Itineraries for the Trip based on the options passed
@@ -55,6 +56,7 @@ class TripPlanner
     @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
+    @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
@@ -170,6 +172,31 @@ class TripPlanner
       UberExtension.new(
         itinerary: itin,
         product_id: product_id
+      )
+    end
+
+    new_itineraries
+
+  end
+
+  # Builds an uber itinerary populates transit_time based on OTP response
+  def build_lyft_itineraries
+    return [] unless @available_services[:lyft] # Return an empty array if no taxi services are available
+
+    cost, price_quote_id = @lyft_ambassador.cost('lyft')
+    new_itineraries = @available_services[:lyft].map do |svc|
+      Itinerary.new(
+        service: svc,
+        trip_type: :lyft,
+        cost: cost,
+        transit_time: @router.get_duration(:lyft)
+      )
+    end
+
+    new_itineraries.map do |itin|
+      LyftExtension.new(
+        itinerary: itin,
+        price_quote_id: price_quote_id
       )
     end
 

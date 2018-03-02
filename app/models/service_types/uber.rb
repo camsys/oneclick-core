@@ -10,5 +10,5 @@ class Uber < Service
 
 end
 
-# Alias TaxiService to Taxi
+# Alias UberService to Uber
 UberService = Uber

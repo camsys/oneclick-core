@@ -10,7 +10,7 @@ class LyftAmbassador
 
     # add http calls to bundler based on services
     request = prepare_http_requests
-    @http_request_bundler.add(request[:label], request[:url], request[:action], request[:options])#'uber_estimates_fares', request[:url], :get, headers = {})
+    @http_request_bundler.add(request[:label], request[:url], request[:action], request[:options])
   end
 
   # Prepares HTTP requests based on available services, to pass to HTTP Request Bundler

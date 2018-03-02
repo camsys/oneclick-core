@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171208203016) do
+ActiveRecord::Schema.define(version: 20180301164807) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -192,6 +192,14 @@ ActiveRecord::Schema.define(version: 20171208203016) do
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "lyft_extensions", force: :cascade do |t|
+    t.string   "price_quote_id"
+    t.integer  "itinerary_id"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.index ["itinerary_id"], name: "index_lyft_extensions_on_itinerary_id", using: :btree
   end
 
   create_table "oneclick_refernet_categories", force: :cascade do |t|

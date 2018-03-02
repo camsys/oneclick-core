@@ -25,6 +25,9 @@
 -when 'Uber'
   =render partial: 'taxi_accommodations', layout: '/layouts/panel'
   =render partial: 'uber_service_area', layout: '/layouts/panel'
+-when 'Lyft'
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel'
+  =render partial: 'lyft_service_area', layout: '/layouts/panel'
   
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
