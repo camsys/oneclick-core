@@ -170,11 +170,16 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     
     # Build a stubbed-out itinerary that responds to booking requests
     let(:bookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
+    let(:unbookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
 
     before(:each) do
       Itinerary.any_instance.stub(:book) do |itin|
-        itin.booking = create(:ride_pilot_booking, :booked, itinerary: itin)
-        itin.booking
+        if itin.id != unbookable_itinerary.id 
+          itin.booking = create(:ride_pilot_booking, :booked, itinerary: itin)
+          itin.booking
+        else
+          itin.booking = nil 
+        end
       end
       Itinerary.any_instance.stub(:cancel) do |itin|
         itin.booking = create(:ride_pilot_booking, :canceled, itinerary: itin)
@@ -185,6 +190,11 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     let(:booking_params) do
       { booking_request: [ { itinerary_id: bookable_itinerary.id } ] }
     end
+
+    let(:bad_booking_params) do
+      { booking_request: [ { itinerary_id: unbookable_itinerary.id, return_time: trip.trip_time + 2.hours } ] }
+    end
+    
     
     let(:booking_params_w_return) do
       { booking_request: [ { itinerary_id: bookable_itinerary.id, return_time: trip.trip_time + 2.hours } ] }
@@ -205,6 +215,24 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       expect(response).to be_success
       expect(bookable_itinerary.booked?).to be true
     end
+
+    it 'cancels both legs if one leg fails to book' do
+      expect(unbookable_itinerary.booked?).to be false
+      
+      request.headers.merge!(request_headers)
+      post :book, params: bad_booking_params
+      response_body = JSON.parse(response.body)
+      unbookable_itinerary.reload
+                  
+      return_trip = Trip.find_by(id: response_body["booking_results"][1]["trip_id"])
+      return_itin = Itinerary.find_by(id: response_body["booking_results"][1]["itinerary_id"])
+      
+      expect(response).to be_success
+      expect(unbookable_itinerary.booked?).to be false
+      expect(return_trip.selected_itinerary).to eq(return_itin)
+      expect(return_itin.booked?).to be false
+    end
+    
     
     it 'books a return trip at the designated return time' do
       expect(bookable_itinerary.booked?).to be false
