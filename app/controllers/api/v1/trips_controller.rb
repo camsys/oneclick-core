@@ -111,7 +111,12 @@ module Api
       def book
 
         outbound_itineraries = booking_request_params
-        
+
+        # Keep track if anything failed and then cancel all the itineraries ####
+        failed = false
+        itins  = []
+        #########################################################################
+
         responses = booking_request_params
         .map do |booking_request|
           # Find the itinerary identified in the booking request
@@ -135,19 +140,34 @@ module Api
 
           # Pull the itinerary out of the booking_request hash and set up a 
           # default (failure) booking response
-          itin = booking_request.delete(:itinerary)       
+          itin = booking_request.delete(:itinerary) 
+          itins << itin       
 
           response = booking_response_base(itin).merge({booked: false})
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
           booking = itin.try(:book, booking_options: booking_request)
-          next response unless booking.is_a?(Booking) # Return failure response unless book was successful
+          unless booking.is_a?(Booking)
+            failed = true
+            next response 
+          end
+          #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
           
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
                 
+        # If any of the itineraries failed, cancel them all and return failures
+        if failed 
+          responses = []
+          itins.each do |itin|
+            itin.cancel  if itin.booked?
+            responses << booking_response_base(itin).merge({booked: false})
+          end
+        end
+
         render status: 200, json: {booking_results: responses}
+      
       end
 
       # POST trips/cancel, itineraries/cancel

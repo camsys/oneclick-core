@@ -104,10 +104,10 @@ class TrapezeAmbassador < BookingAmbassador
     begin
       response = @client.call(:pass_validate_client_password, message: {client_id: customer_id, password: customer_token})
     rescue => e
-      Rails.logger.error e.message 
+      Rails.logger.error e.message.ai 
       return false
     end
-    Rails.logger.info response.to_hash
+    Rails.logger.info response.to_hash.ai 
     return response 
   end
 
@@ -116,7 +116,9 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
-    @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
+    response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
+    Rails.logger.info response.to_hash.ai 
+    return response 
   end
 
   # Get Client Info
