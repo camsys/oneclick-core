@@ -364,8 +364,8 @@ module Api
             booked: true,
             confirmation: confirmation_id, # it needs both of these 
             confirmation_id: confirmation_id, # for some reason
-            wait_start: (pickup_time - 15.minutes).iso8601,
-            wait_end: (pickup_time + 15.minutes).iso8601,
+            wait_start: booking.earliest_pu,
+            wait_end: booking.latest_pu,
             arrival: dropoff_time.iso8601,
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
