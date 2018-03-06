@@ -308,12 +308,25 @@ class TrapezeAmbassador < BookingAmbassador
   # returns a hash of booking attributes from a RidePilot response
   def booking_attrs
     response = pass_get_client_trips(nil, nil, booking_id)
+
+    # Calculate time window
+    trap_trip = response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking)
+    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time
+    pick_up_leg = response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).try(:[], :pick_up_leg)
+    seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
+    early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+    seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_late)
+    late_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+
     {
       type: "TrapezeBooking",
       details: response.try(:with_indifferent_access),
       status:  response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).try(:[], :sched_status),
-      confirmation: booking_id
+      confirmation: booking_id,
+      earliest_pu: early_pu_time,
+      latest_pu: late_pu_time
     }
+    
   end
 
   # Updates trip booking object with response
