@@ -214,6 +214,8 @@ module Api
             :itinerary_id,
             :guests,
             :purpose,
+            :pickup_unit_number,
+            :dropoff_unit_number,
             :attendants,
             :return_time,
             :mobility_devices

@@ -17,7 +17,7 @@ class Admin::UsersController < Admin::AdminController
       flash[:success] = "Created #{@user.first_name} #{@user.last_name}"
       respond_to do |format|
         format.js
-        format.html {redirect_to admin_users_path}
+        format.html {redirect_to staff_admin_users_path}
       end
     else
       present_error_messages(@user)
@@ -29,7 +29,7 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def destroy
-    redirect_path = @user.admin_or_staff? ? admin_users_path : travelers_admin_users_path
+    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
     @user.destroy
     flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
     redirect_to redirect_path
@@ -48,7 +48,7 @@ class Admin::UsersController < Admin::AdminController
 
   def update
 
-    redirect_path = @user.admin_or_staff? ? admin_users_path : travelers_admin_users_path
+    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params

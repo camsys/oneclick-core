@@ -86,6 +86,14 @@ class TrapezeAmbassador < BookingAmbassador
         choices: passenger_choices, 
         code: "guests"
       },
+      { question: "What is your apartment number?",
+        choices: [''],
+        code: "pickup_unit_number"
+      },
+      { question: "What is the apartment number at your destination?",
+        choices: [''],
+        code: "dropoff_unit_number"
+      }
     ]
   end
 
@@ -116,7 +124,9 @@ class TrapezeAmbassador < BookingAmbassador
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
-    response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
+    request_hash = trip_hash 
+    Rails.logger.info request_hash.ai 
+    response = @client.call(:pass_create_trip, message: request_hash, cookies: @cookies).to_hash
     Rails.logger.info response.to_hash.ai 
     return response 
   end
@@ -125,7 +135,7 @@ class TrapezeAmbassador < BookingAmbassador
   def pass_get_client_info
     login if @cookies.nil? 
     response = @client.call(:pass_get_client_info, message: {client_id: customer_id, password: customer_token}, cookies: @cookies)
-    Rails.logger.info response.to_hash
+    Rails.logger.info response.to_hash.ai
     return response.to_hash[:pass_get_client_info_response]
   end
 
@@ -201,7 +211,13 @@ class TrapezeAmbassador < BookingAmbassador
     return false unless (customer_id and customer_token) 
     result = pass_validate_client_password
     @cookies = result.http.cookies
-    @client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+
+    #@client_code = result.to_hash[:pass_validate_client_password_response][:pass_validate_client_password_result][:client_code]
+    @client_code = result.to_hash.try(:with_indifferent_access).try(:[], "pass_validate_client_password_response").try(:[], "pass_validate_client_password_result").try(:[],"client_code")
+    unless @client_code
+      @cookies = nil 
+      return false
+    end
     true 
   end
 
@@ -210,7 +226,7 @@ class TrapezeAmbassador < BookingAmbassador
     if @itinerary.nil?
       return nil
     end
-    place_hash @itinerary.trip.origin
+    place_hash(@itinerary.trip.origin, @booking_options[:pickup_unit_number])
   end
 
   # Build a Trapeze Place Hash for the Destination
@@ -218,16 +234,16 @@ class TrapezeAmbassador < BookingAmbassador
     if @itinerary.nil?
       return nil
     end
-    place_hash @itinerary.trip.destination
+    place_hash(@itinerary.trip.destination, @booking_options[:dropoff_unit_number])
   end
 
   # Pass an OCC Place, get a Trapeze Place
-  def place_hash place
+  def place_hash(place, unit) 
     {
       address_mode: 'ZZ', 
       street_no: (place.street_number || "").upcase, 
       on_street: (place.route || "").upcase, 
-      unit: ("").upcase, 
+      unit: (unit || "").upcase, 
       city: (place.city|| "").upcase, 
       state: (place.state || "").upcase, 
       zip_code: place.zip, 
