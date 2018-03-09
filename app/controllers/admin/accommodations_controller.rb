@@ -32,7 +32,7 @@ class Admin::AccommodationsController < Admin::AdminController
   private
 
   def accommodation_params
-  	params.require(:accommodation).permit(:code, :index)
+  	params.require(:accommodation).permit(:code, :rank)
   end
 
 end

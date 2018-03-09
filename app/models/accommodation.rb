@@ -25,5 +25,5 @@ class Accommodation < ApplicationRecord
   end
 
   ### Scopes ###
-  scope :ordered_by_index, -> { order(index: :asc) }
+  scope :ordered_by_rank, -> { order(rank: :asc) }
 end

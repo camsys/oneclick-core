@@ -17,7 +17,7 @@ RSpec.describe Admin::EligibilitiesController, type: :controller do
     end
 
     it 'creates a new eligibility' do
-      params = {eligibility: {code: 'Test eligibility'}}
+      params = {eligibility: {code: 'Test eligibility', rank: 100}}
       count = Eligibility.count
       post :create, params: params, format: :js
 

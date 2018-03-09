@@ -21,7 +21,7 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.string   "code",                     null: false
     t.datetime "created_at",               null: false
     t.datetime "updated_at",               null: false
-    t.integer  "index",      default: 100, null: false
+    t.integer  "rank",       default: 100, null: false
     t.index ["code"], name: "index_accommodations_on_code", unique: true, using: :btree
   end
 
@@ -123,7 +123,7 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.string   "code",                     null: false
     t.datetime "created_at",               null: false
     t.datetime "updated_at",               null: false
-    t.integer  "index",      default: 100, null: false
+    t.integer  "rank",       default: 100, null: false
     t.index ["code"], name: "index_eligibilities_on_code", unique: true, using: :btree
   end
 
@@ -196,14 +196,6 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "lyft_extensions", force: :cascade do |t|
-    t.string   "price_quote_id"
-    t.integer  "itinerary_id"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
-    t.index ["itinerary_id"], name: "index_lyft_extensions_on_itinerary_id", using: :btree
   end
 
   create_table "oneclick_refernet_categories", force: :cascade do |t|

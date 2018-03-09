@@ -8,7 +8,7 @@
       %th Name
       %th Note
       %th Question
-      %th Index
+      %th Rank
       
   -@eligibilities.each do |eligibility|
     %tr{style: "cursor: pointer", data: {url: edit_admin_eligibility_path(eligibility)}}
@@ -21,7 +21,7 @@
       %td
         =eligibility.question
       %td
-        =eligibility.index
+        =eligibility.rank
 
 = simple_form_for @new_eligibility, url: admin_eligibilities_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_eligibility', layout: '/layouts/new_record_panel', locals: {f: f}

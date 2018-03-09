@@ -15,6 +15,6 @@ class Eligibility < ApplicationRecord
   before_save :snake_casify
 
   ### Scopes ###
-  scope :ordered_by_index, -> { order(index: :asc) }
+  scope :ordered_by_rank, -> { order(ranks: :asc) }
 
 end

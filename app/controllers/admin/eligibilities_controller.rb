@@ -32,7 +32,7 @@ class Admin::EligibilitiesController < Admin::AdminController
   private
 
   def eligibility_params
-  	params.require(:eligibility).permit(:codem, :index)
+  	params.require(:eligibility).permit(:code, :rank)
   end
 
 end

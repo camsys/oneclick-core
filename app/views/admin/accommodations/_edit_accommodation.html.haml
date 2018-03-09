@@ -6,7 +6,7 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
 
   =remote_form_input
-  = f.input :index, required:true, as: :integer
+  = f.input :rank, required:true, as: :integer
 
   -I18n.available_locales.each do |locale|
     %h3.text-center
