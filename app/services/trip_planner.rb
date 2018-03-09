@@ -73,8 +73,8 @@ class TripPlanner
 
     # Pull out the relevant purposes, eligbilities, and accommodations of these services
     @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq
-    @relevant_accommodations = Accommodation.all
+    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+    @relevant_accommodations = Accommodation.all.ordered_by_rank
 
     # Now finish filtering by purpose, eligibility, and accommodation
     @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))

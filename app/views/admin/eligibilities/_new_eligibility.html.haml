@@ -2,5 +2,6 @@
   ="Create a New Eligibility"
 =content_for :body do
   = f.input :code, required:true, :as => :string
+  = f.input :rank, required:true, as: :integer
 =content_for :footer do
   = f.button :submit, "OK"#, class: 'btn action-button btn-primary', role: 'button'

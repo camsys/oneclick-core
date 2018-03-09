@@ -1,9 +1,11 @@
 =content_for :header do
-  ="Edit Eligibility Translations"
+  ="Edit Eligibility"
 
 =simple_form_for @eligibility,
   url: admin_eligibility_path, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+  = f.input :rank, required:true, as: :integer
+
 
   =remote_form_input
 

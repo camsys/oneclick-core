@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180306004359) do
+ActiveRecord::Schema.define(version: 20180309141531) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -18,9 +18,10 @@ ActiveRecord::Schema.define(version: 20180306004359) do
   enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
-    t.string   "code",       null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string   "code",                     null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.integer  "rank",       default: 100, null: false
     t.index ["code"], name: "index_accommodations_on_code", unique: true, using: :btree
   end
 
@@ -119,9 +120,10 @@ ActiveRecord::Schema.define(version: 20180306004359) do
   end
 
   create_table "eligibilities", force: :cascade do |t|
-    t.string   "code",       null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string   "code",                     null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.integer  "rank",       default: 100, null: false
     t.index ["code"], name: "index_eligibilities_on_code", unique: true, using: :btree
   end
 
