@@ -8,6 +8,7 @@
       %th Name
       %th Note
       %th Question
+      %th Index
 
   -@accommodations.each do |accommodation|
     %tr{style: "cursor: pointer", data: {url: edit_admin_accommodation_path(accommodation)}}
@@ -19,6 +20,8 @@
         =accommodation.note
       %td
         =accommodation.question
+      %td 
+        =accommodation.index
 
 = simple_form_for @new_accommodation, url: admin_accommodations_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
   =render partial: 'new_accommodation', layout: '/layouts/new_record_panel', locals: {f: f}

@@ -20,6 +20,7 @@ class Admin::AccommodationsController < Admin::AdminController
   end
 
   def update
+    @accommodation.update_attributes(accommodation_params)
     translations = params[:accommodation]
     translations.each do |translation, value|
       @accommodation.set_translation(translation.split('_').first, translation.split('_').last, value)
@@ -31,7 +32,7 @@ class Admin::AccommodationsController < Admin::AdminController
   private
 
   def accommodation_params
-  	params.require(:accommodation).permit(:code)
+  	params.require(:accommodation).permit(:code, :index)
   end
 
 end

@@ -23,4 +23,7 @@ class Accommodation < ApplicationRecord
       question: self.question(locale.name)
     }
   end
+
+  ### Scopes ###
+  scope :ordered_by_index, -> { order(index: :asc) }
 end

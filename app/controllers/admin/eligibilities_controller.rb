@@ -20,6 +20,7 @@ class Admin::EligibilitiesController < Admin::AdminController
   end
 
   def update
+    @eligibility.update_attributes(eligibility_params)
     translations = params[:eligibility]
     translations.each do |translation, value|
       @eligibility.set_translation(translation.split('_').first, translation.split('_').last, value)
@@ -31,7 +32,7 @@ class Admin::EligibilitiesController < Admin::AdminController
   private
 
   def eligibility_params
-  	params.require(:eligibility).permit(:code)
+  	params.require(:eligibility).permit(:codem, :index)
   end
 
 end
