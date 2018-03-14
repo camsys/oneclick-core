@@ -26,6 +26,10 @@ module CharacteristicsHelper
   	 self.code = self.code.parameterize.underscore
   end
 
+  def ensure_rank
+    self.rank = self.rank || 100
+  end
+
   # To Label is used by SimpleForm to Get the Label
   def to_label locale=I18n.default_locale
     self.name(locale)
