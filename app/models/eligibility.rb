@@ -13,6 +13,7 @@ class Eligibility < ApplicationRecord
 
   ### Callbacks ###
   before_save :snake_casify
+  before_save :ensure_rank
 
   ### Scopes ###
   scope :ordered_by_rank, -> { order(ranks: :asc) }

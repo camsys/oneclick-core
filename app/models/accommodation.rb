@@ -12,6 +12,7 @@ class Accommodation < ApplicationRecord
 
   ### Callbacks ###
   before_save :snake_casify
+  before_save :ensure_rank
 
   ### Hash Methods ###
   # Should probably move to serializer
