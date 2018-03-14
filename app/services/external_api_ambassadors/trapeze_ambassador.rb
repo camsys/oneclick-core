@@ -87,11 +87,11 @@ class TrapezeAmbassador < BookingAmbassador
         code: "guests"
       },
       { question: "What is your apartment number?",
-        choices: [''],
+        choices: ['string'],
         code: "pickup_unit_number"
       },
       { question: "What is the apartment number at your destination?",
-        choices: [''],
+        choices: ['string'],
         code: "dropoff_unit_number"
       }
     ]
