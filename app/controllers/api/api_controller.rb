@@ -238,8 +238,8 @@ module Api
 
     def create_guest_user
       puts "CREATING GUEST USER!"
-      
       u = GuestUserHelper.new.build_guest
+      u.skip_confirmation! #Don't send confirmation emails to the fake guest users
       u.save!(:validate => false)
       @traveler = u
       session[:guest_user_id] = u.id # DEPRECATE? What is this?
