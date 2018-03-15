@@ -239,6 +239,8 @@ module Api
     def create_guest_user
       puts "CREATING GUEST USER!"
       u = GuestUserHelper.new.build_guest
+      puts 'HERERERERE'
+      u.skip_confirmation_notification!
       u.skip_confirmation! #Don't send confirmation emails to the fake guest users
       u.save!(:validate => false)
       @traveler = u
