@@ -43,7 +43,7 @@ module OneclickCore
         end
     end
 
-    # 
+    # Likely needed to allow forwarding when a CNAME DNS is not used.
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'ALLOWALL'
     }
