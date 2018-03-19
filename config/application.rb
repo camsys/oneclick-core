@@ -43,6 +43,11 @@ module OneclickCore
         end
     end
 
+    # 
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'ALLOWALL'
+    }
+
     # Sends back appropriate JSON 400 response if a bad JSON request is sent.
     config.middleware.insert_before Rack::Head, JsonResponseHelper::CatchJsonParseErrors
 
