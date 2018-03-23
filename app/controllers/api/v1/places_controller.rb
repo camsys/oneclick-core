@@ -15,7 +15,11 @@ module Api
           count = 0
           recent_places = authentication_successful? ? @traveler.recent_waypoints(max_results) : []
           recent_places.each do |landmark|
-            locations.append(landmark.google_place_hash)
+            landmark_hash = landmark.google_place_hash
+            ["address_compoents", "id", "name"].each do |key|
+              landmark_hash.delete(key)
+            end
+            locations.append(landmark_hash)
             locations.uniq!
             count +=1 
             if count >= max_results
