@@ -19,7 +19,7 @@ module Api
             ["id"].each do |key|
               landmark_hash.delete(key)
             end
-            landmark_hash["formatted_address"] =  ""
+            #landmark_hash["formatted_address"] =  ""
             locations.append(landmark_hash)
             locations.uniq!
             count +=1 
