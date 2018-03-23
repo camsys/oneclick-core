@@ -20,6 +20,7 @@ module Api
             if count >= max_results
               break
             end
+          end
           hash = {places_search_results: {locations: locations}, record_count: locations.count}
           render status: 200, json: hash
           return 
