@@ -16,7 +16,7 @@ module Api
           recent_places = authentication_successful? ? @traveler.recent_waypoints(max_results) : []
           recent_places.each do |landmark|
             landmark_hash = landmark.google_place_hash
-            ["address_components", "id"].each do |key|
+            ["id"].each do |key|
               landmark_hash.delete(key)
             end
             locations.append(landmark_hash)
