@@ -10,6 +10,31 @@ module Api
 
         locations = []
 
+        #If the search string is empty, just return the recent places for the user.
+        if search_string == "% %"
+          count = 0
+          recent_places = authentication_successful? ? @traveler.recent_waypoints(max_results) : []
+          recent_places.each do |landmark|
+            landmark_hash = landmark.google_place_hash
+            ["id"].each do |key|
+              landmark_hash.delete(key)
+            end
+            if landmark_hash["name"].in? landmark_hash["formatted_address"]
+              landmark_hash["name"] =  ""
+            end
+            locations.append(landmark_hash)
+            locations.uniq!
+            count +=1 
+            if count >= max_results
+              break
+            end
+          end
+          hash = {places_search_results: {locations: locations}, record_count: locations.count}
+          render status: 200, json: hash
+          return 
+        end
+
+
         # Global POIs
         count = 0
         landmarks = Landmark.get_by_query_str(search_string).limit(max_results)
