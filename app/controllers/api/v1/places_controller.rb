@@ -13,7 +13,7 @@ module Api
         #If the search string is empty, just return the recent places for the user.
         if search_string == "% %"
           count = 0
-          recent_places = authentication_successful? ? @traveler.recent_waypoints(count) : []
+          recent_places = authentication_successful? ? @traveler.recent_waypoints(max_results) : []
           recent_places.each do |landmark|
             locations.append(landmark.google_place_hash)
             count +=1 
