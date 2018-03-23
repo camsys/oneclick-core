@@ -8,15 +8,23 @@ module Api
         include_user_pois = params[:include_user_pois]
         max_results = (params[:max_results] || 5).to_i
 
+        locations = []
+
         #If the search string is empty, just return the recent places for the user.
         if search_string == "% %"
-          count = params[:count] || 20
+          count = 0
           recent_places = authentication_successful? ? @traveler.recent_waypoints(count) : []
-          render status: 200, json: {places: WaypointSerializer.collection_serialize(recent_places) }
-          return
+          recent_places.each do |landmark|
+            locations.append(landmark.google_place_hash)
+            count +=1 
+            if count >= max_results
+              break
+            end
+          hash = {places_search_results: {locations: locations}, record_count: locations.count}
+          render status: 200, json: hash
+          return 
         end
 
-        locations = []
 
         # Global POIs
         count = 0
