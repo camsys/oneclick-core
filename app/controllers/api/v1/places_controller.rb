@@ -16,6 +16,7 @@ module Api
           recent_places = authentication_successful? ? @traveler.recent_waypoints(max_results) : []
           recent_places.each do |landmark|
             locations.append(landmark.google_place_hash)
+            locations.uniq!
             count +=1 
             if count >= max_results
               break
