@@ -8,7 +8,7 @@ module Api
         type = params[:type].to_s.titleize
         @services = Service.published
         @services = @services.where(type: type) if type.present?
-        render(success_response(@services))
+        render(success_response(@services.order(:name)))
       end
       
     end
