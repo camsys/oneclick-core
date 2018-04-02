@@ -7,6 +7,9 @@ class Place < ApplicationRecord
   #### Includes ####
   include GooglePlace
 
+  #### Scopes ######
+  scope :has_name, -> { where("name <> ''") }
+
   # Search over all classes that inherit from place by query string
   def self.get_by_query_str(query_str)
     rel = self.arel_table[:name].lower().matches(query_str)

@@ -23,12 +23,12 @@ module Api
           
         # Get Matching Recent Waypoints
         # exact matches
-        results += @traveler.waypoints
+        results += @traveler.waypoints.has_name
                             .where(name: params[:name])
                             .order(created_at: :desc)
                             .limit(limit) if @traveler
         # substring matches
-        results += @traveler.waypoints
+        results += @traveler.waypoints.has_name
                             .get_by_query_str(search_string)
                             .order(created_at: :desc)
                             .limit(limit) if @traveler
