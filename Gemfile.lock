@@ -91,6 +91,9 @@ GEM
       aws-sdk-core (~> 3)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.0)
+    aws-sdk-sns (1.1.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
     aws-sigv4 (1.0.2)
     bcrypt (3.1.11)
     better_errors (2.4.0)
@@ -557,6 +560,7 @@ DEPENDENCIES
   autoprefixer-rails
   awesome_print
   aws-sdk-s3
+  aws-sdk-sns
   better_errors
   binding_of_caller
   bootstrap-datepicker-rails

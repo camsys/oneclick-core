@@ -98,6 +98,10 @@ gem 'em-http-request'
 ############################################
 
 
+### Sending SMS messages via AWS ###########
+gem 'aws-sdk-sns' 
+############################################
+
 ### ONECLICK MODULES #######################
 
 # Loads names of modules to install into ENV variables
