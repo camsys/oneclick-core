@@ -37,6 +37,15 @@ module Api
           render json: true
         end
 
+        def sms #TODO simplify this method and move the bulk of it to the Refernet Engine
+          sns = Aws::SNS::Client.new(
+            region: ENV['AWS_ACCESS_KEY_ID'],
+            access_key_id: ENV['AWS_ACCESS_KEY_ID'] , 
+            secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'])
+     
+          sns.publish({phone_number: '+14233092124', message: 'test message'})
+        end
+
         protected
 
         # Builds the request to be sent to OTP
