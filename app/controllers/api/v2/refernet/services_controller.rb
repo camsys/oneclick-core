@@ -42,8 +42,7 @@ module Api
           phone = PhonyRails.normalize_number(params[:phone], country_code: 'US')
           params[:services].each do |service_id|
             service = OneclickRefernet::Service.find(service_id)
-            body += "#{service.to_s}
-                    #{service.address}"
+            body += "#{service.to_s}%0a#{service.address}"
           end
 
           sns = Aws::SNS::Client.new(
