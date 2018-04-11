@@ -46,7 +46,7 @@ module Api
           end
 
           sns = Aws::SNS::Client.new(
-            region: ENV['S3_REGION'],
+            region: ENV['AWS_SMS_REGION'],
             access_key_id: ENV['AWS_ACCESS_KEY_ID'] , 
             secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'])
      
