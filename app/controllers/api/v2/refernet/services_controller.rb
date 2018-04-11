@@ -43,7 +43,7 @@ module Api
           params[:services].each do |service_id|
             service = OneclickRefernet::Service.find(service_id)
             body += "#{service.to_s}
-                    #{{service.address}"
+                    #{service.address}"
           end
 
           sns = Aws::SNS::Client.new(
