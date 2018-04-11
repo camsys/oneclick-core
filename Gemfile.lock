@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 1690c44ca561f4e578ac5b8a46ff328390f15fde
+  revision: 57c040b4218394dc2234cdfc66b629f3946e56c1
   specs:
     oneclick_refernet (0.5.9)
       active_model_serializers
@@ -79,7 +79,7 @@ GEM
     autoprefixer-rails (8.2.0)
       execjs
     awesome_print (1.8.0)
-    aws-partitions (1.79.0)
+    aws-partitions (1.80.0)
     aws-sdk-core (3.19.0)
       aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
@@ -257,7 +257,7 @@ GEM
       fog-core (~> 1.40)
       fog-json (>= 1.0)
       ipaddress (>= 0.8)
-    fog-ovirt (1.0.2)
+    fog-ovirt (1.0.3)
       fog-core (~> 1.45)
       fog-json
       fog-xml (~> 0.1.1)
@@ -498,9 +498,9 @@ GEM
     sexp_processor (4.11.0)
     shoulda-matchers (3.1.2)
       activesupport (>= 4.0.0)
-    simple_form (3.5.1)
-      actionpack (> 4, < 5.2)
-      activemodel (> 4, < 5.2)
+    simple_form (4.0.0)
+      actionpack (> 4)
+      activemodel (> 4)
     simple_token_authentication (1.15.1)
       actionmailer (>= 3.2.6, < 6)
       actionpack (>= 3.2.6, < 6)
@@ -523,7 +523,7 @@ GEM
     thread_safe (0.3.6)
     tilt (2.0.8)
     trollop (2.1.2)
-    turbolinks (5.1.0)
+    turbolinks (5.1.1)
       turbolinks-source (~> 5.1)
     turbolinks-source (5.1.0)
     tzinfo (1.2.5)

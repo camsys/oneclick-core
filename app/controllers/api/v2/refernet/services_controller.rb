@@ -3,6 +3,8 @@ module Api
     module Refernet
       class ServicesController < ApiController
 
+        include ActionView::Helpers::NumberHelper
+
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
           duration_hash = {}
@@ -42,7 +44,10 @@ module Api
           phone = PhonyRails.normalize_number(params[:phone], country_code: 'US')
           params[:services].each do |service_id|
             service = OneclickRefernet::Service.find(service_id)
-            body += "#{service.to_s}\r\n#{service.address}"
+            body += "#{service.to_s}\r\n#{service.address}\r\n"
+            if service.phone 
+              body += "#{number_to_phone(service.phone)}\r\n"
+            end
           end
 
           sns = Aws::SNS::Client.new(
