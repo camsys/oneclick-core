@@ -38,12 +38,19 @@ module Api
         end
 
         def sms #TODO simplify this method and move the bulk of it to the Refernet Engine
+          body = ""
+          phone = PhonyRails.normalize_number(params[:phone], country_code: 'US')
+          params[:services].each do |service_id|
+            service = OneclickRefernet::Service.find(service_id)
+            body += "#{service.to_s}%0a#{service.address}"
+          end
+
           sns = Aws::SNS::Client.new(
             region: ENV['AWS_ACCESS_KEY_ID'],
             access_key_id: ENV['AWS_ACCESS_KEY_ID'] , 
             secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'])
      
-          sns.publish({phone_number: '+14233092124', message: 'test message'})
+          sns.publish({phone_number: phone, message: body})
         end
 
         protected
