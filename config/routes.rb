@@ -106,6 +106,7 @@ Rails.application.routes.draw do
       if ENV["ONECLICK_REFERNET"]
         get 'oneclick_refernet/services' => 'refernet/services#index'
         post 'oneclick_refernet/email' => 'refernet/services#email'
+        post 'oneclick_refernet/sms' => 'refernet/services#sms'
         mount OneclickRefernet::Engine => "/oneclick_refernet"
       end
 
