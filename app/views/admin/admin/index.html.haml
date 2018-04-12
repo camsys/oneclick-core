@@ -1,5 +1,5 @@
 .row
-  -@dashboard_reports.each do |report|
+  -(@dashboard_reports || []).each do |report|
     .text-center{ class: "col-md-#{12 / @dashboard_reports.count}"}
       =report.html
 

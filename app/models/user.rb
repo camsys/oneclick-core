@@ -65,6 +65,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validates :password_confirmation, presence: true, on: :create
   before_save :downcase_email
+  validate :password_complexity
   
   ### Instance Methods ###
   
@@ -173,6 +174,12 @@ class User < ApplicationRecord
   # Set Require Confirmation to be true
   def confirmation_required?
     Config.require_user_confirmation || false
+  end
+
+  def password_complexity
+    if password.present? and not password.match(/^(?=.*[a-z])(?=.*\d). /)
+      errors.add :password, "must include at least one lowercase letter and one digit"
+    end
   end
 
 end
