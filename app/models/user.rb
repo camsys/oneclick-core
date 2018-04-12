@@ -178,7 +178,7 @@ class User < ApplicationRecord
 
   def password_complexity
     if password.present? and not password.match(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/)
-      errors.add :password, "must include at least one lowercase letter and one digit"
+      errors.add :password, "must include at least one letter and one digit"
     end
   end
 
