@@ -48,7 +48,8 @@ class Admin::UsersController < Admin::AdminController
 
   def update
 
-    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
+    success_redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
+    error_redirect_path = edit_admin_user_path(@user)
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
@@ -64,8 +65,10 @@ class Admin::UsersController < Admin::AdminController
 
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
+      redirect_path = success_redirect_path
     else
       present_error_messages(@user)
+      redirect_path = error_redirect_path
     end
 
     respond_to do |format|
