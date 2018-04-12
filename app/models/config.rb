@@ -8,6 +8,7 @@ class Config < ApplicationRecord
   AVAILABLE_SCHEDULED_TASKS = [
     :agency_setup_reminder_emails,
     :agency_update_reminder_emails,
+    :service_update_reminder_emails,
     :user_profile_update_emails,
     :get_ride_pilot_purposes,
     :feedback_reminders

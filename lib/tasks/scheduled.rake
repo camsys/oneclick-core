@@ -1,6 +1,6 @@
 namespace :scheduled do
   
-  desc "test"
+  desc "Running Daily Tasks"
   task daily: :environment do
     Config.daily_scheduled_tasks.each do |task|
       Rails.logger.info "Running Scheduled Task: #{task}..."
@@ -26,12 +26,24 @@ namespace :scheduled do
   desc "Periodically Send Agency Staff Reminders to Update their Agencies"
   task agency_update_reminder_emails: :environment do
     # send an update email to agency staff if the agency hasn't been updated in 6 months
-    Agency.where('updated_at < ?', DateTime.current - 6.months).each do |agency|
+    Agency.published.where('updated_at < ?', DateTime.current - 6.months).each do |agency|
       Rails.logger.info "Sending update reminder emails to staff for #{agency.name}..."
       UserMailer.agency_update_reminder(agency).deliver_now
       
       # reset the agency's updated_at time to now, so that this message doesn't send again for 6 months
       agency.update_attributes(updated_at: DateTime.current)
+    end
+  end
+
+  desc "Periodically Send Service Staff Reminders to Update their Services"
+  task service_update_reminder_emails: :environment do
+    # send an update email to agency staff if the agency hasn't been updated in 6 months
+    Service.published.where('updated_at < ?', DateTime.current - 6.months).each do |service|
+      Rails.logger.info "Sending update reminder emails to staff for #{service.name}..."
+      UserMailer.service_update_reminder(service).deliver_now
+      
+      # reset the agency's updated_at time to now, so that this message doesn't send again for 6 months
+      service.update_attributes(updated_at: DateTime.current)
     end
   end
   

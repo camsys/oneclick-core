@@ -16,6 +16,18 @@ class UserMailer < ApplicationMailer
     
     mail(to: email_list, subject: "Reminder to Update #{@agency.name}")
   end
+
+  def service_update_reminder(service)
+    @service = service
+    if @service.agency 
+      email_list = (@service.agency.staff.pluck(:email) + [@service.agency.email] + User.admins.pluck(:email)).compact
+    else 
+      email_list = User.admins.pluck(:email).uniq.compact
+    end
+     
+
+    mail(to: email_list, subject: "Reminder to Update #{@service.name}")
+  end
   
   def user_profile_update_reminder(user)
     @user = user
