@@ -27,7 +27,7 @@ module Api
           set_locale # based on traveler's new preferred locale
           render(success_response(@traveler))
         else
-          render(fail_response(status: 500, message: "Unable to update."))
+          render(fail_response(status: 400, message: "Unable to update."))
         end
       end
       
