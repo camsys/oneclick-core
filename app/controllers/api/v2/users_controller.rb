@@ -23,10 +23,14 @@ module Api
         end
         
         # user.update_profile call filters out any unsafe params
-        if @traveler.update_profile(params)
-          set_locale # based on traveler's new preferred locale
-          render(success_response(@traveler))
-        else
+        begin 
+          if @traveler.update_profile(params)
+            set_locale # based on traveler's new preferred locale
+            render(success_response(@traveler))
+          else
+            render(fail_response(status: 400, message: "Unable to update."))
+          end
+        rescue => exception 
           render(fail_response(status: 400, message: "Unable to update."))
         end
       end
