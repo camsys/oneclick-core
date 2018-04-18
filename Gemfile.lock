@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 57c040b4218394dc2234cdfc66b629f3946e56c1
+  revision: 125adaa2537346884675aca4c4a5ad3bc90f85ec
   specs:
     oneclick_refernet (0.5.9)
       active_model_serializers
@@ -76,7 +76,7 @@ GEM
     arel (7.1.4)
     attr_encrypted (3.0.3)
       encryptor (~> 3.0.0)
-    autoprefixer-rails (8.2.0)
+    autoprefixer-rails (8.3.0)
       execjs
     awesome_print (1.8.0)
     aws-partitions (1.80.0)
@@ -109,7 +109,7 @@ GEM
       sass (~> 3.2)
     builder (3.2.3)
     byebug (10.0.2)
-    cancancan (2.1.4)
+    cancancan (2.2.0)
     carrierwave (1.2.2)
       activemodel (>= 4.0.0)
       activesupport (>= 4.0.0)
@@ -137,7 +137,7 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.3)
-    domain_name (0.5.20170404)
+    domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
     em-http-request (1.1.5)
       addressable (>= 2.3.4)
@@ -196,7 +196,7 @@ GEM
       fog-xml (~> 0.1.1)
       ipaddress (~> 0.5)
       json (~> 2.0)
-    fog-aliyun (0.2.0)
+    fog-aliyun (0.2.1)
       fog-core (~> 1.27)
       fog-json (~> 1.0)
       ipaddress (~> 0.8)
@@ -304,7 +304,7 @@ GEM
     fog-voxel (0.1.0)
       fog-core
       fog-xml
-    fog-vsphere (2.1.0)
+    fog-vsphere (2.1.1)
       fog-core
       rbvmomi (~> 1.9)
     fog-xenserver (0.3.0)
@@ -340,7 +340,7 @@ GEM
     httpi (2.4.3)
       rack
       socksify
-    i18n (1.0.0)
+    i18n (1.0.1)
       concurrent-ruby (~> 1.0)
     inflecto (0.0.2)
     ipaddress (0.8.3)
@@ -385,7 +385,7 @@ GEM
       mini_portile2 (~> 2.3.0)
     nori (2.6.0)
     orm_adapter (0.5.0)
-    ovirt-engine-sdk (4.2.3)
+    ovirt-engine-sdk (4.2.4)
       json (>= 1, < 3)
     pg (0.21.0)
     phony (2.16.3)
@@ -393,7 +393,7 @@ GEM
       activesupport (>= 3.0)
       phony (> 2.15)
     public_suffix (3.0.2)
-    puma (3.11.3)
+    puma (3.11.4)
     rack (2.0.4)
     rack-cors (1.0.2)
     rack-test (0.6.3)
@@ -530,7 +530,7 @@ GEM
       thread_safe (~> 0.1)
     tzinfo-data (1.2018.4)
       tzinfo (>= 1.0.0)
-    uglifier (4.1.8)
+    uglifier (4.1.9)
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
