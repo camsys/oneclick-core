@@ -55,7 +55,13 @@ module Api
             access_key_id: ENV['AWS_ACCESS_KEY_ID'] , 
             secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'])
      
-          sns.publish({phone_number: phone, message: body})
+          begin
+            sns.publish({phone_number: phone, message: body})
+            render(success_response())
+          rescue => exception
+            render(fail_response(status: 400, message: "Invalid Request"))
+          end
+
         end
 
         protected
