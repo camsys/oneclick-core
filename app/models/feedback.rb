@@ -104,7 +104,7 @@ class Feedback < ApplicationRecord
 
       service_stats = service_hash[id] || {id: id, service_name: name, average_rating: nil, total_ratings: 0, cumulative_rating: 0}
       service_stats[:total_ratings] += 1 
-      service_stats[:cumulative_rating] += service_stats[:cumulative_rating]
+      service_stats[:cumulative_rating] += feedback.rating
       service_stats[:average_rating] = service_stats[:cumulative_rating].to_f/service_stats[:total_ratings].to_f
       service_hash[id] = service_stats
     end
