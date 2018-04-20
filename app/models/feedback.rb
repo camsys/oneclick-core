@@ -81,6 +81,41 @@ class Feedback < ApplicationRecord
   def contact_phone
     phone || user.try(:phone)
   end
+
+  # Aggregate Results for Reporting
+  def self.aggregate_csv
+    the_data = "service_id,service_name,average_rating,total_ratings\n"
+    service_hash = {}
+    Feedback.all.each do |feedback|
+      
+      next unless feedback.feedbackable_id
+      next if feedback.rating.nil?
+
+      # Get the Service (Transportation or 211)
+      if feedback.feedbackable_type == 'Service'
+         service = Service.find(feedback.feedbackable_id)
+         name = service.name
+         id = "transportation_#{service.id}"
+      elsif feedback.feedbackable_type == 'OneclickRefernet::Service'
+         service = OneclickRefernet::Service.find(feedback.feedbackable_id)
+         name = service.agency_name
+         id = "refernet_#{service.id}"
+      end
+
+      service_stats = service_hash[id] || {id: id, service_name: name, average_rating: nil, total_ratings: 0, cumulative_rating: 0}
+      service_stats[:total_ratings] += 1 
+      service_stats[:cumulative_rating] += service_stats[:cumulative_rating]
+      service_stats[:average_rating] = service_stats[:cumulative_rating].to_f/service_stats[:total_ratings].to_f
+      service_hash[id] = service_stats
+    end
+
+    service_hash.each do |key, service|
+      the_data += "#{service[:id]},#{service[:service_name]},#{service[:average_rating]},#{service[:total_ratings]}\n"
+    end
+
+    return the_data
+
+  end
   
   
 end

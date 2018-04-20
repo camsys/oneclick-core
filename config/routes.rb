@@ -194,6 +194,7 @@ Rails.application.routes.draw do
         get 'services_table'
         get 'requests_table'
         get 'feedback_table'
+        get 'feedback_aggregated_table'
 
       end
     end

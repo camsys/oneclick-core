@@ -1,6 +1,6 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback']
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback', 'Feedback Aggregated']
   DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
@@ -101,8 +101,16 @@ class Admin::ReportsController < Admin::AdminController
     @feedback = Feedback.all
     @feedback = @feedback.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
 
+    puts @feedback.to_csv
+
     respond_to do |format|
       format.csv { send_data @feedback.to_csv }
+    end
+  end
+
+  def feedback_aggregated_table    
+    respond_to do |format|
+      format.csv { send_data Feedback.aggregated_csv}
     end
   end
 
