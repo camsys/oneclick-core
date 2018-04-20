@@ -83,7 +83,7 @@ class Feedback < ApplicationRecord
   end
 
   # Aggregate Results for Reporting
-  def self.aggregate_csv
+  def self.aggregated_csv
     the_data = "service_id,service_name,average_rating,total_ratings\n"
     service_hash = {}
     Feedback.all.each do |feedback|
