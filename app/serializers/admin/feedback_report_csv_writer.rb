@@ -11,6 +11,13 @@ module Admin
 
     def service
       return nil if @record.feedbackable_id.nil?
+
+      if @record.feedbackable_type == 'Service'
+        return Service.find(@record.feedbackable_id).name
+      elsif @record.feedbackable_type == 'OneclickRefernet::Service'
+        return OneclickRefernet::Service.find(@record.feedbackable_id).agency_name
+      end
+
     end
 
   end
