@@ -193,6 +193,7 @@ Rails.application.routes.draw do
         get 'trips_table'
         get 'services_table'
         get 'requests_table'
+        get 'feedback_table'
 
       end
     end

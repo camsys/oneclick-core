@@ -22,6 +22,9 @@
   .table-download-options.requests.hidden
     =render partial: 'requests_table_download_options', locals: {f: f}
 
+  .table-download-options.feedback.hidden
+    =render partial: 'feedback_table_download_options', locals: {f: f}
+
     
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
@@ -33,10 +36,12 @@
         
     // Hides and disables all table options and then shows and enables the relevant ones.
     var showTableDownloadOptions = function(table) {
+      console.log(table);
       $('.table-download-options').addClass('hidden');
       $('.table-download-options :input').prop('disabled', true);
       if(table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
+        console.log(tableDownloadOptionsSelector);
         $(tableDownloadOptionsSelector).removeClass('hidden');
         $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
       }

@@ -10,6 +10,7 @@ class Feedback < ApplicationRecord
   include Contactable
   has_one :acknowledgement_comment, class_name: "Comment", as: :commentable
   accepts_nested_attributes_for :acknowledgement_comment
+  write_to_csv with: Admin::FeedbackReportCSVWriter
   
   ### SCOPES ###
   
@@ -23,6 +24,14 @@ class Feedback < ApplicationRecord
   #TODO: MAKE DEFAULT FEEDBACK TIME A CONFIG
   scope :needs_reminding, -> { where('acknowledged = ? and created_at < ?', false, Time.now - (Config.feedback_overdue_days || 5).days).newest_first }
     
+  # Return trips before or after a given date and time
+  scope :from_datetime, -> (datetime) { datetime ? where('feedbacks.created_at >= ?', datetime) : all }
+  scope :to_datetime, -> (datetime) { datetime ? where('feedbacks.created_at <= ?', datetime) : all }
+
+  # Rounds to beginning or end of day.
+  scope :from_date, -> (date) { date ? from_datetime(date.in_time_zone.beginning_of_day) : all }
+  scope :to_date, -> (date) { date ? to_datetime(date.in_time_zone.end_of_day) : all }
+
   ### VALIDATIONS ###
   
   validates :rating, numericality: { only_integer: true, 

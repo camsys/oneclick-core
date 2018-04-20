@@ -1,6 +1,6 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests']
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback']
   DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
@@ -16,7 +16,8 @@ class Admin::ReportsController < Admin::AdminController
     :trips_table, 
     :users_table, 
     :services_table,
-    :requests_table
+    :requests_table,
+    :feedback_table
   ]  
 
   before_action :authorize_reports
@@ -93,6 +94,15 @@ class Admin::ReportsController < Admin::AdminController
     
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
+    end
+  end
+
+  def feedback_table    
+    @feedback = Feedback.all
+    @feedback = @feedback.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+
+    respond_to do |format|
+      format.csv { send_data @feedback.to_csv }
     end
   end
 
