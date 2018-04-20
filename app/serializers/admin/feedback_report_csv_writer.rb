@@ -1,7 +1,7 @@
 module Admin
   class FeedbackReportCSVWriter < CSVWriter
 
-    columns :id, :service, :feedbackable_type, :rating, :review, :acknowledged, :email, :phone, :traveler 
+    columns :id, :service, :feedbackable_type, :rating, :created_at, :review, :acknowledged, :email, :phone, :traveler 
 
     associations :user
 
