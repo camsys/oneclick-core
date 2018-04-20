@@ -17,7 +17,8 @@ class Admin::ReportsController < Admin::AdminController
     :users_table, 
     :services_table,
     :requests_table,
-    :feedback_table
+    :feedback_table,
+    :feedback_aggregated_table
   ]  
 
   before_action :authorize_reports
@@ -101,16 +102,14 @@ class Admin::ReportsController < Admin::AdminController
     @feedback = Feedback.all
     @feedback = @feedback.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
 
-    puts @feedback.to_csv
-
     respond_to do |format|
       format.csv { send_data @feedback.to_csv }
     end
   end
 
-  def feedback_aggregated_table    
+  def feedback_aggregated_table   
     respond_to do |format|
-      format.csv { send_data Feedback.aggregated_csv}
+      format.csv { send_data Feedback.aggregated_csv(@trip_time_from_date, @trip_time_to_date)}
     end
   end
 

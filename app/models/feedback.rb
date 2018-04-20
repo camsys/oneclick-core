@@ -83,10 +83,11 @@ class Feedback < ApplicationRecord
   end
 
   # Aggregate Results for Reporting
-  def self.aggregated_csv
+  def self.aggregated_csv from, to 
     the_data = "service_id,service_name,average_rating,total_ratings\n"
     service_hash = {}
-    Feedback.all.each do |feedback|
+    @feedback = Feedback.from_date(from).to_date(to)
+    @feedback.each do |feedback|
       
       next unless feedback.feedbackable_id
       next if feedback.rating.nil?
