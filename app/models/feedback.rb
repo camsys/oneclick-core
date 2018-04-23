@@ -95,10 +95,12 @@ class Feedback < ApplicationRecord
       # Get the Service (Transportation or 211)
       if feedback.feedbackable_type == 'Service'
          service = Service.find(feedback.feedbackable_id)
+         next if service.nil?
          name = service.name
          id = "transportation_#{service.id}"
       elsif feedback.feedbackable_type == 'OneclickRefernet::Service'
          service = OneclickRefernet::Service.find(feedback.feedbackable_id)
+         next if service.nil?
          name = service.agency_name
          id = "refernet_#{service.id}"
       end
