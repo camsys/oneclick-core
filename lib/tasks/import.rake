@@ -198,9 +198,14 @@ namespace :import do
   
   desc "Import Services and Associate w/ Providers"
   task :services, [:host, :token] => [:environment, :verify_params] do |t, args|
+
+    puts t.a 
+    puts args.ai 
     
     services_attributes = get_export_data(args, 'services')["services"]
     
+    puts services_attributes.ai 
+
     services_attributes.each do |service_attrs|
 
       service_attrs["agency_id"] = find_record_by_legacy_id(Agency, service_attrs.delete("provider_id")).try(:id)
