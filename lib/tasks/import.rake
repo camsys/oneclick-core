@@ -241,12 +241,12 @@ namespace :import do
       save_and_log_result(svc)
 
       # Have to re-initialize service object to get logo to upload properly
-      if svc && logo
-        svc = Service.find(svc.id)
-        svc.reload
-        svc.remote_logo_url = ENV["RACK_ENV"] == "development" ? "#{args['host']}#{logo}" : logo
-        save_and_log_result(svc)
-      end
+      #if svc && logo
+      #  svc = Service.find(svc.id)
+      #  svc.reload
+      #  svc.remote_logo_url = ENV["RACK_ENV"] == "development" ? "#{args['host']}#{logo}" : logo
+      #  save_and_log_result(svc)
+      #end
 
     end          
     
