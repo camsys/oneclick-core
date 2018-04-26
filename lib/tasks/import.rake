@@ -297,8 +297,8 @@ namespace :import do
     
     # Get trips in batches
     loop.with_index do |_, i|
-      puts "GETTING TRIPS BATCH #{i}..."
-      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i + 80)["trips"]
+      puts "GETTING TRIPS BATCH #{i + 86}..."
+      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i + 86)["trips"]
       
       break if trips_attributes.empty? || i > 2000
       
