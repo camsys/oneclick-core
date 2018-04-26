@@ -298,12 +298,14 @@ namespace :import do
     # Get trips in batches
     loop.with_index do |_, i|
       puts "GETTING TRIPS BATCH #{i}..."
-      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i)["trips"]
+      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i + 80)["trips"]
       
       break if trips_attributes.empty? || i > 2000
       
       trips_attributes.each do |trip_attrs|
         
+        puts trip_attrs.ai 
+
         itineraries = trip_attrs.delete("itineraries")
         
         user = find_record_by_legacy_id(User, trip_attrs.delete("user_id"), column: :email)
