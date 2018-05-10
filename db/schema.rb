@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180309141531) do
+ActiveRecord::Schema.define(version: 20180510190942) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -30,6 +30,12 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.integer "accommodation_id", null: false
     t.index ["accommodation_id"], name: "index_accommodations_services_on_accommodation_id", using: :btree
     t.index ["service_id"], name: "index_accommodations_services_on_service_id", using: :btree
+  end
+
+  create_table "accommodations_trips", id: false, force: :cascade do |t|
+    t.integer "trip_id",          null: false
+    t.integer "accommodation_id", null: false
+    t.index ["trip_id", "accommodation_id"], name: "index_accommodations_trips_on_trip_id_and_accommodation_id", using: :btree
   end
 
   create_table "accommodations_users", id: false, force: :cascade do |t|
@@ -132,6 +138,12 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.integer "eligibility_id", null: false
     t.index ["eligibility_id"], name: "index_eligibilities_services_on_eligibility_id", using: :btree
     t.index ["service_id"], name: "index_eligibilities_services_on_service_id", using: :btree
+  end
+
+  create_table "eligibilities_trips", id: false, force: :cascade do |t|
+    t.integer "trip_id",        null: false
+    t.integer "eligibility_id", null: false
+    t.index ["trip_id", "eligibility_id"], name: "index_eligibilities_trips_on_trip_id_and_eligibility_id", using: :btree
   end
 
   create_table "fare_zones", force: :cascade do |t|
@@ -385,6 +397,27 @@ ActiveRecord::Schema.define(version: 20180309141531) do
     t.text     "value"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
+  end
+
+  create_table "trip_accommodations", force: :cascade do |t|
+    t.integer "trip_id",          null: false
+    t.integer "accommodation_id", null: false
+    t.index ["accommodation_id"], name: "index_trip_accommodations_on_accommodation_id", using: :btree
+    t.index ["trip_id"], name: "index_trip_accommodations_on_trip_id", using: :btree
+  end
+
+  create_table "trip_eligibilities", force: :cascade do |t|
+    t.integer "trip_id",        null: false
+    t.integer "eligibility_id", null: false
+    t.index ["eligibility_id"], name: "index_trip_eligibilities_on_eligibility_id", using: :btree
+    t.index ["trip_id"], name: "index_trip_eligibilities_on_trip_id", using: :btree
+  end
+
+  create_table "trip_purposes", force: :cascade do |t|
+    t.integer "trip_id",    null: false
+    t.integer "purpose_id", null: false
+    t.index ["purpose_id"], name: "index_trip_purposes_on_purpose_id", using: :btree
+    t.index ["trip_id"], name: "index_trip_purposes_on_trip_id", using: :btree
   end
 
   create_table "trips", force: :cascade do |t|

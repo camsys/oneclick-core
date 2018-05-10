@@ -17,13 +17,19 @@ class Trip < ApplicationRecord
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
   has_many :partner_agencies, through: :user 
+
+  has_many :trip_accommodations
+  has_many :relevant_accommodations, class_name: "Accommodation", through: :trip_accommodations, source: :accommodation
+  has_many :trip_eligibilities
+  has_many :relevant_eligibilities, class_name: "Eligibility", through: :trip_eligibilities, source: :eligibility
+  has_many :trip_purposes
+  has_many :relevant_purposes, class_name: "Purpose", through: :trip_purposes, source: :purpose
   
   accepts_nested_attributes_for :origin
   accepts_nested_attributes_for :destination
   
   before_validation :set_trip_time
 
-  attr_accessor :relevant_purposes, :relevant_eligibilities, :relevant_accommodations
   write_to_csv with: Admin::TripsReportCSVWriter
 
   ### VALIDATIONS ###
