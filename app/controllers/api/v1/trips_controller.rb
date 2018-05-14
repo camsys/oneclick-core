@@ -161,7 +161,7 @@ module Api
         if failed 
           responses = []
           itins.each do |itin|
-            itin.cancel  if itin.booked?
+            itin.booked? ? itin.cancel : itin.unselect
             responses << booking_response_base(itin).merge({booked: false})
           end
         end

@@ -153,7 +153,10 @@ class TrapezeAmbassador < BookingAmbassador
     # Don't return trip purposes for a non-logged in user
     return nil if @cookies.nil?
 
-    @client.call(:pass_get_booking_purposes, cookies: @cookies).hash
+    response = @client.call(:pass_get_booking_purposes, cookies: @cookies).hash
+    Rails.logger.info response.to_hash.ai
+    return response 
+
   end
 
   # Get a List of Passenger Types
@@ -284,6 +287,11 @@ class TrapezeAmbassador < BookingAmbassador
       request_hash[:pass_booking_passengers] = [passenger_hash(@booking_options[:guests])]
     end
 
+    # Deal with Funding Sources
+    #request_hash[:excluded_validation_checks] = 18
+    #request_hash[:funding_source_id] = 8
+    #request_hash[:fare_type_id] = "0"
+
     return request_hash
   
   end
@@ -347,6 +355,7 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Updates trip booking object with response
   def update_booking
+    Rails.logger.info booking_attrs.ai 
     booking.try(:update_attributes, booking_attrs)
   end
 
