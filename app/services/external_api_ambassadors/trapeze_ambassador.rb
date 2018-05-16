@@ -288,9 +288,9 @@ class TrapezeAmbassador < BookingAmbassador
     end
 
     # Deal with Funding Sources
-    #request_hash[:excluded_validation_checks] = 18
-    #request_hash[:funding_source_id] = 8
-    #request_hash[:fare_type_id] = "0"
+    request_hash[:excluded_validation_checks] = 0
+    request_hash[:funding_source_id] = 6
+    request_hash[:fare_type_id] = 0
 
     return request_hash
   
@@ -391,18 +391,22 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Build OCC Trip, Itinerary, and Booking from a Trapeze Trip
   def occ_trip_from_trapeze_trip trap_trip
-     booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
-    itinerary = Itinerary.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+    booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
+    itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
+      booking = itinerary.booking 
+      booking.status =  trap_trip.try(:with_indifferent_access).try(:[], :sched_status)
+      if booking.status.in? TrapezeBooking::CANCELED_TRIP_STATUS_CODES
+        itinerary.unselect
+      end
+      booking.save 
       return nil
-
     # This Trip needs to be added to OCC
     else
       # Make the Trip
       trip = Trip.create!(occ_trip_hash(trap_trip))
-
       # Make the Itinerary
       itinerary = Itinerary.new(occ_itinerary_hash_from_trapeze_trip(trap_trip))
       itinerary.trip = trip
@@ -411,7 +415,10 @@ class TrapezeAmbassador < BookingAmbassador
 
       # Make the Booking
       booking = Booking.new(occ_booking_hash(trap_trip))
-      booking.itinerary = itinerary 
+      booking.itinerary = itinerary
+      if booking.status.in? TrapezeBooking::CANCELED_TRIP_STATUS_CODES
+        itinerary.unselect
+      end
       booking.save 
     end
   end
@@ -468,7 +475,7 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   def occ_booking_hash trap_trip 
-    {confirmation: trap_trip.try(:with_indifferent_access).try(:[], :booking_id), type: "TrapezeBooking"}
+    {confirmation: trap_trip.try(:with_indifferent_access).try(:[], :booking_id), type: "TrapezeBooking", status: trap_trip.try(:with_indifferent_access).try(:[], :sched_status)}
   end
 
   def arrive_by? trap_trip

@@ -114,16 +114,15 @@ class User < ApplicationRecord
   # Returns the user's (count) past trips, in descending order of trip time
   def past_trips(count=nil)
     # Sync up with any booking services
-    sync
-    trips.past.limit(count)
+    # sync
+    trips.selected.past.limit(count)
   end
 
   # Returns the user's (count) future trips, in descending order of trip time
   def future_trips(count=nil)
     # Sync up with any booking services
     sync 
-
-    trips.future.limit(count)
+    trips.selected.future.limit(count)
   end
   
   # Returns an unordered collection of the traveler's waypoints

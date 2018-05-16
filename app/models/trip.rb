@@ -54,6 +54,7 @@ class Trip < ApplicationRecord
   # trips have trip time now and forward, ordered from first to last.
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
+  scope :selected, -> { where.not(selected_itinerary_id: nil) }
 
   # Geographic scopes return trips that start or end in the passed geom
   scope :origin_in, -> (geom) do
