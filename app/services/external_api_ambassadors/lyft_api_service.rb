@@ -24,8 +24,6 @@ class LyftApiService
   end
 
   def price(product, response)
-    puts response.ai 
-
     unless response && response['cost_estimates'].present?
       return {price_quote_id: nil, price: nil}
     end

@@ -329,7 +329,6 @@ class TrapezeAmbassador < BookingAmbassador
     passenger_choices_array
   end
 
-  # returns a hash of booking attributes from a RidePilot response
   def booking_attrs
     response = pass_get_client_trips(nil, nil, booking_id)
 
@@ -394,9 +393,20 @@ class TrapezeAmbassador < BookingAmbassador
     booking_id = trap_trip.try(:with_indifferent_access).try(:[], :booking_id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
+    # Calculate time window
+    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time
+    pick_up_leg = trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg)
+    seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
+
+    early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+    seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_late)
+    late_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
       booking = itinerary.booking 
+      booking.latest_pu = late_pu_time
+      booking.earliest_pu = early_pu_time
       booking.status =  trap_trip.try(:with_indifferent_access).try(:[], :sched_status)
       if booking.status.in? TrapezeBooking::CANCELED_TRIP_STATUS_CODES
         itinerary.unselect
@@ -415,6 +425,8 @@ class TrapezeAmbassador < BookingAmbassador
 
       # Make the Booking
       booking = Booking.new(occ_booking_hash(trap_trip))
+      booking.latest_pu = late_pu_time
+      booking.earliest_pu = early_pu_time
       booking.itinerary = itinerary
       if booking.status.in? TrapezeBooking::CANCELED_TRIP_STATUS_CODES
         itinerary.unselect

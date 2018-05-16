@@ -302,7 +302,9 @@ module Api
             transit_time: itinerary.transit_time,
             wait_time: nil, #itinerary.wait_time, # WAIT TIME?
             walk_distance: nil, #itinerary.walk_distance, # DEPRECATE?
-            walk_time: itinerary.walk_time
+            walk_time: itinerary.walk_time,
+            pu_window_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
+            pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil
           }
 
           # Service Attributes
