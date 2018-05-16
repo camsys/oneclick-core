@@ -25,7 +25,7 @@ module BookingHelpers
     
     # Returns true if the user has a booking_profile for the given service
     def has_booking_profile_for?(service) 
-      booking_profile_for(service).present?
+      booking_profile_for(service).present? and booking_profile_for(service).authenticate?
     end
 
     def sync
