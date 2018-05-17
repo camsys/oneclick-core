@@ -334,7 +334,7 @@ class TrapezeAmbassador < BookingAmbassador
 
     # Calculate time window
     trap_trip = response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking)
-    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time
+    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).in_time_zone.to_time
     pick_up_leg = response.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).try(:[], :pick_up_leg)
     seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
     early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
