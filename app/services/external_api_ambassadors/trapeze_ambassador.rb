@@ -394,7 +394,7 @@ class TrapezeAmbassador < BookingAmbassador
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
     # Calculate time window
-    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).to_time
+    raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).in_time_zone.to_time
     pick_up_leg = trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg)
     seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
 
