@@ -289,7 +289,7 @@ class TrapezeAmbassador < BookingAmbassador
 
     # Deal with Funding Sources
     request_hash[:excluded_validation_checks] = 0
-    request_hash[:funding_source_id] = 6
+    request_hash[:funding_source_id] = 8
     request_hash[:fare_type_id] = 0
 
     return request_hash
