@@ -44,7 +44,7 @@
     input_html: {value: @configs.find_by(key: :trapeze_ignore_polygon_id).try(:value)},
     as: :integer
   = f.input :trapeze_check_polygon_id, required: false,
-    label: "Ignore Polygon ID",
+    label: "Check Polygon ID",
     input_html: {value: @configs.find_by(key: :trapeze_check_polygon_id).try(:value)},
     as: :integer
 
