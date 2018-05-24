@@ -58,8 +58,8 @@ class Service < ApplicationRecord
   end
 
   # Filter by age
-  scope :by_min_age, -> (age) { where("min_age =< ?", age) }
-  scope :by_max_age, -> (age) { where("max_age >= ?", age) }
+  scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
+  scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
