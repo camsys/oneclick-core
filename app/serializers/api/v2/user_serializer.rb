@@ -7,7 +7,8 @@ module Api
                   :last_name, 
                   :email,
                   :preferred_locale,
-                  :trip_types
+                  :trip_types,
+                  :age
       
       has_many :eligibilities
       has_many :accommodations
