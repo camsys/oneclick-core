@@ -202,7 +202,12 @@ namespace :import do
     puts t.a 
     puts args.ai 
     
+    
+    puts t.ai 
+    puts args.ai 
     services_attributes = get_export_data(args, 'services')["services"]
+
+    puts services_attributes.ai 
     
     puts services_attributes.ai 
 
@@ -241,12 +246,12 @@ namespace :import do
       save_and_log_result(svc)
 
       # Have to re-initialize service object to get logo to upload properly
-      if svc && logo
-        svc = Service.find(svc.id)
-        svc.reload
-        svc.remote_logo_url = ENV["RACK_ENV"] == "development" ? "#{args['host']}#{logo}" : logo
-        save_and_log_result(svc)
-      end
+      #if svc && logo
+      #  svc = Service.find(svc.id)
+      #  svc.reload
+      #  svc.remote_logo_url = ENV["RACK_ENV"] == "development" ? "#{args['host']}#{logo}" : logo
+      #  save_and_log_result(svc)
+      #end
 
     end          
     
@@ -297,13 +302,15 @@ namespace :import do
     
     # Get trips in batches
     loop.with_index do |_, i|
-      puts "GETTING TRIPS BATCH #{i}..."
-      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i)["trips"]
+      puts "GETTING TRIPS BATCH #{i + 86}..."
+      trips_attributes = get_export_data(args, 'trips', batch_size: 50, batch_index: i + 86)["trips"]
       
       break if trips_attributes.empty? || i > 2000
       
       trips_attributes.each do |trip_attrs|
         
+        puts trip_attrs.ai 
+
         itineraries = trip_attrs.delete("itineraries")
         
         user = find_record_by_legacy_id(User, trip_attrs.delete("user_id"), column: :email)
