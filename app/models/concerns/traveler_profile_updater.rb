@@ -24,6 +24,8 @@ module TravelerProfileUpdater
           self.last_name = value
         when :email
           self.email = value
+        when :age 
+          self.age = value
         when :lang, :preferred_locale
           self.preferred_locale = Locale.find_by(name: value) || self.locale
         when :preferred_trip_types, :preferred_modes
