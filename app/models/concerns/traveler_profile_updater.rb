@@ -4,6 +4,7 @@
 module TravelerProfileUpdater
   
   def update_profile(params={})
+
     return true if params.blank?
     update_basic_attributes params[:attributes] unless params[:attributes].nil?
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
@@ -36,7 +37,7 @@ module TravelerProfileUpdater
           self.password_confirmation = value
       end
     end
-    self.save!
+    return self.save!
   end
 
   def update_eligibilities params={}

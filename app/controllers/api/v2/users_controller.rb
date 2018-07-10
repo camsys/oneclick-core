@@ -18,6 +18,7 @@ module Api
 
       # Update's the user's profile
       def update
+
         unless @traveler.present?
           render(fail_response(status: 404, message: "Not found"))
         end
