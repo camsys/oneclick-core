@@ -383,7 +383,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       put :update, params: params
       
       # Confirm the Response
-      expect(response.status).to eq(500)
+      expect(response.status).to eq(400)
 
       # Refresh the User's Attributes from the DB
       traveler.reload 
