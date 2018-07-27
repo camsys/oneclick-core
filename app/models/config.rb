@@ -11,7 +11,8 @@ class Config < ApplicationRecord
     :service_update_reminder_emails,
     :user_profile_update_emails,
     :get_ride_pilot_purposes,
-    :feedback_reminders
+    :feedback_reminders,
+    :purge_unused_guests
   ].freeze
 
   # Returns the value of a setting when you say Config.<key>
