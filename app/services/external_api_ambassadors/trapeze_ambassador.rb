@@ -1,6 +1,6 @@
 class TrapezeAmbassador < BookingAmbassador
 
-  attr_accessor :url, :api_user, :api_token, :client_code
+  attr_accessor :url, :api_user, :api_token, :client_code, :client_info
   
   # Calls super and then sets proper default for URL and Token
   def initialize(opts={})
@@ -9,10 +9,14 @@ class TrapezeAmbassador < BookingAmbassador
     @api_user ||= Config.trapeze_user
     @api_token ||= Config.trapeze_token
     @client = create_client(Config.trapeze_url, Config.trapeze_url, @api_user, @api_token)
+    @ada_funding_source_array = Config.trapeze_ada_funding_sources
+    @trapeze_check_polygon_id = Config.trapeze_check_polygon_id
+    @trapeze_ignore_polygon_id = Config.trapeze_ignore_polygon_id
     @client_code = nil #Will be filled out after logging in
     @cookies = nil #Cookies are used to login the user
     @passenger_types = nil # A list of all passengers types allowed for this user.  It's saved to avoid making the call multiple times.
     @booking_id = nil
+    @client_info = nil
   end
 
   #####################################################################
@@ -45,15 +49,19 @@ class TrapezeAmbassador < BookingAmbassador
 
     # Make a create_trip call to Trapeze, passing a trip and any 
     # booking_options that have been set
-    response = pass_create_trip
+    ## Sorted Funding Array
+    get_funding_array.each do |funding|
+      trip_hash = create_trip_hash(funding[:funding_source_id], funding[:fare_type_id], funding[:excluded_validation_checks])
+      response = pass_create_trip trip_hash
+      if response && response[:pass_create_trip_response][:pass_create_trip_result][:booking_id].to_s != "-1"
+        set_booking_id(response)
+        update_booking
+        return booking 
+      end
+    end
 
-    return false unless response && response[:pass_create_trip_response][:pass_create_trip_result][:booking_id].to_s != "-1"
-        
-    # Store the status info in a Booking object and return it
-    set_booking_id(response)
-    update_booking
+    return false
 
-    return booking
   end
 
   def cancel
@@ -120,13 +128,12 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   # Books the passed trip via RidePilot
-  def pass_create_trip
+  def pass_create_trip trip_hash
     # Only attempt to create trip if all the necessary pieces are there
     return false unless @itinerary && @trip && @service && @user
     login if @cookies.nil? 
-    request_hash = trip_hash 
-    Rails.logger.info request_hash.ai 
-    response = @client.call(:pass_create_trip, message: request_hash, cookies: @cookies).to_hash
+    Rails.logger.info trip_hash.ai 
+    response = @client.call(:pass_create_trip, message: trip_hash, cookies: @cookies).to_hash
     Rails.logger.info response.to_hash.ai 
     return response 
   end
@@ -134,9 +141,11 @@ class TrapezeAmbassador < BookingAmbassador
   # Get Client Info
   def pass_get_client_info
     login if @cookies.nil? 
+    return @client_info if @client_info
     response = @client.call(:pass_get_client_info, message: {client_id: customer_id, password: customer_token}, cookies: @cookies)
     Rails.logger.info response.to_hash.ai
-    return response.to_hash[:pass_get_client_info_response]
+    @client_info = response.to_hash[:pass_get_client_info_response]
+    return @client_info
   end
 
   # Cancel the trip
@@ -257,7 +266,7 @@ class TrapezeAmbassador < BookingAmbassador
   end
 
   # Builds the payload for creating a trip
-  def trip_hash
+  def create_trip_hash(funding_source_id, fare_type_id, excluded_validation_checks)
 
      # Create Pickup/Dropoff Hashes
     if @trip.arrive_by
@@ -276,7 +285,7 @@ class TrapezeAmbassador < BookingAmbassador
       para_service_id: para_service_id, 
       auto_schedule: true, 
       calculate_pick_up_req_time: true, 
-      booking_purpose_id: @booking_options[:purpose], 
+      booking_purpose_id: 2, #@booking_options[:purpose], 
       pick_up_leg: pu_leg_hash, 
       drop_off_leg: do_leg_hash
     }
@@ -288,19 +297,36 @@ class TrapezeAmbassador < BookingAmbassador
     end
 
     # Deal with Funding Sources
-    request_hash[:excluded_validation_checks] = 0
-    request_hash[:funding_source_id] = 8
-    request_hash[:fare_type_id] = 0
+    request_hash[:excluded_validation_checks] = excluded_validation_checks
+    request_hash[:funding_source_id] = funding_source_id
+    request_hash[:fare_type_id] = fare_type_id
 
     return request_hash
   
   end
 
-  #TODO: This is not used right now.  Should it be?
-  def get_funding_source_array
-    ada_funding_sources = Config.trapeze_ada_funding_sources
-    ignore_polygon = Config.trapeze_ignore_polygon_id
-    check_polygon = Config.trapeze_check_polygon_id
+  # Returns a sorted array of funding sources, fare types, and exclusion rules
+  # fuding[:funding_source_id], funding[:fare_type_id], funding[:excluded_validation_checks]
+  def get_funding_array
+    #return [{priority: 1, funding_source_name: "ADA", funding_source_id: 8, fare_type_id: 1, excluded_validation_checks: 18}]
+    funding_array  = []
+    client_info = pass_get_client_info
+    
+    # Iterate over this client's funding sources and create a hash.
+    #client_info[:pass_get_client_info_result][:pass_client_funding_sources][:pass_client_funding_source].each do |fs|
+    client_info.try(:with_indifferent_access).try(:[], :pass_get_client_info_result).try(:[], :pass_client_funding_sources).try(:[], :pass_client_funding_source).each do |fs|
+    
+      is_ada = fs[:funding_source_id].in? @ada_funding_source_array
+      # For ADA Trips set the sequence to -1
+      funding_array << { 
+        sequence: is_ada ? "-1" : fs[:sequence],
+        funding_source_id: fs[:funding_source_id],
+        fare_type_id: 1,
+        excluded_validation_checks: is_ada ? @trapeze_check_polygon_id : @trapeze_ignore_polygon_id,
+        funding_source_name: fs[:funding_source_name]
+      }
+    end
+    return funding_array.sort_by{ |element| element[:sequence] }
   end
 
   def set_booking_id response
@@ -363,6 +389,10 @@ class TrapezeAmbassador < BookingAmbassador
   def passenger_hash passenger
     # Get the fare_type for this passenger from the mapping
     fare_type = passenger_type_funding_type_mapping[passenger]
+
+    #Temp
+    passenger = 'CLI'
+    fare_type = 1
 
     {pass_booking_passenger: {passenger_type: passenger, space_type: "AM", passenger_count: 1, fare_type: fare_type}}
   end
