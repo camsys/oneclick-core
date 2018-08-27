@@ -1,7 +1,7 @@
 =content_for :title do
   Accommodations
 
-%table.table.table-hover#accommodation-table
+%table.table.table-hover.datatable#accommodation-table
   %thead.thead-default
     %tr
       %th Code
@@ -33,4 +33,7 @@
     $('#accommodation-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
+
   });

@@ -1,7 +1,7 @@
 =content_for :title do
   Services
 
-%table.table.table-hover#services-table
+%table.table.table-hover.datatable#services-table
   %thead.thead-default
     %tr
       %th Logo
@@ -21,4 +21,7 @@
     $('#services-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
+
   });
