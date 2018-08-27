@@ -17,7 +17,7 @@
       -table.keys.each do |to_zone|
         %td
           %input.form-control.numeric.float{ type: 'number',
-            value: table[from_zone][to_zone],
+            value: number_with_precision(table[from_zone][to_zone], precision: 2),
             name: input_name_for(@service, :fare_details, :fare_table, from_zone, to_zone) }
 #table-replacer.hidden
   .text-muted click submit or cancel to edit fare zone table
