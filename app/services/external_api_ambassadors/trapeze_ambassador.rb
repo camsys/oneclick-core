@@ -314,7 +314,8 @@ class TrapezeAmbassador < BookingAmbassador
     
     # Iterate over this client's funding sources and create a hash.
     #client_info[:pass_get_client_info_result][:pass_client_funding_sources][:pass_client_funding_source].each do |fs|
-    client_info.try(:with_indifferent_access).try(:[], :pass_get_client_info_result).try(:[], :pass_client_funding_sources).try(:[], :pass_client_funding_source).each do |fs|
+    client_funding_source_array = client_info.try(:with_indifferent_access).try(:[], :pass_get_client_info_result).try(:[], :pass_client_funding_sources).try(:[], :pass_client_funding_source)
+    arrayify(client_funding_source_array).each do |fs|
     
       is_ada = fs[:funding_source_id].in? @ada_funding_source_array
       # For ADA Trips set the sequence to -1
@@ -536,5 +537,13 @@ class TrapezeAmbassador < BookingAmbassador
     end
     client
   end
+
+  def arrayify thing
+    if thing.is_a? Array
+      return thing
+    else
+      return [thing]
+    end
+  end 
 
 end
