@@ -147,8 +147,8 @@ class OTPAmbassador
     gtfs_agency_name = leg['agencyName']
 
     # Search for service by gtfs attributes only if they're not nil
-    svc ||= @services.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
-    svc ||= @services.find_by(name: gtfs_agency_name) if gtfs_agency_name
+    svc ||= Service.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
+    svc ||= Service.find_by(name: gtfs_agency_name) if gtfs_agency_name
     return svc
   end
 
