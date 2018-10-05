@@ -1,7 +1,7 @@
 =content_for :title do
   Eligibilities
 
-%table.table.table-hover#eligibility-table
+%table.table.table-hover.datatable#eligibility-table
   %thead.thead-default
     %tr
       %th Code
@@ -33,4 +33,6 @@
     $('#eligibility-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
   });

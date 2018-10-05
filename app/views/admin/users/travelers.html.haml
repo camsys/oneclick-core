@@ -1,6 +1,6 @@
 =content_for :title do
   Travelers
-%table.table.table-hover#staff-table
+%table.table.table-hover.datatable#staff-table
   %thead.thead-default
     %tr
       %th Last Name
@@ -33,4 +33,7 @@
     $('#staff-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
+
   });

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180510190942) do
+ActiveRecord::Schema.define(version: 20180524153613) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -358,6 +358,8 @@ ActiveRecord::Schema.define(version: 20180510190942) do
     t.integer  "agency_id"
     t.string   "booking_api"
     t.text     "booking_details"
+    t.integer  "max_age",              default: 200,   null: false
+    t.integer  "min_age",              default: 0,     null: false
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
@@ -505,6 +507,7 @@ ActiveRecord::Schema.define(version: 20180510190942) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
+    t.integer  "age"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree

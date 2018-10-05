@@ -383,7 +383,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       put :update, params: params
       
       # Confirm the Response
-      expect(response.status).to eq(500)
+      expect(response.status).to eq(400)
 
       # Refresh the User's Attributes from the DB
       traveler.reload 
@@ -474,7 +474,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     
       expect(User).to receive(:find_by).and_return(traveler)
       expect(UserMailer).to receive(:api_v2_reset_password_instructions)
-                        .and_return(UserMailer.api_v2_reset_password_instructions(traveler, "new_password"))
+                        .and_return(UserMailer.api_v2_reset_password_instructions(traveler, "New_#password1"))
     
       params = { user: { email: traveler.email } }      
       post :reset_password, params: params

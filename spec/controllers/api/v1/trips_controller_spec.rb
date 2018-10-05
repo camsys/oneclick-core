@@ -304,13 +304,14 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   
   describe 'past and future trips' do
     
-    let!(:past_trip) { create(:trip, user: user, trip_time: DateTime.now.in_time_zone - 5.days)}
-    let!(:future_trip) { create(:trip, user: user, trip_time: DateTime.now.in_time_zone + 5.days)}
+    let!(:past_trip) { create(:trip_with_itins, user: user, trip_time: DateTime.now.in_time_zone - 5.days)}
+    let!(:future_trip) { create(:trip_with_itins, user: user, trip_time: DateTime.now.in_time_zone + 5.days)}
 
     it 'returns past trips for user' do
+      # Need to select an itinerary since the get trips calls only work for trips with selected itineraries
+      past_trip.itineraries.first.select 
       request.headers.merge!(request_headers)
       get :past_trips
-
       response_body = JSON.parse(response.body)
       expect(response).to be_success
 
@@ -320,6 +321,8 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     end
 
     it 'returns future trips for user' do
+      # Need to select an itinerary since the get trips calls only work for trips with selected itineraries
+      future_trip.itineraries.first.select 
       request.headers.merge!(request_headers)
       get :future_trips
 

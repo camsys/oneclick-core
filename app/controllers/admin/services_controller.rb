@@ -88,6 +88,8 @@ class Admin::ServicesController < Admin::AdminController
     [
       :fare_structure,
       :booking_api,
+      :max_age,
+      :min_age,
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},

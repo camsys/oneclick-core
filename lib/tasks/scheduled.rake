@@ -110,5 +110,12 @@ namespace :scheduled do
     end
 
   end
+
+  desc "Purge Unused Guest Accounts"
+  task purge_unused_guests: :environment do
+    User.guests.where('created_at < ?', Time.now-10.days).each do |user|
+      user.destroy if user.trips.count == 0
+    end
+  end
     
 end

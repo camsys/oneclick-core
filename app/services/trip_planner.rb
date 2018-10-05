@@ -68,6 +68,11 @@ class TripPlanner
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
     
+    # Only select services that your age makes you eligible for
+    if @trip.user and @trip.user.age 
+      @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
+    end
+
     # Find all the services that are available for your time and locations
     @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 

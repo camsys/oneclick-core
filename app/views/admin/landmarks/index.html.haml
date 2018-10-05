@@ -1,7 +1,7 @@
 =content_for :title do
   Landmarks
 
-%table.table.table-hover#landmark-table
+%table.table.table-hover.datatable#landmark-table
   %thead.thead-default
     %tr
       %th Name
@@ -49,4 +49,7 @@
     $('#landmark-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
+
   });

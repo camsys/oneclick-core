@@ -1,7 +1,7 @@
 =content_for :title do
   Purposes
 
-%table.table.table-hover#purpose-table
+%table.table.table-hover.datatable#purpose-table
   %thead.thead-default
     %tr
       %th Code
@@ -30,4 +30,7 @@
     $('#purpose-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
+
   });

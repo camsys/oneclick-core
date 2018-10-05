@@ -38,6 +38,7 @@ class MapService
       color = polyline['options']['color'].nil? ? "0000ff" : polyline['options']['color']
       url += URI::encode("&path=color:0x#{color}|weight:5|enc:" + polyline['geom']['points'])
     end
+    url += "&key=#{ENV['GOOGLE_API_KEY']}"
     return url
   end
 

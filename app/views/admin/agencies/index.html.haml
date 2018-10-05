@@ -1,7 +1,7 @@
 =content_for :title do
   Agencies
 
-%table.table.table-hover#agencies-table
+%table.table.table-hover.datatable#agencies-table
   %thead.thead-default
     %tr
       %th Logo
@@ -24,4 +24,6 @@
     $('#agencies-table tbody tr').click(function() {
       window.location = $(this).data("url");
     });
+
+    $('.datatable').DataTable({});
   });

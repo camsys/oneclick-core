@@ -4,3 +4,8 @@
 =render partial: "feedbacks_table"
 
 =back_link acknowledged_admin_feedbacks_path, label: "View Acknowledged Feedback"
+
+:javascript
+  $(document).ready(function() {
+    $('.datatable').DataTable({});
+  });

@@ -4,6 +4,7 @@
 module TravelerProfileUpdater
   
   def update_profile(params={})
+
     return true if params.blank?
     update_basic_attributes params[:attributes] unless params[:attributes].nil?
     update_eligibilities params[:characteristics] unless params[:characteristics].nil?
@@ -24,6 +25,8 @@ module TravelerProfileUpdater
           self.last_name = value
         when :email
           self.email = value
+        when :age 
+          self.age = value
         when :lang, :preferred_locale
           self.preferred_locale = Locale.find_by(name: value) || self.locale
         when :preferred_trip_types, :preferred_modes
@@ -34,7 +37,7 @@ module TravelerProfileUpdater
           self.password_confirmation = value
       end
     end
-    self.save!
+    return self.save!
   end
 
   def update_eligibilities params={}

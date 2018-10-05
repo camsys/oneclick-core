@@ -7,6 +7,7 @@
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag "https://www.gstatic.com/charts/loader.js" %> <!-- For Google Charts -->
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+
     
   </head>
 
@@ -46,6 +47,10 @@
                       <%= link_to page[:label], page[:url] %>
                     </li>
                   <% end %>
+                  <li role="separator" class="divider"></li>
+                  <li>
+                    <%= link_to('Admin Guide', "https://github.com/camsys/oneclick-core/wiki/Admin-User's-Guide", target: "_blank", :method => :get) %>  
+                  </li>
 
                   <li role="separator" class="divider"></li>
                   <li>

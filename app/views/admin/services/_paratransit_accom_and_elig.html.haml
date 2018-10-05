@@ -8,6 +8,8 @@
 
   = f.association :accommodations, as: :check_boxes
   = f.association :eligibilities, as: :check_boxes
+  = f.input :max_age, as: :integer
+  = f.input :min_age, as: :integer
 
 :javascript
   $(document).ready(function() {

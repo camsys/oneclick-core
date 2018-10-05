@@ -43,6 +43,7 @@ gem 'bootstrap-datepicker-rails'
 gem 'chartkick' # For google charts
 gem 'groupdate' # Extends chartkick functionality
 gem 'phony_rails' # For normalizing phone numbers
+gem 'jquery-datatables-rails', '~> 3.4.0'
 ############################################
 
 
