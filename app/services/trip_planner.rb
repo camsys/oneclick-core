@@ -189,6 +189,10 @@ class TripPlanner
     return [] unless @available_services[:lyft] # Return an empty array if no taxi services are available
 
     cost, price_quote_id = @lyft_ambassador.cost('lyft')
+
+    # Don't return LYFT results if there are none.
+    return [] if cost.nil? 
+
     new_itineraries = @available_services[:lyft].map do |svc|
       Itinerary.new(
         service: svc,
