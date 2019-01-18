@@ -4,7 +4,7 @@ class ServiceBookingParamPermitter < HashParamPermitter
     case_column: :booking_api,
     structure: {
       ride_pilot: [ :provider_id ],
-      ecolane: [],
+      ecolane: [ :external_id, :token, :home_counties, :ada_funding_sources ],
       trapeze: [ :trapeze_provider_id ]
     }
   )

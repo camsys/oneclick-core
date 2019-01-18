@@ -17,9 +17,14 @@
     =f.fields_for :booking_details do |bd|
       =bd.input :provider_id, as: :integer, label: "RidePilot Provider ID", input_html: {value: booking_details[:provider_id]}
 
+
   -# ECOLANE
   .booking-inputs.ecolane-booking.hidden
-    -# %h4 TRAPEZE BOOKING FIELDS
+    =f.fields_for :booking_details do |bd|
+      =bd.input :external_id, as: :string, label: "Ecolane ID", input_html: {value: booking_details[:external_id]}
+      =bd.input :token, as: :string, label: "Token", input_html: {value: booking_details[:token]}
+      =bd.input :home_counties, as: :string, label: "Home Counties", input_html: {value: booking_details[:home_counties]}
+      =bd.input :ada_funding_sources, as: :string, placeholder: "ADA, ADAParatransit", label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden
