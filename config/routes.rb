@@ -62,6 +62,12 @@ Rails.application.routes.draw do
         delete 'sign_out' => 'sessions#destroy'
       end #users
 
+      resources :services do
+        collection do
+          get 'ids_humanized'
+        end
+      end
+
     end #v1
 
 
