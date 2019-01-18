@@ -11,6 +11,12 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  %h4.text-center Ecolane
+  = f.input :ecolane_url, required: false,
+    label: "Ecolane API URL",
+    input_html: {value: @configs.find_by(key: :ecolane_url).try(:value)},
+    as: :string
+
   %h4.text-center RidePilot
   = f.input :ride_pilot_url, required: false,
     label: "RidePilot API URL",
