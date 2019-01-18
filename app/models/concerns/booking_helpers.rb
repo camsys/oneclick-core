@@ -47,7 +47,6 @@ module BookingHelpers
 
     # Configure including class
     def self.included(base)
-      base.extend(ClassMethods)
       base.scope :is_ecolane, -> { where(booking_api: "ecolane") }
       base.serialize :booking_details
     end
