@@ -44,7 +44,6 @@ module BookingHelpers
   # Include in Service model to allow booking
   module ServiceHelpers
 
-
     # Configure including class
     def self.included(base)
       base.scope :is_ecolane, -> { where(booking_api: "ecolane") }
