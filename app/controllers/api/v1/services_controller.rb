@@ -1,6 +1,6 @@
 module Api
   module V1
-    class ServicesController < Api::V1::ApiController
+    class ServicesController < ApiController
 
       # FOR ECOLANEs
       def ids_humanized
