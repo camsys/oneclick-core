@@ -9,7 +9,9 @@ class UserBookingProfile < ApplicationRecord
   
   serialize :details
   encrypt_attribute :external_password, 'BOOKING_PASSWORD_ENCRYPTION_KEY' # Encryption key stored in ENV variable of this name
-
+  
+  ### VALIDATIONS ###
+  validates :user_id, presence: true
   
   ### INSTANCE METHODS ###
   
@@ -21,7 +23,9 @@ class UserBookingProfile < ApplicationRecord
       return RidePilotAmbassador.new(opts)
     when "trapeze"
       return TrapezeAmbassador.new(opts)
-    else
+    when "ecolane"
+      return EcolaneAmbassadoor.new(opts)
+    else 
       return nil
     end
   end
