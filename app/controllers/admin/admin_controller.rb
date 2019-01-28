@@ -4,6 +4,7 @@ class Admin::AdminController < ApplicationController
 
   before_action :confirm_admin
   before_action :get_admin_pages
+  before_action :allow_iframes
   
   # Add some prebuilt reports for displaying on the homepage
   DashboardReport.prebuilt_reports.merge!({
@@ -37,6 +38,10 @@ class Admin::AdminController < ApplicationController
                   record.errors || 
                   []).to_sentence
     flash[:danger] = error_msgs unless error_msgs.empty?
+  end
+
+  def allow_iframes
+    response.headers.delete "X-Frame-Options"
   end
     
 end
