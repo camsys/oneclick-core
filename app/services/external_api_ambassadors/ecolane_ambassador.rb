@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :url, :external_id, :county, :dob, :ecolane_id, :system_id, :token
+  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number
   require 'securerandom'
 
   def initialize(opts={})
@@ -79,23 +79,29 @@ class EcolaneAmbassador < BookingAmbassador
   def validate_passenger #customer_number, dob, system_id, token
     iso_dob = iso8601ify(@dob)
     if iso_dob.nil?
-      return false
+      return false, {}
     end
     result = search_for_customers({"date_of_birth": iso_dob, "customer_number": @customer_number})
     if result["search_results"].nil?
       return false
     # If only one thing is returned, it comes as a hash.  Multilple items are returned as an array.
-    # Since we want to see exactly 1 match, return true if this is a Hash.
-    elsif result["search_results"]["customer"].is_a? Hash 
-      return true
+    # Since we want to see exactly 1 match, return true if this is a Hash and the account is enabled.
+    elsif result["search_results"]["customer"].is_a? Hash
+      customer = result["search_results"]["customer"]
+      if  customer["status"] and customer["status"]["state"] == "enabled"
+        return true, customer
+      else
+        return false, customer
+      end
     else
-      return false
+      return false, {}
     end
   end
 
   ### Find or Create User
   def get_user
-    if validate_passenger
+    valid_passenger, passenger = validate_passenger
+    if valid_passenger
       user = nil
       ubp = UserBookingProfile.where(service: service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
@@ -106,7 +112,14 @@ class EcolaneAmbassador < BookingAmbassador
           )
         profile.user = user
       end
-      return ubp.user
+
+      # Update the user's name
+      user = ubp.user 
+      user.first_name = passenger["first_name"]
+      user.last_name = passenger["last_name"]     
+      user.save  
+
+      return user
     else
       return nil
     end

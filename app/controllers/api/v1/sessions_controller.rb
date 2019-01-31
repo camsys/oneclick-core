@@ -29,8 +29,8 @@ module Api
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,
-              first_name: "TOOD",
-              last_name: "TODO",
+              first_name: @user.first_name,
+              last_name: @user.last_name,
               last_origin: "TODO",
               last_destination: "Is this needed?"
             }
