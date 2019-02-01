@@ -14,6 +14,17 @@ class EcolaneAmbassador < BookingAmbassador
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     @user ||= (@customer_number.nil? ? nil : get_user)
+    add_missing_attributes
+  end
+
+  #####################################################################
+  ## Custom Setters
+  #####################################################################
+
+  def add_missing_attributes
+    return unless @user and @booking_profile
+    @customer_number ||= @booking_profile.external_user_id
+    @customer_id ||= @booking_profile.details[:customer_id]
   end
 
   #####################################################################
@@ -31,11 +42,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync
-    #pass_get_client_trips.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).each do |booking|
-    #  occ_trip_from_trapeze_trip booking
-    #end
     fetch_customer_orders.try(:with_indifferent_access).try(:[], :orders).try(:[], :order).each do |order|
-      puts order["id"] 
       occ_trip_from_ecolane_trip order
     end
   end
@@ -236,13 +243,14 @@ class EcolaneAmbassador < BookingAmbassador
         user = User.create!(
             email: "#{@customer_number}_#{@county}@ecolane_user.com", 
             password: random, 
-            password_confirmation: random
+            password_confirmation: random,            
           )
+        profile.details = {customer_id: passenger["id"]}
+        profile.booking_api = "ecolane"
         profile.user = user
       end
 
       # Update the user's name
-      @customer_id = passenger["id"] #Maybe save this to the ecolane booking profile
       user = ubp.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     

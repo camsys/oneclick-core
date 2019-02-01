@@ -24,7 +24,7 @@ class UserBookingProfile < ApplicationRecord
     when "trapeze"
       return TrapezeAmbassador.new(opts)
     when "ecolane"
-      return EcolaneAmbassadoor.new(opts)
+      return EcolaneAmbassador.new(opts)
     else 
       return nil
     end
