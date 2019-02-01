@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number
+  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service
   require 'securerandom'
 
   def initialize(opts={})
@@ -8,11 +8,12 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
-    @customer_number = opts[:ecolane_id]
-    self.service ||= county_map[@county]
-    self.system_id ||= service.booking_details[:external_id]
-    self.token = service.booking_details[:token]
-    @user ||= get_user
+    @customer_number = opts[:ecolane_id] #This is what the customer knows
+    @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
+    @service ||= county_map[@county]
+    self.system_id ||= @service.booking_details[:external_id]
+    self.token = @service.booking_details[:token]
+    @user ||= (@customer_number.nil? ? nil : get_user)
   end
 
   #####################################################################
@@ -27,6 +28,18 @@ class EcolaneAmbassador < BookingAmbassador
     true
   end
 
+  # Get all future trips and trips within the past month 
+  # Create 1-Click Trips for those trips if they don't already exist
+  def sync
+    #pass_get_client_trips.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).each do |booking|
+    #  occ_trip_from_trapeze_trip booking
+    #end
+    fetch_customer_orders.try(:with_indifferent_access).try(:[], :orders).try(:[], :order).each do |order|
+      puts order["id"] 
+      occ_trip_from_ecolane_trip order
+    end
+  end
+
   ####################################################################
   ## Actual Calls to Ecolane 
   ####################################################################
@@ -38,6 +51,16 @@ class EcolaneAmbassador < BookingAmbassador
       url_options += "&#{key}=#{value}"
     end
     response = send_request(@url+url_options)
+    Hash.from_xml(response.body)
+  end
+
+  # Get orders for a customer
+  def fetch_customer_orders options={}
+    url_options = "/api/customer/#{system_id}/"
+    url_options += @customer_id.to_s
+    url_options += "/orders"
+    url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
+    response = send_request(@url + url_options, token)
     Hash.from_xml(response.body)
   end
 
@@ -75,6 +98,111 @@ class EcolaneAmbassador < BookingAmbassador
   ## Helpers
   ###################################################################
   
+  ### Create OCC Trip from Ecolane Trip ###
+  def occ_trip_from_ecolane_trip eco_trip
+    booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
+    itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+
+    # Calculate time window
+    #raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).in_time_zone.to_time
+    #pick_up_leg = trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg)
+    #seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
+
+    #early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+    #seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_late)
+    #late_pu_time = raw_date + seconds_since_midnight.to_i.seconds
+
+    # This Trip has already been created, just update it with new times/status etc.
+    if itinerary
+      booking = itinerary.booking 
+      #booking.latest_pu = late_pu_time
+      #booking.earliest_pu = early_pu_time
+      booking.status =  eco_trip.try(:with_indifferent_access).try(:[], :status)
+      if booking.status == "canceled"
+        itinerary.unselect
+      end
+      booking.save 
+      return nil
+    # This Trip needs to be added to OCC
+    else
+      # Make the Trip
+      trip = Trip.create!(occ_trip_hash(eco_trip))
+      # Make the Itinerary
+      itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
+      itinerary.trip = trip
+      itinerary.save 
+      itinerary.select
+
+      # Make the Booking
+      booking = Booking.new(occ_booking_hash(eco_trip))
+      #booking.latest_pu = late_pu_time
+      #booking.earliest_pu = early_pu_time
+      booking.itinerary = itinerary
+      if booking.status == 'canceled'
+        itinerary.unselect
+      end
+      booking.save 
+    end
+  end
+
+  def occ_place_from_eco_place eco_place
+    Waypoint.create!(occ_place_hash(eco_place))
+  end
+
+  #HASHES
+  def occ_trip_hash eco_trip
+    origin = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :location))
+    origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
+    destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
+    destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
+    arrive_by = (not destination_requested.nil?)
+    trip_time = origin_negotiated.to_time
+    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
+  end
+
+  def occ_place_hash eco_place
+    {
+      name:           eco_place.try(:with_indifferent_access).try(:[], :name),
+      street_number:  eco_place.try(:with_indifferent_access).try(:[], :street_number),
+      route:          eco_place.try(:with_indifferent_access).try(:[], :street),
+      city:           eco_place.try(:with_indifferent_access).try(:[], :city),
+      zip:            eco_place.try(:with_indifferent_access).try(:[], :postcode),
+      lat:            eco_place.try(:with_indifferent_access).try(:[], :latitude),
+      lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude)
+    }
+  end 
+
+  def occ_itinerary_hash_from_eco_trip eco_trip
+    origin = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :location))
+    origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
+    destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
+    destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
+    destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
+    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay)
+
+    puts destination_negotiated
+    puts eco_trip.ai
+    start_time = origin_negotiated.try(:to_time)
+    end_time = destination_negotiated.try(:to_time)
+    {
+      start_time: start_time, 
+      end_time: end_time,
+      transit_time: (start_time and end_time) ? (end_time - start_time).to_i : nil,
+      cost: fare.to_f, 
+      service: @service, 
+      trip_type: 'paratransit'
+    }
+  end
+
+  def occ_booking_hash eco_trip 
+    {
+      confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
+      type: "EcolaneBooking", 
+      status: eco_trip.try(:with_indifferent_access).try(:[], :status)
+    }
+  end
+
+
   ### Does the ID/County/DOB match a single customer?
   def validate_passenger #customer_number, dob, system_id, token
     iso_dob = iso8601ify(@dob)
@@ -103,7 +231,7 @@ class EcolaneAmbassador < BookingAmbassador
     valid_passenger, passenger = validate_passenger
     if valid_passenger
       user = nil
-      ubp = UserBookingProfile.where(service: service, external_user_id: @customer_number).first_or_create do |profile|
+      ubp = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         user = User.create!(
             email: "#{@customer_number}_#{@county}@ecolane_user.com", 
@@ -114,6 +242,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
 
       # Update the user's name
+      @customer_id = passenger["id"] #Maybe save this to the ecolane booking profile
       user = ubp.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     
