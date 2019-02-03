@@ -25,6 +25,8 @@
       =bd.input :token, as: :string, label: "Token", input_html: {value: booking_details[:token]}
       =bd.input :home_counties, as: :string, label: "Home Counties", input_html: {value: booking_details[:home_counties]}
       =bd.input :ada_funding_sources, as: :string, placeholder: "ADA, ADAParatransit", label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
+      =bd.input :min_days, as: :integer, label: "Min Booking Notice (days)", input_html: {value: booking_details[:min_days]}
+      =bd.input :max_days, as: :integer, label: "Max Booking Notice (days)", input_html: {value: booking_details[:max_days]}
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden

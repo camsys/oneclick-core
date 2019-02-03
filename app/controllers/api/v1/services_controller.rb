@@ -30,8 +30,8 @@ module Api
             booking_profile = @traveler.booking_profiles.first
             service = booking_profile.service
 
-            min_notice_days = 2#(service.advanced_notice_minutes || 1440).to_i / 1440 #Minimum notice in days
-            max_notice_days = 14#[(service.max_advanced_book_minutes || 20160).to_i / 1440, 28].min #Max advanced notice (up to 28 days)
+            min_notice_days = (service.booking_details[:min_days] || 2).to_i
+            max_notice_days = (service.booking_details[:max_days] || 14).to_i
 
             if false#user_service.unrestricted_hours #This user is allowed to book at all times
               (1..21).each do |n|
