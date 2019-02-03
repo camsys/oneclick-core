@@ -6,13 +6,22 @@ module ScheduleHelper
   SUN, MON, TUE, WED, THU, FRI, SAT = 0, 1, 2, 3, 4, 5, 6 # Day of week codes
 
   # Returns a pretty time from seconds since midnight
-  def ScheduleHelper.schedule_time_to_string(secs_since_midnight)
-    (Time.new(0) + secs_since_midnight).strftime("%l:%M %p").strip
+  def ScheduleHelper.schedule_time_to_string(secs_since_midnight, military=false)
+    if military
+      (Time.new(0) + secs_since_midnight).strftime("%H:%M").strip
+    else
+      (Time.new(0) + secs_since_midnight).strftime("%l:%M %p").strip
+    end
   end
 
   # Calls the module method
   def schedule_time_to_string(secs_since_midnight)
     ScheduleHelper.schedule_time_to_string(secs_since_midnight)
+  end
+
+  # Calls the module method
+  def schedule_time_to_military_string(secs_since_midnight)
+    ScheduleHelper.schedule_time_to_string(secs_since_midnight, military=true)
   end
 
   # Every half-hour, with a pretty string and seconds since midnight
