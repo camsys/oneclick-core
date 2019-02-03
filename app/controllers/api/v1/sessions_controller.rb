@@ -24,6 +24,13 @@ module Api
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
+            
+            #Last Trip
+            last_trip = @user.trips.order('created_at').last
+            if last_trip and last_trip.origin and last_trip.destination
+              last_origin = last_trip.origin.google_place_hash
+              last_destination = last_trip.destination.google_place_hash
+            end
             sign_in(:user, @user)
             @user.ensure_authentication_token
             render status: 200, json: {
@@ -31,8 +38,8 @@ module Api
               email: @user.email,
               first_name: @user.first_name,
               last_name: @user.last_name,
-              last_origin: "TODO",
-              last_destination: "Is this needed?"
+              last_origin: last_origin || nil,
+              last_destination: last_destination || nil
             }
           else 
             render status: 401, json: {message: "Invalid Ecolane Id or DOB."}
