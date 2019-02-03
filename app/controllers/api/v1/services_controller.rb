@@ -68,7 +68,7 @@ module Api
           end # if #traveler.user_profile.user_services.count > 0
         end # if @travler.is_visitor
 
-        respond_with hours
+        render status: 200, json: hours
 
       end #hours
 
