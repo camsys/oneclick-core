@@ -65,6 +65,7 @@ Rails.application.routes.draw do
       resources :services do
         collection do
           get 'ids_humanized'
+          get 'hours'
         end
       end
 
