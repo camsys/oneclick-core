@@ -18,17 +18,16 @@ module Api
 
         today = Date.today
         hours = {}
-
         #if @traveler.is_visitor? or @traveler.is_api_guest? #Return a wide range of hours
-        if not @user.registered?
+        if not @traveler.registered?
           (0..21).each do |n|
             hours[(today + n).to_s] = {open: "07:00", close: "22:00"}
           end
 
         else # This is not a guest, check to see if the traveler is registered with a service
 
-          if @user.booking_profiles.count > 0 #This user is registered with a service
-            booking_profile = @user.booking_profiles.first
+          if @traveler.booking_profiles.count > 0 #This user is registered with a service
+            booking_profile = @traveler.booking_profiles.first
             service = booking_profile.service
 
             min_notice_days = 2#(service.advanced_notice_minutes || 1440).to_i / 1440 #Minimum notice in days
