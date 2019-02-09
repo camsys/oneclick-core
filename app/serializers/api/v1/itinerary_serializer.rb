@@ -220,7 +220,8 @@ module Api
               lat: waypoint.lat.to_f,
               lng: waypoint.lng.to_f
             }
-          }
+          },
+          formatted_address: waypoint.formatted_address
         }
       end
       
