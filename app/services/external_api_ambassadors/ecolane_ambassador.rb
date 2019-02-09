@@ -71,6 +71,20 @@ class EcolaneAmbassador < BookingAmbassador
     Hash.from_xml(response.body)
   end
 
+  # Get customer information from ID
+  # If funding=true, return funding_info
+  # If locations=true return a list of the clients locations (e.g., home)
+  def fetch_customer_information(funding=false,locations=false) 
+    url_options = "/api/customer/#{system_id}/"
+    url_options += @customer_id.to_s
+    url_options += "?funding=" + funding.to_s + "&locations=" + locations.to_s
+    url = @url + url_options
+    Rails.logger.debug URI.parse(url)
+    t = Time.current
+    resp = send_request(url, token )
+    Hash.from_xml(resp.body)
+  end
+
   ##### 
   ## Send the Requests
   def send_request url, type='get', message=nil
@@ -104,6 +118,24 @@ class EcolaneAmbassador < BookingAmbassador
   ###################################################################
   ## Helpers
   ###################################################################
+
+
+  # Get a list of trip purposes for a customer
+  def get_trip_purposes 
+    purposes = []
+    customer_information = fetch_customer_information(funding=true)
+    customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
+      arrayify(funding_source["allowed"]).each do |allowed|
+        puts allowed.ai 
+        purpose = allowed["purpose"]
+        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
+          purposes.append(purpose)
+        end
+      end
+
+    end
+    purposes.sort
+  end
   
   ### Create OCC Trip from Ecolane Trip ###
   def occ_trip_from_ecolane_trip eco_trip
@@ -238,7 +270,7 @@ class EcolaneAmbassador < BookingAmbassador
     valid_passenger, passenger = validate_passenger
     if valid_passenger
       user = nil
-      ubp = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
+      @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         user = User.create!(
             email: "#{@customer_number}_#{@county}@ecolane_user.com", 
@@ -251,7 +283,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
 
       # Update the user's name
-      user = ubp.user 
+      user = @booking_profile.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     
       user.save  
@@ -286,6 +318,14 @@ class EcolaneAmbassador < BookingAmbassador
       return nil
     end
     Date.iso8601(dob.delete('/'))
+  end
+
+  def arrayify thing 
+    if thing.is_a? Array 
+      return thing 
+    else
+      return [thing]
+    end
   end
 
 end

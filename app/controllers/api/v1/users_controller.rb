@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApiController
-      before_action :require_authentication, only: [:update]
+      before_action :require_authentication, only: [:update, :trip_purposes]
       before_action :ensure_traveler, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
 
       # Sends back a profile hash via the API::V1::UserSerializer
@@ -112,6 +112,43 @@ module Api
         end
 
         return
+      end
+
+      #Built to Support Ecolane API/V1
+      def trip_purposes
+
+        #If the user is registered with a service, use his/her trip purposes
+        trip_purposes  = []
+        booking_profile = @traveler.booking_profiles.first
+        if @traveler and booking_profile
+          begin
+            trip_purposes = booking_profile.booking_ambassador.get_trip_purposes
+          rescue Exception=>e
+            trip_purposes = []
+          end
+        end
+
+        #Append extra information to Trip Purposes Array
+        purposes = []
+        index =  0
+        trip_purposes.sort.each do |tp|
+          purposes.append({name: tp, code: tp, sort_order: index})
+          index+=1
+        end
+
+        #Append extra information to Top Trip Purposes Array
+        #top_trip_purposes = bs.get_top_purposes(trip_purposes).keys
+        top_purposes = []
+        #index =  0
+        #top_trip_purposes.each do |tp|
+        #  top_purposes.append({name: tp, code: tp, sort_order: index})
+        #  index+=1
+        #end
+
+        puts purposes.ai 
+        hash = {top_trip_purposes: top_purposes, trip_purposes: purposes}
+        render json: hash
+
       end
       
       private

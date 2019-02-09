@@ -42,6 +42,7 @@ Rails.application.routes.draw do
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
       post 'itineraries/book' => 'trips#book'
+      post 'trip_purposes/list' => 'users#trip_purposes'
 
       # Users
       resources :users do
