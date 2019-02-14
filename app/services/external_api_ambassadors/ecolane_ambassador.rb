@@ -21,6 +21,13 @@ class EcolaneAmbassador < BookingAmbassador
   ## Custom Setters
   #####################################################################
 
+  def itinerary=(new_itin)
+    @itinerary = new_itin
+    return unless @itinerary
+    self.trip = @itinerary.try(:trip) || @trip
+    self.service = @itinerary.try(:service) || @service
+  end
+
   def add_missing_attributes
     return unless @user and @booking_profile
     @customer_number ||= @booking_profile.external_user_id
@@ -85,6 +92,23 @@ class EcolaneAmbassador < BookingAmbassador
     Hash.from_xml(resp.body)
   end
 
+  # Books Trip (funding_source and sponsor must be specified)
+  def book_itinerary
+    url_options = "/api/order/#{system_id}?overlaps=reject"
+    url = @url + url_options
+    order =  build_order
+    order = Nokogiri::XML(order)
+    order.children.first.set_attribute('version', '3')
+    order = order.to_s
+    Rails.logger.info order
+    resp = send_request(url, 'POST', order)
+    return resp
+    Rails.logger.info('Order Request Sent to Ecolane:')
+    Rails.logger.info(order)
+    Rails.logger.info(resp)
+    return unpack_booking_response(resp)
+  end
+
   ##### 
   ## Send the Requests
   def send_request url, type='get', message=nil
@@ -108,6 +132,7 @@ class EcolaneAmbassador < BookingAmbassador
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       resp = http.start {|http| http.request(req)}
+      Rails.logger.info(resp.body)
       return resp
     rescue Exception=>e
       Rails.logger.info("Sending Error")
@@ -148,7 +173,7 @@ class EcolaneAmbassador < BookingAmbassador
     #seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
 
     #early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
-    #seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_late)
+    #seconds_since_midnight = pick_up_l`eg.try(:with_indifferent_access).try(:[], :display_late)
     #late_pu_time = raw_date + seconds_since_midnight.to_i.seconds
 
     # This Trip has already been created, just update it with new times/status etc.
@@ -294,6 +319,60 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
+  def build_order
+    params = {todo: "TODO MAKE THIS WORK"}
+    order_hash = {
+        assistant: yes_or_no(params[:assistant]), 
+        companions: params[:companions], 
+        children: params[:children], 
+        other_passengers: params[:other_passengers], 
+        pickup: build_pu_hash,
+        dropoff: build_do_hash}
+
+    order_hash[:customer_id] = @customer_id
+
+    funding_hash = {}
+    if true #TODO FIx
+      funding_hash[:purpose] = params[:trip_purpose_raw] || "Medical" # TODO MAKE THIS REAL
+    end
+    if true #TODO Fix
+      funding_hash[:funding_source] = params[:funding_source]  || "PWD" #TODO Make this real
+    end
+    if params[:sponsor]
+      funding_hash[:sponsor] = params[:sponsor]
+    end
+    order_hash[:funding] = funding_hash
+
+    order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
+    order_xml
+  end
+
+  #Build the hash for the pickup request
+  def build_pu_hash
+    if !trip.arrive_by
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: "TODO NOTE TO DRIVER"}
+    else
+      pu_hash = {location: build_location_hash(trip.origin), note: "TODO NOTE TO DRIVER"}
+    end
+    pu_hash
+  end
+
+  #Build the hash for the drop off request
+  def build_do_hash
+    if !trip.arrive_by
+      do_hash = {location: build_location_hash(trip.destination)}
+    else
+      do_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.destination)}
+    end
+    do_hash
+  end
+
+  #Build a location hash (Used for dropoffs and pickups )
+  def build_location_hash place 
+    {street_number: place.street_number, street: place.route, city: place.city, 
+      state: place.state || "PA", zip: place.zip, latitude: place.lat, longitude: place.lng}
+  end
+
   ### County Mapping ###
   def county_map
     services = Service.is_ecolane.published
@@ -326,6 +405,10 @@ class EcolaneAmbassador < BookingAmbassador
     else
       return [thing]
     end
+  end
+
+  def yes_or_no value
+    value.to_bool ? true : false
   end
 
 end
