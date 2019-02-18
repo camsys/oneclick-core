@@ -374,6 +374,18 @@ module Api
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
+        when 'ecolane', :ecolane 
+          return {
+            booked: true,
+            confirmation: confirmation_id, # it needs both of these 
+            confirmation_id: confirmation_id, # for some reason
+            wait_start: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu - 15.minutes,
+            wait_end: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu + 15.minutes,
+            arrival: booking.negotiated_do,
+            message: nil,
+            negotiated_duration: (booking.negotiated_pu and booking.negotiated_do) ? (booking.negotiated_do - booking.negotiated_pu) : nil # Returns duration in seconds
+          }
+
         else
           return {}
         end

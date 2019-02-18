@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180524153613) do
+ActiveRecord::Schema.define(version: 20190218193515) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -73,10 +73,12 @@ ActiveRecord::Schema.define(version: 20180524153613) do
     t.string   "status"
     t.string   "confirmation"
     t.text     "details"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
     t.datetime "earliest_pu"
     t.datetime "latest_pu"
+    t.datetime "negotiated_pu"
+    t.datetime "negotiated_do"
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
 

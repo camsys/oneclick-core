@@ -186,7 +186,8 @@ class EcolaneAmbassador < BookingAmbassador
       booking = itinerary.booking 
       #booking.latest_pu = late_pu_time
       #booking.earliest_pu = early_pu_time
-      booking.status =  eco_trip.try(:with_indifferent_access).try(:[], :status)
+      booking.update(occ_booking_hash(eco_trip))
+      #TODO
       if booking.status == "canceled"
         itinerary.unselect
       end
@@ -264,11 +265,21 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_booking_hash eco_trip 
-    {
+    puts eco_trip.ai 
+    puts eco_trip.try(:with_indifferent_access).try(:[], :pickup).ai
+    puts eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated).ai 
+    puts '------------------------'
+
+    r = {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
       type: "EcolaneBooking", 
-      status: eco_trip.try(:with_indifferent_access).try(:[], :status)
+      status: eco_trip.try(:with_indifferent_access).try(:[], :status),
+      negotiated_pu: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated),
+      negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated)
     }
+
+    puts r 
+    return r
   end
 
 
