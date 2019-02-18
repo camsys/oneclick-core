@@ -377,8 +377,8 @@ module Api
         when 'ecolane', :ecolane 
           return {
             booked: true,
-            confirmation: confirmation_id, # it needs both of these 
-            confirmation_id: confirmation_id, # for some reason
+            confirmation: booking.confirmation, 
+            confirmation_id: booking.confirmation, 
             wait_start: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu - 15.minutes,
             wait_end: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu + 15.minutes,
             arrival: booking.negotiated_do,
