@@ -56,24 +56,29 @@ class EcolaneAmbassador < BookingAmbassador
 
     # Books Trip (funding_source and sponsor must be specified)
   def book
+    new_order
+  end
+
+  ####################################################################
+  ## Actual Calls to Ecolane 
+  ####################################################################
+
+  def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     order =  build_order
     order = Nokogiri::XML(order)
     order.children.first.set_attribute('version', '3')
     order = order.to_s
-    Rails.logger.info order
     resp = send_request(url, 'POST', order)
-    return resp
-    Rails.logger.info('Order Request Sent to Ecolane:')
     Rails.logger.info(order)
     Rails.logger.info(resp)
-    return unpack_booking_response(resp)
+    if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+      return booking
+    else
+      return nil
+    end
   end
-
-  ####################################################################
-  ## Actual Calls to Ecolane 
-  ####################################################################
 
   # Get a list of customers
   def search_for_customers terms={}
