@@ -73,7 +73,13 @@ class EcolaneAmbassador < BookingAmbassador
     resp = send_request(url, 'POST', order)
     Rails.logger.info(order)
     Rails.logger.info(resp)
+    puts Hash.from_xml(resp.body).ai 
     if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+      confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id) 
+      eco_trip  = fetch_order(confirmation)["order"]
+      booking = Booking.new(occ_booking_hash(eco_trip))
+      booking.itinerary = itinerary
+      booking.save
       return booking
     else
       return nil
@@ -96,6 +102,14 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += @customer_id.to_s
     url_options += "/orders"
     url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
+    response = send_request(@url + url_options, token)
+    Hash.from_xml(response.body)
+  end
+
+  # Get Single Order
+  def fetch_order confirmation
+    url_options = "/api/order/#{system_id}/"
+    url_options += confirmation
     response = send_request(@url + url_options, token)
     Hash.from_xml(response.body)
   end
@@ -156,7 +170,6 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
       arrayify(funding_source["allowed"]).each do |allowed|
-        puts allowed.ai 
         purpose = allowed["purpose"]
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
@@ -250,8 +263,6 @@ class EcolaneAmbassador < BookingAmbassador
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay)
 
-    puts destination_negotiated
-    puts eco_trip.ai
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
     {
@@ -265,21 +276,13 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_booking_hash eco_trip 
-    puts eco_trip.ai 
-    puts eco_trip.try(:with_indifferent_access).try(:[], :pickup).ai
-    puts eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated).ai 
-    puts '------------------------'
-
-    r = {
+    {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
       type: "EcolaneBooking", 
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
       negotiated_pu: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated),
       negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated)
     }
-
-    puts r 
-    return r
   end
 
 
