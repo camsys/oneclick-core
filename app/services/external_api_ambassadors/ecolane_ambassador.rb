@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service
+  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service, :confirmation
   require 'securerandom'
 
   def initialize(opts={})
@@ -32,6 +32,7 @@ class EcolaneAmbassador < BookingAmbassador
     return unless @user and @booking_profile
     @customer_number ||= @booking_profile.external_user_id
     @customer_id ||= @booking_profile.details[:customer_id]
+    @confirmation ||= booking.confirmation
   end
 
   #####################################################################
@@ -57,6 +58,15 @@ class EcolaneAmbassador < BookingAmbassador
     # Books Trip (funding_source and sponsor must be specified)
   def book
     new_order
+  end
+
+  def cancel
+    result = cancel_order
+    # Unselect the itinerary on successful cancellation
+    @itinerary.unselect if result
+    # Update Booking object with status info and return it
+    booking.update({status: status})
+    return result
   end
 
   ####################################################################
@@ -107,9 +117,8 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   # Get Single Order
-  def fetch_order confirmation
-    url_options = "/api/order/#{system_id}/"
-    url_options += confirmation
+  def fetch_order confirmation=@confirmation
+    url_options = "/api/order/#{system_id}/#{confirmation}"
     response = send_request(@url + url_options, token)
     Hash.from_xml(response.body)
   end
@@ -126,6 +135,39 @@ class EcolaneAmbassador < BookingAmbassador
     t = Time.current
     resp = send_request(url, token )
     Hash.from_xml(resp.body)
+  end
+
+  # Cancel a Trip
+  def cancel_order 
+    unless @confirmation
+      Rails.logger.debug "Unable to cancel itinerary #{itinerary.id} because to confirmation number is present in the booking."
+      return false
+    end
+
+    url_options = "/api/order/#{system_id}/#{@confirmation}"
+    url = @url + url_options
+    resp = send_request(url, 'DELETE')
+
+    begin
+      resp_code = resp.code
+    rescue
+      return false
+    end
+
+    if resp_code == "200"
+      Rails.logger.debug "Trip #{@confirmation} canceled."
+      #The trip was successfully canceled
+      return true
+    elsif status == 'canceled'
+      Rails.logger.debug "Trip #{@confirmation}  already canceled."
+      #The trip was not successfully deleted, because it was already canceled
+      return true
+    else
+      Rails.logger.debug "Trip #{@confirmation}  cannot be canceled."
+      #The trip is not canceled
+      return false
+    end
+
   end
 
   ##### 
@@ -308,6 +350,12 @@ class EcolaneAmbassador < BookingAmbassador
       return false, {}
     end
   end
+
+  ### Get a Trip Status ###
+  def status confirmation=@confirmation
+    fetch_order(confirmation).try(:with_indifferent_access).try(:[], :order).try(:[], :status)
+  end
+
 
   ### Find or Create User
   def get_user

@@ -394,7 +394,7 @@ module Api
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
         case booking.try(:type_code)
-        when :ride_pilot
+        when :ride_pilot, :ecolane
           return {
             success: true,
             confirmation_id: booking.confirmation
