@@ -42,7 +42,7 @@ module Api
               (min_notice_days..max_notice_days).each do |n|
                 schedule = service.schedules.where(day: (next_open + n.days).wday).first
                 if schedule
-                  hours[(next_open + n).to_s] = {open: schedule.schedule_time_to_military_string(schedule.start_time), 
+                  hours[(next_open + n.days).to_s] = {open: schedule.schedule_time_to_military_string(schedule.start_time), 
                     close: schedule.schedule_time_to_military_string(schedule.end_time)}
                 end
               end
