@@ -38,9 +38,9 @@ module Api
                 hours[(today + n).to_s] = {open: "00:00", close: "23:59"}
               end
             elsif service.schedules.count > 0 #This user's service has listed hours
-
+              next_open = service.next_open_time
               (min_notice_days..max_notice_days).each do |n|
-                schedule = service.schedules.where(day: (today + n).wday).first
+                schedule = service.schedules.where(day: (next_open + n).wday).first
                 if schedule
                   hours[(today + n).to_s] = {open: schedule.schedule_time_to_military_string(schedule.start_time), 
                     close: schedule.schedule_time_to_military_string(schedule.end_time)}
