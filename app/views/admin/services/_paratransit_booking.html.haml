@@ -27,6 +27,7 @@
       =bd.input :ada_funding_sources, as: :string, placeholder: "ADA, ADAParatransit", label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
       =bd.input :min_days, as: :integer, label: "Min Booking Notice (days)", input_html: {value: booking_details[:min_days]}
       =bd.input :max_days, as: :integer, label: "Max Booking Notice (days)", input_html: {value: booking_details[:max_days]}
+      =bd.input :require_selfservice_validation, collection: [false, true], include_blank: false, label: "Require Self Service Validation", selected: (booking_details[:require_selfservice_validation])
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden

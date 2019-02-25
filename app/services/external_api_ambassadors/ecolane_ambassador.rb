@@ -341,6 +341,12 @@ class EcolaneAmbassador < BookingAmbassador
     # Since we want to see exactly 1 match, return true if this is a Hash and the account is enabled.
     elsif result["search_results"]["customer"].is_a? Hash
       customer = result["search_results"]["customer"]
+
+      #First make sure that we are setup for self servce
+      if (service.booking_details["require_selfservice_validation"].to_bool) and not (customer["status"] and customer["status"]["validated_for"] == "selfservice")
+        return false, {note: "Ineligible for online booking"} 
+      end
+
       if  customer["status"] and customer["status"]["state"] == "enabled"
         return true, customer
       else
