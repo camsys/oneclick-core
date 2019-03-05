@@ -143,6 +143,15 @@ module Api
           end
         end
 
+        #Make sure we have 4 purposes
+        purposes.each do |purpose|
+          if top_purposes.length < 4 
+            top_purposes << purpose 
+          else
+            break
+          end
+        end
+
         #Make sure Top Purposes are still allowed
         top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
         top_purposes -= ['DELETE']
