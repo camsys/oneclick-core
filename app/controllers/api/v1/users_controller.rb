@@ -133,21 +133,23 @@ module Api
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
-          purpose = booking.try(:with_indifferent_access).try([],:details).try(:[],:purpose) 
+          purpose = booking.details.try(:with_indifferent_access).try(:[],:purpose) 
           if purpose and not purpose.in? top_purposes
             #top_purposes << #{name: purpose, code: purpose, sort_order: index}
             top_purposes << purpose
           end
-          if top_purpose.length > 3
+          if top_purposes.length > 3
             break
           end
         end
 
         #Make sure Top Purposes are still allowed
-        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }.delete('DELETE')
+        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
+        top_purposes -= ['DELETE']
 
         #Delete Duplicates
-        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }.delete('DELETE')
+        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
+        purposes -= ['DELETE']
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
