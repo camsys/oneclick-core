@@ -127,18 +127,13 @@ module Api
             trip_purposes = []
           end
         end
-
-        #Append extra information to Trip Purposes Array
-        purposes = []
-        trip_purposes.sort.each do |tp|
-          purposes.append(tp)
-        end
+        trip_purposes.sort!
 
         #Append extra information to Top Trip Purposes Array
-        bookings = @traveler.booking.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
+        bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
-          purpose = booking.try([],:details).try(:[],:purpose) 
+          purpose = booking.try(:with_indifferent_access).try([],:details).try(:[],:purpose) 
           if purpose and not purpose.in? top_purposes
             #top_purposes << #{name: purpose, code: purpose, sort_order: index}
             top_purposes << purpose
@@ -147,8 +142,13 @@ module Api
             break
           end
         end
-        purposes = purpose.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }.delete('DELETE')
-       
+
+        #Make sure Top Purposes are still allowed
+        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }.delete('DELETE')
+
+        #Delete Duplicates
+        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }.delete('DELETE')
+
         purposes_hash = []
         purposes.each_with_index do |p, i|
           purposes_hash << {name: p, code: p, sort_order: i}
