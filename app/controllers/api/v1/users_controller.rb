@@ -127,7 +127,7 @@ module Api
             trip_purposes = []
           end
         end
-        trip_purposes.sort!
+        purposes = trip_purposes.sort
 
         #Append extra information to Top Trip Purposes Array
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
