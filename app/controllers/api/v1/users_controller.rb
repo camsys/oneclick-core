@@ -130,23 +130,36 @@ module Api
 
         #Append extra information to Trip Purposes Array
         purposes = []
-        index =  0
         trip_purposes.sort.each do |tp|
-          purposes.append({name: tp, code: tp, sort_order: index})
-          index+=1
+          purposes.append(tp)
         end
 
         #Append extra information to Top Trip Purposes Array
-        #top_trip_purposes = bs.get_top_purposes(trip_purposes).keys
+        bookings = @traveler.booking.where('created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
-        #index =  0
-        #top_trip_purposes.each do |tp|
-        #  top_purposes.append({name: tp, code: tp, sort_order: index})
-        #  index+=1
-        #end
+        bookings.each do |booking|
+          purpose = booking.try([],:details).try(:[],:purpose) 
+          if purpose and not purpose.in? top_purposes
+            #top_purposes << #{name: purpose, code: purpose, sort_order: index}
+            top_purposes << purpose
+          end
+          if top_purpose.length > 3
+            break
+          end
+        end
+        purposes = purpose.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }.delete('DELETE')
+       
+        purposes_hash = []
+        purposes.each_with_index do |p, i|
+          purposes_hash << {name: p, code: p, sort_order: i}
+        end
 
-        puts purposes.ai 
-        hash = {top_trip_purposes: top_purposes, trip_purposes: purposes}
+        top_purposes_hash = []
+        top_purposes.each_with_index do |p, i|
+          top_purposes_hash << {name: p, code: p, sort_order: i}
+        end
+
+        hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}
         render json: hash
 
       end
