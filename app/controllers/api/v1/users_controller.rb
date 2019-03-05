@@ -135,7 +135,7 @@ module Api
         end
 
         #Append extra information to Top Trip Purposes Array
-        bookings = @traveler.booking.where('created_at > ?', Time.now - 6.months).order(created_at: :desc)
+        bookings = @traveler.booking.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
           purpose = booking.try([],:details).try(:[],:purpose) 
