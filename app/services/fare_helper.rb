@@ -1,7 +1,7 @@
 module FareHelper
   include GeoKitchen
 
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url]
+  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url, :use_booking_service]
   TRIP_TYPES = Trip::TRIP_TYPES
   NO_FARE = nil # Could be changed to 0 or "" if desired
 
@@ -71,6 +71,10 @@ module FareHelper
 
       # Look up fare in the fare_table by origin and destination zone codes
       fare_table[@origin_zone][@destination_zone]
+    end
+
+    def calculate_use_booking_service
+      
     end
 
     # Builds a default OTPAmbassador if no router is provided

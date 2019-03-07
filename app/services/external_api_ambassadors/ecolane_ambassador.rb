@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service, :confirmation
+  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service, :confirmation, :funding_hash
   require 'securerandom'
 
   def initialize(opts={})
@@ -14,7 +14,11 @@ class EcolaneAmbassador < BookingAmbassador
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     @user ||= (@customer_number.nil? ? nil : get_user)
+    @purpose = "After School Program"
     add_missing_attributes
+    @funding_hash = booking.details[:funding_hash] unless booking.nil?
+    @preferred_funding_sources = ["ADA", "PWD", "MATP"]
+    @preferred_sponsors =  ["YCAAA", "MATP", nil]
   end
 
   #####################################################################
@@ -77,13 +81,7 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     order =  build_order
-    order = Nokogiri::XML(order)
-    order.children.first.set_attribute('version', '3')
-    order = order.to_s
     resp = send_request(url, 'POST', order)
-    Rails.logger.info(order)
-    Rails.logger.info(resp)
-    puts Hash.from_xml(resp.body).ai 
     if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
       confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id) 
       eco_trip  = fetch_order(confirmation)["order"]
@@ -102,8 +100,8 @@ class EcolaneAmbassador < BookingAmbassador
     terms.each do |key,value|
       url_options += "&#{key}=#{value}"
     end
-    response = send_request(@url+url_options)
-    Hash.from_xml(response.body)
+    resp = send_request(@url+url_options)
+    Hash.from_xml(resp.body)
   end
 
   # Get orders for a customer
@@ -112,15 +110,15 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += @customer_id.to_s
     url_options += "/orders"
     url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
-    response = send_request(@url + url_options, token)
-    Hash.from_xml(response.body)
+    resp = send_request(@url + url_options, token)
+    Hash.from_xml(resp.body)
   end
 
   # Get Single Order
   def fetch_order confirmation=@confirmation
     url_options = "/api/order/#{system_id}/#{confirmation}"
-    response = send_request(@url + url_options, token)
-    Hash.from_xml(response.body)
+    resp = send_request(@url + url_options, token)
+    Hash.from_xml(resp.body)
   end
 
   # Get customer information from ID
@@ -131,7 +129,6 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += @customer_id.to_s
     url_options += "?funding=" + funding.to_s + "&locations=" + locations.to_s
     url = @url + url_options
-    Rails.logger.debug URI.parse(url)
     t = Time.current
     resp = send_request(url, token )
     Hash.from_xml(resp.body)
@@ -170,9 +167,62 @@ class EcolaneAmbassador < BookingAmbassador
 
   end
 
+  def get_preferred_fare
+    sponsors = nil
+    url_options =  "/api/order/#{system_id}/query_preferred_fares"
+    url = @url + url_options
+
+    #funding = {purpose: 'Medical'}
+    #params[:funding] = funding
+
+    order =  build_order
+    resp = send_request(url, 'POST', order)
+    return resp
+    fare, funding_source, sponsor = unpack_fare_response_v9(resp)
+    return true, {fare: fare, funding_source: funding_source, sponsor: sponsor}
+  end
+
+  # Find the fare for a trip.
+  def get_fare
+    set_funding_hash
+    url_options =  "/api/order/#{system_id}/queryfare"
+    url = @url + url_options
+    order =  build_order
+    resp = Hash.from_xml(send_request(url, 'POST', order).body)
+    resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay) 
+  end
+
+    # Checks on an itineraries funding options and sends the request to Ecolane
+  def get_funding_options
+    url_options = "/api/order/#{system_id}/queryfunding"
+    url = @url + url_options
+    order =  build_order
+    resp = Hash.from_xml(send_request(url, 'POST', order).body)
+    resp.try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
+  end
+
+  def set_funding_hash
+    if false #use Ecolane Rules
+      return {}
+    else #use 1-Click Rules
+      funding_hash = build_1click_funding_hash
+    end
+    booking = self.booking 
+    booking.details[:funding_hash] = funding_hash
+    booking.save 
+    @funding_hash = funding_hash
+    return funding_hash
+  end
+
+
   ##### 
   ## Send the Requests
   def send_request url, type='get', message=nil
+
+    if message 
+      message = Nokogiri::XML(message).to_s
+    end
+
     url.sub! " ", "%20"
     begin
       uri = URI.parse(url)
@@ -192,8 +242,14 @@ class EcolaneAmbassador < BookingAmbassador
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      Rails.logger.info '----------Calling Ecolane-----------'
+      Rails.logger.info "#{type}: #{url}"
+      Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
+      Rails.logger.info Hash.from_xml(message).ai 
       resp = http.start {|http| http.request(req)}
-      Rails.logger.info(resp.body)
+      Rails.logger.info '------Response from Ecolane---------'
+      Rails.logger.info "Code: #{resp.code}"
+      Rails.logger.info resp.body
       return resp
     rescue Exception=>e
       Rails.logger.info("Sending Error")
@@ -396,24 +452,15 @@ class EcolaneAmbassador < BookingAmbassador
     params = {todo: "TODO MAKE THIS WORK"}
     order_hash = {
         assistant: yes_or_no(params[:assistant]), 
-        companions: params[:companions], 
-        children: params[:children], 
-        other_passengers: params[:other_passengers], 
+        companions: 0,#params[:companions], 
+        children: 0,#params[:children], 
+        other_passengers: 0,#params[:other_passengers], 
         pickup: build_pu_hash,
         dropoff: build_do_hash}
 
     order_hash[:customer_id] = @customer_id
 
-    funding_hash = {}
-    if true #TODO FIx
-      funding_hash[:purpose] = params[:trip_purpose_raw] || "Medical" # TODO MAKE THIS REAL
-    end
-    if true #TODO Fix
-      funding_hash[:funding_source] = params[:funding_source]  || "PWD" #TODO Make this real
-    end
-    if params[:sponsor]
-      funding_hash[:sponsor] = params[:sponsor]
-    end
+    funding_hash = @funding_hash
     order_hash[:funding] = funding_hash
 
     order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
@@ -423,9 +470,9 @@ class EcolaneAmbassador < BookingAmbassador
   #Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: "TODO NOTE TO DRIVER"}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
     else
-      pu_hash = {location: build_location_hash(trip.origin), note: "TODO NOTE TO DRIVER"}
+      pu_hash = {location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
     end
     pu_hash
   end
@@ -457,6 +504,45 @@ class EcolaneAmbassador < BookingAmbassador
       end
     end
     return mapping
+  end
+
+  ### Build a Funding Hash for the Trip using 1-Click's Rules 
+  def build_1click_funding_hash
+
+    # Find the options that include the best funding source
+    potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
+    best_index = nil
+    get_funding_options.each do |option|
+      if option["type"] != "valid" || option["purpose"] != @purpose 
+        next
+      end
+      if option["funding_source"].in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option["funding_source"]) < best_index) 
+        best_index = @preferred_funding_sources.index(option["funding_source"])
+        potential_options = [option] 
+      elsif option["funding_source"].in? @preferred_funding_sources and @preferred_funding_sources.index(option["funding_source"]) == best_index
+        potential_options << option 
+      end
+    end
+
+    best_option = nil
+    best_index = nil
+    # Now Narrow it down based on sponsor
+    potential_options.each do |option|
+      if best_index == nil and option["sponsor"].in? @preferred_sponsors
+        best_index = @preferred_sponsors.index(option["sponsor"])
+        best_option = option 
+      elsif option["sponsor"].in? @preferred_sponsors and @preferred_sponsors.index(option["sponsor"]) < best_index
+        best_index = @preferred_sponsors.index(option["sponsor"])
+        best_option = option
+      end
+    end
+
+    if potential_options.blank?
+      return {}
+    else
+      return {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
+    end
+
   end
 
   def iso8601ify dob 
