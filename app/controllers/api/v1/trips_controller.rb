@@ -34,6 +34,7 @@ module Api
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
+            external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
             trip_params(ActionController::Parameters.new({
@@ -43,7 +44,8 @@ module Api
                 trip_time: trip[:trip_time].to_datetime,
                 arrive_by: (trip[:departure_type] == "arrive"),
                 user_id: @traveler && @traveler.id,
-                purpose_id: purpose ? purpose.id : nil
+                purpose_id: purpose ? purpose.id : nil,
+                external_purpose: external_purpose
               }
             }))
           end
@@ -193,17 +195,12 @@ module Api
 
       # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
       def email
-
         email_address = params[:email_address]
         trip_id = params[:trip_id]
-
         trip = Trip.find(trip_id.to_i)
-
         UserMailer.user_trip_email([email_address], trip).deliver
-
         # Also should improve the JSON response to handle successfully and failed email calls`
         render json: {result: 200}
-
       end
 
       protected
@@ -218,7 +215,8 @@ module Api
             :dropoff_unit_number,
             :attendants,
             :return_time,
-            :mobility_devices
+            :mobility_devices,
+            :external_purpose
           )
         end
       end

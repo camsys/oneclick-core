@@ -1,9 +1,10 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :url, :external_id, :county, :dob, :system_id, :token, :customer_number, :customer_id, :service, :confirmation, :funding_hash
+  attr_accessor :customer_number, :service, :confirmation
   require 'securerandom'
 
   def initialize(opts={})
+    #TODO Clean up this mess
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]
@@ -14,7 +15,8 @@ class EcolaneAmbassador < BookingAmbassador
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     @user ||= (@customer_number.nil? ? nil : get_user)
-    @purpose = "After School Program"
+    @trip = params[:trip]
+    @purpose = @trip.external_purpose unless @trip.nil?
     add_missing_attributes
     @funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
@@ -28,7 +30,7 @@ class EcolaneAmbassador < BookingAmbassador
   def itinerary=(new_itin)
     @itinerary = new_itin
     return unless @itinerary
-    self.trip = @itinerary.try(:trip) || @trip
+    self.trip = @itinerary.try(:trip) || @trip #TODO Use @trip everywhere. 
     self.service = @itinerary.try(:service) || @service
   end
 

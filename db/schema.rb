@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190218193515) do
+ActiveRecord::Schema.define(version: 20190308152355) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -435,6 +435,7 @@ ActiveRecord::Schema.define(version: 20190218193515) do
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
     t.integer  "previous_trip_id"
+    t.string   "external_purpose"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree
