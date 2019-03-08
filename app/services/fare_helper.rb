@@ -18,6 +18,7 @@ module FareHelper
       @router = options[:router]
       @taxi_ambassador = options[:taxi_ambassador]
       @origin_zone, @destination_zone = options[:origin_zone], options[:destination_zone]
+      @service = options[:service] unless options[:service].nil?
     end
 
     # Calculate the fare based on the passed trip and the fare_structure/details
@@ -74,7 +75,10 @@ module FareHelper
     end
 
     def calculate_use_booking_service
-      
+      case @service.booking_api
+      when "ecolane"
+        EcolaneAmbassador.new({trip: @trip, service: @service}).get_fare #TODO: Improve performance by using the request bundler
+      end 
     end
 
     # Builds a default OTPAmbassador if no router is provided
@@ -127,6 +131,10 @@ module FareHelper
     end
     
     def validate_url(record)
+      true
+    end
+
+    def validate_use_booking_service(record)
       true
     end
 
@@ -259,6 +267,10 @@ module FareHelper
     end
 
     def package_taxi_fare_finder
+      return true
+    end
+
+    def package_use_booking_service
       return true
     end
 
