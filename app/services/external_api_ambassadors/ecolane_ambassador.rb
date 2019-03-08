@@ -20,6 +20,7 @@ class EcolaneAmbassador < BookingAmbassador
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
     add_missing_attributes
+    puts booking
     #@funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
