@@ -204,7 +204,7 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order =  build_order
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
-    resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay) 
+    resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay)/100 
   end
 
     # Checks on an itineraries funding options and sends the request to Ecolane
