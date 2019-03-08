@@ -400,6 +400,12 @@ class EcolaneAmbassador < BookingAmbassador
 
   ### Does the ID/County/DOB match a single customer?
   def validate_passenger #customer_number, dob, system_id, token
+
+    
+    if service.booking_details[:banned_users] and @customer_number.in? service.booking_details.try(:[], :banned_users).split(',').map{ |x| x.strip }
+      return false, {}
+    end
+
     iso_dob = iso8601ify(@dob)
     if iso_dob.nil?
       return false, {}
