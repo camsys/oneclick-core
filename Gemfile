@@ -86,6 +86,7 @@ gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations j
 
 ### GEOSPATIAL #############################
 gem 'rgeo'
+gem "rgeo-proj4"
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
 gem 'dbf'

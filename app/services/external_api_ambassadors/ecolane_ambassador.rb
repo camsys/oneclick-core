@@ -287,7 +287,6 @@ class EcolaneAmbassador < BookingAmbassador
           purposes.append(purpose)
         end
       end
-
     end
     banned_purposes = @service.booking_details[:banned_purposes]
     purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
