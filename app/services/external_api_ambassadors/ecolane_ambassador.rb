@@ -9,7 +9,7 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
-    self.trip = opts[:trip] if opts[:service]
+    self.trip = opts[:trip] if opts[:trip]
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
@@ -20,7 +20,7 @@ class EcolaneAmbassador < BookingAmbassador
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
     add_missing_attributes
-    @funding_hash = booking.details[:funding_hash] unless booking.nil?
+    #@funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
   end
@@ -34,11 +34,6 @@ class EcolaneAmbassador < BookingAmbassador
     return unless @itinerary
     self.trip = @itinerary.try(:trip) || @trip #TODO Use @trip everywhere. 
     self.service = @itinerary.try(:service) || @service
-  end
-
-  def trip=(this_trip)
-    @trip = this_trip
-    @user = @trip.user 
   end
 
   def service=(this_service)

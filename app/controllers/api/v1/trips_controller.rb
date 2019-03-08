@@ -30,6 +30,7 @@ module Api
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
+
         trips_params = {}
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
@@ -215,8 +216,7 @@ module Api
             :dropoff_unit_number,
             :attendants,
             :return_time,
-            :mobility_devices,
-            :external_purpose
+            :mobility_devices
           )
         end
       end
@@ -237,7 +237,8 @@ module Api
           :trip_time,
           :arrive_by,
           :user_id,
-          :purpose_id
+          :purpose_id,
+          :external_purpose
         )
       end
 
