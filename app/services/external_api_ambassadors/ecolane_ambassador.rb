@@ -289,7 +289,8 @@ class EcolaneAmbassador < BookingAmbassador
       end
 
     end
-    purposes.sort
+    banned_purposes = @service.booking_details[:banned_purposes]
+    purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
   end
   
   ### Create OCC Trip from Ecolane Trip ###
