@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :customer_number, :service, :confirmation
+  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id
   require 'securerandom'
 
   def initialize(opts={})
@@ -9,14 +9,16 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
+    self.trip = opts[:trip] if opts[:service]
+    self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
     @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
-    @user ||= (@customer_number.nil? ? nil : get_user)
-    @trip = params[:trip]
+    @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
+    get_booking_profile
     add_missing_attributes
     @funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
@@ -32,6 +34,22 @@ class EcolaneAmbassador < BookingAmbassador
     return unless @itinerary
     self.trip = @itinerary.try(:trip) || @trip #TODO Use @trip everywhere. 
     self.service = @itinerary.try(:service) || @service
+  end
+
+  def trip=(this_trip)
+    @trip = this_trip
+    @user = @trip.user 
+  end
+
+  def service=(this_service)
+    @service = this_service
+  end
+
+  def get_booking_profile
+    return if @booking_profile 
+    if @service and @user 
+      @booking_profile = UserBookingProfile.find_by(service: @service, user: @user)
+    end
   end
 
   def add_missing_attributes
