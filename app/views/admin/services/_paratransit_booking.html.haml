@@ -29,6 +29,7 @@
       =bd.input :preferred_sponsors, as: :text, placeholder: "ADA, Hello", label: "Permitted Sponsors", input_html: {value: booking_details[:preferred_sponsors]}
       %hr
       =bd.input :banned_users, as: :text, placeholder: "79109, 38383 [3]", label: "Banned Users", input_html: {value: booking_details[:banned_users]}
+      =bd.input :trusted_users, as: :text, placeholder: "79109, 38383 [3]", label: "Trusted Users", input_html: {value: booking_details[:trusted_users]}
 
       %hr
       =bd.input :min_days, as: :integer, label: "Min Booking Notice (days)", input_html: {value: booking_details[:min_days]}

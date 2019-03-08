@@ -33,7 +33,7 @@ module Api
             min_notice_days = (service.booking_details[:min_days] || 2).to_i
             max_notice_days = (service.booking_details[:max_days] || 14).to_i
 
-            if false#user_service.unrestricted_hours #This user is allowed to book at all times
+            if service.booking_details[:trusted_users] and booking_profile.external_user_id.in? service.booking_details.try(:[], :trusted_users).split(',').map{ |x| x.strip }
               (1..21).each do |n|
                 hours[(today + n).to_s] = {open: "00:00", close: "23:59"}
               end
