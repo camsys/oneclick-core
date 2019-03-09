@@ -199,7 +199,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Find the fare for a trip.
   def get_fare
-    set_funding_hash
+    #get_funding_hash
     url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
     order =  build_order
