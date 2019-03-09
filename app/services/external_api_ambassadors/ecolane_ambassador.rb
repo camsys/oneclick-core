@@ -282,6 +282,9 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = []
     customer_information = fetch_customer_information(funding=true)
     customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
+      unless funding_source["name"].in? @preferred_funding_sources
+        next 
+      end
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
