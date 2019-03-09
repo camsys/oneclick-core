@@ -211,12 +211,13 @@ class EcolaneAmbassador < BookingAmbassador
   def get_funding_options
     url_options = "/api/order/#{system_id}/queryfunding"
     url = @url + url_options
-    order =  build_order
+    order =  build_order(funding=false)
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
     resp.try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
   end
 
-  def set_funding_hash
+  def get_funding_hash
+    #TODO: Reduce calls and save this after the first time we ask for it.
     if false #use Ecolane Rules
       return {}
     else #use 1-Click Rules
@@ -225,7 +226,7 @@ class EcolaneAmbassador < BookingAmbassador
     #booking = self.booking 
     #booking.details[:funding_hash] = funding_hash
     #booking.save 
-    @funding_hash = funding_hash
+    funding_hash
   end
 
 
@@ -468,7 +469,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order
+  def build_order funding=true
     params = {todo: "TODO MAKE THIS WORK"}
     order_hash = {
         assistant: yes_or_no(params[:assistant]), 
@@ -480,8 +481,9 @@ class EcolaneAmbassador < BookingAmbassador
 
     order_hash[:customer_id] = @customer_id
 
-    funding_hash = @funding_hash
-    order_hash[:funding] = funding_hash
+    if funding 
+      order_hash[:funding] = get_funding_hash
+    end
 
     order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
     order_xml
