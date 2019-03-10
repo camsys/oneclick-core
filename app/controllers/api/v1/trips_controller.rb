@@ -226,7 +226,11 @@ module Api
             :dropoff_unit_number,
             :attendants,
             :return_time,
-            :mobility_devices
+            :mobility_devices,
+            :escort,
+            :companions,
+            :children,
+            :note
           )
         end
       end
