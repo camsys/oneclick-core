@@ -24,6 +24,10 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
+    @escort = opts[:excort]
+    @companions = opts[:companions]
+    @children = opts[:children]
+    @note = opts[:note]
   end
 
   #####################################################################
@@ -503,12 +507,11 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def build_order funding=true
-    params = {todo: "TODO MAKE THIS WORK"}
     order_hash = {
-        assistant: yes_or_no(params[:assistant]), 
-        companions: 0,#params[:companions], 
-        children: 0,#params[:children], 
-        other_passengers: 0,#params[:other_passengers], 
+        assistant: yes_or_no(@escort), 
+        companions: @companions, 
+        children: @children, 
+        other_passengers: 0,
         pickup: build_pu_hash,
         dropoff: build_do_hash}
 
@@ -525,9 +528,9 @@ class EcolaneAmbassador < BookingAmbassador
   #Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: @note}
     else
-      pu_hash = {location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
+      pu_hash = {location: build_location_hash(trip.origin), note: @note}
     end
     pu_hash
   end
