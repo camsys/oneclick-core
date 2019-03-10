@@ -61,7 +61,7 @@ module Api
         :user_registered,           # BOOKING
         # :wait_time,                 # not needed in call
         :walk_distance,
-        :walk_time
+        :walk_time,
 
 
       # STUB METHODS FOR DEPRECATED ATTRIBUTES
@@ -90,7 +90,6 @@ module Api
       def product_id; nil end
       # def ride_count; nil end
       # def schedule; [] end
-      def segment_index; 0 end # Always 0 for one-way trips
       # def selected; nil end
       # def server_message; nil end
       # def server_status; 200 end
@@ -106,6 +105,14 @@ module Api
 
 
       # ACTUAL METHODS
+
+      def segment_index 
+        if object.trip.previous_trip
+          return 1
+        else
+          return 0
+        end
+      end
 
       def product_id
         object.uber_extension ? object.uber_extension.product_id : nil

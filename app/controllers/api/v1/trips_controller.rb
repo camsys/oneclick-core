@@ -84,6 +84,16 @@ module Api
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
 
+        #Link up the trips
+        previous_trip = nil
+        @trips.sort_by{ |t| t.trip_time}.each do |trip|
+          if previous_trip
+            previous_trip.next_trip = trip 
+            previous_trip.save
+          end
+          previous_trip = trip 
+        end 
+
         if @trips
           render status: 200, json: @trips.first, include: ['*.*']
         end
