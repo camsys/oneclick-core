@@ -53,6 +53,7 @@ Rails.application.routes.draw do
           post 'password'
           post 'request_reset'
           post 'reset'
+          get  'lookup'
         end
       end
 

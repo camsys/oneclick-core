@@ -174,6 +174,16 @@ module Api
         render json: hash
 
       end
+
+      #Looks up customer number from DOB, Name, and County in Ecolane
+      def lookup 
+        customer_number = EcolaneAmbassador.new({county: params[:county]}).lookup_customer_number({last_name: params[:last_name], date_of_birth: params[:date_of_birth]})
+        if customer_number
+          render status: 200, json: {customer_number: customer_number, message: nil}
+        else
+          render status: 404, json: {message: "Unable to find matching customer." }
+        end
+      end
       
       private
       

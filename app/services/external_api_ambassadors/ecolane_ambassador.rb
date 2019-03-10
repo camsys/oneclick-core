@@ -316,6 +316,11 @@ class EcolaneAmbassador < BookingAmbassador
     banned_purposes = @service.booking_details[:banned_purposes]
     purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
   end
+
+  # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
+  def lookup_customer_number params
+    search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer).try(:[], :customer_number)
+  end
   
   ### Create OCC Trip from Ecolane Trip ###
   def occ_trip_from_ecolane_trip eco_trip
