@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApiController
-      before_action :require_authentication, only: [:update]
+      before_action :require_authentication, only: [:update, :trip_purposes]
       before_action :ensure_traveler, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
 
       # Sends back a profile hash via the API::V1::UserSerializer
@@ -112,6 +112,67 @@ module Api
         end
 
         return
+      end
+
+      #Built to Support Ecolane API/V1
+      def trip_purposes
+
+        #If the user is registered with a service, use his/her trip purposes
+        trip_purposes  = []
+        booking_profile = @traveler.booking_profiles.first
+        if @traveler and booking_profile
+          begin
+            trip_purposes = booking_profile.booking_ambassador.get_trip_purposes
+          rescue Exception=>e
+            trip_purposes = []
+          end
+        end
+        purposes = trip_purposes.sort
+
+        #Append extra information to Top Trip Purposes Array
+        bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
+        top_purposes = []
+        bookings.each do |booking|
+          purpose = booking.details.try(:with_indifferent_access).try(:[],:purpose) 
+          if purpose and not purpose.in? top_purposes
+            #top_purposes << #{name: purpose, code: purpose, sort_order: index}
+            top_purposes << purpose
+          end
+          if top_purposes.length > 3
+            break
+          end
+        end
+
+        #Make sure we have 4 purposes
+        purposes.each do |purpose|
+          if top_purposes.length < 4 
+            top_purposes << purpose 
+          else
+            break
+          end
+        end
+
+        #Make sure Top Purposes are still allowed
+        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
+        top_purposes -= ['DELETE']
+
+        #Delete Duplicates
+        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
+        purposes -= ['DELETE']
+
+        purposes_hash = []
+        purposes.each_with_index do |p, i|
+          purposes_hash << {name: p, code: p, sort_order: i}
+        end
+
+        top_purposes_hash = []
+        top_purposes.each_with_index do |p, i|
+          top_purposes_hash << {name: p, code: p, sort_order: i}
+        end
+
+        hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}
+        render json: hash
+
       end
       
       private

@@ -24,7 +24,18 @@
       =bd.input :external_id, as: :string, label: "Ecolane ID", input_html: {value: booking_details[:external_id]}
       =bd.input :token, as: :string, label: "Token", input_html: {value: booking_details[:token]}
       =bd.input :home_counties, as: :string, label: "Home Counties", input_html: {value: booking_details[:home_counties]}
-      =bd.input :ada_funding_sources, as: :string, placeholder: "ADA, ADAParatransit", label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
+      %hr
+      =bd.input :preferred_funding_sources, as: :text, placeholder: "ADA", label: "Permitted Funding Sources", input_html: {value: booking_details[:preferred_funding_sources]}
+      =bd.input :preferred_sponsors, as: :text, placeholder: "ADA, Hello", label: "Permitted Sponsors", input_html: {value: booking_details[:preferred_sponsors]}
+      =bd.input :banned_purposes, as: :text, placeholder: "", label: "Banned Purposes", input_html: {value: booking_details[:banned_purposes]}
+      %hr
+      =bd.input :banned_users, as: :text, placeholder: "79109, 38383 [3]", label: "Banned Users", input_html: {value: booking_details[:banned_users]}
+      =bd.input :trusted_users, as: :text, placeholder: "79109, 38383 [3]", label: "Trusted Users", input_html: {value: booking_details[:trusted_users]}
+
+      %hr
+      =bd.input :min_days, as: :integer, label: "Min Booking Notice (days)", input_html: {value: booking_details[:min_days]}
+      =bd.input :max_days, as: :integer, label: "Max Booking Notice (days)", input_html: {value: booking_details[:max_days]}
+      =bd.input :require_selfservice_validation, collection: [false, true], include_blank: false, label: "Require Self Service Validation", selected: (booking_details[:require_selfservice_validation])
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden

@@ -12,11 +12,40 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        email = session_params[:email].downcase #params[:email] || (params[:user] && params[:user][:email])
+        email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
+        ecolane_id = session_params[:ecolane_id]
+        county = session_params[:county]
+        dob = session_params[:dob]
 
-        if @user && @user.valid_password?(password)
+        ############## Custom Ecolane Stuff ######################
+        if ecolane_id
+          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
+          @user = ecolane_ambassador.user
+          if @user
+            
+            #Last Trip
+            last_trip = @user.trips.order('created_at').last
+            if last_trip and last_trip.origin and last_trip.destination
+              last_origin = last_trip.origin.google_place_hash
+              last_destination = last_trip.destination.google_place_hash
+            end
+            sign_in(:user, @user)
+            @user.ensure_authentication_token
+            render status: 200, json: {
+              authentication_token: @user.authentication_token,
+              email: @user.email,
+              first_name: @user.first_name,
+              last_name: @user.last_name,
+              last_origin: last_origin || nil,
+              last_destination: last_destination || nil
+            }
+          else 
+            render status: 401, json: {message: "Invalid Ecolane Id or DOB."}
+          end
+
+        elsif @user && @user.valid_password?(password)
           sign_in(:user, @user)
           @user.ensure_authentication_token
           render status: 200, json: {
@@ -50,8 +79,7 @@ module Api
 
       def session_params
         params[:session] = params.delete :user if params.has_key? :user
-
-        params.require(:session).permit(:email, :password)
+        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob)
       end
 
     end

@@ -1,7 +1,7 @@
 module FareHelper
   include GeoKitchen
 
-  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url]
+  VALID_STRUCTURES = [:flat, :mileage, :zone, :taxi_fare_finder, :empty, :url, :use_booking_service]
   TRIP_TYPES = Trip::TRIP_TYPES
   NO_FARE = nil # Could be changed to 0 or "" if desired
 
@@ -18,6 +18,7 @@ module FareHelper
       @router = options[:router]
       @taxi_ambassador = options[:taxi_ambassador]
       @origin_zone, @destination_zone = options[:origin_zone], options[:destination_zone]
+      @service = options[:service] unless options[:service].nil?
     end
 
     # Calculate the fare based on the passed trip and the fare_structure/details
@@ -73,6 +74,13 @@ module FareHelper
       fare_table[@origin_zone][@destination_zone]
     end
 
+    def calculate_use_booking_service
+      case @service.booking_api
+      when "ecolane"
+        EcolaneAmbassador.new({trip: @trip, service: @service}).get_fare #TODO: Improve performance by using the request bundler
+      end 
+    end
+
     # Builds a default OTPAmbassador if no router is provided
     def default_router
       OTPAmbassador.new(@trip, [@fare_details[:trip_type]], @http_request_bundler)
@@ -123,6 +131,10 @@ module FareHelper
     end
     
     def validate_url(record)
+      true
+    end
+
+    def validate_use_booking_service(record)
       true
     end
 
@@ -255,6 +267,10 @@ module FareHelper
     end
 
     def package_taxi_fare_finder
+      return true
+    end
+
+    def package_use_booking_service
       return true
     end
 

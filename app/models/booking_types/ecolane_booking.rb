@@ -1,0 +1,5 @@
+class EcolaneBooking < Booking
+
+
+  
+end

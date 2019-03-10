@@ -224,6 +224,10 @@ class Service < ApplicationRecord
       options[:destination_zone] = destination_zone_code(trip)
     end
 
+    if fare_structure == "use_booking_service"
+      options[:service] = self
+    end
+
     FareCalculator.new(fare_structure, fare_details, trip, options).calculate
   end
 

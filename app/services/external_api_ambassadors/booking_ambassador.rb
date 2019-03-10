@@ -103,6 +103,13 @@ class BookingAmbassador
   def sync
     nil
   end
+
+  def booking
+    Booking.find_or_initialize_by(
+      type: Booking::BOOKING_TYPES[booking_api],
+      itinerary_id: @itinerary.try(:id)
+    )
+  end
   
   
   private
@@ -116,11 +123,11 @@ class BookingAmbassador
   end
   
   # Returns the trip's Booking, if available. Otherwise, builds a booking object
-  def booking
-    Booking.find_or_initialize_by(
-      type: Booking::BOOKING_TYPES[booking_api],
-      itinerary_id: @itinerary.try(:id)
-    )
-  end
+  #def booking
+  #  Booking.find_or_initialize_by(
+  #    type: Booking::BOOKING_TYPES[booking_api],
+  #    itinerary_id: @itinerary.try(:id)
+  #  )
+  #end
   
 end

@@ -30,10 +30,12 @@ module Api
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
+
         trips_params = {}
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
+            external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
             trip_params(ActionController::Parameters.new({
@@ -43,7 +45,8 @@ module Api
                 trip_time: trip[:trip_time].to_datetime,
                 arrive_by: (trip[:departure_type] == "arrive"),
                 user_id: @traveler && @traveler.id,
-                purpose_id: purpose ? purpose.id : nil
+                purpose_id: purpose ? purpose.id : nil,
+                external_purpose: external_purpose
               }
             }))
           end
@@ -80,6 +83,16 @@ module Api
           trip.relevant_eligibilities = trip_planner.relevant_eligibilities
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
+
+        #Link up the trips
+        previous_trip = nil
+        @trips.sort_by{ |t| t.trip_time}.each do |trip|
+          if previous_trip
+            previous_trip.next_trip = trip 
+            previous_trip.save
+          end
+          previous_trip = trip 
+        end 
 
         if @trips
           render status: 200, json: @trips.first, include: ['*.*']
@@ -193,17 +206,12 @@ module Api
 
       # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
       def email
-
         email_address = params[:email_address]
         trip_id = params[:trip_id]
-
         trip = Trip.find(trip_id.to_i)
-
         UserMailer.user_trip_email([email_address], trip).deliver
-
         # Also should improve the JSON response to handle successfully and failed email calls`
         render json: {result: 200}
-
       end
 
       protected
@@ -239,7 +247,8 @@ module Api
           :trip_time,
           :arrive_by,
           :user_id,
-          :purpose_id
+          :purpose_id,
+          :external_purpose
         )
       end
 
@@ -286,11 +295,11 @@ module Api
         itinerary = trip.selected_itinerary
         if itinerary
           itin_hash = {
-            arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
+            arrival: itinerary.end_time ? itinerary.end_time.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
-            departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
+            departure: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil,
             duration: itinerary.duration,
             fare: itinerary.cost.to_f,
             id: itinerary.id,
@@ -304,7 +313,8 @@ module Api
             walk_distance: nil, #itinerary.walk_distance, # DEPRECATE?
             walk_time: itinerary.walk_time,
             pu_window_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
-            pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil
+            pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
+            estimated_pu_time: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil
           }
 
           # Service Attributes
@@ -353,9 +363,9 @@ module Api
             booked: true,
             confirmation: confirmation_id, # it needs both of these 
             confirmation_id: confirmation_id, # for some reason
-            wait_start: (pickup_time - 15.minutes).iso8601,
-            wait_end: (pickup_time + 15.minutes).iso8601,
-            arrival: dropoff_time.iso8601,
+            wait_start: (pickup_time - 15.minutes).strftime("%Y-%m-%dT%H:%M"),
+            wait_end: (pickup_time + 15.minutes).strftime("%Y-%m-%dT%H:%M"),
+            arrival: dropoff_time.strftime("%Y-%m-%dT%H:%M"),
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
@@ -370,10 +380,22 @@ module Api
             confirmation_id: confirmation_id, # for some reason
             wait_start: booking.earliest_pu,
             wait_end: booking.latest_pu,
-            arrival: dropoff_time.iso8601,
+            arrival: dropoff_time.strftime("%Y-%m-%dT%H:%M"),
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
+        when 'ecolane', :ecolane 
+          return {
+            booked: true,
+            confirmation: booking.confirmation, 
+            confirmation_id: booking.confirmation, 
+            wait_start: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu - 15.minutes,
+            wait_end: booking.negotiated_pu.nil? ? nil : booking.negotiated_pu + 15.minutes,
+            arrival: booking.negotiated_do,
+            message: nil,
+            negotiated_duration: (booking.negotiated_pu and booking.negotiated_do) ? (booking.negotiated_do - booking.negotiated_pu) : nil # Returns duration in seconds
+          }
+
         else
           return {}
         end
@@ -382,7 +404,7 @@ module Api
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
         case booking.try(:type_code)
-        when :ride_pilot
+        when :ride_pilot, :ecolane
           return {
             success: true,
             confirmation_id: booking.confirmation
