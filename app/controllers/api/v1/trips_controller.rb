@@ -295,11 +295,11 @@ module Api
         itinerary = trip.selected_itinerary
         if itinerary
           itin_hash = {
-            arrival: itinerary.end_time ? itinerary.end_time.iso8601 : nil,
+            arrival: itinerary.end_time ? itinerary.end_time.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
-            departure: itinerary.start_time ? itinerary.start_time.iso8601 : nil,
+            departure: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil,
             duration: itinerary.duration,
             fare: itinerary.cost.to_f,
             id: itinerary.id,
@@ -314,7 +314,7 @@ module Api
             walk_time: itinerary.walk_time,
             pu_window_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
             pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
-            estimated_pu_time: itinerary.start_time ? itinerary.start_time.iso8601 : nil
+            estimated_pu_time: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil
           }
 
           # Service Attributes
@@ -363,9 +363,9 @@ module Api
             booked: true,
             confirmation: confirmation_id, # it needs both of these 
             confirmation_id: confirmation_id, # for some reason
-            wait_start: (pickup_time - 15.minutes).iso8601,
-            wait_end: (pickup_time + 15.minutes).iso8601,
-            arrival: dropoff_time.iso8601,
+            wait_start: (pickup_time - 15.minutes).strftime("%Y-%m-%dT%H:%M"),
+            wait_end: (pickup_time + 15.minutes).strftime("%Y-%m-%dT%H:%M"),
+            arrival: dropoff_time.strftime("%Y-%m-%dT%H:%M"),
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
@@ -380,7 +380,7 @@ module Api
             confirmation_id: confirmation_id, # for some reason
             wait_start: booking.earliest_pu,
             wait_end: booking.latest_pu,
-            arrival: dropoff_time.iso8601,
+            arrival: dropoff_time.strftime("%Y-%m-%dT%H:%M"),
             message: "Booking Status: #{booking.status}",
             negotiated_duration: ((dropoff_time - pickup_time) * 1.day).round # Returns duration in seconds
           }
