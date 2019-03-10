@@ -26,6 +26,7 @@
       =bd.input :home_counties, as: :string, label: "Home Counties", input_html: {value: booking_details[:home_counties]}
       %hr
       =bd.input :preferred_funding_sources, as: :text, placeholder: "ADA", label: "Permitted Funding Sources", input_html: {value: booking_details[:preferred_funding_sources]}
+      =bd.input :ada_funding_sources, as: :text, placeholder: "ADA", label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
       =bd.input :preferred_sponsors, as: :text, placeholder: "ADA, Hello", label: "Permitted Sponsors", input_html: {value: booking_details[:preferred_sponsors]}
       =bd.input :banned_purposes, as: :text, placeholder: "", label: "Banned Purposes", input_html: {value: booking_details[:banned_purposes]}
       %hr

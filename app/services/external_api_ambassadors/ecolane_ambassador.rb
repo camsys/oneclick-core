@@ -23,6 +23,7 @@ class EcolaneAmbassador < BookingAmbassador
     #@funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
+    @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
   end
 
   #####################################################################
@@ -86,6 +87,24 @@ class EcolaneAmbassador < BookingAmbassador
     # Update Booking object with status info and return it
     booking.update({status: status})
     return result
+  end
+
+  def prebooking_questions
+    funding_source = self.booking.details.try(:with_indifferent_access).try(:[],:funding_hash).try(:[],:funding_source)
+    if funding_source.in? @ada_funding_sources
+      questions =
+        [
+          {question: "Will you be traveling with an ADA-approved escort?", choices: [true, false], code: "assistant"},
+          {question: "How many other companions are traveling with you?", choices: (0..10).to_a, code: "companions"}
+        ]
+    else
+      questions =
+        [
+          {question: "Will you be traveling with an approved escort?", choices: [true, false], code: "assistant"},
+          {question: "How many children or family members will be traveling with you?", choices: (0..2).to_a, code: "children"}
+        ]
+    end
+    return questions
   end
 
   ####################################################################
@@ -223,9 +242,11 @@ class EcolaneAmbassador < BookingAmbassador
     else #use 1-Click Rules
       funding_hash = build_1click_funding_hash
     end
-    #booking = self.booking 
-    #booking.details[:funding_hash] = funding_hash
-    #booking.save 
+    if self.booking
+      booking = self.booking 
+      booking.details[:funding_hash] = funding_hash
+      booking.save 
+    end
     funding_hash
   end
 
