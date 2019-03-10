@@ -151,6 +151,8 @@ module Api
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
 
+          puts booking_request.ai 
+
           # Pull the itinerary out of the booking_request hash and set up a 
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 

@@ -24,10 +24,7 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
-    @escort = opts[:excort]
-    @companions = opts[:companions]
-    @children = opts[:children]
-    @note = opts[:note]
+    @booking_options = opts[:booking_options]
   end
 
   #####################################################################
@@ -508,9 +505,9 @@ class EcolaneAmbassador < BookingAmbassador
 
   def build_order funding=true
     order_hash = {
-        assistant: yes_or_no(@escort), 
-        companions: @companions, 
-        children: @children, 
+        assistant: yes_or_no(@booking_options.try(:with_indifferent_access).try(:[], :escort)), 
+        companions: @booking_options.try(:with_indifferent_access).try(:[], :companions), 
+        children: @booking_options.try(:with_indifferent_access).try(:[], :children), 
         other_passengers: 0,
         pickup: build_pu_hash,
         dropoff: build_do_hash}
