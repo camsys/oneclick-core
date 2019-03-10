@@ -242,13 +242,13 @@ class EcolaneAmbassador < BookingAmbassador
     else #use 1-Click Rules
       funding_hash = build_1click_funding_hash
     end
-    puts 'DOING THE BOOKING STUFF'
-    puts self.booking.ai 
-    puts funding_hash.ai 
-    puts '------------'
     if self.booking
       booking = self.booking 
-      booking.details[:funding_hash] = funding_hash
+      if booking.details 
+        booking.details[:funding_hash] = funding_hash
+      else
+        booking.details = {funding_hash: funding_hash}
+      end
       booking.save 
     end
     funding_hash
