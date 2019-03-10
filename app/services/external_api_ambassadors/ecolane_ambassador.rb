@@ -82,6 +82,10 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def cancel
+    # Don't ever allow cancellations within 1 hour
+    if @itinerary.booking and @itinerary.booking.negotiated_pu - Time.now < 3600
+      return false
+    end
     result = cancel_order
     # Unselect the itinerary on successful cancellation
     @itinerary.unselect if result
