@@ -151,6 +151,8 @@ module Api
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
 
+          puts booking_request.ai 
+
           # Pull the itinerary out of the booking_request hash and set up a 
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 
@@ -226,7 +228,11 @@ module Api
             :dropoff_unit_number,
             :attendants,
             :return_time,
-            :mobility_devices
+            :mobility_devices,
+            :escort,
+            :companions,
+            :children,
+            :note
           )
         end
       end
@@ -306,7 +312,7 @@ module Api
             json_legs: itinerary.legs,
             mode: itinerary.trip_type.nil? ? nil : remodeify(itinerary.trip_type),
             product_id: nil, #itinerary.product_id,
-            status: "active", # DEPRECATE?
+            status: itinerary.booking.try(:status) || nil, # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?
             transit_time: itinerary.transit_time,
             wait_time: nil, #itinerary.wait_time, # WAIT TIME?

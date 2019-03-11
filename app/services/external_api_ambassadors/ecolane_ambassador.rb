@@ -23,6 +23,8 @@ class EcolaneAmbassador < BookingAmbassador
     #@funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
+    @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
+    @booking_options = opts[:booking_options]
   end
 
   #####################################################################
@@ -80,12 +82,34 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def cancel
+    # Don't ever allow cancellations within 1 hour
+    if @itinerary.booking and @itinerary.booking.negotiated_pu - Time.now < 3600
+      return false
+    end
     result = cancel_order
     # Unselect the itinerary on successful cancellation
     @itinerary.unselect if result
     # Update Booking object with status info and return it
     booking.update({status: status})
     return result
+  end
+
+  def prebooking_questions
+    funding_source = self.booking.details.try(:with_indifferent_access).try(:[],:funding_hash).try(:[],:funding_source)
+    if funding_source.in? @ada_funding_sources
+      questions =
+        [
+          {question: "Will you be traveling with an ADA-approved escort?", choices: [true, false], code: "assistant"},
+          {question: "How many other companions are traveling with you?", choices: (0..10).to_a, code: "companions"}
+        ]
+    else
+      questions =
+        [
+          {question: "Will you be traveling with an approved escort?", choices: [true, false], code: "assistant"},
+          {question: "How many children or family members will be traveling with you?", choices: (0..2).to_a, code: "children"}
+        ]
+    end
+    return questions
   end
 
   ####################################################################
@@ -223,9 +247,15 @@ class EcolaneAmbassador < BookingAmbassador
     else #use 1-Click Rules
       funding_hash = build_1click_funding_hash
     end
-    #booking = self.booking 
-    #booking.details[:funding_hash] = funding_hash
-    #booking.save 
+    if self.booking
+      booking = self.booking 
+      if booking.details 
+        booking.details[:funding_hash] = funding_hash
+      else
+        booking.details = {funding_hash: funding_hash}
+      end
+      booking.save 
+    end
     funding_hash
   end
 
@@ -294,6 +324,11 @@ class EcolaneAmbassador < BookingAmbassador
     end
     banned_purposes = @service.booking_details[:banned_purposes]
     purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+  end
+
+  # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
+  def lookup_customer_number params
+    search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer).try(:[], :customer_number)
   end
   
   ### Create OCC Trip from Ecolane Trip ###
@@ -473,12 +508,11 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def build_order funding=true
-    params = {todo: "TODO MAKE THIS WORK"}
     order_hash = {
-        assistant: yes_or_no(params[:assistant]), 
-        companions: 0,#params[:companions], 
-        children: 0,#params[:children], 
-        other_passengers: 0,#params[:other_passengers], 
+        assistant: yes_or_no(@booking_options.try(:with_indifferent_access).try(:[], :escort)), 
+        companions: @booking_options.try(:with_indifferent_access).try(:[], :companions), 
+        children: @booking_options.try(:with_indifferent_access).try(:[], :children), 
+        other_passengers: 0,
         pickup: build_pu_hash,
         dropoff: build_do_hash}
 
@@ -495,9 +529,9 @@ class EcolaneAmbassador < BookingAmbassador
   #Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: @note}
     else
-      pu_hash = {location: build_location_hash(trip.origin)}#, note: "TODO NOTE TO DRIVER"}
+      pu_hash = {location: build_location_hash(trip.origin), note: @note}
     end
     pu_hash
   end
