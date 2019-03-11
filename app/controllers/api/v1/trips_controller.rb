@@ -300,13 +300,40 @@ module Api
         # Itinerary Attributes
         itinerary = trip.selected_itinerary
         if itinerary
+
+          # Calculate Departure
+          departure = nil 
+          if itinerary.booking 
+            if itinerary.booking.estimated_pu
+              departure = itinerary.booking.estimated_pu
+            elsif itinerary.booking.negotiated_pu
+              departure = itinerary.booking.negotiated_pu
+            end
+          end
+          if departure.nil? and itinerary.start_time 
+            departure = itinerary.start_time
+          end
+
+          # Calculate Duration 
+          duration = nil 
+          if itinerary.booking 
+            if itinerary.booking.estimated_do
+              duration = itinerary.booking.estimated_do - departure 
+            elsif itinerary.booking.negotiated_do
+              duration = itinerary.booking.negotiated_do - departure 
+            end
+          end
+          if duration.nil?
+            duration = itinerary.duration 
+          end
+
           itin_hash = {
             arrival: itinerary.end_time ? itinerary.end_time.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
-            departure: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil,
-            duration: itinerary.duration,
+            departure: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil,
+            duration: duration,
             fare: itinerary.cost.to_f,
             id: itinerary.id,
             json_legs: itinerary.legs,
@@ -320,7 +347,7 @@ module Api
             walk_time: itinerary.walk_time,
             pu_window_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
             pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
-            estimated_pu_time: itinerary.start_time ? itinerary.start_time.strftime("%Y-%m-%dT%H:%M") : nil
+            estimated_pu_time: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil
           }
 
           # Service Attributes

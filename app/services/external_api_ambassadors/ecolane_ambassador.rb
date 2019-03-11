@@ -20,7 +20,6 @@ class EcolaneAmbassador < BookingAmbassador
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
     add_missing_attributes
-    #@funding_hash = booking.details[:funding_hash] unless booking.nil?
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
@@ -83,7 +82,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   def cancel
     # Don't ever allow cancellations within 1 hour
-    if @itinerary.booking and @itinerary.booking.negotiated_pu - Time.now < 3600
+    if @itinerary.booking and (@itinerary.booking.negotiated_pu - Time.now) < 3600
       return false
     end
     result = cancel_order
@@ -336,22 +335,10 @@ class EcolaneAmbassador < BookingAmbassador
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
-    # Calculate time window
-    #raw_date = trap_trip.try(:with_indifferent_access).try(:[], :raw_date).in_time_zone.to_time
-    #pick_up_leg = trap_trip.try(:with_indifferent_access).try(:[], :pick_up_leg)
-    #seconds_since_midnight = pick_up_leg.try(:with_indifferent_access).try(:[], :display_early)
-
-    #early_pu_time = raw_date + seconds_since_midnight.to_i.seconds
-    #seconds_since_midnight = pick_up_l`eg.try(:with_indifferent_access).try(:[], :display_late)
-    #late_pu_time = raw_date + seconds_since_midnight.to_i.seconds
-
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
       booking = itinerary.booking 
-      #booking.latest_pu = late_pu_time
-      #booking.earliest_pu = early_pu_time
       booking.update(occ_booking_hash(eco_trip))
-      #TODO
       if booking.status == "canceled"
         itinerary.unselect
       end
@@ -369,8 +356,6 @@ class EcolaneAmbassador < BookingAmbassador
 
       # Make the Booking
       booking = Booking.new(occ_booking_hash(eco_trip))
-      #booking.latest_pu = late_pu_time
-      #booking.earliest_pu = early_pu_time
       booking.itinerary = itinerary
       if booking.status == 'canceled'
         itinerary.unselect
@@ -427,13 +412,28 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_booking_hash eco_trip 
-    {
+    
+    negotiated_pu = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated)
+    earliest_pu = nil 
+    latest_pu = nil 
+
+    if negotiated_pu
+      earliest_pu = negotiated_pu.to_time - 15.minutes
+      latest_pu = negotiated_pu.to_time + 15.minutes 
+    end
+
+    return {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
       type: "EcolaneBooking", 
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-      negotiated_pu: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated),
-      negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated)
+      negotiated_pu: negotiated_pu,
+      negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated),
+      estimated_pu: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:estimated),
+      estimated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:estimated),
+      earliest_pu: earliest_pu,
+      latest_pu: latest_pu
     }
+
   end
 
 
