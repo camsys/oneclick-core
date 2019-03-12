@@ -416,6 +416,13 @@ class EcolaneAmbassador < BookingAmbassador
     earliest_pu = nil 
     latest_pu = nil 
 
+    puts '-----------------'
+    puts negotiated_pu 
+    puts '-----------------'
+    puts negotiated_pu.in_time_zone 
+    puts Time.now 
+    puts '--------^^^--------'
+
     if negotiated_pu
       earliest_pu = negotiated_pu.in_time_zone - 15.minutes
       latest_pu = negotiated_pu.in_time_zone + 15.minutes 
