@@ -412,14 +412,13 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_booking_hash eco_trip 
-    
     negotiated_pu = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated)
     earliest_pu = nil 
     latest_pu = nil 
 
     if negotiated_pu
-      earliest_pu = negotiated_pu.to_time - 15.minutes
-      latest_pu = negotiated_pu.to_time + 15.minutes 
+      earliest_pu = negotiated_pu.to_time.in_time_zone - 15.minutes
+      latest_pu = negotiated_pu.to_time.in_time_zone + 15.minutes 
     end
 
     return {
