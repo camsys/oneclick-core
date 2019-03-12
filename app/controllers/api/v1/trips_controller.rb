@@ -346,8 +346,10 @@ module Api
             walk_distance: nil, #itinerary.walk_distance, # DEPRECATE?
             walk_time: itinerary.walk_time,
             pu_window_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
+            wait_start: itinerary.booking ? itinerary.booking.earliest_pu : nil,
             pu_window_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
-            estimated_pu_time: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil
+            wait_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
+            estimated_pickup_time: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil
           }
 
           # Service Attributes
