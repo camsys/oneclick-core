@@ -113,8 +113,6 @@ class User < ApplicationRecord
 
   # Returns the user's (count) past trips, in descending order of trip time
   def past_trips(count=nil)
-    # Sync up with any booking services
-    # sync
     trips.selected.past.limit(count)
   end
 

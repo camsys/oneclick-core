@@ -56,7 +56,7 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   #####################################################################
-  ## Top-level required methods in order for BookingAmbassador to work
+  ## Top-level required methods in order for BookingAmbassador to wripork
   #####################################################################
   # Returns symbol for identifying booking api type
   def booking_api
@@ -70,9 +70,19 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync
-    fetch_customer_orders.try(:with_indifferent_access).try(:[], :orders).try(:[], :order).each do |order|
+    t0 = Time.now 
+    
+    #For performance, only update trips in the future
+    options = {
+      start: (Time.current - 1.day).iso8601[0...-6]
+    }
+
+    fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order).each do |order|
+      t1 = Time.now 
       occ_trip_from_ecolane_trip order
+      puts "THIS SYNC: #{Time.now - t1}"
     end
+    puts "SYNCING TIME: #{Time.now - t0}"
   end
 
     # Books Trip (funding_source and sponsor must be specified)
@@ -335,6 +345,10 @@ class EcolaneAmbassador < BookingAmbassador
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
+    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" and itinerary and not itinerary.selected?
+      return 
+    end
+
     # This Trip has already been created, just update it with new times/status etc.
     if itinerary
       booking = itinerary.booking 
@@ -342,7 +356,7 @@ class EcolaneAmbassador < BookingAmbassador
       if booking.status == "canceled"
         itinerary.unselect
       end
-      booking.save 
+      booking.save
       return nil
     # This Trip needs to be added to OCC
     else
@@ -415,13 +429,6 @@ class EcolaneAmbassador < BookingAmbassador
     negotiated_pu = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[],:negotiated)
     earliest_pu = nil 
     latest_pu = nil 
-
-    puts '-----------------'
-    puts negotiated_pu 
-    puts '-----------------'
-    puts negotiated_pu.in_time_zone 
-    puts Time.now 
-    puts '--------^^^--------'
 
     if negotiated_pu
       earliest_pu = negotiated_pu.in_time_zone - 15.minutes
