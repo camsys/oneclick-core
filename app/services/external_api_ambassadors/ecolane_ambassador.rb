@@ -417,8 +417,8 @@ class EcolaneAmbassador < BookingAmbassador
     latest_pu = nil 
 
     if negotiated_pu
-      earliest_pu = negotiated_pu.to_time.in_time_zone - 15.minutes
-      latest_pu = negotiated_pu.to_time.in_time_zone + 15.minutes 
+      earliest_pu = negotiated_pu.in_time_zone - 15.minutes
+      latest_pu = negotiated_pu.in_time_zone + 15.minutes 
     end
 
     return {
