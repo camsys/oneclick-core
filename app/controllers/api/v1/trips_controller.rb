@@ -328,7 +328,7 @@ module Api
           end
 
           itin_hash = {
-            arrival: itinerary.end_time ? itinerary.end_time.strftime("%Y-%m-%dT%H:%M") : nil,
+            arrival: itinerary.end_time ? itinerary.end_time.in_time_zone.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
