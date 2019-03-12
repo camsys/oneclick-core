@@ -314,6 +314,19 @@ module Api
             departure = itinerary.start_time
           end
 
+          # End Time 
+          arrival = nil 
+          if itinerary.booking 
+            if itinerary.booking.estimated_do
+              arrival = itinerary.booking.estimated_do
+            elsif itinerary.booking.negotiated_do
+              arrival = itinerary.booking.negotiated_do
+            end
+          end
+          if arrival.nil?
+            arrival = itinerary.end_time
+          end
+
           # Calculate Duration 
           duration = nil 
           if itinerary.booking 
@@ -327,8 +340,10 @@ module Api
             duration = itinerary.duration 
           end
 
+
+
           itin_hash = {
-            arrival: itinerary.end_time ? itinerary.end_time.in_time_zone.strftime("%Y-%m-%dT%H:%M") : nil,
+            arrival: arrival ? arrival.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
             cost: itinerary.cost.to_f,
