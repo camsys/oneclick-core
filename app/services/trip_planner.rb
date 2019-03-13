@@ -136,8 +136,6 @@ class TripPlanner
   def build_paratransit_itineraries
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
-
-
     itineraries = @available_services[:paratransit].map do |svc|
       
       #TODO: this is a hack and needs to be replaced.
@@ -155,6 +153,9 @@ class TripPlanner
       )
 
     end
+
+    # Get rid of nil itineraries caused by skipping Ecolane Services
+    itineraries.delete(nil)
 
     if itineraries.blank? 
       return []
