@@ -136,13 +136,24 @@ class TripPlanner
   def build_paratransit_itineraries
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
+
+
     @available_services[:paratransit].map do |svc|
+      
+      #TODO: his is a hack and needs to be replaced.
+      # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
+      # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
+      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0
+        next
+      end 
+
       Itinerary.new(
         service: svc,
         trip_type: :paratransit,
         cost: svc.fare_for(@trip, router: @router),
         transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
       )
+
     end
   end
 
