@@ -232,7 +232,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Find the fare for a trip.
   def get_fare
-    #get_funding_hash
+    return unless @customer_id #If there is no user, then just return nil
     url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
     order =  build_order
