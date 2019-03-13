@@ -138,9 +138,9 @@ class TripPlanner
 
 
 
-    @available_services[:paratransit].map do |svc|
+    itineraries = @available_services[:paratransit].map do |svc|
       
-      #TODO: his is a hack and needs to be replaced.
+      #TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
       if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0
@@ -155,6 +155,13 @@ class TripPlanner
       )
 
     end
+
+    if itineraries.blank? 
+      return []
+    else 
+      return itineraries 
+    end
+
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
