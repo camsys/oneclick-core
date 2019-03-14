@@ -354,7 +354,7 @@ module Api
             json_legs: itinerary.legs,
             mode: itinerary.trip_type.nil? ? nil : remodeify(itinerary.trip_type),
             product_id: nil, #itinerary.product_id,
-            status: itinerary.booking.try(:status) || "active", # DEPRECATE?
+            status: itinerary.booking.try(:status) || "ordered", # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?
             transit_time: itinerary.transit_time,
             wait_time: nil, #itinerary.wait_time, # WAIT TIME?
