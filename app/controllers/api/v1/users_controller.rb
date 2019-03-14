@@ -144,7 +144,7 @@ module Api
 
         #Make sure we have 4 purposes
         purposes.each do |purpose|
-          if top_purposes.length < 4 
+          if top_purposes.length < 4 and not purpose.in? top_purposes
             top_purposes << purpose 
           else
             break
