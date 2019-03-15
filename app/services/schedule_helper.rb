@@ -32,13 +32,11 @@ module ScheduleHelper
     schedules.where(day: day.wday).count > 0 ? true : false
   end
 
-  def next_open_time 
+  def next_open_time now=Time.now
 
     if schedules.count == 0
       return nil
     end
-
-    now = Time.now 
 
     later_today  = []
     # Check to see if we are open now or later today

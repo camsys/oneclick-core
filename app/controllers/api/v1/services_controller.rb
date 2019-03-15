@@ -33,18 +33,33 @@ module Api
             min_notice_days = (service.booking_details[:min_days] || 2).to_i
             max_notice_days = (service.booking_details[:max_days] || 14).to_i
 
+            
             if service.booking_details[:trusted_users] and booking_profile.external_user_id.in? service.booking_details.try(:[], :trusted_users).split(',').map{ |x| x.strip }
               (1..21).each do |n|
                 hours[(today + n).to_s] = {open: "00:00", close: "23:59"}
               end
-            elsif service.schedules.count > 0 #This user's service has listed hours
-              next_open = service.next_open_time
-              (min_notice_days..max_notice_days).each do |n|
-                schedule = service.schedules.where(day: (next_open + n.days).wday).first
-                if schedule
-                  hours[(next_open + n.days).strftime('%Y-%m-%d')] = {open: schedule.schedule_time_to_military_string(schedule.start_time), 
-                    close: schedule.schedule_time_to_military_string(schedule.end_time)}
+            elsif service.schedules.count > 0 #This user's service has listed hours. This is the most common case.
+              
+              #Find out if we are past the cutoff for today. If so, start counting from tomorrow
+              if service.booking_details[:cutoff_time] and (Time.now.seconds_since_midnight > service.booking_details[:cutoff_time].to_i)
+                day = Time.now + 1.days 
+              else
+                day = Time.now
+              end
+              
+              biz_days_count  = 0
+              (0..max_notice_days).each do |n|
+                if service.open_on_day? day
+                  if biz_days_count >= min_notice_days
+                    schedule = service.schedules.where(day: day.wday).first
+                    if schedule
+                      hours[day.strftime('%Y-%m-%d')] = {open: schedule.schedule_time_to_military_string(schedule.start_time), 
+                        close: schedule.schedule_time_to_military_string(schedule.end_time)}
+                    end
+                  end
+                  biz_days_count += 1
                 end
+                day = day + 1.days 
               end
 
             else #This user is registered with a service, but that service has not entered any hours
