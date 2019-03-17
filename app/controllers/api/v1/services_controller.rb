@@ -41,7 +41,7 @@ module Api
             elsif service.schedules.count > 0 #This user's service has listed hours. This is the most common case.
               
               #Find out if we are past the cutoff for today. If so, start counting from tomorrow
-              if service.booking_details[:cutoff_time] and (Time.now.seconds_since_midnight > service.booking_details[:cutoff_time].to_i)
+              if service.booking_details[:cutoff_time] and (Time.now.in_time_zone.seconds_since_midnight > service.booking_details[:cutoff_time].to_i)
                 day = Time.now + 1.days 
               else
                 day = Time.now
