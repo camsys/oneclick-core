@@ -24,6 +24,7 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
     @booking_options = opts[:booking_options]
+    @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
 
   #####################################################################
@@ -235,7 +236,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Find the fare for a trip.
   def get_fare
     return unless @customer_id #If there is no user, then just return nil
-    if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
+    if @use_ecolane_rules #use Ecolane Rules
       return get_ecolane_fare 
     else
       return get_1click_fare
@@ -323,7 +324,7 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = []
     customer_information = fetch_customer_information(funding=true)
     customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
-      unless funding_source["name"].in? @preferred_funding_sources
+      if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
         next 
       end
       arrayify(funding_source["allowed"]).each do |allowed|
