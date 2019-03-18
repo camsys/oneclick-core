@@ -215,29 +215,31 @@ class EcolaneAmbassador < BookingAmbassador
 
   end
 
-  def get_preferred_fare
-    sponsors = nil
+  def get_ecolane_fare
     url_options =  "/api/order/#{system_id}/query_preferred_fares"
     url = @url + url_options
-
-    #funding = {purpose: 'Medical'}
-    #params[:funding] = funding
-
     order =  build_order
     resp = send_request(url, 'POST', order)
-    return resp
-    fare, funding_source, sponsor = unpack_fare_response_v9(resp)
-    return true, {fare: fare, funding_source: funding_source, sponsor: sponsor}
+    fare, funding_hash = build_ecolane_funding_hash(resp)
+    return fare
   end
 
-  # Find the fare for a trip.
-  def get_fare
-    return unless @customer_id #If there is no user, then just return nil
+  def get_1click_fare
     url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
     order =  build_order
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
     resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay).to_f/100 
+  end
+
+  # Find the fare for a trip.
+  def get_fare
+    return unless @customer_id #If there is no user, then just return nil
+    if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
+      return get_ecolane_fare 
+    else
+      return get_1click_fare
+    end
   end
 
     # Checks on an itineraries funding options and sends the request to Ecolane
@@ -251,8 +253,8 @@ class EcolaneAmbassador < BookingAmbassador
 
   def get_funding_hash
     #TODO: Reduce calls and save this after the first time we ask for it.
-    if false #use Ecolane Rules
-      return {}
+    if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
+      fare, funding_hash = build_ecolane_funding_hash
     else #use 1-Click Rules
       funding_hash = build_1click_funding_hash
     end
@@ -615,6 +617,22 @@ class EcolaneAmbassador < BookingAmbassador
       return {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
     end
 
+  end
+
+  def build_ecolane_funding_hash
+    fare_hash = Hash.from_xml(resp.body)
+    fares = fare_hash['fares']['fare']
+    highest_priority_fare = []
+    #When there is only one option in the fares table, it is  not returned as an array.  Turn it into an array
+    unless fares.kind_of? Array
+      fares = [fares]
+    end
+    fares.each do |fare|
+      if highest_priority_fare.empty? or highest_priority_fare[3].to_f < fare['priority'].to_f
+        highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
+      end
+    end
+    return highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, highest_priority_fare[2]}
   end
 
   def iso8601ify dob 
