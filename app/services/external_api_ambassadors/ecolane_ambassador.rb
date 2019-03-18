@@ -620,7 +620,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   end
 
-  def build_ecolane_funding_hash
+  def build_ecolane_funding_hash resp
     fare_hash = Hash.from_xml(resp.body)
     fares = fare_hash['fares']['fare']
     highest_priority_fare = []
