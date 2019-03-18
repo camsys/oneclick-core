@@ -632,7 +632,7 @@ class EcolaneAmbassador < BookingAmbassador
         highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
       end
     end
-    return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, highest_priority_fare[2]}]
+    return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
   end
 
   def iso8601ify dob 
