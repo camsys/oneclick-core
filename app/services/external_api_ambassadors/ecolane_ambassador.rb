@@ -620,8 +620,6 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order =  build_order funding=false
     resp = send_request(url, 'POST', order)
-    fare, funding_hash = build_ecolane_funding_hash(resp)
-    return fare
     fare_hash = Hash.from_xml(resp.body)
     fares = fare_hash['fares']['fare']
     highest_priority_fare = []
