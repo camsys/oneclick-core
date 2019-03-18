@@ -71,19 +71,15 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync
-    t0 = Time.now 
-    
+
     #For performance, only update trips in the future
     options = {
       start: (Time.current - 1.day).iso8601[0...-6]
     }
 
-    fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order).each do |order|
-      t1 = Time.now 
+    (fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order) || []).each do |order|
       occ_trip_from_ecolane_trip order
-      puts "THIS SYNC: #{Time.now - t1}"
     end
-    puts "SYNCING TIME: #{Time.now - t0}"
   end
 
     # Books Trip (funding_source and sponsor must be specified)
@@ -531,6 +527,8 @@ class EcolaneAmbassador < BookingAmbassador
 
     if funding 
       order_hash[:funding] = get_funding_hash
+    elsif @purpose
+      order_hash[:funding] = {purpose: @purpose}
     end
 
     order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
