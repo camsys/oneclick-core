@@ -618,7 +618,7 @@ class EcolaneAmbassador < BookingAmbassador
   def build_ecolane_funding_hash
     url_options =  "/api/order/#{system_id}/query_preferred_fares"
     url = @url + url_options
-    order =  build_order
+    order =  build_order funding=false
     resp = send_request(url, 'POST', order)
     fare, funding_hash = build_ecolane_funding_hash(resp)
     return fare
