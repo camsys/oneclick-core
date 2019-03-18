@@ -217,12 +217,7 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_ecolane_fare
-    url_options =  "/api/order/#{system_id}/query_preferred_fares"
-    url = @url + url_options
-    order =  build_order
-    resp = send_request(url, 'POST', order)
-    fare, funding_hash = build_ecolane_funding_hash(resp)
-    return fare
+    build_ecolane_funding_hash[0]
   end
 
   def get_1click_fare
@@ -620,7 +615,13 @@ class EcolaneAmbassador < BookingAmbassador
 
   end
 
-  def build_ecolane_funding_hash resp
+  def build_ecolane_funding_hash
+    url_options =  "/api/order/#{system_id}/query_preferred_fares"
+    url = @url + url_options
+    order =  build_order
+    resp = send_request(url, 'POST', order)
+    fare, funding_hash = build_ecolane_funding_hash(resp)
+    return fare
     fare_hash = Hash.from_xml(resp.body)
     fares = fare_hash['fares']['fare']
     highest_priority_fare = []
