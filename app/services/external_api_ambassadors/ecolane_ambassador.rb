@@ -20,9 +20,13 @@ class EcolaneAmbassador < BookingAmbassador
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
     add_missing_attributes
+    # Funding Rules Shortcuts
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
+    @dummy = @service.booking_details.try(:[], :dummy_user)
+    @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources).split("\r\n").map { |x| {code: x.split(',').first.strip, desc: x.split(',').last.strip}}
+    
     @booking_options = opts[:booking_options]
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
@@ -57,7 +61,7 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   #####################################################################
-  ## Top-level required methods in order for BookingAmbassador to wripork
+  ## Top-level required methods in order for BookingAmbassador to work
   #####################################################################
   # Returns symbol for identifying booking api type
   def booking_api
@@ -216,10 +220,16 @@ class EcolaneAmbassador < BookingAmbassador
     build_ecolane_funding_hash[0]
   end
 
-  def get_1click_fare
+  def get_1click_fare funding_hash=nil
     url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
-    order =  build_order
+    
+    if funding_hash
+      order =  build_order true, funding_hash 
+    else
+      order = build_order
+    end
+    
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
     resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay).to_f/100 
   end
@@ -244,7 +254,7 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_funding_hash
-    #TODO: Reduce calls and save this after the first time we ask for it.
+    #TODO: Reduce call to Ecolane by saving the funding_hash after the first time we ask for it.
     if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
       fare, funding_hash = build_ecolane_funding_hash
     else #use 1-Click Rules
@@ -514,7 +524,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order funding=true
+  def build_order funding=true, funding_hash=nil
     order_hash = {
         assistant: yes_or_no(@booking_options.try(:with_indifferent_access).try(:[], :escort)), 
         companions: @booking_options.try(:with_indifferent_access).try(:[], :companions), 
@@ -631,6 +641,24 @@ class EcolaneAmbassador < BookingAmbassador
       end
     end
     return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
+  end
+
+  def build_discount_array 
+    return build_ecolane_discount_array
+  end
+
+  def build_ecolane_discount_array #(funding_sources, sponsors, trip_purpose, customer_number, customer_id, assistant, companions, children, other_passengers, is_depart, scheduled_time, to_trip_place, from_trip_place, system, token)
+    funding_sources = ['ADAYORK1', 'MATP', 'PWD']
+    funding_source_comments = ["ADA Transportation", "Non-emergency Medical Transportation", "People with Disabilities"]
+
+    discount_array = []
+    funding_sources.each do |funding_source|
+      funding_source_hash = {funding_source: funding_source, purpose: @purpose}
+      fare = get_1click_fare funding_source_hash
+      discount_array.append({fare: fare, comment: "COMMENT", funding_source: code, base_fare: false})
+    end
+
+    discount_array
   end
 
   def iso8601ify dob 

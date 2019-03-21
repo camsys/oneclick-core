@@ -33,6 +33,10 @@
         =bd.input :ada_funding_sources, as: :text, label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
         =bd.input :preferred_sponsors, as: :text, label: "Permitted Sponsors", input_html: {value: booking_details[:preferred_sponsors]}
         =bd.input :banned_purposes, as: :text, placeholder: "", label: "Banned Purposes", input_html: {value: booking_details[:banned_purposes]}
+        =bd.input :dummy_user, as: :string, label: "Dummy/Guest User", input_html: {value: booking_details[:dummy_user]}
+        =bd.input :guest_funding_sources, as: :text, label: "Guest Funding Sources", input_html: {value: booking_details[:guest_funding_sources]}
+
+
       %hr
       %h4.text-center User Lists
       =bd.input :banned_users, as: :text, label: "Banned Users", input_html: {value: booking_details[:banned_users]}
