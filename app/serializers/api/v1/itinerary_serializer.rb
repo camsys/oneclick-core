@@ -197,7 +197,7 @@ module Api
       end
       
       def discounts
-        if object.bookable?
+        if object.bookable? and not object.user.try(:registered?)
           return object.booking_ambassador.discounts_hash
         else
           return nil

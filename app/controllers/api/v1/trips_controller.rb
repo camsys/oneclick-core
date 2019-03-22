@@ -151,8 +151,6 @@ module Api
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
 
-          puts booking_request.ai 
-
           # Pull the itinerary out of the booking_request hash and set up a 
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 
@@ -188,6 +186,7 @@ module Api
       # POST trips/cancel, itineraries/cancel
       # Unselects and cancels the target itinerary
       def cancel
+        success = true 
         results = bookingcancellation_request_params.map do |bc_req|
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
@@ -198,12 +197,15 @@ module Api
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
-
-          # Package response as per API V1 docs
-          next response.merge(bookingcancellation_response_hash(cancellation_result))
+          # Package response as per API V1 docsion
+          cancellation_response = bookingcancellation_response_hash(cancellation_result)
+          if not cancellation_response[:success] 
+            success = false 
+          end
+          next response.merge(cancellation_response)
         end
-        
-        render status: 200, json: {cancellation_results: results}
+        status = (success ? 200 : 406)
+        render status: status, json: {cancellation_results: results}
       end
 
       # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
@@ -453,11 +455,16 @@ module Api
       
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
+        booking.reload
         case booking.try(:type_code)
-        when :ride_pilot, :ecolane
+        when :ride_pilot
           return {
             success: true,
             confirmation_id: booking.confirmation
+          }
+        when "ecolane"
+          return {
+            success: booking.status == "canceled"
           }
         else
           return {

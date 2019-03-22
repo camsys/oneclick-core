@@ -95,15 +95,17 @@ class EcolaneAmbassador < BookingAmbassador
 
   def cancel
     # Don't ever allow cancellations within 1 hour
-    if @itinerary.booking and (@itinerary.booking.negotiated_pu - Time.now) < 3600
-      return false
+    if @itinerary.booking and @itinerary.booking.negotiated_pu and (@itinerary.booking.negotiated_pu - Time.now) < 3600
+      return @itinerary.booking
     end
+    @itinerary.booking.reload
     result = cancel_order
     # Unselect the itinerary on successful cancellation
     @itinerary.unselect if result
     # Update Booking object with status info and return it
-    booking.update({status: status})
-    return result
+    new_status = status @itinerary.booking.confirmation 
+    @itinerary.booking.update({status: new_status})
+    return @itinerary.booking
   end
 
   def prebooking_questions
@@ -136,8 +138,10 @@ class EcolaneAmbassador < BookingAmbassador
     if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
       confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id) 
       eco_trip  = fetch_order(confirmation)["order"]
-      booking = Booking.new(occ_booking_hash(eco_trip))
+      booking = self.booking
+      booking.update(occ_booking_hash(eco_trip))
       booking.itinerary = itinerary
+      booking.confirmation = confirmation
       booking.save
       return booking
     else
@@ -188,7 +192,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Cancel a Trip
   def cancel_order 
     unless @confirmation
-      Rails.logger.debug "Unable to cancel itinerary #{itinerary.id} because to confirmation number is present in the booking."
+      Rails.logger.debug "Unable to cancel itinerary #{itinerary.id} because no confirmation number is present in the booking."
       return false
     end
 
@@ -662,6 +666,7 @@ class EcolaneAmbassador < BookingAmbassador
         discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code], base_fare: false})
       end
     end
+
     discount_array
   end
 
