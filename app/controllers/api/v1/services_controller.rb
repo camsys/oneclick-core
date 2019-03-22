@@ -19,7 +19,7 @@ module Api
         today = Date.today
         hours = {}
         #if @traveler.is_visitor? or @traveler.is_api_guest? #Return a wide range of hours
-        if not @traveler.registered?
+        if not @traveler or not @traveler.registered?
           (0..21).each do |n|
             hours[(today + n).to_s] = {open: "07:00", close: "22:00"}
           end

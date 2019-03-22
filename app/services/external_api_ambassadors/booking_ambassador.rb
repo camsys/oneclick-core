@@ -111,6 +111,10 @@ class BookingAmbassador
     )
   end
   
+  # Used by Ecolane to return a hash of potential funding sources and prices
+  def discounts_hash
+    nil 
+  end
   
   private
   

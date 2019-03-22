@@ -19,7 +19,7 @@ module Api
         # :external_info,             # DEPRECATE?
         # :hidden,                    # DEPRECATE? possibly used
         :id,
-        # :is_bookable,               # DEPRECATE?
+        #:is_bookable,               # DEPRECATE?
         :json_legs,
         # :legs,                      # front end uses json_legs
         :logo_url,
@@ -61,12 +61,12 @@ module Api
         :user_registered,           # BOOKING
         :wait_time,                 # not needed in call
         :walk_distance,
-        :walk_time,
+        :walk_time
 
 
       # STUB METHODS FOR DEPRECATED ATTRIBUTES
       # def accommodation_mismatch; false end
-      # def bookable; false end
+      def bookable; false end
       # def cost_comments; nil end
       # def count; nil end
       # def date_mismatch; false end
@@ -197,6 +197,11 @@ module Api
       end
       
       def discounts
+        if object.bookable?
+          return object.booking_ambassador.discounts_hash
+        else
+          return nil
+        end
       end
       
       def prebooking_questions
@@ -228,7 +233,11 @@ module Api
               lng: waypoint.lng.to_f
             }
           },
-          formatted_address: waypoint.formatted_address
+          formatted_address: waypoint.formatted_address,
+          id: object.id,
+          name: waypoint.name,
+          stop_code: nil,
+          address_components: waypoint.address_components
         }
       end
       

@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id
+  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy
   require 'securerandom'
 
   def initialize(opts={})
@@ -20,13 +20,15 @@ class EcolaneAmbassador < BookingAmbassador
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
     add_missing_attributes
+    
     # Funding Rules Shortcuts
     @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
     @dummy = @service.booking_details.try(:[], :dummy_user)
     @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources).split("\r\n").map { |x| {code: x.split(',').first.strip, desc: x.split(',').last.strip}}
-    
+    @guest_purpose = @service.booking_details.try(:[], :guest_purpose)
+
     @booking_options = opts[:booking_options]
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
@@ -225,12 +227,14 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     
     if funding_hash
-      order =  build_order true, funding_hash 
+      order = build_order(true, funding_hash)
     else
-      order = build_order
+      order = build_order 
     end
-    
-    resp = Hash.from_xml(send_request(url, 'POST', order).body)
+
+    resp = send_request(url, 'POST', order)
+    return nil if resp.code != "200"
+    resp = Hash.from_xml(resp.body)
     resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay).to_f/100 
   end
 
@@ -527,15 +531,17 @@ class EcolaneAmbassador < BookingAmbassador
   def build_order funding=true, funding_hash=nil
     order_hash = {
         assistant: yes_or_no(@booking_options.try(:with_indifferent_access).try(:[], :escort)), 
-        companions: @booking_options.try(:with_indifferent_access).try(:[], :companions), 
-        children: @booking_options.try(:with_indifferent_access).try(:[], :children), 
+        companions: @booking_options.try(:with_indifferent_access).try(:[], :companions) || 0, 
+        children: @booking_options.try(:with_indifferent_access).try(:[], :children) || 0, 
         other_passengers: 0,
         pickup: build_pu_hash,
         dropoff: build_do_hash}
 
-    order_hash[:customer_id] = @customer_id
+    order_hash[:customer_id] = @customer_id || @dummy
 
-    if funding 
+    if funding_hash 
+      order_hash[:funding] = funding_hash
+    elsif funding 
       order_hash[:funding] = get_funding_hash
     elsif @purpose
       order_hash[:funding] = {purpose: @purpose}
@@ -643,21 +649,19 @@ class EcolaneAmbassador < BookingAmbassador
     return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
   end
 
-  def build_discount_array 
-    return build_ecolane_discount_array
+  def discounts_hash
+    build_ecolane_discount_array
   end
 
-  def build_ecolane_discount_array #(funding_sources, sponsors, trip_purpose, customer_number, customer_id, assistant, companions, children, other_passengers, is_depart, scheduled_time, to_trip_place, from_trip_place, system, token)
-    funding_sources = ['ADAYORK1', 'MATP', 'PWD']
-    funding_source_comments = ["ADA Transportation", "Non-emergency Medical Transportation", "People with Disabilities"]
-
+  def build_ecolane_discount_array 
     discount_array = []
-    funding_sources.each do |funding_source|
-      funding_source_hash = {funding_source: funding_source, purpose: @purpose}
+    @guest_funding_sources.each do |funding_source|
+      funding_source_hash = {funding_source: funding_source[:code], purpose: @guest_purpose}
       fare = get_1click_fare funding_source_hash
-      discount_array.append({fare: fare, comment: "COMMENT", funding_source: code, base_fare: false})
+      unless fare.nil?
+        discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code], base_fare: false})
+      end
     end
-
     discount_array
   end
 
