@@ -142,6 +142,7 @@ class EcolaneAmbassador < BookingAmbassador
       booking.update(occ_booking_hash(eco_trip))
       booking.itinerary = itinerary
       booking.confirmation = confirmation
+      booking.created_in_1click = true
       booking.save
       return booking
     else
