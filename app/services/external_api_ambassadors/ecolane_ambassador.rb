@@ -488,11 +488,11 @@ class EcolaneAmbassador < BookingAmbassador
         return false, {note: "Ineligible for online booking"} 
       end
 
-      if  customer["status"] and customer["status"]["state"] == "enabled"
+      #if  customer["status"] and customer["status"]["state"] == "enabled"
         return true, customer
-      else
-        return false, customer
-      end
+      #else
+      #  return false, customer
+      #end
     else
       return false, {}
     end
@@ -542,7 +542,9 @@ class EcolaneAmbassador < BookingAmbassador
         pickup: build_pu_hash,
         dropoff: build_do_hash}
 
-    order_hash[:customer_id] = @customer_id || @dummy
+    unless @customer_id.blank? && @dummy.blank?
+      order_hash[:customer_id] = @customer_id || @dummy
+    end
 
     if funding_hash 
       order_hash[:funding] = funding_hash
@@ -655,10 +657,14 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def discounts_hash
-    build_ecolane_discount_array
+    if @use_ecolane_rules #use Ecolane Rules
+      return build_ecolane_discount_array
+    else
+      return build_1click_discount_array
+    end
   end
 
-  def build_ecolane_discount_array 
+  def build_1click_discount_array 
     discount_array = []
     @guest_funding_sources.each do |funding_source|
       funding_source_hash = {funding_source: funding_source[:code], purpose: @guest_purpose}
@@ -667,8 +673,57 @@ class EcolaneAmbassador < BookingAmbassador
         discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code], base_fare: false})
       end
     end
-
     discount_array
+  end
+
+  def build_ecolane_discount_array
+    url_options =  "/api/order/#{system_id}/query_preferred_fares"
+    url = @url + url_options
+    order = Nokogiri::XML(build_order)
+    order = order.to_s
+    resp = send_request(url, token, 'POST', order)
+
+    begin
+      resp_code = resp.code
+    rescue
+      return nil
+    end
+
+    if resp_code != "200"
+      return nil
+    end
+
+    temp_hash = {}
+    fare_hash = Hash.from_xml(resp.body)
+    fares = fare_hash['fares']['fare']
+    fares.each do |fare|
+      new_funding_source = fare["funding"]["funding_source"]
+      new_fare = fare["client_copay"].to_f/100
+      new_comment = fare["funding"]["description"]
+
+      current = temp_hash[new_funding_source]
+
+      #If this is the first time seeing this funding source, save it.
+      if current.nil?
+        if not new_comment.nil? and not new_fare.nil?
+          temp_hash[new_funding_source] = {fare: new_fare, comment: new_comment, funding_source: new_funding_source, base: false}
+        end
+      #If we've seen this funding source before, but the new fare is higher, save it.
+      elsif current[:fare] < new_fare
+        if not new_comment.nil? and not new_fare.nil?
+          temp_hash[new_funding_source] = {fare: new_fare, comment: new_comment, funding_source: new_funding_source, base: false}
+        end
+      end
+    end
+
+    discounts = []
+    temp_hash.each do |k,v|
+      v[:funding_source] = k
+      discounts << v
+    end
+
+    return discounts
+
   end
 
   def iso8601ify dob 
