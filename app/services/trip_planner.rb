@@ -179,9 +179,12 @@ class TripPlanner
 
   # Builds an uber itinerary populates transit_time based on OTP response
   def build_uber_itineraries
-    return [] unless @available_services[:uber] # Return an empty array if no taxi services are available
+    return [] unless @available_services[:uber] # Return an empty array if no Uber services are available
 
     cost, product_id = @uber_ambassador.cost('uberX')
+
+    return [] unless cost
+
     new_itineraries = @available_services[:uber].map do |svc|
       Itinerary.new(
         service: svc,
