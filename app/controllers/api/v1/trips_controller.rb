@@ -215,7 +215,7 @@ module Api
         trip_id = params[:trip_id]
         if booking_confirmations
           bookings  = @traveler.bookings.where(confirmation: booking_confirmations)
-          UserMailer.ecolane_trip_email([email_address], @traveler, bookings).deliver
+          UserMailer.ecolane_trip_email([email_address], bookings).deliver
         else 
           trip = Trip.find(trip_id.to_i)
           UserMailer.user_trip_email([email_address], trip).deliver

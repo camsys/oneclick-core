@@ -7,50 +7,52 @@
     -itinerary = booking.itinerary
     -trip = itinerary.trip
     %h2
-      -if trip.previous_trip
+      -if @bookings.count == 1 
+        ="Your Trip"
+      -elsif trip.previous_trip.nil? 
         ="Outbound Trip"
         -outbound = false
       -else
         ="Return Trip"
 
     %div{:style => "color:gray;"}
-      =trip.trip_time
+      =trip.trip_time.strftime("%A, %B %e")
 
     %br
     %div{:style => "font-weight:bold;"}
       %div{:style => "float:left;"}
-        =itinerary.duration
+        =itinerary.describe_duration
       %div{:style => "float:right;"}
-        =itinerary.cost
+        =itinerary.describe_cost
     %br
     %div.trip{ :style => "border-radius: 1px; padding: 1px; border: 1px solid #A9A9A9;" }
       %table{:style => "cellspacing:0,border:0,width:400"}
         %tr
           %td{width: "150px", valign: "top", :style => "float:left;" }
-            =booking.earliest_pu
+            =booking.earliest_pu.strftime("%l:%M %p")
 
           %td
             %div{:style => "color:grey; font-size:90%"}
               WAIT for Shared Ride
             %br
             %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
-              =trip.origin
+              =trip.origin.to_s
             %br
             %div{:style => "color:grey; font-size:90%"}
               ="Confirm#: " + booking.confirmation
         %tr
           %td{width: "150px", valign: "top", :style => "float:left;", height: "100px" }
-            =booking.latest_pu
+            =booking.latest_pu.strftime("%l:%M %p")
           %td
         %tr
           %td{width: "150px", valign: "top", :style => "float:left;"}
-            =trip.
+            =booking.negotiated_do ? booking.negotiated_do.strftime("%l:%M %p") : ""
           %td{width: "100%", :style => "border-radius: 0px; padding: 10px; border: 0px; background:#f2f2f2" }
             %div{:style => "color:grey; font-size:90%"}
-              =booking.negotiated_do
+              Arrive
             %br
             %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
-              =trip.destination
+              =trip.destination.to_s
 
     %br
     %br
