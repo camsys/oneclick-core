@@ -110,6 +110,13 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email, subject: 'Password Reset Instructions')
   end
 
+  def ecolane_trip_email(addresses, traveler, bookings)
+    @user = traveler
+    @bookings = bookings 
+    subject = "Your Trip Details"
+    mail(to: addresses, subject: subject)
+  end
+
   private
 
   # Attaches an asset to the email based on its filename (including extension)

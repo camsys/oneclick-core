@@ -211,14 +211,16 @@ module Api
       # Replicates the email functionality from Legacy (Except for the Ecolane Stuff)
       def email
         email_address = params[:email_address]
-        booking_confirmation = params[:booking_confirmation]
+        booking_confirmations = params[:booking_confirmations]
         trip_id = params[:trip_id]
-        if booking_confirmation 
-          trip = @traveler.bookings.find_by(confirmation: booking_confirmation.first)
+        if booking_confirmations
+          bookings  = @traveler.bookings.where(confirmation: booking_confirmations)
+          UserMailer.ecolane_trip_email([email_address], @traveler, bookings).deliver
         else 
           trip = Trip.find(trip_id.to_i)
+          UserMailer.user_trip_email([email_address], trip).deliver
         end
-        UserMailer.user_trip_email([email_address], trip).deliver
+        #UserMailer.user_trip_email([email_address], trip).deliver
         # Also should improve the JSON response to handle successfully and failed email calls`
         render json: {result: 200}
       end
