@@ -83,7 +83,7 @@ class EcolaneAmbassador < BookingAmbassador
       start: (Time.current - 1.day).iso8601[0...-6]
     }
 
-    (fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order) || []).each do |order|
+    (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
       occ_trip_from_ecolane_trip order
     end
   end
