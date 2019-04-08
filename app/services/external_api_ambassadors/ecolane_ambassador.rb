@@ -370,6 +370,7 @@ class EcolaneAmbassador < BookingAmbassador
         itinerary.unselect
       end
       booking.save
+      itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
       return nil
     # This Trip needs to be added to OCC
     else
