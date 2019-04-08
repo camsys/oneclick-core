@@ -424,7 +424,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
-    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay)
+    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
