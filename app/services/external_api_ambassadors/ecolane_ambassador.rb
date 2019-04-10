@@ -333,7 +333,7 @@ class EcolaneAmbassador < BookingAmbassador
   def get_trip_purposes 
     purposes = []
     customer_information = fetch_customer_information(funding=true)
-    customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
+    arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
         next 
       end
