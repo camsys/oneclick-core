@@ -52,8 +52,8 @@ class Trip < ApplicationRecord
 
   # Past trips have trip time before now, ordered from last to first; future
   # trips have trip time now and forward, ordered from first to last.
-  scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone).order('trip_time DESC') }
-  scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone).order('trip_time ASC') }
+  scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone - 6.hours).order('trip_time DESC') }
+  scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone - 6.hours).order('trip_time ASC') }
   scope :selected, -> { where.not(selected_itinerary_id: nil) }
 
   # Geographic scopes return trips that start or end in the passed geom

@@ -83,7 +83,7 @@ class EcolaneAmbassador < BookingAmbassador
       start: (Time.current - 1.day).iso8601[0...-6]
     }
 
-    (fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order) || []).each do |order|
+    (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
       occ_trip_from_ecolane_trip order
     end
   end
@@ -333,7 +333,7 @@ class EcolaneAmbassador < BookingAmbassador
   def get_trip_purposes 
     purposes = []
     customer_information = fetch_customer_information(funding=true)
-    customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
+    arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
         next 
       end
@@ -370,6 +370,7 @@ class EcolaneAmbassador < BookingAmbassador
         itinerary.unselect
       end
       booking.save
+      itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
       return nil
     # This Trip needs to be added to OCC
     else
@@ -424,7 +425,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
-    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay)
+    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
@@ -511,8 +512,9 @@ class EcolaneAmbassador < BookingAmbassador
       user = nil
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
+        email = @customer_number.gsub(' ', '_')
         user = User.create!(
-            email: "#{@customer_number}_#{@county}@ecolane_user.com", 
+            email: "#{email}_#{@county}@ecolane_user.com", 
             password: random, 
             password_confirmation: random,            
           )
