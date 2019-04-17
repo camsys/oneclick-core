@@ -27,7 +27,8 @@ class Admin::ConfigsController < Admin::AdminController
     :feedback_overdue_days,
     :ui_url,
     :require_user_confirmation,
-    daily_scheduled_tasks: []    
+    :max_walk_minutes,
+    daily_scheduled_tasks: []
   ].freeze
 
   def index
@@ -62,7 +63,7 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days
+    when :feedback_overdue_days, :max_walk_minutes
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
