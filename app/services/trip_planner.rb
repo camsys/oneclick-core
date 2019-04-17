@@ -47,6 +47,9 @@ class TripPlanner
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
+
+    # Run through post-planning filters
+    filter_itineraries 
     @trip.save
   end
 
@@ -100,6 +103,33 @@ class TripPlanner
   # Builds itineraries for all trip types
   def build_all_itineraries
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+  end
+
+  # Additional sanity checks can be applied here.
+  def filter_itineraries
+    walk_seen = false
+    itineraries = @trip.itineraries.map do |itin|
+
+      ## Test: Make sure we never exceed the maximium walk time
+      max_walk_minutes = Config.max_walk_minutes || 45
+      if itin.walk_time and itin.walk_time > max_walk_minutes*60
+        next
+      end
+
+      ## Test: Make sure that we only ever return 1 walk trip
+      if itin.walk_time and itin.duration and itin.walk_time == itin.duration 
+        if walk_seen
+          next 
+        else 
+          walk_seen = true 
+        end
+      end
+
+      ## We've passed all the tests
+      itin 
+    end
+    itineraries.delete(nil)
+    @trip.itineraries = itineraries
   end
 
   # Calls the requisite trip_type itineraries method
