@@ -3,6 +3,7 @@ class Place < ApplicationRecord
   self.abstract_class = true
   attr_accessor :google_place_attributes
   before_save :build_geometry
+  before_save :ensure_name 
     
   #### Includes ####
   include GooglePlace
@@ -49,6 +50,14 @@ class Place < ApplicationRecord
   # Builds its own geometry column based on lat and lng columns
   def build_geometry
     self.geom = to_point
+  end
+
+  def ensure_name 
+    self.name ||= auto_name
+  end
+
+  def auto_name
+    "#{(self.street_number || "").strip} #{(self.route || "").strip}, #{(self.city || "").strip}"
   end
   
   # Returns true if place's name, lat, and lng match the given place
