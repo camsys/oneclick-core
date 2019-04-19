@@ -19,7 +19,7 @@ module GooglePlace
         formatted_address: self.formatted_address,
         geometry: self.geometry,
         id: self.id,
-        name: self.name
+        name: (self.name == self.auto_name) ? "" : self.name
     ]
   end
 
