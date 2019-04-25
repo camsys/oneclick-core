@@ -605,7 +605,7 @@ class EcolaneAmbassador < BookingAmbassador
     # Find the options that include the best funding source
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
     best_index = nil
-    get_funding_options.each do |option|
+    arrayify(get_funding_options).each do |option|
       if option["type"] != "valid" || option["purpose"] != @purpose 
         next
       end
