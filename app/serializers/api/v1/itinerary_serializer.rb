@@ -19,7 +19,7 @@ module Api
         # :external_info,             # DEPRECATE?
         # :hidden,                    # DEPRECATE? possibly used
         :id,
-        # :is_bookable,               # DEPRECATE?
+        #:is_bookable,               # DEPRECATE?
         :json_legs,
         # :legs,                      # front end uses json_legs
         :logo_url,
@@ -59,14 +59,14 @@ module Api
         # :trip_type,                 # front end uses returned_mode_code?
         :url,                         # should be called service_url probably, or really nested in a service object
         :user_registered,           # BOOKING
-        # :wait_time,                 # not needed in call
+        :wait_time,                 # not needed in call
         :walk_distance,
         :walk_time
 
 
       # STUB METHODS FOR DEPRECATED ATTRIBUTES
       # def accommodation_mismatch; false end
-      # def bookable; false end
+      def bookable; false end
       # def cost_comments; nil end
       # def count; nil end
       # def date_mismatch; false end
@@ -90,7 +90,6 @@ module Api
       def product_id; nil end
       # def ride_count; nil end
       # def schedule; [] end
-      def segment_index; 0 end # Always 0 for one-way trips
       # def selected; nil end
       # def server_message; nil end
       # def server_status; 200 end
@@ -106,6 +105,14 @@ module Api
 
 
       # ACTUAL METHODS
+
+      def segment_index 
+        if object.trip.previous_trip
+          return 1
+        else
+          return 0
+        end
+      end
 
       def product_id
         object.uber_extension ? object.uber_extension.product_id : nil
@@ -190,6 +197,11 @@ module Api
       end
       
       def discounts
+        if object.bookable? and not object.user.try(:registered?)
+          return object.booking_ambassador.discounts_hash
+        else
+          return nil
+        end
       end
       
       def prebooking_questions
@@ -220,7 +232,12 @@ module Api
               lat: waypoint.lat.to_f,
               lng: waypoint.lng.to_f
             }
-          }
+          },
+          formatted_address: waypoint.formatted_address,
+          id: object.id,
+          name: waypoint.name,
+          stop_code: nil,
+          address_components: waypoint.address_components
         }
       end
       

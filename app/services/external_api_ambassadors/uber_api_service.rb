@@ -22,7 +22,6 @@ class UberApiService
       return {product_id: nil, price: nil}
     end
 
-    puts response.ai 
     price = response['prices'].detect{ |price| price["display_name"].downcase == product.downcase }
     return {product_id: price["product_id"], price: price["high_estimate"]}
   end

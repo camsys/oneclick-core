@@ -69,4 +69,27 @@ class Itinerary < ApplicationRecord
     end
   end
 
+  def describe_cost
+    if cost > 0
+      sprintf "$%.2f", cost
+    else
+      "Free"
+    end
+  end 
+
+  def describe_duration
+    if end_time
+      seconds = (end_time - start_time).to_f
+      hours = (seconds/3600).floor
+      minutes = ((seconds - (hours*3600))/60).floor
+      if hours > 0
+        return hours.to_s + " hours, " + minutes.to_s + " minutes"
+      else
+        return minutes.to_s + " minutes"
+      end
+    else
+      return ""
+    end
+  end
+
 end

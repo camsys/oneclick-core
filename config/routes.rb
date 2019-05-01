@@ -42,6 +42,7 @@ Rails.application.routes.draw do
       post 'itineraries/select' => 'trips#select'
       post 'itineraries/cancel' => 'trips#cancel'
       post 'itineraries/book' => 'trips#book'
+      post 'trip_purposes/list' => 'users#trip_purposes'
 
       # Users
       resources :users do
@@ -52,6 +53,7 @@ Rails.application.routes.draw do
           post 'password'
           post 'request_reset'
           post 'reset'
+          get  'lookup'
         end
       end
 
@@ -61,6 +63,13 @@ Rails.application.routes.draw do
         post 'sign_out' => 'sessions#destroy'
         delete 'sign_out' => 'sessions#destroy'
       end #users
+
+      resources :services do
+        collection do
+          get 'ids_humanized'
+          get 'hours'
+        end
+      end
 
     end #v1
 

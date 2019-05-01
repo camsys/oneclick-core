@@ -43,9 +43,10 @@ module BookingHelpers
   
   # Include in Service model to allow booking
   module ServiceHelpers
-    
+
     # Configure including class
     def self.included(base)
+      base.scope :is_ecolane, -> { where(booking_api: "ecolane") }
       base.serialize :booking_details
     end
     
@@ -58,6 +59,8 @@ module BookingHelpers
         return RidePilotAmbassador.new(opts)
       when "trapeze"
         return TrapezeAmbassador.new(opts)
+      when "ecolane"
+        return EcolaneAmbassador.new(opts)
       else
         return nil
       end
@@ -76,7 +79,7 @@ module BookingHelpers
         errors.add(:booking_details, "are not valid.")
       end
     end
-    
+
   end
   
   

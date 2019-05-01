@@ -17,6 +17,7 @@ class Admin::ConfigsController < Admin::AdminController
     :lyft_client_token,
     :ride_pilot_url,
     :ride_pilot_token,
+    :ecolane_url,
     :trapeze_url,
     :trapeze_user,
     :trapeze_ada_funding_sources,
@@ -26,7 +27,8 @@ class Admin::ConfigsController < Admin::AdminController
     :feedback_overdue_days,
     :ui_url,
     :require_user_confirmation,
-    daily_scheduled_tasks: []    
+    :max_walk_minutes,
+    daily_scheduled_tasks: []
   ].freeze
 
   def index
@@ -37,7 +39,7 @@ class Admin::ConfigsController < Admin::AdminController
       [ @configs.find_or_create_by(key: k).id, { value: format_config_value(k, v) } ]
     end.to_h
         
-    # Update all relevant configs at once, as a batch
+    # Update all relevant configs at once, as a batch 
     @errors = Config.update(configs.keys, configs.values)
                     .map(&:errors)
                     .select(&:present?)
@@ -61,7 +63,7 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days
+    when :feedback_overdue_days, :max_walk_minutes
       return value.to_i
     when :require_user_confirmation
       return (value == "true")

@@ -103,7 +103,18 @@ class BookingAmbassador
   def sync
     nil
   end
+
+  def booking
+    Booking.find_or_initialize_by(
+      type: Booking::BOOKING_TYPES[booking_api],
+      itinerary_id: @itinerary.try(:id)
+    )
+  end
   
+  # Used by Ecolane to return a hash of potential funding sources and prices
+  def discounts_hash
+    nil 
+  end
   
   private
   
@@ -116,11 +127,11 @@ class BookingAmbassador
   end
   
   # Returns the trip's Booking, if available. Otherwise, builds a booking object
-  def booking
-    Booking.find_or_initialize_by(
-      type: Booking::BOOKING_TYPES[booking_api],
-      itinerary_id: @itinerary.try(:id)
-    )
-  end
+  #def booking
+  #  Booking.find_or_initialize_by(
+  #    type: Booking::BOOKING_TYPES[booking_api],
+  #    itinerary_id: @itinerary.try(:id)
+  #  )
+  #end
   
 end

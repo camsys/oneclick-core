@@ -32,13 +32,43 @@ module Api
           return 
         end
 
+        # Recent Places
+        count = 0
+        landmarks = @traveler.waypoints.get_by_query_str(search_string).limit(max_results)
+        landmarks.each do |landmark|
+          locations.append(landmark.google_place_hash)
+          count += 1
+          if count >= max_results
+            break
+          end
+        end
+
 
         # Global POIs
         count = 0
         landmarks = Landmark.get_by_query_str(search_string).limit(max_results)
+        names = []
         landmarks.each do |landmark|
-          locations.append(landmark.google_place_hash)
-          count += 1
+          unless landmark.name.in? names 
+            locations.append(landmark.google_place_hash)
+            names << landmark.name
+            count += 1
+          end
+          if count >= max_results
+            break
+          end
+        end
+
+        # User StompingGrounds
+        count = 0
+        landmarks = @traveler.stomping_grounds.limit(20).get_by_query_str(search_string).limit(max_results)
+        names = []
+        landmarks.each do |landmark|
+          unless landmark.name.in? names 
+            locations.append(landmark.google_place_hash)
+            names << landmark.name
+            count += 1
+          end
           if count >= max_results
             break
           end

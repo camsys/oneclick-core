@@ -53,6 +53,7 @@ class TrapezeAmbassador < BookingAmbassador
     get_funding_array.each do |funding|
       trip_hash = create_trip_hash(funding[:funding_source_id], funding[:fare_type_id], funding[:excluded_validation_checks])
       response = pass_create_trip trip_hash
+      Rails.logger.info response.ai 
       if response && response[:pass_create_trip_response][:pass_create_trip_result][:booking_id].to_s != "-1"
         set_booking_id(response)
         update_booking
@@ -268,7 +269,7 @@ class TrapezeAmbassador < BookingAmbassador
   # Builds the payload for creating a trip
   def create_trip_hash(funding_source_id, fare_type_id, excluded_validation_checks)
 
-     # Create Pickup/Dropoff Hashes
+    # Create Pickup/Dropoff Hashes
     if @trip.arrive_by
       pu_leg_hash = {request_address: origin_hash}
       do_leg_hash = {req_time: @trip.trip_time.in_time_zone.seconds_since_midnight, request_address: destination_hash}
@@ -285,7 +286,7 @@ class TrapezeAmbassador < BookingAmbassador
       para_service_id: para_service_id, 
       auto_schedule: true, 
       calculate_pick_up_req_time: true, 
-      booking_purpose_id: 2, #@booking_options[:purpose], 
+      booking_purpose_id: @booking_options[:purpose], 
       pick_up_leg: pu_leg_hash, 
       drop_off_leg: do_leg_hash
     }
@@ -301,6 +302,7 @@ class TrapezeAmbassador < BookingAmbassador
     request_hash[:funding_source_id] = funding_source_id
     request_hash[:fare_type_id] = fare_type_id
 
+    Rails.logger.info request_hash.ai 
     return request_hash
   
   end
@@ -389,11 +391,9 @@ class TrapezeAmbassador < BookingAmbassador
   # Builds a hash for bringing extra passengers 
   def passenger_hash passenger
     # Get the fare_type for this passenger from the mapping
-    fare_type = passenger_type_funding_type_mapping[passenger]
-
-    #Temp
-    passenger = 'CLI'
-    fare_type = 1
+    mapping = passenger_type_funding_type_mapping
+    passenger = passenger
+    fare_type = mapping[passenger]
 
     {pass_booking_passenger: {passenger_type: passenger, space_type: "AM", passenger_count: 1, fare_type: fare_type}}
   end

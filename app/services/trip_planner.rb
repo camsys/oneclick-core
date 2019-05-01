@@ -47,6 +47,9 @@ class TripPlanner
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
+
+    # Run through post-planning filters
+    filter_itineraries 
     @trip.save
   end
 
@@ -64,10 +67,10 @@ class TripPlanner
   def set_available_services
     # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
-    
+
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
-    
+
     # Only select services that your age makes you eligible for
     if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
@@ -100,6 +103,33 @@ class TripPlanner
   # Builds itineraries for all trip types
   def build_all_itineraries
     @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+  end
+
+  # Additional sanity checks can be applied here.
+  def filter_itineraries
+    walk_seen = false
+    itineraries = @trip.itineraries.map do |itin|
+
+      ## Test: Make sure we never exceed the maximium walk time
+      max_walk_minutes = Config.max_walk_minutes || 45
+      if itin.walk_time and itin.walk_time > max_walk_minutes*60
+        next
+      end
+
+      ## Test: Make sure that we only ever return 1 walk trip
+      if itin.walk_time and itin.duration and itin.walk_time == itin.duration 
+        if walk_seen
+          next 
+        else 
+          walk_seen = true 
+        end
+      end
+
+      ## We've passed all the tests
+      itin 
+    end
+    itineraries.delete(nil)
+    @trip.itineraries = itineraries
   end
 
   # Calls the requisite trip_type itineraries method
@@ -136,14 +166,32 @@ class TripPlanner
   def build_paratransit_itineraries
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
-    @available_services[:paratransit].map do |svc|
+    itineraries = @available_services[:paratransit].map do |svc|
+      
+      #TODO: this is a hack and needs to be replaced.
+      # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
+      # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
+      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
+        next
+      end 
       Itinerary.new(
         service: svc,
         trip_type: :paratransit,
         cost: svc.fare_for(@trip, router: @router),
         transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
       )
+
     end
+
+    # Get rid of nil itineraries caused by skipping Ecolane Services
+    itineraries.delete(nil)
+
+    if itineraries.blank? 
+      return []
+    else 
+      return itineraries 
+    end
+
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
@@ -161,9 +209,12 @@ class TripPlanner
 
   # Builds an uber itinerary populates transit_time based on OTP response
   def build_uber_itineraries
-    return [] unless @available_services[:uber] # Return an empty array if no taxi services are available
+    return [] unless @available_services[:uber] # Return an empty array if no Uber services are available
 
     cost, product_id = @uber_ambassador.cost('uberX')
+
+    return [] unless cost
+
     new_itineraries = @available_services[:uber].map do |svc|
       Itinerary.new(
         service: svc,
@@ -189,6 +240,10 @@ class TripPlanner
     return [] unless @available_services[:lyft] # Return an empty array if no taxi services are available
 
     cost, price_quote_id = @lyft_ambassador.cost('lyft')
+
+    # Don't return LYFT results if there are none.
+    return [] if cost.nil? 
+
     new_itineraries = @available_services[:lyft].map do |svc|
       Itinerary.new(
         service: svc,

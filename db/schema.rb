@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180524153613) do
+ActiveRecord::Schema.define(version: 20190322155340) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -73,10 +73,15 @@ ActiveRecord::Schema.define(version: 20180524153613) do
     t.string   "status"
     t.string   "confirmation"
     t.text     "details"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
     t.datetime "earliest_pu"
     t.datetime "latest_pu"
+    t.datetime "negotiated_pu"
+    t.datetime "negotiated_do"
+    t.datetime "estimated_pu"
+    t.datetime "estimated_do"
+    t.boolean  "created_in_1click", default: false
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
 
@@ -433,6 +438,7 @@ ActiveRecord::Schema.define(version: 20180524153613) do
     t.integer  "selected_itinerary_id"
     t.integer  "purpose_id"
     t.integer  "previous_trip_id"
+    t.string   "external_purpose"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree
