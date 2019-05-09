@@ -24,9 +24,13 @@ module Api
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
-            
+            @user.sync
             #Last Trip
             last_trip = @user.trips.order('created_at').last
+            #If this is a round trip, return the first part instead of the last part
+            if last_trip.previous_trip 
+              last_trip = last_trip.previous_trip
+            end
             if last_trip and last_trip.origin and last_trip.destination
               last_origin = last_trip.origin.google_place_hash
               last_destination = last_trip.destination.google_place_hash
