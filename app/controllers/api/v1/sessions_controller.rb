@@ -28,7 +28,7 @@ module Api
             #Last Trip
             last_trip = @user.trips.order('created_at').last
             #If this is a round trip, return the first part instead of the last part
-            if last_trip.previous_trip 
+            if last_trip and last_trip.previous_trip 
               last_trip = last_trip.previous_trip
             end
             if last_trip and last_trip.origin and last_trip.destination
