@@ -754,7 +754,11 @@ class EcolaneAmbassador < BookingAmbassador
     if thing.is_a? Array 
       return thing 
     else
-      return [thing]
+      if thing.nil? 
+        return []
+      else
+        return [thing]
+      end
     end
   end
 
