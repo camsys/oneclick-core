@@ -42,12 +42,14 @@ module TokenAuthenticationHelpers
   def reset_user_password_to_random
     tries = 0
     max_tries = 10
-    generated_password = "A1#{Devise.friendly_token.first(8)}" #Adds an A1 to the front of every token because 1-click requires a letter and number
-    while tries < max_tripes
+    while tries < max_tries
+      generated_password = "A1#{Devise.friendly_token.first(8)}" #Adds an A1 to the front of every token because 1-click requires a letter and number
       if self.update_attributes(password: generated_password, password_confirmation: generated_password)
         return generated_password
       elsif tries > max_tries 
-        return nil
+        generated_password = "Newpassword1234"
+        self.update_attributes(password: generated_password, password_confirmation: generated_password)
+        return generated_password
       end
       tries += 1
     end
