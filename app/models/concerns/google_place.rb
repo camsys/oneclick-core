@@ -5,7 +5,8 @@ module GooglePlace
     route: ["route"],
     city: ["locality", "political"],
     zip: ["postal_code"],
-    state: ["administrative_area_level_1", "political"]
+    state: ["administrative_area_level_1", "political"],
+    county: ["administrative_area_level_2", "political"]
   }
 
   def self.included(base)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190322155340) do
+ActiveRecord::Schema.define(version: 20191108152422) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -206,6 +206,7 @@ ActiveRecord::Schema.define(version: 20190322155340) do
     t.decimal  "lat",                                                    precision: 10, scale: 6
     t.decimal  "lng",                                                    precision: 10, scale: 6
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.string   "county"
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
   end
 
@@ -388,6 +389,7 @@ ActiveRecord::Schema.define(version: 20190322155340) do
     t.datetime "created_at",                                                                      null: false
     t.datetime "updated_at",                                                                      null: false
     t.integer  "user_id"
+    t.string   "county"
     t.index ["geom"], name: "index_stomping_grounds_on_geom", using: :gist
     t.index ["user_id"], name: "index_stomping_grounds_on_user_id", using: :btree
   end
@@ -541,6 +543,7 @@ ActiveRecord::Schema.define(version: 20190322155340) do
     t.decimal  "lat",                                                    precision: 10, scale: 6
     t.decimal  "lng",                                                    precision: 10, scale: 6
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
+    t.string   "county"
     t.index ["geom"], name: "index_waypoints_on_geom", using: :gist
   end
 

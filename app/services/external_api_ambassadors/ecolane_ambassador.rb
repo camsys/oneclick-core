@@ -415,7 +415,8 @@ class EcolaneAmbassador < BookingAmbassador
       city:           eco_place.try(:with_indifferent_access).try(:[], :city),
       zip:            eco_place.try(:with_indifferent_access).try(:[], :postcode),
       lat:            eco_place.try(:with_indifferent_access).try(:[], :latitude),
-      lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude)
+      lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
+      county:         eco_place.try(:with_indifferent_access).try(:[], :county)
     }
   end 
 
@@ -583,7 +584,7 @@ class EcolaneAmbassador < BookingAmbassador
   #Build a location hash (Used for dropoffs and pickups )
   def build_location_hash place 
     {street_number: place.street_number, street: place.route, city: place.city, 
-      state: place.state || "PA", zip: place.zip, latitude: place.lat, longitude: place.lng}
+      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
   end
 
   ### County Mapping ###
