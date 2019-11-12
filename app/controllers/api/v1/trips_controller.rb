@@ -188,6 +188,7 @@ module Api
       def cancel
         success = true 
         results = bookingcancellation_request_params.map do |bc_req|
+         
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
 
@@ -197,6 +198,7 @@ module Api
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
+
           # Package response as per API V1 docsion
           cancellation_response = bookingcancellation_response_hash(cancellation_result)
           if not cancellation_response[:success] 
@@ -462,7 +464,12 @@ module Api
       
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
-        booking.reload
+        
+        if [true, false].include? booking 
+          return {success: booking}
+        end
+
+        booking.reload if booking.is_a? Booking
         case booking.try(:type_code)
         when :ride_pilot
           return {
