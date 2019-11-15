@@ -164,6 +164,12 @@ module Api
             failed = true
             next response 
           end
+
+          # Ensure that the confirmation is not blank
+          if booking.confirmation.blank?
+            failed = true
+            next response 
+          end
           #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
           
           # Package it in a response hash as per API V1 docs
