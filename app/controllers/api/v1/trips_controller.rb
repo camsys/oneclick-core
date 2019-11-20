@@ -296,7 +296,7 @@ module Api
       # calls (i.e. the My Trips section of the UI)
       def my_trips_hash(trip)
         trips_hash = { "0" => trip_hash(trip) }
-        trips_hash["1"] = trip_hash(trip.next_trip) if trip.next_trip
+        trips_hash["1"] = trip_hash(trip.next_trip) if (trip.next_trip and trip.next_trip.selected_itinerary)
         trips_hash
       end
       
