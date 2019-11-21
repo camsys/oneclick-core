@@ -205,6 +205,24 @@ module Api
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
 
+          # This is done to support FMR individual leg cancelling. 
+          # If this logic ever changes, ensure that FMR individual leg cancelling is not affected.
+          # If this is a round trip, mark any remaining pieces as 1 way
+          if cancellation_result
+            # Handle the case when the trip is the return trip.
+            trip = itin.trip
+            trip.previous_trip = nil 
+            trip.save 
+
+            # Handle the case when the trip is the outbound trip.
+            next_trip = itin.trip.next_trip
+            if next_trip 
+              next_trip.previous_trip = nil
+              next_trip.save
+            end
+
+          end
+
           # Package response as per API V1 docsion
           cancellation_response = bookingcancellation_response_hash(cancellation_result)
           if not cancellation_response[:success] 
