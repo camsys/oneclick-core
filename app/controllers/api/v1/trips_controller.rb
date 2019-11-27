@@ -164,6 +164,12 @@ module Api
             failed = true
             next response 
           end
+
+          # Ensure that the confirmation is not blank
+          if booking.confirmation.blank?
+            failed = true
+            next response 
+          end
           #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
           
           # Package it in a response hash as per API V1 docs
@@ -188,6 +194,7 @@ module Api
       def cancel
         success = true 
         results = bookingcancellation_request_params.map do |bc_req|
+         
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
 
@@ -197,6 +204,25 @@ module Api
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
+
+          # This is done to support FMR individual leg cancelling. 
+          # If this logic ever changes, ensure that FMR individual leg cancelling is not affected.
+          # If this is a round trip, mark any remaining pieces as 1 way
+          if cancellation_result
+            # Handle the case when the trip is the return trip.
+            trip = itin.trip
+            trip.previous_trip = nil 
+            trip.save 
+
+            # Handle the case when the trip is the outbound trip.
+            next_trip = itin.trip.next_trip
+            if next_trip 
+              next_trip.previous_trip = nil
+              next_trip.save
+            end
+
+          end
+
           # Package response as per API V1 docsion
           cancellation_response = bookingcancellation_response_hash(cancellation_result)
           if not cancellation_response[:success] 
@@ -288,7 +314,7 @@ module Api
       # calls (i.e. the My Trips section of the UI)
       def my_trips_hash(trip)
         trips_hash = { "0" => trip_hash(trip) }
-        trips_hash["1"] = trip_hash(trip.next_trip) if trip.next_trip
+        trips_hash["1"] = trip_hash(trip.next_trip) if (trip.next_trip and trip.next_trip.selected_itinerary)
         trips_hash
       end
       
@@ -462,7 +488,12 @@ module Api
       
       # Makes an API V1 bookingcancellation response hash from a booking object
       def bookingcancellation_response_hash(booking)
-        booking.reload
+        
+        if [true, false].include? booking 
+          return {success: booking}
+        end
+
+        booking.reload if booking.is_a? Booking
         case booking.try(:type_code)
         when :ride_pilot
           return {

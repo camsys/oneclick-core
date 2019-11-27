@@ -7,7 +7,7 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 ## Create a default Admin User
-admin = User.where(email: 'admin@oneclick.com').first_or_create do |user|
+admin = User.where(email: '1-click@camsys.com').first_or_create do |user|
   user.password = 'welcome1'
   user.password_confirmation = 'welcome1'
   user.add_role :admin
