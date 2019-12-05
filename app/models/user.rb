@@ -122,7 +122,7 @@ class User < ApplicationRecord
     sync 
     trips.selected.future.limit(count)
   end
-  
+
   # Returns an unordered collection of the traveler's waypoints
   def waypoints
     trips.waypoints
