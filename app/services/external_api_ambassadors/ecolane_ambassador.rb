@@ -86,11 +86,17 @@ class EcolaneAmbassador < BookingAmbassador
     (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
       occ_trip_from_ecolane_trip order
     end
+
+    # For trips that are round trips, make sure that they point to each other.
+    link_trips
+
   end
 
     # Books Trip (funding_source and sponsor must be specified)
   def book
-    new_order
+    booking = new_order
+    sync
+    return booking 
   end
 
   def cancel
@@ -367,7 +373,10 @@ class EcolaneAmbassador < BookingAmbassador
       booking = itinerary.booking 
       booking.update(occ_booking_hash(eco_trip))
       if booking.status == "canceled"
-        itinerary.unselect
+        trip = itinerary.trip 
+        trip.selected_itinerary = nil
+        trip.save
+        # For some reason itinerary.unselect doesn't work here.
       end
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
@@ -746,12 +755,57 @@ class EcolaneAmbassador < BookingAmbassador
     if thing.is_a? Array 
       return thing 
     else
-      return [thing]
+      if thing.nil? 
+        return []
+      else
+        return [thing]
+      end
     end
   end
 
   def yes_or_no value
     value.to_bool ? true : false
   end
+
+  # If we synced trips from Ecolane, we need to identify which trips are actually round trips.
+  # They are delivered to us as individual trips, and we will link them together.
+  # Linking these lets users cancel them as a group, it also lets us pre-fill the most recent addresses in the user interface
+  def link_trips 
+
+    # First do the past trips, and then do the future trips
+    [:future, :past].each do |times|
+      if times == :future # Get all future trips
+        trips = @user.trips.selected.future
+      else # Get the 10 most recent past trps
+        trips = @user.trips.selected.past.limit(10).reverse 
+      end
+      
+      trips.each_cons(2) do |trip, next_trip|
+
+        #If this is already a round trip, keep moving. 
+        if trip.previous_trip or trip.next_trip
+          next
+        end
+
+        #Are these trips on the same day?
+        unless trip.trip_time.to_date == next_trip.trip_time.to_date
+          next
+        end
+
+        #Does these trips have inverted origins/destinations?
+        unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
+          next
+        end
+        unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
+          next
+        end
+
+        #Ok these trips passed all the tests, combine them into one trip
+        next_trip.previous_trip = trip
+        next_trip.save 
+
+      end #trips.each
+    end #times.each
+  end #link_trips
 
 end
