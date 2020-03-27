@@ -592,7 +592,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   #Build a location hash (Used for dropoffs and pickups )
   def build_location_hash place 
-    if !place.name.empty? and !place.name.include?("POI")
+    if !place.name.empty? and !place.name.include?("POI") and place.name.include?("|")
       # Pass name parameter from Ecolane named landmark for better match
       lo_hash = {name: place.name, street_number: place.street_number, street: place.route, city: place.city, 
       state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
