@@ -36,7 +36,7 @@ gem 'jbuilder', '~> 2.5'
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
-gem 'bootstrap-sass', '~> 3.2.0'
+gem 'bootstrap-sass', '3.2.0.4'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
@@ -68,8 +68,8 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 ### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', 
-      github: 'camsys/simple_translation_engine'
-
+#      github: 'camsys/simple_translation_engine'
+    path: '../simple_translation_engine'
 ### SOAP Support ###########################
 gem 'savon'
 ############################################

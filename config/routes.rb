@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         collection do
           post 'find'
           get  'all'
+          get  'locales'
         end
       end
 

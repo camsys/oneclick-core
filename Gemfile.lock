@@ -9,9 +9,8 @@ GIT
       rails (~> 5.0.3)
       rgeo
 
-GIT
-  remote: https://github.com/camsys/simple_translation_engine.git
-  revision: de5610da36dd51b8948704922a5f7761522b93e1
+PATH
+  remote: ../simple_translation_engine
   specs:
     simple_translation_engine (1.1.3)
       pg
@@ -105,7 +104,7 @@ GEM
       debug_inspector (>= 0.0.1)
     bootstrap-datepicker-rails (1.8.0.1)
       railties (>= 3.0)
-    bootstrap-sass (3.2.0.2)
+    bootstrap-sass (3.2.0.4)
       sass (~> 3.2)
     builder (3.2.3)
     byebug (10.0.2)
@@ -572,7 +571,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bootstrap-datepicker-rails
-  bootstrap-sass (~> 3.2.0)
+  bootstrap-sass (= 3.2.0.4)
   byebug
   cancancan
   carrierwave (~> 1.0)
@@ -624,4 +623,4 @@ DEPENDENCIES
   web-console (>= 3.3.0)
 
 BUNDLED WITH
-   1.16.1
+   1.17.3
