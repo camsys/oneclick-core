@@ -16,7 +16,7 @@
 }
 
 .panel-heading span.badge,
-td span.badge {
+th span.badge, td span.badge, span.badge {
   &.badge-primary {
     background-color: $brand-primary;
   }
