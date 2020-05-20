@@ -9,8 +9,9 @@ GIT
       rails (~> 5.0.3)
       rgeo
 
-PATH
-  remote: ../simple_translation_engine
+GIT
+  remote: https://github.com/camsys/simple_translation_engine.git
+  revision: de5610da36dd51b8948704922a5f7761522b93e1
   specs:
     simple_translation_engine (1.1.3)
       pg

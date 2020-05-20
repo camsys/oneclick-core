@@ -16,7 +16,7 @@ module OneclickCore
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
-    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en,es,vi").split(',').compact.map(&:strip).map(&:to_sym)
+    config.i18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
     #I18n.available_locales = (ENV['AVAILABLE_LOCALES'] || "en").split(',').compact.map(&:strip).map(&:to_sym)
 
     # Settings in config/environments/* take precedence over those specified here.
