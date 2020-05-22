@@ -334,6 +334,14 @@ class EcolaneAmbassador < BookingAmbassador
   ## Helpers
   ###################################################################
 
+  # Get the current balance in dollars for a customer or nil if unavailable
+  def get_current_balance
+    customer_information = fetch_customer_information(funding=true)
+    # Convert cents to dollars
+    balance = customer_information["customer"]["balance"] / 100.0
+    return balance
+  end
+
 
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
