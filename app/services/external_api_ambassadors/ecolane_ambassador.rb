@@ -338,7 +338,7 @@ class EcolaneAmbassador < BookingAmbassador
   def get_current_balance
     customer_information = fetch_customer_information(funding=true)
     # Convert cents to dollars
-    balance = customer_information["customer"]["balance"] / 100.0
+    balance = customer_information["customer"]["balance"].to_f / 100.0
     return balance
   end
 
