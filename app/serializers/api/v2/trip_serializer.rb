@@ -9,6 +9,7 @@ module Api
       has_many :itineraries
       has_many :accommodations
       has_many :eligibilities
+      has_many :trip_types
       has_many :purposes
       belongs_to :user
       belongs_to :origin
@@ -24,6 +25,17 @@ module Api
 
       def purposes
         object.relevant_purposes
+      end
+
+      def trip_types
+        object.itineraries.map(&:trip_type).uniq.map {
+            |trip_type|
+          {
+              code: trip_type,
+              name: SimpleTranslationEngine.translate(locale, "mode_#{trip_type}_name"),
+              value: true
+          }
+        }
       end
       
     end
