@@ -28,12 +28,12 @@ module Api
       end
 
       def trip_types
-        object.itineraries.map(&:trip_type).uniq.map {
+        Trip::TRIP_TYPES.map {
             |trip_type|
           {
               code: trip_type,
               name: SimpleTranslationEngine.translate(locale, "mode_#{trip_type}_name"),
-              value: true
+              value: (trip_type.to_s.in? (object.itineraries.map(&:trip_type) || []))
           }
         }
       end
