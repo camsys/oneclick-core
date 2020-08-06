@@ -92,7 +92,7 @@ Rails.application.routes.draw do
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
       # Services
-      resources :services, only: [:index]
+      resources :services, only: [:index, :show]
 
       # Trips
       resources :trips, only: [:create, :show]
