@@ -1,4 +1,17 @@
 GIT
+  remote: https://github.com/camsys/oneclick_refernet.git
+  revision: e79f7df78616aabdb91063bcdd64a9b857879b4a
+  ref: e79f7df78616aabdb91063bcdd64a9b857879b4a
+  branch: lydia_azure
+  specs:
+    oneclick_refernet (0.5.9)
+      active_model_serializers
+      activerecord-postgis-adapter
+      pg
+      rails (~> 5.0.3)
+      rgeo
+
+GIT
   remote: https://github.com/camsys/simple_translation_engine.git
   revision: 4a9c9ad1eeb35bd539aaa80ca53c7074ed62d762
   branch: lydia_translation_engine
@@ -583,6 +596,7 @@ DEPENDENCIES
   letter_opener
   listen (~> 3.0.5)
   mini_magick
+  oneclick_refernet!
   pg (~> 0.18)
   phony_rails
   puma (~> 3.0)
