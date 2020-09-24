@@ -20,6 +20,10 @@ module Api
         end
       end
 
+      def new
+        render success_response(Trip.new, serializer_opts: {include: ['*.*.*']})
+      end
+
       # POST trips/
       # POST trips/plan
       # Creates a new trip and associated itineraries based on the passed params,
