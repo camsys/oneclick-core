@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191108152422) do
+ActiveRecord::Schema.define(version: 20201015173457) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -244,9 +244,10 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.string    "site_name"
     t.text      "description"
     t.geography "latlngg",                 limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-    t.integer   "refernet_service_id"
-    t.integer   "refernet_location_id"
-    t.integer   "refernet_servicesite_id"
+    t.string    "refernet_service_id"
+    t.string    "refernet_location_id"
+    t.string    "refernet_servicesite_id"
+    t.text      "location_details"
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
     t.index ["latlngg"], name: "index_oneclick_refernet_services_on_latlngg", using: :gist
   end
@@ -279,6 +280,7 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.datetime "updated_at",                      null: false
     t.boolean  "confirmed",       default: false
     t.string   "code"
+    t.string   "taxonomy_code"
     t.index ["name"], name: "index_oneclick_refernet_sub_sub_categories_on_name", using: :btree
     t.index ["sub_category_id"], name: "index_oneclick_refernet_sub_sub_categories_on_sub_category_id", using: :btree
   end
