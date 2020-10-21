@@ -137,6 +137,7 @@ class OTPAmbassador
       leg['serviceName'] = svc ? svc.name : (leg['agencyName'] || leg['agencyId'])
       leg['serviceFareInfo'] = svc ? svc.url : nil  # Should point to service's fare_info_url, but we don't have that yet
       leg['serviceLogoUrl'] = svc ? svc.full_logo_url : nil
+      leg['serviceFullLogoUrl'] = svc ? svc.full_logo_url(nil) : nil # actual size
       leg
     end
   end

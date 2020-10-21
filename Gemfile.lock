@@ -1,6 +1,8 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 45eba76e86f385bb6001f0e3d40deff2028d6a72
+  revision: 49fc1a43b804fee04eaf50283d8d4cd471e50bf1
+  ref: 49fc1a43b804fee04eaf50283d8d4cd471e50bf1
+  branch: derek_azure
   specs:
     oneclick_refernet (0.5.9)
       active_model_serializers
@@ -11,7 +13,8 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: de5610da36dd51b8948704922a5f7761522b93e1
+  revision: 4a9c9ad1eeb35bd539aaa80ca53c7074ed62d762
+  branch: lydia_translation_engine
   specs:
     simple_translation_engine (1.1.3)
       pg

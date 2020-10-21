@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         collection do
           post 'find'
           get  'all'
+          get  'locales'
         end
       end
 
@@ -92,10 +93,10 @@ Rails.application.routes.draw do
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
       # Services
-      resources :services, only: [:index]
+      resources :services, only: [:index, :show]
 
       # Trips
-      resources :trips, only: [:create, :show]
+      resources :trips, only: [:new, :create, :show]
       post 'trips/plan' => 'trips#create'
       post 'trips/plan_multiday' => 'trips#plan_multiday'
 

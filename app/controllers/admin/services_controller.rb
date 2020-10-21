@@ -93,6 +93,8 @@ class Admin::ServicesController < Admin::AdminController
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},
+      start_area_attributes: [:recipe],
+      end_area_attributes: [:recipe],
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
