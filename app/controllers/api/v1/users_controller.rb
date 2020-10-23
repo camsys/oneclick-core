@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApiController
-      before_action :require_authentication, only: [:update, :trip_purposes]
+      before_action :require_authentication, only: [:update, :trip_purposes, :current_balance]
       before_action :ensure_traveler, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
 
       # Sends back a profile hash via the API::V1::UserSerializer
@@ -112,6 +112,24 @@ module Api
         end
 
         return
+      end
+
+      # Supports Ecolane API
+      def current_balance
+
+        # If the user is registered with a service, use his/her current balance
+        current_balance = nil
+        booking_profile = @traveler.booking_profiles.first
+        if @traveler and booking_profile
+          begin
+            current_balance = booking_profile.booking_ambassador.get_current_balance
+          rescue Exception=>e
+            current_balance = nil
+          end
+        end
+
+        hash = { current_balance: current_balance }
+        render json: hash
       end
 
       #Built to Support Ecolane API/V1
