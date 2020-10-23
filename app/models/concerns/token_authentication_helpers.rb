@@ -62,7 +62,7 @@ module TokenAuthenticationHelpers
     valid_for_authentication? do
       # check if password is correct and user has been confirmed
       valid_password?(password) &&
-      (confirmed? || confirmation_period_valid?)
+      (confirmed? || confirmation_period_valid? || !confirmation_required?)
     end
   end
   
