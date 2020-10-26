@@ -114,7 +114,7 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # e.g. ` gem 'some_engine', require: !!ENV["SOME_ENGINE"] `
 
 # Download the oneclick_refernet gem, but only require it if env var is set
-gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure', ref: 'fa7df1db04ed7f69f3b83cc024c8dce69f2669d8',
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure', ref: 'ebe9dd5848bc854185a261e24abb8988e5caa104',
                          require: !!ENV["ONECLICK_REFERNET"]
 ############################################
 
