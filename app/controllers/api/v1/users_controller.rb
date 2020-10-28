@@ -182,12 +182,12 @@ module Api
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
-          trip_purpose_hash = trip_purposes_hash.detect {|h| h["code"] == p}
+          trip_purpose_hash = trip_purposes_hash.detect {|h| h[:code] == p}
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
-            valid_from = trip_purpose_hash["valid_from"]
-            valid_until = trip_purpose_hash["valid_until"]
+            valid_from = trip_purpose_hash[:valid_from]
+            valid_until = trip_purpose_hash[:valid_until]
           end
           purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
