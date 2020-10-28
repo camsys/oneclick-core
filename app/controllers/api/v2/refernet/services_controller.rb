@@ -17,7 +17,7 @@ module Api
           
           lat, lng = params[:lat], params[:lng]
           meters = params[:meters].to_f
-          limit = params[:limit] || 10
+          limit = params[:limit] || 25
           
           if lat && lng
             meters = meters > 0.0 ? meters : (30 * 1609.34) # Default to 30 miles
