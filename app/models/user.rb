@@ -113,7 +113,7 @@ class User < ApplicationRecord
 
   # Returns the user's (count) past trips, in descending order of trip time
   def past_trips(count=nil)
-    trips.selected.past.limit(count)
+    trips.selected.past.past_year.limit(count)
   end
 
   # Returns the user's (count) future trips, in descending order of trip time
