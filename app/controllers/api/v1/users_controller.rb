@@ -137,12 +137,14 @@ module Api
 
         #If the user is registered with a service, use his/her trip purposes
         trip_purposes  = []
+        trip_purposes_hash = []
         booking_profile = @traveler.booking_profiles.first
         if @traveler and booking_profile
           begin
-            trip_purposes = booking_profile.booking_ambassador.get_trip_purposes
+            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes
           rescue Exception=>e
             trip_purposes = []
+            trip_purposes_hash = []
           end
         end
         purposes = trip_purposes.sort
@@ -180,7 +182,14 @@ module Api
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
-          purposes_hash << {name: p, code: p, sort_order: i}
+          trip_purpose_hash = trip_purposes_hash.detect {|h| h["code"] == p}
+          valid_from = nil
+          valid_until = nil
+          if trip_purpose_hash
+            valid_from = trip_purpose_hash["valid_from"]
+            valid_until = trip_purpose_hash["valid_until"]
+          end
+          purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
 
         top_purposes_hash = []

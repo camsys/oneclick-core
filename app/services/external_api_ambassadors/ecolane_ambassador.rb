@@ -346,6 +346,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
     purposes = []
+    purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
@@ -354,15 +355,16 @@ class EcolaneAmbassador < BookingAmbassador
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
         # Add the date range for which the purpose is eligible, if available.
-        purpose["valid_from"] = funding_source["valid_from"]
-        purpose["valid_until"] = funding_source["valid_until"]
+        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
+          purposes_hash << purpose_hash
         end
       end
     end
     banned_purposes = @service.booking_details[:banned_purposes]
-    purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+    purposes = purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+    [purposes, purposes_hash]
   end
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
