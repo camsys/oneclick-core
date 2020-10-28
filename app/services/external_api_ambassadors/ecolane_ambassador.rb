@@ -358,8 +358,8 @@ class EcolaneAmbassador < BookingAmbassador
         purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
-          purposes_hash << purpose_hash
         end
+        purposes_hash << purpose_hash
       end
     end
     banned_purposes = @service.booking_details[:banned_purposes]

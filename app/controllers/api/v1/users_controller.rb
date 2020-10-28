@@ -182,7 +182,8 @@ module Api
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
-          trip_purpose_hash = trip_purposes_hash.detect {|h| h[:code] == p}
+          # Select the earliest purpose date range.
+          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.min_by {|h| h[:valid_from]}
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
