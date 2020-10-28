@@ -353,6 +353,9 @@ class EcolaneAmbassador < BookingAmbassador
       end
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
+        # Add the date range for which the purpose is eligible, if available.
+        purpose["valid_from"] = funding_source["valid_from"]
+        purpose["valid_until"] = funding_source["valid_until"]
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
         end
