@@ -183,7 +183,7 @@ module Api
         purposes_hash = []
         purposes.each_with_index do |p, i|
           # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.min_by {|h| h[:valid_from]}
+          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
@@ -196,7 +196,7 @@ module Api
         top_purposes_hash = []
         top_purposes.each_with_index do |p, i|
           # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.min_by {|h| h[:valid_from]}
+          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
