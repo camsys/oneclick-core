@@ -3,7 +3,7 @@ module Api
 
     class ItinerarySerializer < ApiSerializer
       
-      attributes :trip_type,
+      attributes :id, :trip_type,
         :cost,
         :walk_time,
         :transit_time,
