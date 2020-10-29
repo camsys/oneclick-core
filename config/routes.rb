@@ -99,6 +99,12 @@ Rails.application.routes.draw do
       post 'trips/plan' => 'trips#create'
       post 'trips/plan_multiday' => 'trips#plan_multiday'
 
+      resources :itineraries, only: [] do
+        collection do
+          post 'email'
+        end
+      end
+
       # Users
       resource :users, only: [:show, :update, :create, :destroy] do
         collection do

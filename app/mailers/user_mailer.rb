@@ -44,12 +44,12 @@ class UserMailer < ApplicationMailer
   end
 
   # Here to Support API/V1 
-  def user_trip_email(addresses, trip)
+  def user_trip_email(addresses, trip, itinerary=nil)
     @trip = trip
     @traveler = trip.user
     @locale = @traveler.locale.try(:name)
     subject = 'Your Trip Details'
-    @itinerary = @trip.selected_itinerary
+    @itinerary = itinerary || @trip.selected_itinerary
     unless @itinerary
       return
     end
