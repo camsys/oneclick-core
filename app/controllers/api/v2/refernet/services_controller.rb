@@ -16,7 +16,7 @@ module Api
           services = OneclickRefernet::Service.confirmed.where(id: sub_sub_category_services.pluck(:id).uniq)
           
           lat, lng = params[:lat], params[:lng]
-          meters = params[:meters].to_f || OneclickRefernet.try(:default_radius_meters).to_f
+          meters = (params[:meters] || OneclickRefernet.try(:default_radius_meters)).to_f
           limit = params[:limit] || 25
           
           if lat && lng
