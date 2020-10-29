@@ -65,7 +65,7 @@ module Api
             @user.ensure_authentication_token
           else
             # Otherwise, add some errors to the response depending on what went wrong.
-            if !@user.confirmed?
+            if !@user.confirmed? && @user.confirmation_required?
               @errors[:unconfirmed] = "You must confirm your account by clicking the link in the confirmation email that was sent."
             end
             

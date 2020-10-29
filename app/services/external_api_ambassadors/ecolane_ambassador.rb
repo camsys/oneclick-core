@@ -334,6 +334,14 @@ class EcolaneAmbassador < BookingAmbassador
   ## Helpers
   ###################################################################
 
+  # Get the current balance in dollars for a customer or nil if unavailable
+  def get_current_balance
+    customer_information = fetch_customer_information(funding=true)
+    # Convert cents to dollars
+    balance = customer_information["customer"]["balance"].to_f / 100.0
+    return balance
+  end
+
 
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
@@ -592,8 +600,15 @@ class EcolaneAmbassador < BookingAmbassador
 
   #Build a location hash (Used for dropoffs and pickups )
   def build_location_hash place 
-    {street_number: place.street_number, street: place.route, city: place.city, 
+    if !place.name.empty? and !place.name.include?("POI") and place.name.include?("|")
+      # Pass name parameter from Ecolane named landmark for better match
+      lo_hash = {name: place.name, street_number: place.street_number, street: place.route, city: place.city, 
       state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
+    else  
+      lo_hash = {street_number: place.street_number, street: place.route, city: place.city, 
+      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
+    end
+    lo_hash
   end
 
   ### County Mapping ###

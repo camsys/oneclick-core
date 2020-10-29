@@ -31,6 +31,8 @@ class Service < ApplicationRecord
   has_and_belongs_to_many :eligibilities, -> { distinct }
   has_and_belongs_to_many :purposes, -> { distinct }
   belongs_to :agency
+  belongs_to :start_area, class_name: 'Region', foreign_key: :start_area_id, dependent: :destroy
+  belongs_to :end_area, class_name: 'Region', foreign_key: :end_area_id, dependent: :destroy
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
@@ -124,7 +126,9 @@ class Service < ApplicationRecord
   end
   
   scope :available_by_geography_for, -> (trip) do
-    available_by_start_or_end_area_for(trip)
+    available_by_start_area_for(trip)
+    .available_by_end_area_for(trip)
+    .available_by_start_or_end_area_for(trip)
     .available_by_trip_within_area_for(trip)
   end
   
@@ -260,6 +264,14 @@ class Service < ApplicationRecord
   ### SCOPE HELPER METHODS ###
 
   # available_by_geography_for scopes
+  scope :available_by_start_area_for, -> (trip) do
+    # no start_area contains origin
+    where( id: no_region(:start_area) | with_containing_start_area(trip) )
+  end
+  scope :available_by_end_area_for, -> (trip) do
+    # no end_area contains destination
+    where( id: no_region(:end_area) | with_containing_end_area(trip) )
+  end
   scope :available_by_start_or_end_area_for, -> (trip) do
     # no start_or_end_area, or start_or_end_area contains origin OR destination
     where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
@@ -315,6 +327,20 @@ class Service < ApplicationRecord
   # Returns IDs of Services with no region of given association type
   def self.no_region(region_type)
     includes(region_type).where(regions: { id: nil }).pluck(:id)
+  end
+
+  # Returns IDs of Services with a start_area that is EMPTY or containing trip origin
+  def self.with_containing_start_area(trip)
+    joins(:start_area).empty_region(:start_area)
+    .or(joins(:start_area).region_contains(trip.origin.geom))
+    .pluck(:id)
+  end
+
+  # Returns IDs of Services with a end_area that is EMPTY or containing trip destination
+  def self.with_containing_end_area(trip)
+    joins(:end_area).empty_region(:end_area)
+    .or(joins(:end_area).region_contains(trip.destination.geom))
+    .pluck(:id)
   end
 
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination

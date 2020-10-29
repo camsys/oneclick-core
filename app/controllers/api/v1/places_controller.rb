@@ -34,7 +34,7 @@ module Api
 
         # Recent Places
         count = 0
-        landmarks = @traveler.waypoints.get_by_query_str(search_string).limit(max_results)
+        landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
         landmarks.each do |landmark|
           locations.append(landmark.google_place_hash)
           count += 1
@@ -61,7 +61,7 @@ module Api
 
         # User StompingGrounds
         count = 0
-        landmarks = @traveler.stomping_grounds.limit(20).get_by_query_str(search_string).limit(max_results)
+        landmarks = authentication_successful? ? @traveler.stomping_grounds.limit(20).get_by_query_str(search_string).limit(max_results) : []
         names = []
         landmarks.each do |landmark|
           unless landmark.name.in? names 

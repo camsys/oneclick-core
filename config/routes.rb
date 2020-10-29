@@ -55,6 +55,7 @@ Rails.application.routes.draw do
           post 'request_reset'
           post 'reset'
           get  'lookup'
+          get  'current_balance'
         end
       end
 
