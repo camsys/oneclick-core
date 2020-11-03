@@ -2,7 +2,7 @@ module Admin
   class UsersReportCSVWriter < CSVWriter
     columns :email, :roles, :first_name, :last_name, 
             :eligibilities, :accommodations,
-            :trips_planned, :language, :created_at
+            :trips_planned, :language, :county, :paratransit_id, :created_at
     associations :accommodations, :confirmed_eligibilities, :trips, :preferred_locale
     
     def roles

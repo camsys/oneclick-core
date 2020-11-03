@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20201015173457) do
+ActiveRecord::Schema.define(version: 20201103182708) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -276,11 +276,12 @@ ActiveRecord::Schema.define(version: 20201015173457) do
   create_table "oneclick_refernet_sub_sub_categories", force: :cascade do |t|
     t.string   "name"
     t.integer  "sub_category_id"
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
-    t.boolean  "confirmed",       default: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.boolean  "confirmed",            default: false
     t.string   "code"
     t.string   "taxonomy_code"
+    t.string   "refernet_category_id"
     t.index ["name"], name: "index_oneclick_refernet_sub_sub_categories_on_name", using: :btree
     t.index ["sub_category_id"], name: "index_oneclick_refernet_sub_sub_categories_on_sub_category_id", using: :btree
   end
@@ -368,11 +369,15 @@ ActiveRecord::Schema.define(version: 20201015173457) do
     t.text     "booking_details"
     t.integer  "max_age",              default: 200,   null: false
     t.integer  "min_age",              default: 0,     null: false
+    t.integer  "start_area_id"
+    t.integer  "end_area_id"
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
+    t.index ["end_area_id"], name: "index_services_on_end_area_id", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
     t.index ["published"], name: "index_services_on_published", using: :btree
+    t.index ["start_area_id"], name: "index_services_on_start_area_id", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
   end
@@ -518,6 +523,8 @@ ActiveRecord::Schema.define(version: 20201015173457) do
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
+    t.string   "county"
+    t.string   "paratransit_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
@@ -567,6 +574,8 @@ ActiveRecord::Schema.define(version: 20201015173457) do
   add_foreign_key "oneclick_refernet_sub_sub_categories", "oneclick_refernet_sub_categories", column: "sub_category_id"
   add_foreign_key "schedules", "services"
   add_foreign_key "services", "agencies"
+  add_foreign_key "services", "regions", column: "end_area_id"
+  add_foreign_key "services", "regions", column: "start_area_id"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "stomping_grounds", "users"

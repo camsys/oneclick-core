@@ -122,6 +122,11 @@ module RoleHelper
     Agency.accessible_by(Ability.new(self))
   end
 
+  # Returns the counties
+  def counties
+    County.all
+  end
+
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
     User.staff_for_any(agencies)

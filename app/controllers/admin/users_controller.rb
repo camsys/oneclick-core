@@ -133,7 +133,9 @@ class Admin::UsersController < Admin::AdminController
       :password,
       :password_confirmation,
       :admin,
-      :staff_agency
+      :staff_agency,
+      :county,
+      :paratransit_id
     )
   end
 

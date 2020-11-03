@@ -35,6 +35,10 @@ module TravelerProfileUpdater
           self.password = value
         when :password_confirmation
           self.password_confirmation = value
+        when :county
+          self.county = value
+        when :paratransit_id
+          self.paratransit_id = value
       end
     end
     return self.save!

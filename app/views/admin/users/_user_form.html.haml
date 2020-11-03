@@ -3,6 +3,14 @@
 = f.input :last_name, required: false, :as => :string
 = f.input :password, required: true, :as => :password
 = f.input :password_confirmation, required: true, :as => :password
+= f.input :paratransit_id, required: false, :as => :string, :label => "Paratransit Id"
+= f.input :county,
+      as: :select,
+      collection: current_user.counties,
+      selected: @user.county,
+      label: "County",
+      include_blank: "Select a County",
+      value_method: :name
 
 -if can? :manage, Role
   %hr

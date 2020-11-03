@@ -192,7 +192,9 @@ module Api
           :password_confirmation,
           :first_name,
           :last_name,
-          :age          
+          :age,
+          :county,
+          :paratransit_id          
         )
       end
 

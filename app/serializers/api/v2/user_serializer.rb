@@ -8,7 +8,9 @@ module Api
                   :email,
                   :preferred_locale,
                   :trip_types,
-                  :age
+                  :age,
+                  :county,
+                  :paratransit_id
       
       has_many :eligibilities
       has_many :accommodations
