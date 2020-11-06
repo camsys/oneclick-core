@@ -17,7 +17,7 @@ module Api
           
           lat, lng = params[:lat], params[:lng]
           meters = (params[:meters] || OneclickRefernet.try(:default_radius_meters)).to_f
-          limit = params[:limit] || 25
+          limit = params[:limit] || 10
           
           if lat && lng
             meters = meters > 0.0 ? meters : (30 * 1609.34) # Default to 30 miles
@@ -115,6 +115,7 @@ module Api
           services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
+              #['CAR'].each do |mode|
                 new_request = build_request(origin, service, mode)
                 unless new_request.nil? 
                   requests << new_request
@@ -124,16 +125,33 @@ module Api
           end 
 
           ### Make the Call
-          plans = otp.multi_plan([requests])
+          successful_plans = {}
+          [1,2,3,4,5].each do |i|
+            puts "Calling OTP with #{requests.count} requests. This is attempt #{i}"
+
+            plans = otp.multi_plan([requests])
+
+            # Check to see if we had any successes? 
+            if plans and plans[:callback]
+              successful_plans.merge! plans[:callback]
+            end
+
+            # Check to see if we had any failures. OTP Can get overwhelmed sometimes, and we have to try again.
+            failures = plans[:errback].keys 
+            if failures.nil? or failures.count == 0
+              break
+            end
+            sleep 1
+            requests = requests.select{ |req| req[:label].in? failures }
+          end
 
           ### Unack the requests and build a hash of durations
-          unless plans.nil? or plans[:callback].nil?
-            plans[:callback].each do |label, plan|
-              response = otp.unpack(plan.response)
-              itinerary = response.extract_itineraries.first
-              duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
-            end
+          successful_plans.each do |label, plan| 
+            response = otp.unpack(plan.response)
+            itinerary = response.extract_itineraries.first
+            duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
           end
+
           return duration_hash
         end
 

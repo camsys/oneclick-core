@@ -152,7 +152,7 @@ GEM
     encryptor (3.0.0)
     erubi (1.7.1)
     erubis (2.7.0)
-    eventmachine (1.2.6)
+    eventmachine (1.2.7)
     excon (0.62.0)
     execjs (2.7.0)
     factory_bot (4.8.2)

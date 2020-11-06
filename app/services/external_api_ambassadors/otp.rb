@@ -23,19 +23,20 @@ module OTP
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
           url = plan_url(request)
-          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 3, inactivity_timeout: 3).get
+          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 3, inactivity_timeout: 5).get
         end
 
         responses = nil
         multi.callback do
           EM.stop
-          responses = multi.responses
+          responses = multi.responses 
         end
       end
 
       return responses
 
     end
+
 
     # Constructs an OTP request url
     def plan_url(request)
@@ -89,8 +90,8 @@ module OTP
       url_options += "&arriveBy=" + arrive_by.to_s
       url_options += "&walkSpeed=" + (0.44704*walk_speed).to_s
       #url_options += "&showIntermediateStops=" + "true"
-      url_options += "&showStopTimes=" + "true"
-      url_options += "&showNextFromDeparture=true"
+      #url_options += "&showStopTimes=" + "true"
+      #url_options += "&showNextFromDeparture=true"
 
       if banned_routes
         url_options += "&bannedRoutes=" + banned_routes
