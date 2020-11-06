@@ -89,9 +89,9 @@ module OTP
       url_options += "&wheelchair=" + wheelchair.to_s
       url_options += "&arriveBy=" + arrive_by.to_s
       url_options += "&walkSpeed=" + (0.44704*walk_speed).to_s
-      #url_options += "&showIntermediateStops=" + "true"
-      #url_options += "&showStopTimes=" + "true"
-      #url_options += "&showNextFromDeparture=true"
+      url_options += "&showIntermediateStops=" + "true"
+      url_options += "&showStopTimes=" + "true"
+      url_options += "&showNextFromDeparture=true"
 
       if banned_routes
         url_options += "&bannedRoutes=" + banned_routes
