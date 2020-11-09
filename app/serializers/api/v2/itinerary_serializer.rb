@@ -13,6 +13,14 @@ module Api
         :duration
     
       belongs_to :service
+
+      def cost
+        if cost == -0.01 #  -.01 is an error code for OTP. 1-Click should be updated to handle this error
+          return nil
+        else
+          return cost
+        end
+      end
       
       # Translate legs based on the locale in scope
       def legs
