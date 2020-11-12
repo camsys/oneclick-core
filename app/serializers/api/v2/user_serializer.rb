@@ -28,7 +28,8 @@ module Api
 
       def counties
         scope[:user] ||= object # set user in scope
-        County.all
+        County.all.map { |county| { name: county.name } }
+        end
       end
 
       def trip_types
