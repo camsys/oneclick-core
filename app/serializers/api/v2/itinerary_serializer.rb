@@ -15,10 +15,10 @@ module Api
       belongs_to :service
 
       def cost
-        if cost == -0.01 #  -.01 is an error code for OTP. 1-Click should be updated to handle this error
+        if object.cost == -0.01 #  -.01 is an error code for OTP. 1-Click should be updated to handle this error
           return nil
         else
-          return cost
+          return object.cost
         end
       end
       
