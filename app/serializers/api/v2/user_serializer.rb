@@ -10,7 +10,8 @@ module Api
                   :trip_types,
                   :age,
                   :county,
-                  :paratransit_id
+                  :paratransit_id,
+                  :counties
       
       has_many :eligibilities
       has_many :accommodations
