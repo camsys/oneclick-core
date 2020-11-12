@@ -25,6 +25,11 @@ module Api
         Accommodation.all
       end
 
+      def counties
+        scope[:user] ||= object # set user in scope
+        County.all
+      end
+
       def trip_types
         Trip::TRIP_TYPES.map {
           |trip_type| 
