@@ -16,7 +16,7 @@ module Api
         if params[:id].to_i.nonzero?
           @service = Service.published.find_by(id: params[:id])
         end
-        render json: @service
+        render(success_response(@service))
       end
       
     end
