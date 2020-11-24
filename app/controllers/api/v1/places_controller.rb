@@ -46,7 +46,8 @@ module Api
 
         # Global POIs
         count = 0
-        landmarks = Landmark.get_by_query_str(search_string).limit(max_results)
+        #landmarks = Landmark.get_by_query_str(search_string).limit(max_results)
+        landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").limit(max_results)
         names = []
         landmarks.each do |landmark|
           unless landmark.name.in? names 
