@@ -124,6 +124,11 @@ module Api
             end
           end 
 
+          # If there are no requests to make, return an emptry duration hash.
+          if requests.count == 0
+            return {}
+          end
+
           ### Make the Call
           successful_plans = {}
           [1,2,3,4,5].each do |i|
