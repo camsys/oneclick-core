@@ -196,6 +196,26 @@ class EcolaneAmbassador < BookingAmbassador
     Hash.from_xml(resp.body)
   end
 
+  # Get all the Ecolane POIS
+  def fetch_system_poi_list
+    url_options = "/api/location/#{system_id}/pois"
+    url = @url + url_options
+    resp = send_request(url, token )
+
+    begin
+      resp_code = resp.code
+      body = Hash.from_xml(resp.body)
+    rescue
+      return nil
+    end
+
+    if resp_code == "200"
+      return body["locations"]["location"]
+    else
+      return nil
+    end
+  end
+
   # Cancel a Trip
   def cancel_order 
     unless @confirmation
@@ -365,6 +385,21 @@ class EcolaneAmbassador < BookingAmbassador
     banned_purposes = @service.booking_details[:banned_purposes]
     purposes = purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
     [purposes, purposes_hash]
+  end
+
+  # Get a list of all the points of interest for the service
+  def get_pois
+      locations = fetch_system_poi_list
+      if locations.nil?
+        return nil
+      end
+
+      # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
+      hashes = []
+      locations.each do |location|
+        hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
+      end
+      return hashes
   end
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
