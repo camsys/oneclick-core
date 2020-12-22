@@ -118,6 +118,7 @@ Rails.application.routes.draw do
       post 'sign_up' => 'users#create'
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'
+      get 'counties' => 'users#counties'
 
       # Refernet
       if ENV["ONECLICK_REFERNET"]
