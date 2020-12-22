@@ -174,6 +174,17 @@ module Api
           render(fail_response)
         end
       end
+
+      def counties
+        counties = County.all.map { |county| { name: county.name } }
+        render({
+          status: 200,
+          json: {
+            status: "success",
+            data: counties
+          }
+        })
+      end
       
       private
       
