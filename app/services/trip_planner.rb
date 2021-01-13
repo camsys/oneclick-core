@@ -71,11 +71,10 @@ class TripPlanner
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
 
-    # Only select services that your age makes you eligible for
-    # Enabling this line makes AGE act like and AND and not an OR with other eligibilities
-    #if @trip.user and @trip.user.age 
-    #  @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
-    #end
+    # Filter out servies where the age REQUIREMENTS are not met (NOTE: age requirements are different than age eligibilities)
+    if @trip.user and @trip.user.age 
+      @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
+    end
 
     # Find all the services that are available for your time and locations
     @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
@@ -85,20 +84,28 @@ class TripPlanner
     @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
     @relevant_accommodations = Accommodation.all.ordered_by_rank
 
-    # Now finish filtering by purpose, age, eligibility, and accommodation
+    # Now finish filtering by purposes, eligible ages, eligibility booleans, and accommodations
     ### Split off services that are available by age    
-    @available_by_age = @available_services.none
+    @eligible_by_age = @available_services.none
     if @trip.user and @trip.user.age 
-      @available_by_age = (@available_services.by_max_age(@trip.user.age) + @available_services.by_min_age(@trip.user.age)).uniq
+      @eligible_by_age = (@available_services.by_eligible_max_age(@trip.user.age) + @available_services.by_eligible_min_age(@trip.user.age)).uniq
     end
 
-    @not_available_by_age = @available_services - @available_by_age
+    # Pull out services that are not eligible by age, but MAY be eligible by other criteria
+    @not_eligible_by_age = @available_services - @eligible_by_age
+
+    #Convert the Arrays to Relations #THIS SHOULD BE OPTIMIZED
+    @not_eligible_by_age = @master_service_scope.published.where(id: @not_eligible_by_age.pluck(:id))
+    @eligible_by_age = @master_service_scope.published.where(id: @eligible_by_age.pluck(:id))
     
     #Filter age eligible and not age eligible separately and then join them back together
-    @not_available_by_age =  @not_available_by_age.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    @available_by_age =  @available_by_age.available_for(@trip, only_by: (@filters & [:purpose, :accommodation]))
+    @not_eligible_by_age =  @not_eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    @eligible_by_age =  @eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :accommodation]))
 
-    @available_services = (@available_by_age + @not_available_by_age).uniq
+    @available_services = (@eligible_by_age + @not_eligible_by_age).uniq
+    
+    # Convert this Array back to a relation OPTIMIZE this
+    @available_services = @master_service_scope.published.where(id: @available_services.pluck(:id))
 
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)

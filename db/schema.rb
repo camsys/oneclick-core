@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20201103182708) do
+ActiveRecord::Schema.define(version: 20210113183237) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -371,6 +371,8 @@ ActiveRecord::Schema.define(version: 20201103182708) do
     t.integer  "min_age",              default: 0,     null: false
     t.integer  "start_area_id"
     t.integer  "end_area_id"
+    t.integer  "eligible_max_age",     default: 0,     null: false
+    t.integer  "eligible_min_age",     default: 200,   null: false
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
     t.index ["end_area_id"], name: "index_services_on_end_area_id", using: :btree

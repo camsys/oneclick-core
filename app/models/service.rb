@@ -60,8 +60,13 @@ class Service < ApplicationRecord
   end
 
   # Filter by age
+  # These are filters, that make people ineligible.
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
+
+  # These are filters, that make people eligible
+  scope :by_eligible_min_age, -> (age) { where("eligible_min_age < ?", age+1) }
+  scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
