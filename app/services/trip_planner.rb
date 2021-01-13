@@ -92,11 +92,10 @@ class TripPlanner
     end
 
     # Pull out services that are not eligible by age, but MAY be eligible by other criteria
-    @not_eligible_by_age = @available_services - @eligible_by_age
+    @not_eligible_by_age = @available_services.where.not(id: @eligible_by_age)
 
-    #Convert the Arrays to Relations #THIS SHOULD BE OPTIMIZED
-    @not_eligible_by_age = @master_service_scope.published.where(id: @not_eligible_by_age.pluck(:id))
-    @eligible_by_age = @master_service_scope.published.where(id: @eligible_by_age.pluck(:id))
+    #Convert the Arrays to Relations
+    @eligible_by_age = @master_service_scope.published.where(id: @eligible_by_age)
     
     #Filter age eligible and not age eligible separately and then join them back together
     @not_eligible_by_age =  @not_eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))

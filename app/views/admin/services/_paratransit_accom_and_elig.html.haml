@@ -8,11 +8,11 @@
 
   = f.association :accommodations, as: :check_boxes
   = f.association :eligibilities, as: :check_boxes
-  %h4.text-center="Age Questions"
+  %h4.text-center="Age Rules"
   = f.input :max_age, as: :integer, label: "Riders MUST be no more than"
   = f.input :min_age, as: :integer, label: "Riders MUST be at least"
-  = f.input :eligible_max_age, as: :integer, label: "Eligible max"
-  = f.input :eligible_min_age, as: :integer, label: "Eligible min"
+  = f.input :eligible_max_age, as: :integer, label: "Eligible for ALL riders not older than"
+  = f.input :eligible_min_age, as: :integer, label: "Eligible for ALL riders at least"
 
 :javascript
   $(document).ready(function() {
