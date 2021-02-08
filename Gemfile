@@ -76,7 +76,7 @@ gem 'savon'
 
 
 ### FILE UPLOAD ############################
-gem 'carrierwave', '~> 1.0'
+gem 'carrierwave', '~> 1.3'
 gem 'mini_magick' # For resizing images
 gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
