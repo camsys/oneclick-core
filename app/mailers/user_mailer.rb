@@ -48,7 +48,7 @@ class UserMailer < ApplicationMailer
     @trip = trip
     @traveler = trip.user
     @locale = @traveler.locale.try(:name)
-    subject = 'Your Trip Details'
+    subject = "FindMyRidePA Trip Details sent to you by traveler's request"
     @itinerary = @trip.selected_itinerary
     unless @itinerary
       return
@@ -112,7 +112,7 @@ class UserMailer < ApplicationMailer
 
   def ecolane_trip_email(addresses, bookings)
     @bookings = bookings 
-    subject = "Your Trip Details"
+    subject = "FindMyRidePA Trip Details sent to you by traveler's request"
     mail(to: addresses, subject: subject)
   end
 
