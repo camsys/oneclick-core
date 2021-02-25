@@ -76,11 +76,11 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
-  def sync
+  def sync days_ago=1
 
     #For performance, only update trips in the future
     options = {
-      start: (Time.current - 1.day).iso8601[0...-6]
+      start: (Time.current - days_ago.day).iso8601[0...-6]
     }
 
     (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
@@ -579,6 +579,7 @@ class EcolaneAmbassador < BookingAmbassador
         profile.details = {customer_id: passenger["id"]}
         profile.booking_api = "ecolane"
         profile.user = user
+        user.sync(30)
       end
 
       # Update the user's name

@@ -7,6 +7,19 @@ namespace :scheduled do
       Rake::Task["scheduled:#{task}"].invoke
     end
   end
+
+  desc "TEMPORARY: Sync all Ecolane Users back for 30 days"
+  task sync_all_ecolane_users: :environment do 
+    fails = 0
+    User.all.each do |u|
+      begin 
+        u.sync(30)
+      rescue
+        puts  fails += 1
+      end 
+    end
+    puts "Users updated withed #{fails} failures."
+  end
   
   desc "Send Agency Staff Reminders to Set up their Agency Profile"
   task agency_setup_reminder_emails: :environment do
