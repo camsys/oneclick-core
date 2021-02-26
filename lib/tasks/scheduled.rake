@@ -8,19 +8,36 @@ namespace :scheduled do
     end
   end
 
-  desc "TEMPORARY: Sync all Ecolane Users back for 30 days"
-  task sync_all_ecolane_users: :environment do 
+  desc "TEMPORARY - Sync all Ecolane Users back for 30 days"
+  task sync_all_ecolane_users_1_month: :environment do
     logger = Rails.logger
     fails = 0
     User.all.each do |u|
       begin 
         u.sync(30)
       rescue => e
-        logger.error "Rake task sync_all_ecolane_users: Sync fail for user #{u.id}"
+        logger.error "Rake task sync_all_ecolane_users_1_month: Sync fail for user #{u.id}"
         logger.error e.message
         fails += 1
         puts  "Sync fail for user_id #{u.id}"
-      end 
+      end
+    end
+    puts "Users updated with #{fails} failures."
+  end
+
+  desc "Sync all Ecolane Users back for 3 days"
+  task sync_all_ecolane_users_3_days: :environment do
+    logger = Rails.logger
+    fails = 0
+    User.all.each do |u|
+      begin
+        u.sync(1)
+      rescue => e
+        logger.error "Rake task sync_all_ecolane_users_3_days: Sync fail for user #{u.id}"
+        logger.error e.message
+        fails += 1
+        puts  "Sync fail for user_id #{u.id}"
+      end
     end
     puts "Users updated with #{fails} failures."
   end

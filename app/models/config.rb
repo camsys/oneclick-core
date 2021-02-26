@@ -12,7 +12,8 @@ class Config < ApplicationRecord
     :user_profile_update_emails,
     :get_ride_pilot_purposes,
     :feedback_reminders,
-    :purge_unused_guests
+    :purge_unused_guests,
+    :sync_all_ecolane_users_3_days
   ].freeze
 
   # Returns the value of a setting when you say Config.<key>
