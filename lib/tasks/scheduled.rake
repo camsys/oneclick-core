@@ -10,15 +10,19 @@ namespace :scheduled do
 
   desc "TEMPORARY: Sync all Ecolane Users back for 30 days"
   task sync_all_ecolane_users: :environment do 
+    logger = Rails.logger
     fails = 0
     User.all.each do |u|
       begin 
         u.sync(30)
-      rescue
-        puts  fails += 1
+      rescue => e
+        logger.error "Rake task sync_all_ecolane_users: Sync fail for user #{u.id}"
+        logger.error e.message
+        fails += 1
+        puts  "Sync fail for user_id #{u.id}"
       end 
     end
-    puts "Users updated withed #{fails} failures."
+    puts "Users updated with #{fails} failures."
   end
   
   desc "Send Agency Staff Reminders to Set up their Agency Profile"
