@@ -10,38 +10,99 @@ namespace :scheduled do
 
   desc "TEMPORARY - Sync all Ecolane Users back for 30 days"
   task sync_all_ecolane_users_1_month: :environment do
-    logger = Rails.logger
-    fails = 0
-    User.all.each do |u|
-      begin 
-        u.sync(30)
-      rescue => e
-        logger.error "Rake task sync_all_ecolane_users_1_month: Sync fail for user #{u.id}"
-        logger.error e.message
-        fails += 1
-        puts  "Sync fail for user_id #{u.id}"
-      end
-    end
-    puts "Users updated with #{fails} failures."
+    Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(30)
   end
 
   desc "Sync all Ecolane Users back for 3 days"
   task sync_all_ecolane_users_3_days: :environment do
+    Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(3,true)
+  end
+
+  desc "sync x days for all users"
+  # in zsh call like this:
+  # rake 'scheduled:sync_all_ecolane_users_X_days[1234]'
+  # args:  :days (required)  :verbose optional defaults to false
+  task :sync_all_ecolane_users_X_days, [:days, :verbose] => [:environment] do |t, args|
+    include ActionView::Helpers::NumberHelper
+    include ActiveModel::Type  # for Boolean cast
+    ndays = args[:days].to_i
+    ndays = [ndays, 1].max
+
+    verbose = Boolean.new.cast(args[:verbose]) || false
     logger = Rails.logger
     fails = 0
-    User.all.each do |u|
-      begin
-        u.sync(1)
+    errors = []
+    task_start = Time.now
+    count = User.count
+    users_processed = 0
+    puts "Starting #{ndays} day #{verbose ? "": "non-"}verbose Sync for #{count} users at #{task_start}" 
+    User.all.order(:id).each do |u|
+      user_start = Time.now
+      begin 
+        u.sync(ndays)
+        users_processed += 1
+        if verbose
+          puts "Synced user #{u.id} in #{number_with_precision(Time.now - user_start, precision:2)} seconds"
+        else
+          if users_processed % 50 == 0 then puts "#{users_processed} users synced..." end
+        end
       rescue => e
-        logger.error "Rake task sync_all_ecolane_users_3_days: Sync fail for user #{u.id}"
+        logger.error "Rake task: Sync fail for user #{u.id}"
         logger.error e.message
+        errors << "Sync Error detail for user_id #{u.id}: #{e.message}"
         fails += 1
         puts  "Sync fail for user_id #{u.id}"
       end
     end
-    puts "Users updated with #{fails} failures."
+    task_end = Time.now
+    puts "#{count} users updated with #{fails} failures at #{task_end}"
+    puts "Task duration #{number_with_precision((task_end - task_start)/60.0, precision:1)} minutes"
+    errors.each do |e|
+      unless e.nil?
+        index = e.index("rabbit-test") || e.length - 1
+        puts e[0..index]
+      end
+    end
+  end
+
+
+  desc "DEBUGGING sync 3 days for single user"
+  # in zsh call like this:
+  # rake 'scheduled:sync_single_ecolane_user[1234]''
+  task :sync_single_ecolane_user, [:id] => [:environment] do |t, args|
+    include ActionView::Helpers::NumberHelper
+    logger = Rails.logger
+    fails = 0
+    errors = []
+    puts "Starting Sync for single user with id #{args[:id]} at #{Time.current}"
+    task_start = Time.now
+    User.where(id: args[:id]).each do |u|
+      puts "Syncing user_id #{u.id} start: #{task_start}"
+      begin
+        u.sync(3)
+        puts "Synced user #{u.id} in #{number_with_precision(Time.now - task_start, precision:2)} seconds"
+      rescue => e
+        logger.error "Rake task sync_single_ecolane_user: Sync fail for user #{u.id}"
+        logger.error e.message
+        errors << "Sync Error detail for user_id #{u.id}: #{e.message}"
+        fails += 1
+        puts  "Sync fail for user_id #{u.id}"
+      end
+    end
+    task_end = Time.now
+    puts "User updated with #{fails} failures : finished at #{Time.now}"
+    puts "Task duration #{number_with_precision((task_end - task_start)/60.0, precision:1)} minutes"
+    errors.each do |e|
+      #specific parsing for errors due to internal user
+      unless e.nil?
+        index = e.index("rabbit-test") || e.length - 1
+        puts e[0..index]
+      end
+    end
   end
   
+
+
   desc "Send Agency Staff Reminders to Set up their Agency Profile"
   task agency_setup_reminder_emails: :environment do
     # Every five days for a month, if a new agency hasn't been published, send a reminder to all its staff.

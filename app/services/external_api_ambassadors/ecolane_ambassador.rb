@@ -579,7 +579,7 @@ class EcolaneAmbassador < BookingAmbassador
         profile.details = {customer_id: passenger["id"]}
         profile.booking_api = "ecolane"
         profile.user = user
-        user.sync(30)
+        # do not try to sync user here - reenters ecolane_ambassador ctor
       end
 
       # Update the user's name
