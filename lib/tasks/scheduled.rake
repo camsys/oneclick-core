@@ -8,9 +8,9 @@ namespace :scheduled do
     end
   end
 
-  desc "TEMPORARY - Sync all Ecolane Users back for 30 days"
-  task sync_all_ecolane_users_1_month: :environment do
-    Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(30)
+  desc "TEMPORARY - Sync all Ecolane Users back for 14 days - excludes archived trips"
+  task sync_all_ecolane_users_2_weeks: :environment do
+    Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(14)
   end
 
   desc "Sync all Ecolane Users back for 3 days"
