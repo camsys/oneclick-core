@@ -28,9 +28,9 @@ module BookingHelpers
       booking_profile_for(service).present? and booking_profile_for(service).authenticate?
     end
 
-    def sync
+    def sync days_ago=1
       booking_profiles.each do |bp|
-        bp.booking_ambassador.sync
+        bp.booking_ambassador.sync(days_ago)
       end
     end
     

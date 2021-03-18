@@ -24,7 +24,6 @@ module Api
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
-            @user.sync
             #Last Trip
             last_trip = @user.trips.order('created_at').last
             #If this is a round trip, return the first part instead of the last part
@@ -37,6 +36,14 @@ module Api
             end
             sign_in(:user, @user)
             @user.ensure_authentication_token
+            days_to_sync = 3
+            # if user is new to db, run 14 day sync (user may have called in rides up to now)
+            if (Time.now - @user.created_at) < 10.minutes
+              days_to_sync = 14
+            end
+            puts "Syncing user from #{days_to_sync} days ago"
+            @user.sync days_to_sync
+
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,

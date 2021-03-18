@@ -108,7 +108,8 @@ class TrapezeAmbassador < BookingAmbassador
 
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
-  def sync
+  def sync days_ago=1
+    #NOTE DAYS AGO IS NOT USED HERE
     pass_get_client_trips.try(:with_indifferent_access).try(:[], :envelope).try(:[], :body).try(:[], :pass_get_client_trips_response).try(:[], :pass_get_client_trips_result).try(:[], :pass_booking).each do |booking|
       occ_trip_from_trapeze_trip booking
     end 
