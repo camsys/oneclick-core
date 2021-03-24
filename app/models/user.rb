@@ -113,7 +113,7 @@ class User < ApplicationRecord
 
   # Returns the user's (count) past trips, in descending order of trip time
   def past_trips(count=nil)
-    trips.selected.past.past_year.limit(count)
+    trips.selected.past.past_14_days.limit(count)
   end
 
   # Returns the user's (count) future trips, in descending order of trip time
@@ -174,7 +174,7 @@ class User < ApplicationRecord
   end
 
   def password_complexity
-    if password.present? and not password.match(/^(?=.*[0-9])(?=.*[a-zA-Z])([-a-zA-Z0-9_*#$%]+)$/)
+    if password.present? and not password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
       errors.add :password, "must include at least one letter and one digit"
     end
   end
