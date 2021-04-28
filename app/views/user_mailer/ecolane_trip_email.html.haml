@@ -47,7 +47,7 @@
           %td
         %tr
           %td{width: "150px", valign: "top", :style => "float:left;"}
-            =booking.negotiated_do ? booking.negotiated_do.strftime("%l:%M %p") : ""
+            =itinerary.end_time_desc(booking)
           %td{width: "100%", :style => "border-radius: 0px; padding: 10px; border: 0px; background:#f2f2f2" }
             %div{:style => "color:grey; font-size:90%"}
               Arrive
