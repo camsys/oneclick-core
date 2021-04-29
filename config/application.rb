@@ -13,6 +13,8 @@ Bundler.require(*Rails.groups)
 
 module OneclickCore
   class Application < Rails::Application
+    puts "This is rails env: #{ENV['RAILS_ENV']}"
+    config.logger = ActiveSupport::Logger.new("log/#{DateTime.now.strftime "%Y-%m-%d"}-#{Rails.env}.log")
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
