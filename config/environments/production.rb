@@ -101,7 +101,7 @@ Rails.application.configure do
     logger.level = Logger::INFO
     logger.datetime_format = "%Y-%m-%d %H:%M:%S"
     logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
+    config.logger = logger
   end
 
   # Do not dump schema after migrations.
