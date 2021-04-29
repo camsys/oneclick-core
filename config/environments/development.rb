@@ -66,8 +66,13 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
   # if ENV["RAILS_LOG_TO_STDOUT"].present?
     logger           = ActiveSupport::Logger.new(STDOUT)
+  # NOTE Setting to log level INFO for now
+  # TODO CHANGE THIS FOR PROD AND GENERAL DEVELOPMENT
+    logger.level = Logger::INFO
+    logger.datetime_format = "%Y-%m-%d %H:%M:%S"
     logger.formatter = config.log_formatter
     config.logger = ActiveSupport::TaggedLogging.new(logger)
+
   # end
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
