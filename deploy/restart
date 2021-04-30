@@ -1,0 +1,3 @@
+#!/bin/sh
+sudo apachectl restart
+echo "restarted apache"
