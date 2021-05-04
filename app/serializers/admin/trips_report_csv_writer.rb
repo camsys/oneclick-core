@@ -1,7 +1,9 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    columns :trip_time, :traveler, :arrive_by, :purpose,
+    columns :trip_time, :traveler, :arrive_by,
+            :disposition_status,
+            :purpose,
             :orig_addr, :orig_lat, :orig_lng,
             :dest_addr, :dest_lat, :dest_lng,
             :selected_trip_type
@@ -41,6 +43,10 @@ module Admin
     
     def selected_trip_type
       @record.selected_itinerary && @record.selected_itinerary.trip_type
+    end
+
+    def disposition_status
+      @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
     end
 
   end
