@@ -29,6 +29,7 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :destination
   
   before_validation :set_trip_time
+  serialize :details
 
   write_to_csv with: Admin::TripsReportCSVWriter
 
@@ -38,6 +39,14 @@ class Trip < ApplicationRecord
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+
+  # Trip disposition means trip request, so if I save a transit trip, that's a transit trip disposition
+  DISPOSITION_STATUSES = {
+    unknown: 'Unknown Disposition',
+    fixed_route_saved: 'Saved Fixed Route Trip',
+    ecolane_booked: 'Successfully Booked Ecolane Trip',
+    ecolane_denied: 'Failed to Book Ecolane Trip'
+  }
 
 
   ### SCOPES ###
