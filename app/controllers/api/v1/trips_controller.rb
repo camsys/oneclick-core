@@ -108,8 +108,10 @@ module Api
         select_itineraries.each do |itin|
           itinerary = Itinerary.find_by(id: itin[:itinerary_id].to_i)
           if itinerary && @traveler.owns?(itinerary)
+            # attach itinerary to the trip
             itinerary.select
             results[itinerary.id] = true
+            Trip.find(itin["trip_id"]).update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_saved])
           else
             results[itin[:itinerary_id]] = false
           end
