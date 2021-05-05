@@ -7,6 +7,9 @@ Rails.application.configure do
   config.colorize_logging = false
 
   config.lograge.custom_options = lambda do |event|
-    { :params => event.payload[:params] }
+    {
+      :params => event.payload[:params],
+      :timestamp => Time.now,
+    }
   end
 end
