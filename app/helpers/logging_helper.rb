@@ -1,5 +1,5 @@
 module LoggingHelper
-  ROUTES_ACCESSING_PHI = %w[
+  ROUTES_ACCESSING_PHI ||= %w[
     Api::V1::SessionsController
     Api::V1::TripsController
     Api::V1::UsersController
