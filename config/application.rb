@@ -13,6 +13,8 @@ Bundler.require(*Rails.groups)
 
 module OneclickCore
   class Application < Rails::Application
+    # Init Log file
+    config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
@@ -42,7 +44,6 @@ module OneclickCore
           methods: [:get, :post, :put, :delete, :options]
         end
     end
-
     # Likely needed to allow forwarding when a CNAME DNS is not used.
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'ALLOWALL'
