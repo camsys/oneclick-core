@@ -7,12 +7,21 @@ module LoggingHelper
     Admin::ReportsController
   ]
 
-  # manually log to a hipaa long on certain events. just reuse the APIREQUESTLOGGER service to do so
-  # it's gotta output as JSON though otherwise there's no point
-  def dump_json(payload)
-    # TODO: also need to differentiate between plain PHI ACCESS and PHI MODIFICATION
-    # Logging event type along with a timestamp
-    JSON::dump(payload.merge({event_type: 'PHI_ACCESS', timestamp: Time.now, level: return_log_level(payload[:status])}))
+
+  def check_if_phi(payload)
+    is_modification_action = payload[:method] == 'POST' || payload[:method] == 'PUT' ||
+      payload[:method] == 'PATCH' || payload[:method] == 'DELETE'
+    is_route_included = ROUTES_ACCESSING_PHI.include?(payload[:controller])
+
+    if is_route_included
+      if is_modification_action
+        'PHI_MODIFICATION'
+      else
+        'PHI_ACCESS'
+      end
+    else
+      'NORMAL_ACCESS'
+    end
   end
 
   # for other events, we can probably write a utility class to do so
