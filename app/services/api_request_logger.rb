@@ -1,6 +1,3 @@
-require './app/helpers/logging_helper'
-include LoggingHelper
-
 # Service object for Logging requests made to API Controllers
 class ApiRequestLogger
 
@@ -19,12 +16,6 @@ class ApiRequestLogger
     # Do not exclude any controllers or controller actions.
     @exclude_controllers = opts[:exclude_controllers] || []
     @exclude_actions = Hash.new([]).merge(opts[:exclude_actions] || {})
-    @phi_access_logger = Logger.new('log/phi-access.log')
-    @phi_access_logger.level = :info
-    # already formatting the log so it's fine
-    @phi_access_logger.formatter = proc do |severity, datetime,progname,msg|
-      msg + "\n"
-    end
   end
   
   # Start logging requests
@@ -37,12 +28,6 @@ class ApiRequestLogger
       # The controller and action are included and not excluded, create a 
       # RequestLog object for the request.
       if should_log?(payload)
-        if LoggingHelper::ROUTES_ACCESSING_PHI.include?(payload[:controller]) && ENV['RAILS_LOG_TO_STDOUT']
-          user_id = User.find_by(email: payload[:headers]["X-User-Email"]) ? User.find_by(email: payload[:headers]["X-User-Email"]).id : nil
-
-          @phi_access_logger.info(LoggingHelper::dump_json(payload.merge({accessing_user: user_id})))
-        end
-
         RequestLog.create({
           controller: payload[:controller],
           action: payload[:action],
