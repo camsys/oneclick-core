@@ -1,4 +1,4 @@
-require_relative '../../app/helpers/logging_helper'
+require_relative '../../app/helpers/helper'
 
 Rails.application.configure do
   # Lograge config
