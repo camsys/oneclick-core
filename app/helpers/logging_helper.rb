@@ -8,7 +8,7 @@ module LoggingHelper
   ]
 
 
-  def check_if_phi(payload)
+  def self.check_if_phi(payload)
     is_modification_action = payload[:method] == 'POST' || payload[:method] == 'PUT' ||
       payload[:method] == 'PATCH' || payload[:method] == 'DELETE'
     is_route_included = ROUTES_ACCESSING_PHI.include?(payload[:controller])
@@ -25,7 +25,7 @@ module LoggingHelper
   end
 
   # for other events, we can probably write a utility class to do so
-  def return_log_level(status)
+  def self.return_log_level(status)
     if (status >= 200 && status < 400)
       'INFO'
     elsif (status >= 400 && status < 500)
