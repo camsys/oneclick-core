@@ -30,12 +30,11 @@ gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
 #
-gem 'figaro'
 ############################################
 
-### LOGGING #####################
+### LOGGING/ PROD APP THINGS #####################
+gem 'figaro'
 gem 'lograge'
-gem 'lograge-sql'
 ############################################
 
 ### VIEWS & FORMATTING #####################
