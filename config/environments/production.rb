@@ -92,7 +92,7 @@ Rails.application.configure do
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
   # TODO figure out what order log formatting is loaded in
-  if ENV["RAILS_ENV"].present?
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
     puts "LOADING LOGGING TO STDOUT CONFIG"
     logger           = ActiveSupport::Logger.new(STDOUT)
     # NOTE Setting to log level INFO for now
