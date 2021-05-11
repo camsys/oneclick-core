@@ -74,9 +74,14 @@ module OneclickCore
       # Loads names of installed modules into ENV variables
       require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
     end
-    
+
+    if ENV["RAILS_LOG_TO_STDOUT"].present?
+      # Create logger for logging database changes(creating/ altering/ dropping tables)
+      config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
+    end
+
     # Logs all API requests to DB. See app/services/api_request_logger.rb for details.
-    config.api_request_logger = ApiRequestLogger.new('/api', {
+    config.api_request_logger = ApiRequestLogger.new('/', {
       exclude_controllers: [],
       exclude_actions: {}
     })

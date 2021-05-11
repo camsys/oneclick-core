@@ -94,7 +94,6 @@ Rails.application.configure do
   if ENV["RAILS_LOG_TO_STDOUT"].present?
     # Log PHI Access/ Modification and Database Changes to separate logs
     config.phi_logger = ActiveSupport::Logger.new("log/#{Rails.env}.phi.log")
-    config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
     # Application logs
     config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
   end
