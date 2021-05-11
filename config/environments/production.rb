@@ -91,15 +91,9 @@ Rails.application.configure do
   # Use a different logger for distributed setups.
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
-  # TODO figure out what order log formatting is loaded in
   if ENV["RAILS_LOG_TO_STDOUT"].present?
-    puts "LOADING LOGGING TO STDOUT CONFIG"
-    logger           = ActiveSupport::Logger.new(STDOUT)
-    # NOTE Setting to log level INFO for now
-    logger.level = Logger::INFO
-    logger.datetime_format = "%Y-%m-%d %H:%M:%S"
-    logger.formatter = config.log_formatter
-    config.logger = logger
+    config.phi_logger = ActiveSupport::Logger.new("log/#{Rails.env}.phi.log")
+    config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
   end
 
   # Do not dump schema after migrations.

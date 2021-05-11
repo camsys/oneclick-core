@@ -15,7 +15,6 @@ module OneclickCore
   class Application < Rails::Application
     # Init Log file
     puts "Passenger/ Puma starting up in #{Rails.env} mode"
-    config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
