@@ -75,15 +75,20 @@ module OneclickCore
       require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
     end
 
-    if ENV["RAILS_LOG_TO_STDOUT"].present?
-    end
 
     # Logs all API requests to DB. See app/services/api_request_logger.rb for details.
-    config.api_request_logger = ApiRequestLogger.new('/', {
+    config.api_request_logger = ApiRequestLogger.new('/api', {
       exclude_controllers: [],
       exclude_actions: {}
     })
-    config.api_request_logger.start    
+    config.api_request_logger.start
+
+    config.admin_console_logger = ApiRequestLogger.new('/admin', {
+      exclude_controllers: [],
+      exclude_actions: {},
+      log_to_db: false
+    })
+    config.admin_console_logger.start
     
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
 

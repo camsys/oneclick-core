@@ -18,6 +18,7 @@ class ApiRequestLogger
     # Do not exclude any controllers or controller actions.
     @exclude_controllers = opts[:exclude_controllers] || []
     @exclude_actions = Hash.new([]).merge(opts[:exclude_actions] || {})
+    @log_to_db = opts[:log_to_db] || true
   end
   
   # Start logging requests
@@ -29,7 +30,7 @@ class ApiRequestLogger
       
       # The controller and action are included and not excluded, create a 
       # RequestLog object for the request.
-      if should_log?(payload)
+      if should_log?(payload) && @log_to_db
         # Log to database
         RequestLog.create({
                             controller: payload[:controller],
@@ -41,18 +42,10 @@ class ApiRequestLogger
                           })
 
         # Log PHI Access/ Modification if need be
-        is_phi = LoggingHelper::check_if_phi(payload) != 'NORMAL_ACCESS'
-        if is_phi
-          json = {
-            data_access_type: LoggingHelper::check_if_phi(payload),
-            **payload,
-            timestamp: Time.now
-          }
-          # Log PHI access event
-          Rails.application.config.phi_logger.info(JSON::dump(json))
-        end
+        log_phi(payload)
+      elsif should_log?(paylood) && !@log_to_db
+        log_phi(payload)
       end
-      
     end
   end
 
@@ -70,6 +63,23 @@ class ApiRequestLogger
     payload[:path].index(@root_path) == 0 &&
     @exclude_controllers.none? { |ctrl| payload[:controller].include?(ctrl) } &&
     @exclude_actions[payload[:controller]].exclude?(payload[:action])
+  end
+
+  def log_phi(payload)
+    is_phi = LoggingHelper::check_if_phi(payload) != 'NORMAL_ACCESS'
+    if is_phi
+      json = {
+        data_access_type: LoggingHelper::check_if_phi(payload),
+        **payload,
+        timestamp: Time.now
+      }
+      if !Rails.application.config.phi_logger.nil?
+        Rails.application.config.phi_logger.info(JSON::dump(json))
+      else
+        phi_logger = ActiveSupport::Logger.new("log/#{Rails.env}.phi.log")
+        phi_logger.info(JSON::dump(json))
+      end
+    end
   end
   
 end
