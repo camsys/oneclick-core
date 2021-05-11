@@ -1,3 +1,5 @@
+require_relative '../../lib/modules/logging_helper'
+
 # Service object for Logging requests made to API Controllers
 class ApiRequestLogger
 
@@ -28,14 +30,27 @@ class ApiRequestLogger
       # The controller and action are included and not excluded, create a 
       # RequestLog object for the request.
       if should_log?(payload)
+        # Log to database
         RequestLog.create({
-          controller: payload[:controller],
-          action: payload[:action],
-          params: payload[:params],
-          status_code: payload[:status],
-          auth_email: payload[:headers]["X-User-Email"],
-          duration: event.duration.to_i
-        })
+                            controller: payload[:controller],
+                            action: payload[:action],
+                            params: payload[:params],
+                            status_code: payload[:status],
+                            auth_email: payload[:headers]["X-User-Email"],
+                            duration: event.duration.to_i
+                          })
+
+        # Log PHI Access/ Modification if need be
+        is_phi = LoggingHelper::check_if_phi(payload) != 'NORMAL_ACCESS'
+        if is_phi
+          json = {
+            data_access_type: LoggingHelper::check_if_phi(payload),
+            **payload,
+            timestamp: Time.now
+          }
+          # Log PHI access event
+          Rails.application.config.phi_logger.info(JSON::dump(json))
+        end
       end
       
     end
