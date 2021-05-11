@@ -152,8 +152,7 @@ module Api
           end
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
-
-          # Pull the itinerary out of the booking_request hash and set up a 
+          # Pull the itinerary out of the booking_request hash and set up a
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 
           itins << itin       
@@ -173,7 +172,9 @@ module Api
             next response 
           end
           #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
-          
+
+          # Update Trip Disposition Status to ecolane succeeded
+          itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
@@ -183,6 +184,9 @@ module Api
           responses = []
           itins.each do |itin|
             itin.booked? ? itin.cancel : itin.unselect
+
+            # Update Trip Disposition Status with ecolane denied if it failed
+            itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
             responses << booking_response_base(itin).merge({booked: false})
           end
         end
