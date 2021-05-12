@@ -32,6 +32,8 @@ gem 'jbuilder', '~> 2.5'
 
 # Support for application.yml on AWS
 gem 'figaro'
+# Replacement for Heroku Scheduler on AWS
+gem 'whenever', require: false
 ############################################
 
 
@@ -152,9 +154,6 @@ group :development do
   gem "letter_opener"
 
   gem 'rb-readline'
-
-  # Replacement for Heroku Scheduler on AWS
-  gem 'whenever', require: false
 end
 
 
