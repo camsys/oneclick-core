@@ -43,7 +43,7 @@ class ApiRequestLogger
 
         # Log PHI Access/ Modification if need be
         log_phi(payload)
-      elsif should_log?(paylood) && !@log_to_db
+      elsif should_log?(payload) && !@log_to_db
         log_phi(payload)
       end
     end
@@ -70,6 +70,7 @@ class ApiRequestLogger
     if is_phi
       json = {
         data_access_type: LoggingHelper::check_if_phi(payload),
+        user: LoggingHelper::get_user(payload),
         **payload,
         timestamp: Time.now
       }

@@ -24,6 +24,11 @@ module LoggingHelper
     end
   end
 
+  def self.get_user(payload)
+    user = User.find_by(email: payload[:headers]['X-User-Email']) || nil
+    return user.nil? ? nil : user.id
+  end
+
   # for other events, we can probably write a utility class to do so
   def self.return_log_level(status)
     if (status >= 200 && status < 400)
