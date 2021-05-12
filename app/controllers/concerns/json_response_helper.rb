@@ -21,7 +21,8 @@ module JsonResponseHelper
 
     # Rescues 500 errors and renders them properly as JSON response
     def api_error_response(exception)
-      exception.backtrace.each { |line| logger.error line }
+      exception_log = {log_level: "ERROR", backtrace: exception.backtrace}
+      logger.error(JSON::dump(exception_log))
       error_response = {
         message: exception.message,
         data: { type: exception.class.name, message: exception.message }
