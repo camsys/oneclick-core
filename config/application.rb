@@ -83,13 +83,14 @@ module OneclickCore
     })
     config.api_request_logger.start
 
-    config.admin_console_logger = ApiRequestLogger.new('/admin', {
+    config.admin_console_logger = ApiRequestLogger.new(%w[/admin /], {
       exclude_controllers: [],
       exclude_actions: {},
       log_to_db: false
     })
     config.admin_console_logger.start
-    
+
+
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
 
 

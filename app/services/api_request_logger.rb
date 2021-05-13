@@ -12,8 +12,11 @@ class ApiRequestLogger
   #  * exclude_actions: Pass a hash with keys that are controller names, and 
   #    values that are arrays of action names to be excluded for that controller.
   def initialize(root_path="/", opts={})
+    # puts root_path.class == "Array" ? root_path.first.class : 'oop'
+    if root_path.class == Array && root_path.all?{|str| str.class == String}
+      @root_paths = root_path
+    end
     @root_path = root_path
-
     # By default, only log requests for Api-namespaced controllers.
     # Do not exclude any controllers or controller actions.
     @exclude_controllers = opts[:exclude_controllers] || []
@@ -60,9 +63,23 @@ class ApiRequestLogger
   #  * The controller matches any excluded controllers
   #  * The controller & action match any excluded controller/action pairs
   def should_log?(payload)
+    if !@root_paths.nil?
+      is_match = false
+      @root_paths.each do |root_path|
+        puts "root path #{root_path} payload path #{payload[:path]} hwat #{payload[:path].index(root_path) == 0}"
+        local_match = payload[:path].index(root_path) == 0 &&
+        @exclude_controllers.none? { |ctrl| payload[:controller].include?(ctrl) } &&
+        @exclude_actions[payload[:controller]].exclude?(payload[:action])
+        if local_match == true
+          is_match = local_match
+        end
+      end
+      is_match
+    else
     payload[:path].index(@root_path) == 0 &&
     @exclude_controllers.none? { |ctrl| payload[:controller].include?(ctrl) } &&
     @exclude_actions[payload[:controller]].exclude?(payload[:action])
+    end
   end
 
   def log_phi(payload)
