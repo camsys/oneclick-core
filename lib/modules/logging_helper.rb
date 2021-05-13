@@ -5,6 +5,7 @@ module LoggingHelper
     Api::V1::UsersController
     Api::V1::PlacesController
     Admin::ReportsController
+    Devise::SessionsController
   ]
 
 
