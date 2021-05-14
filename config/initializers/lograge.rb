@@ -1,3 +1,4 @@
+require 'lograge/sql/extension'
 require_relative '../../lib/modules/logging_helper'
 
 Rails.application.configure do

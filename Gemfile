@@ -35,6 +35,7 @@ gem 'jbuilder', '~> 2.5'
 ### LOGGING/ PROD APP THINGS #####################
 gem 'figaro'
 gem 'lograge'
+gem 'lograge-sql'
 ############################################
 
 ### VIEWS & FORMATTING #####################
