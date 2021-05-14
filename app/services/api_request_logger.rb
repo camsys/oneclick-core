@@ -66,7 +66,6 @@ class ApiRequestLogger
     if !@root_paths.nil?
       is_match = false
       @root_paths.each do |root_path|
-        puts "root path #{root_path} payload path #{payload[:path]} hwat #{payload[:path].index(root_path) == 0}"
         local_match = payload[:path].index(root_path) == 0 &&
         @exclude_controllers.none? { |ctrl| payload[:controller].include?(ctrl) } &&
         @exclude_actions[payload[:controller]].exclude?(payload[:action])
@@ -85,10 +84,14 @@ class ApiRequestLogger
   def log_phi(payload)
     is_phi = LoggingHelper::check_if_phi(payload) != 'NORMAL_ACCESS'
     if is_phi
+      # NOTE this isn't super ideal but it seems Devise hooks in after the
+      # ...process action notification goes off, which leaves us with status == 0
+      # ...when we fail to authenticate
       json = {
         data_access_type: LoggingHelper::check_if_phi(payload),
         user: LoggingHelper::get_user(payload),
         **payload,
+        status: LoggingHelper::check_if_devise_sign_in(payload),
         timestamp: Time.now
       }
       if !Rails.application.config.phi_logger.nil?

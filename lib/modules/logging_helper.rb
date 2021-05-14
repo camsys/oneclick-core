@@ -8,6 +8,13 @@ module LoggingHelper
     Devise::SessionsController
   ]
 
+  WARDEN_FAILURE_MESSAGES ||= {
+    :not_found_in_database => "User not found in database, check for logs at this timestamp for more information",
+    :invalid => "User credentials not valid, check , check for logs at this timestamp for more information",
+    :last_attempt => "User credentials not valid and last attempt before lock out, check for logs at this timestamp for more information",
+    :locked => "User account locked, check for logs at this timestamp for more information"
+  }
+
 
   def self.check_if_phi(payload)
     is_modification_action = payload[:method] == 'POST' || payload[:method] == 'PUT' ||
@@ -38,6 +45,19 @@ module LoggingHelper
       'ERROR'
     else
       'UNKNOWN'
+    end
+  end
+
+  # Check if it's the sign in route
+  # Need this because the sign in failure log event doesn't include the status key for some reason
+  # Seems to be a warden auth failure handling thing
+  def self.check_if_devise_sign_in(payload)
+    if payload[:status]
+      payload[:status]
+    elsif payload[:status].nil? && payload[:controller] == "Devise::SessionsController" && payload[:method] == "POST"
+      401
+    else
+      302
     end
   end
 
