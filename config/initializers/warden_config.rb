@@ -1,8 +1,8 @@
 require_relative '../../lib/modules/logging_helper'
 
 Warden::Manager.before_failure do |env, opts|
-  # Add logging for authentication failure,
-  #
+  # Adds logging for authentication failure
+  # the notable event is when a user's account gets locked
   json = {
     data_access_type: "PHI_AUTH_FAILURE",
     message_tag: opts[:message],

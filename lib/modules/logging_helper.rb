@@ -37,7 +37,6 @@ module LoggingHelper
     return user.nil? ? nil : user.id
   end
 
-  # for other events, we can probably write a utility class to do so
   def self.return_log_level(status)
     if (status >= 200 && status < 400)
       'INFO'
@@ -48,7 +47,7 @@ module LoggingHelper
     end
   end
 
-  # Check if it's the sign in route
+  # Check if the action's route is the sign in route
   # Need this because the sign in failure log event doesn't include the status key for some reason
   # Seems to be a warden auth failure handling thing
   def self.check_if_devise_sign_in(payload)
