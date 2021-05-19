@@ -11,6 +11,7 @@ Rails.application.configure do
     {
       :params => event.payload[:params],
       :timestamp => Time.now,
+      :log_level => LoggingHelper::return_log_level(params[:status])
     }
   end
   puts "Lograge configured"
