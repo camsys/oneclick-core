@@ -5,6 +5,7 @@ module LoggingHelper
     Api::V1::UsersController
     Api::V1::PlacesController
     Admin::ReportsController
+    Admin::UsersController
     Devise::SessionsController
   ]
 
@@ -28,7 +29,7 @@ module LoggingHelper
         'PHI_ACCESS'
       end
     else
-      'NORMAL_ACCESS'
+      nil
     end
   end
 
@@ -38,9 +39,9 @@ module LoggingHelper
   end
 
   def self.return_log_level(status)
-    if (status >= 200 && status < 400)
+    if status >= 200 && status < 400
       'INFO'
-    elsif (status >= 400 && status < 500)
+    elsif status >= 400 && status < 500
       'ERROR'
     else
       'UNKNOWN'
