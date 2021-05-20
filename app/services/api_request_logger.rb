@@ -89,7 +89,7 @@ class ApiRequestLogger
       # ...when we fail to authenticate
       json = {
         data_access_type: LoggingHelper::check_if_phi(payload),
-        log_level: LoggingHelper::return_log_level(params[:status]),
+        log_level: LoggingHelper::return_log_level(payload[:status]),
         user: LoggingHelper::get_user(payload),
         **payload,
         status: LoggingHelper::check_if_devise_sign_in(payload),
