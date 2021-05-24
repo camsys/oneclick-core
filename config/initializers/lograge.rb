@@ -8,10 +8,11 @@ Rails.application.configure do
   config.colorize_logging = false
 
   config.lograge.custom_options = lambda do |event|
+    status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
       :params => event.payload[:params],
       :timestamp => Time.now,
-      :log_level => LoggingHelper::return_log_level(event.payload[:status])
+      :log_level => LoggingHelper::return_log_level(status)
     }
   end
   puts "Lograge configured"

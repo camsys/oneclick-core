@@ -84,15 +84,17 @@ class ApiRequestLogger
   def log_phi(payload)
     is_phi = !LoggingHelper::check_if_phi(payload).nil?
     if is_phi
+      status = LoggingHelper::check_if_devise_sign_in(payload)
       # NOTE this isn't super ideal but it seems Devise hooks in after the
       # ...process action notification goes off, which leaves us with status == 0
       # ...when we fail to authenticate
       json = {
         data_access_type: LoggingHelper::check_if_phi(payload),
-        log_level: LoggingHelper::return_log_level(payload[:status]),
+        # it can't log log level if the status doesn't exist like with auth fail
+        log_level: LoggingHelper::return_log_level(status),
         user: LoggingHelper::get_user(payload),
         **payload,
-        status: LoggingHelper::check_if_devise_sign_in(payload),
+        status: status,
         timestamp: Time.now
       }
       if !Rails.application.config.phi_logger.nil?
