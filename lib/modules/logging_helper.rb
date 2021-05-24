@@ -1,13 +1,34 @@
 module LoggingHelper
-  ROUTES_ACCESSING_PHI ||= %w[
-    Api::V1::SessionsController
-    Api::V1::TripsController
-    Api::V1::UsersController
-    Api::V1::PlacesController
-    Admin::ReportsController
-    Admin::UsersController
-    Devise::SessionsController
-  ]
+  # NOTE: THIS SHOULD MATCH WHAT'S IN THE:
+  # ...1 CLICK HIPAA COMPLIANCE/ PHI ACCESS AND MODIFICATION IN OCC
+  # ... CONFLUENCE DOC
+  # TODO: Add API V2 routes that access PHI!
+  ACTIONS_ACCESSING_PHI ||= {
+    'Devise::SessionsController': '*',
+    'Api::V1::SessionsController': '*',
+    'Api::V1::TripsController': %w[
+      create
+      past_trips
+      future_trips
+    ],
+    'Api::V1::UsersController': %w[
+      profile
+      update
+      password
+      request_reset
+      reset
+      trip_purposes
+      lookup
+    ],
+    'Api::V1::PlacesController': '*',
+    'Admin::ReportsController': %w[
+      download_table
+      trips_table
+      users_table
+      requests_table
+    ],
+    'Admin::UsersController': '*'
+  }
 
   WARDEN_FAILURE_MESSAGES ||= {
     :not_found_in_database => "User not found in database, check for logs at this timestamp for more information",
@@ -20,16 +41,16 @@ module LoggingHelper
   def self.check_if_phi(payload)
     is_modification_action = payload[:method] == 'POST' || payload[:method] == 'PUT' ||
       payload[:method] == 'PATCH' || payload[:method] == 'DELETE'
-    is_route_included = ROUTES_ACCESSING_PHI.include?(payload[:controller])
+    controller = payload[:controller].to_sym
 
-    if is_route_included
+    # If the current controller && action is included in ACTIONS_ACCESSING_PHI
+    # ... then log it as PHI access or modification
+    if !ACTIONS_ACCESSING_PHI[controller].nil? && (ACTIONS_ACCESSING_PHI[controller] == '*' || ACTIONS_ACCESSING_PHI[controller].include?(payload[:action]))
       if is_modification_action
         'PHI_MODIFICATION'
       else
         'PHI_ACCESS'
       end
-    else
-      nil
     end
   end
 
