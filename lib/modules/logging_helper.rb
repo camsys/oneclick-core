@@ -60,7 +60,9 @@ module LoggingHelper
   end
 
   def self.return_log_level(status)
-    if status >= 200 && status < 400
+    if status >= 200 && status < 300
+      'SUCCESS'
+    elsif status >= 300 && status < 400
       'INFO'
     elsif status >= 400 && status < 500
       'ERROR'
