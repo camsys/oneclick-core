@@ -6,7 +6,7 @@ Warden::Manager.before_failure do |env, opts|
   user_role = nil
   email = env["action_dispatch.request.parameters"][:user][:email]
   user = User.find_by(email: email)
-  user_id = user.id
+  user_id = !user.nil? ? user.id : nil
   if opts[:message] == :locked
     if user.admin?
       user_role = :admin
