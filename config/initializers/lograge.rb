@@ -15,5 +15,8 @@ Rails.application.configure do
       :log_level => LoggingHelper::return_log_level(status)
     }
   end
+  config.lograge.ignore_custom = lambda { |event|
+    LoggingHelper::check_if_phi(event.payload).nil?
+  }
   puts "Lograge configured"
 end

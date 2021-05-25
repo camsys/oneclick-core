@@ -51,6 +51,8 @@ module LoggingHelper
       else
         'PHI_ACCESS'
       end
+    else
+      nil
     end
   end
 
