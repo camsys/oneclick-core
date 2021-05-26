@@ -3,10 +3,10 @@ module Admin
     
     columns :trip_time, :traveler, :arrive_by,
             :disposition_status,
+            :selected_trip_type,
             :purpose,
             :orig_addr, :orig_lat, :orig_lng,
-            :dest_addr, :dest_lat, :dest_lng,
-            :selected_trip_type
+            :dest_addr, :dest_lat, :dest_lng
     associations :origin, :destination, :user, :selected_itinerary
 
     def traveler
@@ -14,7 +14,12 @@ module Admin
     end
 
     def purpose
-      @record.purpose && @record.purpose.code
+      puts
+      if @record.external_purpose
+        @record.external_purpose
+      elsif @record.purpose
+        @record.purpose.code
+      end
     end
     
     def orig_addr
