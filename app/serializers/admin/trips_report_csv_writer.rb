@@ -10,7 +10,7 @@ module Admin
     associations :origin, :destination, :user, :selected_itinerary
 
     def traveler
-      @record.user && @record.user.email
+      @record.user&.email
     end
 
     def purpose
@@ -23,31 +23,31 @@ module Admin
     end
     
     def orig_addr
-      @record.origin && @record.origin.address
+      @record.origin&.address
     end
     
     def orig_lat
-      @record.origin && @record.origin.lat
+      @record.origin&.lat
     end
     
     def orig_lng
-      @record.origin && @record.origin.lng
+      @record.origin&.lng
     end
     
     def dest_addr
-      @record.destination && @record.destination.address
+      @record.destination&.address
     end
 
     def dest_lat
-      @record.destination && @record.destination.lat
+      @record.destination&.lat
     end
     
     def dest_lng
-      @record.destination && @record.destination.lng
+      @record.destination&.lng
     end
     
     def selected_trip_type
-      @record.selected_itinerary && @record.selected_itinerary.trip_type
+      @record.selected_itinerary&.trip_type
     end
 
     def disposition_status
