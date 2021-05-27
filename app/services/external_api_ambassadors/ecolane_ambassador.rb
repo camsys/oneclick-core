@@ -149,18 +149,27 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order =  build_order
     resp = send_request(url, 'POST', order)
-    if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-      confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id) 
-      eco_trip  = fetch_order(confirmation)["order"]
-      booking = self.booking
-      booking.update(occ_booking_hash(eco_trip))
-      booking.itinerary = itinerary
-      booking.confirmation = confirmation
-      booking.created_in_1click = true
-      booking.save
-      return booking
-    else
-      return nil
+    # NOTE: this seems like overkill, but Ecolane uses both JSON and
+    # ...XML for their responses, and failed responses are formatted as JSON
+    begin
+      body_hash = Hash.from_xml(resp.body)
+      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        eco_trip  = fetch_order(confirmation)["order"]
+        booking = self.booking
+        booking.update(occ_booking_hash(eco_trip))
+        booking.itinerary = itinerary
+        booking.confirmation = confirmation
+        booking.created_in_1click = true
+        booking.save
+        booking
+      else
+        @trip.update(disposition_status: "Ecolane trip booking denied due to travel violations")
+        nil
+      end
+    rescue REXML::ParseException
+      @trip.update(disposition_status: "Ecolane trip booking denied due to travel violations")
+      nil
     end
   end
 
@@ -188,7 +197,13 @@ class EcolaneAmbassador < BookingAmbassador
   def fetch_order confirmation=@confirmation
     url_options = "/api/order/#{system_id}/#{confirmation}"
     resp = send_request(@url + url_options, token)
-    Hash.from_xml(resp.body)
+    # NOTE: this seems like overkill, but Ecolane uses both JSON and
+    # ...XML for their responses, and failed responses are formatted as JSON
+    begin
+      Hash.from_xml(resp.body)
+    rescue REXML::ParseException => e
+      {}
+    end
   end
 
   # Get customer information from ID
