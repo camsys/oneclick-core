@@ -83,10 +83,13 @@ module Api
           trip.relevant_eligibilities = trip_planner.relevant_eligibilities
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
-
+        puts @trips.length
         #Link up the trips
         previous_trip = nil
         @trips.sort_by{ |t| t.trip_time}.each do |trip|
+          if trip.no_valid_services == true
+            trip.update(disposition_status: "Trip plan denied due to travel violation")
+          end
           if previous_trip
             previous_trip.next_trip = trip 
             previous_trip.save
