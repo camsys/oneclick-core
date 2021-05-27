@@ -192,10 +192,11 @@ module Api
             itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
             responses << booking_response_base(itin).merge({booked: false})
           end
+          render status: 500, json: {booking_results: responses}
         end
 
         render status: 200, json: {booking_results: responses}
-      
+
       end
 
       # POST trips/cancel, itineraries/cancel

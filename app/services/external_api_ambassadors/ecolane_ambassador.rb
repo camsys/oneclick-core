@@ -190,7 +190,12 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += "/orders"
     url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
     resp = send_request(@url + url_options, token)
-    Hash.from_xml(resp.body)
+    begin
+      Hash.from_xml(resp.body)
+    rescue REXML::ParseException => e
+      pp e
+      {}
+    end
   end
 
   # Get Single Order
@@ -629,17 +634,19 @@ class EcolaneAmbassador < BookingAmbassador
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
+    begin
+      if funding_hash
+        order_hash[:funding] = funding_hash
+      elsif funding
+        order_hash[:funding] = get_funding_hash
+      elsif @purpose
+        order_hash[:funding] = {purpose: @purpose}
+      end
 
-    if funding_hash 
-      order_hash[:funding] = funding_hash
-    elsif funding 
-      order_hash[:funding] = get_funding_hash
-    elsif @purpose
-      order_hash[:funding] = {purpose: @purpose}
+      order_hash.to_xml(root: 'order', :dasherize => false)
+    rescue REXML::ParseException
+      nil
     end
-
-    order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
-    order_xml
   end
 
   #Build the hash for the pickup request
