@@ -147,11 +147,11 @@ class EcolaneAmbassador < BookingAmbassador
   def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
-    order =  build_order
-    resp = send_request(url, 'POST', order)
+    begin
+      order =  build_order
+      resp = send_request(url, 'POST', order)
     # NOTE: this seems like overkill, but Ecolane uses both JSON and
     # ...XML for their responses, and failed responses are formatted as JSON
-    begin
       body_hash = Hash.from_xml(resp.body)
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
