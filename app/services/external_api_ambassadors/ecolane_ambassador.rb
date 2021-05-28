@@ -104,7 +104,7 @@ class EcolaneAmbassador < BookingAmbassador
   def book
     booking = new_order
     sync
-    return booking 
+    booking
   end
 
   def cancel
@@ -119,7 +119,7 @@ class EcolaneAmbassador < BookingAmbassador
     # Update Booking object with status info and return it
     new_status = status @itinerary.booking.confirmation 
     @itinerary.booking.update({status: new_status})
-    return @itinerary.booking
+    @itinerary.booking
   end
 
   def prebooking_questions
@@ -137,7 +137,7 @@ class EcolaneAmbassador < BookingAmbassador
           {question: "How many children or family members will be traveling with you?", choices: (0..2).to_a, code: "children"}
         ]
     end
-    return questions
+    questions
   end
 
   ####################################################################
@@ -238,9 +238,9 @@ class EcolaneAmbassador < BookingAmbassador
     end
 
     if resp_code == "200"
-      return body["locations"]["location"]
+      body["locations"]["location"]
     else
-      return nil
+      nil
     end
   end
 
@@ -264,7 +264,7 @@ class EcolaneAmbassador < BookingAmbassador
     if resp_code == "200"
       Rails.logger.debug "Trip #{@confirmation} canceled."
       #The trip was successfully canceled
-      return true
+      true
     elsif status == 'canceled'
       Rails.logger.debug "Trip #{@confirmation}  already canceled."
       #The trip was not successfully deleted, because it was already canceled
@@ -272,7 +272,7 @@ class EcolaneAmbassador < BookingAmbassador
     else
       Rails.logger.debug "Trip #{@confirmation}  cannot be canceled."
       #The trip is not canceled
-      return false
+      false
     end
 
   end
@@ -301,9 +301,9 @@ class EcolaneAmbassador < BookingAmbassador
   def get_fare
     return unless @customer_id #If there is no user, then just return nil
     if @use_ecolane_rules #use Ecolane Rules
-      return get_ecolane_fare 
+      get_ecolane_fare
     else
-      return get_1click_fare
+      get_1click_fare
     end
   end
 
@@ -387,7 +387,7 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     # Convert cents to dollars
     balance = customer_information["customer"]["balance"].to_f / 100.0
-    return balance
+    balance
   end
 
 
@@ -427,7 +427,7 @@ class EcolaneAmbassador < BookingAmbassador
       locations.each do |location|
         hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
       end
-      return hashes
+      hashes
   end
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
@@ -456,7 +456,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
-      return nil
+      nil
     # This Trip needs to be added to OCC
     else
       # Make the Trip
@@ -535,7 +535,7 @@ class EcolaneAmbassador < BookingAmbassador
       latest_pu = negotiated_pu.in_time_zone + 15.minutes 
     end
 
-    return {
+    {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
       type: "EcolaneBooking", 
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
@@ -564,7 +564,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
     result = search_for_customers({"date_of_birth": iso_dob, "customer_number": @customer_number})
     if result["search_results"].nil?
-      return false
+      false
     # If only one thing is returned, it comes as a hash.  Multilple items are returned as an array.
     # Since we want to see exactly 1 match, return true if this is a Hash and the account is enabled.
     elsif result["search_results"]["customer"].is_a? Hash
@@ -581,7 +581,7 @@ class EcolaneAmbassador < BookingAmbassador
       #  return false, customer
       #end
     else
-      return false, {}
+      [false, {}]
     end
   end
 
@@ -614,11 +614,11 @@ class EcolaneAmbassador < BookingAmbassador
       user = @booking_profile.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     
-      user.save  
+      user.save
 
-      return user
+      user
     else
-      return nil
+      nil
     end
   end
 
@@ -692,7 +692,7 @@ class EcolaneAmbassador < BookingAmbassador
         mapping[county] = service
       end
     end
-    return mapping
+    mapping
   end
 
   ### Build a Funding Hash for the Trip using 1-Click's Rules 
@@ -727,9 +727,9 @@ class EcolaneAmbassador < BookingAmbassador
     end
 
     if potential_options.blank?
-      return {}
+      {}
     else
-      return {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
+      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
     end
 
   end
@@ -751,14 +751,14 @@ class EcolaneAmbassador < BookingAmbassador
         highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
       end
     end
-    return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
+    [highest_priority_fare[0], { funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
   end
 
   def discounts_hash
     if @use_ecolane_rules #use Ecolane Rules
-      return build_ecolane_discount_array
+      build_ecolane_discount_array
     else
-      return build_1click_discount_array
+      build_1click_discount_array
     end
   end
 
@@ -820,7 +820,7 @@ class EcolaneAmbassador < BookingAmbassador
       discounts << v
     end
 
-    return discounts
+    discounts
 
   end
 
@@ -838,8 +838,8 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def arrayify thing 
-    if thing.is_a? Array 
-      return thing 
+    if thing.is_a? Array
+      thing
     else
       if thing.nil? 
         return []
