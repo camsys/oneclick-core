@@ -88,7 +88,7 @@ module Api
         previous_trip = nil
         @trips.sort_by{ |t| t.trip_time}.each do |trip|
           if trip.no_valid_services == true
-            trip.update(disposition_status: "Trip plan denied due to travel violation")
+            trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_denied])
           end
           if previous_trip
             previous_trip.next_trip = trip 

@@ -164,11 +164,11 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        @trip.update(disposition_status: "Ecolane trip booking denied due to travel violations")
+        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
       end
     rescue REXML::ParseException
-      @trip.update(disposition_status: "Ecolane trip booking denied due to travel violations")
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       nil
     end
   end
