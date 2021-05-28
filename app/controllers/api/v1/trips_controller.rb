@@ -193,9 +193,9 @@ module Api
             responses << booking_response_base(itin).merge({booked: false})
           end
           render status: 500, json: {booking_results: responses}
+        else
+          render status: 200, json: {booking_results: responses}
         end
-
-        render status: 200, json: {booking_results: responses}
 
       end
 
