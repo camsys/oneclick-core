@@ -11,14 +11,14 @@ Rails.application.configure do
     head= !event.payload[:headers].nil? ? event.payload[:headers] : nil
     origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
     ip = !head.nil? ? head["REMOTE_ADDR"] : nil
-    puts "origin #{origin} ip #{ip}"
     status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
       :params => event.payload[:params],
       :timestamp => Time.now,
       :log_level => LoggingHelper::return_log_level(status),
       :origin => origin,
-      :accessing_ip => ip
+      :accessing_ip => ip,
+      :duration => event.duration.to_i
     }
   end
   config.lograge.ignore_custom = lambda { |event|

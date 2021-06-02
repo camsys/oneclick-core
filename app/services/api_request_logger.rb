@@ -45,9 +45,9 @@ class ApiRequestLogger
                           })
 
         # Log PHI Access/ Modification if need be
-        log_phi(payload)
+        log_phi(payload, event.duration.to_i)
       elsif should_log?(payload) && !@log_to_db
-        log_phi(payload)
+        log_phi(payload, event.duration.to_i)
       end
     end
   end
@@ -81,7 +81,7 @@ class ApiRequestLogger
     end
   end
 
-  def log_phi(payload)
+  def log_phi(payload, duration)
     is_phi = !LoggingHelper::check_if_phi(payload).nil?
     if is_phi
       status = LoggingHelper::check_if_devise_sign_in(payload)
@@ -101,6 +101,7 @@ class ApiRequestLogger
         status: status,
         origin: origin,
         accessing_ip: ip,
+        duration: duration,
         timestamp: Time.now
       }
       if !Rails.application.config.phi_logger.nil?
