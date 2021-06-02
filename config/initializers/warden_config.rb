@@ -5,7 +5,7 @@ Warden::Manager.before_failure do |env, opts|
   # the notable event is when a user's account gets locked
   user_role = nil
   email = env["action_dispatch.request.parameters"][:user][:email]
-  accessing_ip = env["ACCESSING_ADDR"]
+  accessing_ip = env["REMOTE_ADDR"]
   origin = env["HTTP_ORIGIN"]
   user = User.find_by(email: email)
   user_id = !user.nil? ? user.id : nil
