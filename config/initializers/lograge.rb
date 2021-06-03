@@ -11,7 +11,7 @@ Rails.application.configure do
     head= !event.payload[:headers].nil? ? event.payload[:headers] : nil
     origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
     ip = !head.nil? ? head["REMOTE_ADDR"] : nil
-    data_access_type = LoggingHelper::check_if_phi(event.payload).nil?
+    data_access_type = LoggingHelper::check_if_phi(event.payload)
     status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
       :params => event.payload[:params],
