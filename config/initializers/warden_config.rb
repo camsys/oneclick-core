@@ -32,28 +32,28 @@ Warden::Manager.before_failure do |env, opts|
   Rails.application.config.logger.info(JSON::dump(json))
 end
 
-  Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
-    # Adds logging for authentication success
-    user_role = nil
-    user_id = user.id
-    if user.admin?
-      user_role = :admin
-    elsif user.staff?
-      user_role = :staff
-    else
-      user_role = :traveler
-    end
-    accessing_ip = auth.env["REMOTE_ADDR"]
-    origin = auth.env["HTTP_ORIGIN"]
-    json = {
-      data_access_type: "PHI_AUTH_SUCCESS",
-      user_role: user_role,
-      user_id: user_id,
-      accessing_ip: accessing_ip,
-      origin: origin,
-      message: opts[:event],
-      **opts,
-      timestamp: Time.now
-    }
-    Rails.application.config.logger.info(JSON::dump(json))
+Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
+  # Adds logging for authentication success
+  user_role = nil
+  user_id = user.id
+  if user.admin?
+    user_role = :admin
+  elsif user.staff?
+    user_role = :staff
+  else
+    user_role = :traveler
   end
+  accessing_ip = auth.env["REMOTE_ADDR"]
+  origin = auth.env["HTTP_ORIGIN"]
+  json = {
+    data_access_type: "PHI_AUTH_SUCCESS",
+    user_role: user_role,
+    user_id: user_id,
+    accessing_ip: accessing_ip,
+    origin: origin,
+    message: opts[:event],
+    **opts,
+    timestamp: Time.now
+  }
+  Rails.application.config.logger.info(JSON::dump(json))
+end
