@@ -11,18 +11,17 @@ Rails.application.configure do
     head= !event.payload[:headers].nil? ? event.payload[:headers] : nil
     origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
     ip = !head.nil? ? head["REMOTE_ADDR"] : nil
+    data_access_type = LoggingHelper::check_if_phi(event.payload).nil?
     status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
       :params => event.payload[:params],
+      :data_access_type => data_access_type,
       :timestamp => Time.now,
       :log_level => LoggingHelper::return_log_level(status),
       :origin => origin,
-      :accessing_ip => ip,
+      :accessing_ip_addr => ip,
       :duration => event.duration.to_i
     }
   end
-  config.lograge.ignore_custom = lambda { |event|
-    LoggingHelper::check_if_phi(event.payload).nil?
-  }
   puts "Lograge configured"
 end

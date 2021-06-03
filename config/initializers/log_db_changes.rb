@@ -7,7 +7,7 @@ if ENV['RAILS_LOG_TO_STDOUT']
         **payload,
         timestamp: Time.now,
       }
-      Rails.application.config.db_logger.info(JSON::dump(json))
+      Rails.application.config.logger.info(JSON::dump(json))
     end
   end
 end

@@ -29,7 +29,7 @@ Warden::Manager.before_failure do |env, opts|
     **opts,
     timestamp: Time.now
   }
-  Rails.application.config.phi_logger.info(JSON::dump(json))
+  Rails.application.config.logger.info(JSON::dump(json))
 end
 
   Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
@@ -55,5 +55,5 @@ end
       **opts,
       timestamp: Time.now
     }
-    Rails.application.config.phi_logger.info(JSON::dump(json))
+    Rails.application.config.logger.info(JSON::dump(json))
   end

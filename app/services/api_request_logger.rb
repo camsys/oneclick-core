@@ -43,11 +43,6 @@ class ApiRequestLogger
                             auth_email: payload[:headers]["X-User-Email"],
                             duration: event.duration.to_i
                           })
-
-        # Log PHI Access/ Modification if need be
-        log_phi(payload, event.duration.to_i)
-      elsif should_log?(payload) && !@log_to_db
-        log_phi(payload, event.duration.to_i)
       end
     end
   end
@@ -81,36 +76,4 @@ class ApiRequestLogger
     end
   end
 
-  def log_phi(payload, duration)
-    is_phi = !LoggingHelper::check_if_phi(payload).nil?
-    if is_phi
-      status = LoggingHelper::check_if_devise_sign_in(payload)
-      head= !payload[:headers].nil? ? payload[:headers] : nil
-      origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
-      ip = !head.nil? ? head["REMOTE_ADDR"] : nil
-
-      # NOTE this isn't super ideal but it seems Devise hooks in after the
-      # ...process action notification goes off, which leaves us with status == 0
-      # ...when we fail to authenticate
-      json = {
-        data_access_type: LoggingHelper::check_if_phi(payload),
-        # it can't log log level if the status doesn't exist like with auth fail
-        log_level: LoggingHelper::return_log_level(status),
-        user: LoggingHelper::get_user(payload),
-        **payload,
-        status: status,
-        origin: origin,
-        accessing_ip: ip,
-        duration: duration,
-        timestamp: Time.now
-      }
-      if !Rails.application.config.phi_logger.nil?
-        Rails.application.config.phi_logger.info(JSON::dump(json))
-      else
-        phi_logger = ActiveSupport::Logger.new("log/#{Rails.env}.phi.log")
-        phi_logger.info(JSON::dump(json))
-      end
-    end
-  end
-  
 end

@@ -92,9 +92,7 @@ Rails.application.configure do
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
   if ENV["RAILS_LOG_TO_STDOUT"].present?
-    # Log PHI Access/ Modification and Database Changes to separate logs
-    config.phi_logger = ActiveSupport::Logger.new("log/#{Rails.env}.phi.log")
-    # Application logs
+    # Log PHI Access/    # Application logs
     config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
   end
 
