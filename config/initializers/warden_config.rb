@@ -61,10 +61,9 @@ end
 Warden::Manager.before_logout do |user,auth,opts|
   # Adds logging for authentication success
   user_role = nil
-  auth_user = User.find_by(email: auth.env["HTTP_X_USER_EMAIL"])
-  if auth_user.admin?
+  if user.admin?
     user_role = :admin
-  elsif auth_user.staff?
+  elsif user.staff?
     user_role = :staff
   else
     user_role = :traveler
@@ -74,7 +73,7 @@ Warden::Manager.before_logout do |user,auth,opts|
   json = {
     data_access_type: "PHI_AUTH_SESSION_DESTROYED",
     user_role: user_role,
-    user_id: auth_user.id,
+    user_id: user.id,
     accessing_ip: accessing_ip,
     origin: origin,
     message: opts[:event],
