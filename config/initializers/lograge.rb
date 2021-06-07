@@ -11,7 +11,6 @@ Rails.application.configure do
     head= !event.payload[:headers].nil? ? event.payload[:headers] : nil
     origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
     user = User.find_by(email:!head.nil? ? head["HTTP_X_USER_EMAIL"] : nil)
-    ip = !head.nil? ? head["REMOTE_ADDR"] : nil
     data_access_type = LoggingHelper::check_if_phi(event.payload)
     status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
@@ -21,7 +20,6 @@ Rails.application.configure do
       :timestamp => Time.now,
       :log_level => LoggingHelper::return_log_level(status),
       :origin => origin,
-      :accessing_ip_addr => ip,
       :duration => event.duration.to_i
     }
   end
