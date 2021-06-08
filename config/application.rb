@@ -79,7 +79,8 @@ module OneclickCore
     # Logs all API requests to DB. See app/services/api_request_logger.rb for details.
     config.api_request_logger = ApiRequestLogger.new('/api', {
       exclude_controllers: [],
-      exclude_actions: {}
+      exclude_actions: {},
+      log_to_db: true
     })
     config.api_request_logger.start
 

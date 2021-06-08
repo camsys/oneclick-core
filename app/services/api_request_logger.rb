@@ -21,7 +21,7 @@ class ApiRequestLogger
     # Do not exclude any controllers or controller actions.
     @exclude_controllers = opts[:exclude_controllers] || []
     @exclude_actions = Hash.new([]).merge(opts[:exclude_actions] || {})
-    @log_to_db = opts[:log_to_db] || true
+    @log_to_db = opts[:log_to_db]
   end
   
   # Start logging requests
@@ -33,7 +33,7 @@ class ApiRequestLogger
       
       # The controller and action are included and not excluded, create a 
       # RequestLog object for the request.
-      if should_log?(payload) && @log_to_db
+      if should_log?(payload) && @log_to_db == true
         # Log to database
         RequestLog.create({
                             controller: payload[:controller],
