@@ -35,10 +35,11 @@ class ApiRequestLogger
       # RequestLog object for the request.
       if should_log?(payload) && @log_to_db == true
         # Log to database
+            deidentified_params = LoggingHelper::deidentify_param_email(payload[:params])
         RequestLog.create({
                             controller: payload[:controller],
                             action: payload[:action],
-                            params: payload[:params],
+                            params: deidentified_params,
                             status_code: payload[:status],
                             auth_email: payload[:headers]["X-User-Email"],
                             duration: event.duration.to_i

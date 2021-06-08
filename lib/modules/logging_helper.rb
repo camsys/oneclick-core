@@ -86,4 +86,14 @@ module LoggingHelper
     end
   end
 
+  def self.deidentify_param_email(payload_params)
+    user = payload_params[:user]
+    has_no_user = user.nil? || user.empty?
+    if has_no_user
+      return payload_params
+    end
+    user_id = User.find_by(email: user[:email])&.id
+    hash = !user[:email].nil? ? {user_id: user_id,email: "[FILTERED]"} : nil
+    payload_params.merge(hash)
+  end
 end
