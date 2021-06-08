@@ -57,9 +57,17 @@ end
 Warden::Manager.before_logout do |user,auth,opts|
   # Adds logging for authentication success
   user_role = nil
-  if user.admin?
+  # NOTE: before_logout is being called for certain actions
+  # ...when it shouldn't so this is a quick check to see if there's a user associated
+  if user.nil?
+    nil
+  end
+  # NOTE: The null checking is a monkey patch
+  # ...for some reason FMR users that access the front end homepage
+  # ...after logging in get signed out on the backend
+  if user&.admin?
     user_role = :admin
-  elsif user.staff?
+  elsif user&.staff?
     user_role = :staff
   else
     user_role = :traveler
@@ -68,7 +76,7 @@ Warden::Manager.before_logout do |user,auth,opts|
   json = {
     data_access_type: "PHI_AUTH_SESSION_DESTROYED",
     user_role: user_role,
-    user_id: user.id,
+    user_id: user&.id,
     origin: origin,
     message: opts[:event],
     **opts,
