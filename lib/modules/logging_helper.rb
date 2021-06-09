@@ -88,12 +88,20 @@ module LoggingHelper
 
   def self.deidentify_param_email(payload_params)
     user = payload_params[:user]
+    session = payload_params[:session]
+    nil_sesh = session.nil?
     has_no_user = user.nil? || user.empty?
-    if has_no_user
+    has_no_session = session.nil? || session.empty?
+    puts "LOGGERS"
+    if has_no_user && has_no_session
       return payload_params
+    elsif has_no_session == false
+      hash = !session[:dob].nil? ? {session: { dob: "[FILTERED]" }} : nil
+      payload_params.merge(hash)
+    else
+      user_id = User.find_by(email: user[:email])&.id
+      hash = !user[:email].nil? ? {user_id: user_id,email: "[FILTERED]"} : nil
+      payload_params.merge(hash)
     end
-    user_id = User.find_by(email: user[:email])&.id
-    hash = !user[:email].nil? ? {user_id: user_id,email: "[FILTERED]"} : nil
-    payload_params.merge(hash)
   end
 end
