@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       end
       get 'trips/past_trips' => 'trips#past_trips'
       get 'trips/future_trips' => 'trips#future_trips'
+      put 'itineraries/update_trip_details' => 'trips#update_trip_details'
       # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
