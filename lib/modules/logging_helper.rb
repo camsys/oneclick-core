@@ -86,13 +86,11 @@ module LoggingHelper
     end
   end
 
-  def self.deidentify_param_email(payload_params)
+  def self.deidentify_params_phi(payload_params)
     user = payload_params[:user]
     session = payload_params[:session]
-    nil_sesh = session.nil?
     has_no_user = user.nil? || user.empty?
     has_no_session = session.nil? || session.empty?
-    puts "LOGGERS"
     if has_no_user && has_no_session
       return payload_params
     elsif has_no_session == false

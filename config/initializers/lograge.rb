@@ -12,7 +12,7 @@ Rails.application.configure do
     origin = !head.nil? ? head["HTTP_ORIGIN"] : nil
     user = User.find_by(email:!head.nil? ? head["HTTP_X_USER_EMAIL"] : nil)
 
-    deidentified_params = LoggingHelper::deidentify_param_email(event.payload[:params])
+    deidentified_params = LoggingHelper::deidentify_params_phi(event.payload[:params])
     data_access_type = LoggingHelper::check_if_phi(event.payload)
     status = LoggingHelper::check_if_devise_sign_in(event.payload)
     {
