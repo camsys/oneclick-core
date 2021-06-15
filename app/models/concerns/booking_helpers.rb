@@ -29,7 +29,7 @@ module BookingHelpers
     end
 
     def sync days_ago=1
-      booking_profiles.each do |bp|
+      booking_profiles.valid_service.each do |bp|
         bp.booking_ambassador.sync(days_ago)
       end
     end

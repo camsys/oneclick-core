@@ -52,6 +52,7 @@ class User < ApplicationRecord
   has_many :stomping_grounds
   has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
+  has_many :user_booking_profiles
 
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)

@@ -4,7 +4,7 @@ module Api
     class TripSerializer < ActiveModel::Serializer
 
       attributes  :id, :trip_id, :user_id, :arrive_by, :trip_time,
-                  :accommodations, :characteristics, :purposes, :new_guest_user, :itineraries
+                  :accommodations, :characteristics, :purposes, :new_guest_user, :itineraries, :details
       #has_many :itineraries
       belongs_to :origin
       belongs_to :destination
@@ -46,6 +46,10 @@ module Api
         else
           nil
         end
+      end
+
+      def details
+        object.details || nil
       end
 
     end

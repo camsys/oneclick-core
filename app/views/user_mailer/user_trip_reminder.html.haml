@@ -1,0 +1,47 @@
+// The Origin/Destination header
+
+%h1{style: 'text-align:left'}
+  ="Your booked FindMyRidePA trip for #{@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")} is coming up in #{@days_away} days!"
+%h2{style: 'text-align:left'}
+  ="See below for trip details:"
+%br
+
+-unless @itinerary.service.nil?
+  = render :partial => "service_summary_header", :locals => { :itinerary => @itinerary }
+  %br
+%p
+  ="Hello! Your trip on #{@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")} is coming up! Here are the details for your trip!"
+%table.trip_header{style: "font-size:1.0em; padding: 12px 0px; font-family: 'Helvetica Neue', Arial;"}
+  %tr
+    %td{style: "color:grey; padding-right: 10px;"}
+      %strong.trip_header_detail
+        = "#{translate('api_v1.emails.user_trip.origin')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong.trip_header_detail
+        =@trip.origin.to_s
+  %tr
+    %td{style: "color:grey; weight:strong; padding-right: 10px;"}
+      %strong.trip_header_detail
+        ="#{translate('api_v1.emails.user_trip.destination')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong.trip_header_detail
+        =@trip.destination.to_s
+  %tr
+    %td{style: "color:grey; padding-right: 10px;"}
+      %strong.trip_header_detail
+        ="#{translate('api_v1.emails.user_trip.date')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong
+        =@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")
+
+// Summary of Itinerary Info
+= render :partial => 'trip_summary_header', :locals => { :itinerary => @itinerary }
+
+// Detailed Itinerary Info
+-unless @itinerary.trip_type.in? ['taxi', 'uber', 'paratransit', 'lyft']
+  = render :partial => "static_details", :locals => { :itinerary => @itinerary }
+
+// Static Map
+%td{style: "text-align: center;", colspan: 2}
+  %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
+    =image_tag(attachments[@itinerary.id.to_s + ".png"].url)
