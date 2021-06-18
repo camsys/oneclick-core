@@ -36,10 +36,15 @@ module Api
         count = 0
         landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
         landmarks.each do |landmark|
-          locations.append(landmark.google_place_hash)
-          count += 1
-          if count >= max_results
-            break
+          # IF the landmark has a city, then append it to locations
+          if !landmark.city.nil? && landmark.city != ''
+            locations.append(landmark.google_place_hash)
+            count += 1
+            if count >= max_results
+              break
+            end
+          else
+            next
           end
         end
 
