@@ -75,11 +75,11 @@ module Admin
     end
 
     def traveler_accommodations
-      @record.user.accommodations.reduce('') {|string, acc_hash| "#{string}; #{acc_hash.code}"}
+      @record.user.accommodations.reduce('') {|string, acc_hash| "#{string}#{acc_hash.code}; "}
     end
 
     def traveler_eligibilities
-      @record.user.eligibilities.reduce('') {|string, acc_hash| "#{string}; #{acc_hash.code}"}
+      @record.user.eligibilities.reduce('') {|string, acc_hash| "#{string}#{acc_hash.code}; "}
     end
 
   end
