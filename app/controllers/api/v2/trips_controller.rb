@@ -78,7 +78,7 @@ module Api
       end
 
       def place_attributes
-        [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
+        [:name, :street_number, :route, :city, :county,:state, :zip, :lat, :lng, :google_place_attributes]
       end
       
       # Updates the traveler's profile if the traveler exists and user_profile param was passed

@@ -2,8 +2,8 @@ module Admin
   class TripsReportCSVWriter < CSVWriter
     
     columns :trip_time, :traveler, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
-            :orig_addr, :orig_lat, :orig_lng,
-            :dest_addr, :dest_lat, :dest_lng,
+            :orig_addr, :orig_county,:orig_lat, :orig_lng,
+            :dest_addr, :dest_county, :dest_lat, :dest_lng,
             :selected_trip_type
     associations :origin, :destination, :user, :selected_itinerary
 
@@ -26,7 +26,11 @@ module Admin
     def orig_addr
       @record.origin && @record.origin.address
     end
-    
+
+    def orig_county
+      @record.origin&.county
+    end
+
     def orig_lat
       @record.origin && @record.origin.lat
     end
@@ -37,6 +41,10 @@ module Admin
     
     def dest_addr
       @record.destination && @record.destination.address
+    end
+
+    def dest_county
+      @record.destination&.county
     end
 
     def dest_lat
