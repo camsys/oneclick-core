@@ -4,7 +4,7 @@ module Admin
     columns :trip_time, :traveler, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
             :orig_addr, :orig_county,:orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :selected_trip_type, :traveler_age
+            :selected_trip_type, :traveler_age, :traveler_accommodations, :traveler_eligibilities
     associations :origin, :destination, :user, :selected_itinerary
 
     def traveler
@@ -61,6 +61,14 @@ module Admin
 
     def traveler_age
       @record.user&.age
+    end
+
+    def traveler_accommodations
+      @record.user.accommodations.reduce('') {|string, acc_hash| "#{string}; #{acc_hash.code}"}
+    end
+
+    def traveler_eligibilities
+      @record.user.eligibilities.reduce('') {|string, acc_hash| "#{string}; #{acc_hash.code}"}
     end
 
   end
