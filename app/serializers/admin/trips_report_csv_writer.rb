@@ -4,7 +4,7 @@ module Admin
     columns :trip_time, :traveler, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
             :orig_addr, :orig_county,:orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :selected_trip_type
+            :selected_trip_type, :traveler_age
     associations :origin, :destination, :user, :selected_itinerary
 
     def traveler
@@ -57,6 +57,10 @@ module Admin
     
     def selected_trip_type
       @record.selected_itinerary && @record.selected_itinerary.trip_type
+    end
+
+    def traveler_age
+      @record.user&.age
     end
 
   end
