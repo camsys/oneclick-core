@@ -50,9 +50,12 @@ namespace :ecolane do
 
           new_poi = Landmark.new hash
           new_poi.old = false
-          #All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.name.blank? or new_poi.name.downcase == 'home'
             if new_poi.city == nil || new_poi.city == ""
+              puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
+              puts hash.ai
               poi_with_no_city += 1
               next
             end
@@ -83,8 +86,7 @@ namespace :ecolane do
       Landmark.is_old.delete_all
       new_poi_count = Landmark.count
       messages << "Successfully loaded  #{new_poi_count} POIs"
-      pp poi_with_no_city
-      puts "count of pois with no city: #{poi_with_no_city.length}"
+      puts "count of pois with no city: #{poi_with_no_city}"
     end
 
   end #update_pois

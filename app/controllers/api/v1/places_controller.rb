@@ -36,7 +36,9 @@ module Api
         count = 0
         landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
         landmarks.each do |landmark|
-          # IF the landmark has a city, then append it to locations
+          # Skip returning a Place if it doesn't have a city
+          # - this helps prevent users from selecting a city-less Place
+          # ...and booking shared ride trips with it(it shows up in Ecolane with no city)
           if !landmark.city.nil? && landmark.city != ''
             locations.append(landmark.google_place_hash)
             count += 1
