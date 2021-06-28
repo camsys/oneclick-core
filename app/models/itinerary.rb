@@ -77,22 +77,6 @@ class Itinerary < ApplicationRecord
     end
   end 
 
-  def describe_duration
-    if end_time
-      seconds = (end_time - start_time).to_f.abs()
-      # use abs() to compensate for about 1% occurrence where end_time is before start time:
-      hours = (seconds/3600).floor
-      minutes = ((seconds - (hours*3600))/60).floor
-      if hours > 0
-        return hours.to_s + " hours, " + minutes.to_s + " minutes"
-      else
-        return minutes.to_s + " minutes"
-      end
-    else
-      return ""
-    end
-  end
-
   # duplicate front end descriptions
   def end_time_desc(booking)
     return "" if booking.nil?
