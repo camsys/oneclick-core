@@ -4,8 +4,6 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile '~/.gitignore_global'
 
-# FIXME TEMP FOR FIGARO
-application.yml
 # Ignore bundler config.
 /.bundle
 
@@ -29,6 +27,9 @@ application.yml
 
 # Ignore local_env.yml, which contains secrets
 /config/local_env.yml
+
+# Ignore application.yml, which contains secrets
+/config/application.yml
 
 # Ignore oneclick_modules.rb, which identifies which engines to include
 /config/oneclick_modules.rb
