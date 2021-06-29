@@ -49,7 +49,17 @@ class TripPlanner
     build_all_itineraries
 
     # Run through post-planning filters
-    filter_itineraries 
+    filter_itineraries
+    no_transit = true
+    no_paratransit = true
+    @trip.itineraries.each do |itin|
+      if itin.trip_type == "transit"
+        no_transit = false
+      elsif itin.trip_type == "paratransit"
+        no_paratransit = false
+      end
+    end
+    @trip.no_valid_services = no_paratransit && no_transit
     @trip.save
   end
 
