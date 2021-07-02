@@ -14,6 +14,9 @@ module Api
         if search_string == "% %"
           recent_places = authentication_successful? ? @traveler.recent_waypoints(3*max_results) : []
           recent_places.each do |landmark|
+            if landmark.city == "" || landmark.city.nil?
+              next
+            end
             landmark_hash = landmark.google_place_hash
             ["id"].each do |key|
               landmark_hash.delete(key)
