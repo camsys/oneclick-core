@@ -212,5 +212,42 @@ namespace :scheduled do
       user.destroy if user.trips.count == 0
     end
   end
+
+  desc "Incrementally delete orphaned Waypoints"
+  task clean_waypoints: :environment do
+    origin_id_set = Trip.pluck(:origin_id).to_set
+    dest_id_set = Trip.pluck(:destination_id).to_set
+
+    puts "Starting count: #{Waypoint.count}"
+    # Limit processing time
+    start = Time.now
+    limit = 2.hours
+
+    batch = 0
+    batch_size = 1000
+
+    count = 0
+    deleted = 0
+    
+    Waypoint.uncached do
+      while (Time.now - start < limit)
+        ids = Waypoint.order(:id).where('id > ?', batch * batch_size).limit(batch_size).pluck(:id)
+        break if ids.count < 1
+        ids.each do |id|
+          count += 1
+          unless ((origin_id_set.include? id) || (dest_id_set.include? id))
+            Waypoint.delete(id)
+            deleted += 1
+          end
+        end
+        batch += 1
+        print '.'
+      end
+    end
+    puts
+    puts "Processed: #{count}, deleted: #{deleted}, elapsed: #{Time.at(Time.now - start).utc.strftime('%H:%M:%S')}"
+    puts "Ending count: #{Waypoint.count}"
+  end
+  
     
 end

@@ -346,11 +346,11 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info Hash.from_xml(message).ai 
+      Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      Rails.logger.info resp.body
+      Rails.logger.info Hash.from_xml(resp.body)
       return resp
     rescue Exception=>e
       Rails.logger.info("Sending Error")
@@ -486,9 +486,7 @@ class EcolaneAmbassador < BookingAmbassador
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
-    origin = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :location))
     origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
-    destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100

@@ -28,6 +28,9 @@
 # Ignore local_env.yml, which contains secrets
 /config/local_env.yml
 
+# Ignore application.yml, which contains secrets
+/config/application.yml
+
 # Ignore oneclick_modules.rb, which identifies which engines to include
 /config/oneclick_modules.rb
 
@@ -36,3 +39,6 @@
 
 # .idea file for RubyMine
 /.idea
+
+# Ignore application configuration
+/config/application.yml
