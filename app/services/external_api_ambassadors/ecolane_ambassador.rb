@@ -346,11 +346,11 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info Hash.from_xml(message).ai 
+      Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      Rails.logger.info resp.body
+      Rails.logger.info Hash.from_xml(resp.body)
       return resp
     rescue Exception=>e
       Rails.logger.info("Sending Error")
