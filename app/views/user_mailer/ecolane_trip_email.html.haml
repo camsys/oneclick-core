@@ -4,11 +4,13 @@
     %div{ :style => "border-radius: 1px; padding: 10px; border: 0px solid #A9A9A9; background:#CDFECE" }
       Shared Ride
   -outbound = true
-  -@bookings.each do |booking|
+  -@decorated_bookings.each do |decorated_booking|
+    -booking = decorated_booking[:booking]
     -itinerary = booking.itinerary
     -trip = itinerary.trip
+    -trip_hash = decorated_booking[:trip_hash]
     %h3
-      -if @bookings.count == 1 
+      -if @decorated_bookings.count == 1
         ="Your Trip"
       -elsif trip.previous_trip.nil? 
         ="Outbound Trip"
@@ -22,7 +24,7 @@
     %br
     %div{:style => "font-weight:bold;"}
       %div{:style => "float:left;"}
-        =itinerary.describe_duration
+        =distance_of_time_in_words(Time.now, Time.now + trip_hash[:duration])
       %div{:style => "float:right;"}
         =itinerary.describe_cost
     %br
@@ -47,7 +49,7 @@
           %td
         %tr
           %td{width: "150px", valign: "top", :style => "float:left;"}
-            =booking.negotiated_do ? booking.negotiated_do.strftime("%l:%M %p") : ""
+            =itinerary.end_time_desc(booking)
           %td{width: "100%", :style => "border-radius: 0px; padding: 10px; border: 0px; background:#f2f2f2" }
             %div{:style => "color:grey; font-size:90%"}
               Arrive

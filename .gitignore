@@ -39,3 +39,6 @@
 
 # .idea file for RubyMine
 /.idea
+
+# Ignore application configuration
+/config/application.yml

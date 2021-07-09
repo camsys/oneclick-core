@@ -111,7 +111,7 @@ class UserMailer < ApplicationMailer
   end
 
   def ecolane_trip_email(addresses, bookings)
-    @bookings = bookings 
+    @decorated_bookings = bookings   # form [[booking, trip_hash],...]
     subject = "FindMyRidePA Trip Details sent to you by traveler's request"
     mail(to: addresses, subject: subject)
   end
