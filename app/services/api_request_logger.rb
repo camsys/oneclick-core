@@ -28,22 +28,27 @@ class ApiRequestLogger
   def start
     # Subscribes to an event that occurs whenever a controller request is made
     ActiveSupport::Notifications.subscribe 'process_action.action_controller' do |*args|
-      event = ActiveSupport::Notifications::Event.new(*args)
-      payload = event.payload
-      
-      # The controller and action are included and not excluded, create a 
-      # RequestLog object for the request.
-      if should_log?(payload) && @log_to_db == true
-        # Log to database
-            deidentified_params = LoggingHelper::deidentify_params_phi(payload[:params])
-        RequestLog.create({
-                            controller: payload[:controller],
-                            action: payload[:action],
-                            params: deidentified_params,
-                            status_code: payload[:status],
-                            auth_email: payload[:headers]["X-User-Email"],
-                            duration: event.duration.to_i
-                          })
+      begin
+        event = ActiveSupport::Notifications::Event.new(*args)
+        payload = event.payload
+
+        # The controller and action are included and not excluded, create a
+        # RequestLog object for the request.
+        if should_log?(payload) && @log_to_db == true
+          # Log to database
+          deidentified_params = LoggingHelper::deidentify_params_phi(payload[:params])
+          RequestLog.create({
+                              controller: payload[:controller],
+                              action: payload[:action],
+                              params: deidentified_params,
+                              status_code: payload[:status],
+                              auth_email: payload[:headers]["X-User-Email"],
+                              duration: event.duration.to_i
+                            })
+        end
+      rescue
+        puts "Logging Subscription Failed"
+        return
       end
     end
   end
