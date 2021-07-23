@@ -270,7 +270,7 @@ class EcolaneAmbassador < BookingAmbassador
     else
       order = build_order 
     end
-
+    # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
     return nil if resp.code != "200"
     resp = Hash.from_xml(resp.body)
@@ -350,7 +350,8 @@ class EcolaneAmbassador < BookingAmbassador
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      Rails.logger.info Hash.from_xml(resp.body)
+      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
+      Rails.logger.info resp.body
       return resp
     rescue Exception=>e
       Rails.logger.info("Sending Error")
