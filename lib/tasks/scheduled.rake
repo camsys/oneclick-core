@@ -223,15 +223,15 @@ namespace :scheduled do
     start = Time.now
     limit = 2.hours
 
-    batch = 0
     batch_size = 1000
-
+    last_id = 0
+    
     count = 0
     deleted = 0
     
     Waypoint.uncached do
       while (Time.now - start < limit)
-        ids = Waypoint.order(:id).where('id > ?', batch * batch_size).limit(batch_size).pluck(:id)
+        ids = Waypoint.order(:id).where('id > ?', last_id).limit(batch_size).pluck(:id)
         break if ids.count < 1
         ids.each do |id|
           count += 1
@@ -240,7 +240,7 @@ namespace :scheduled do
             deleted += 1
           end
         end
-        batch += 1
+        last_id = ids.last
         print '.'
       end
     end
