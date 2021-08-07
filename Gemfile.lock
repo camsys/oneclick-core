@@ -8,7 +8,7 @@ GIT
       activerecord-postgis-adapter
       pg
       rails (~> 5.0.3)
-      rgeo 
+      rgeo
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
