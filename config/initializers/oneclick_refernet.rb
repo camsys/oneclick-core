@@ -3,7 +3,7 @@
 if ENV["ONECLICK_REFERNET"]  
   # Set the refernet API token
   # TODO: Make this configurable per client
-  OneclickRefernet.api_token = '98ce0951e7ef475b86171fc075c9bac1'
+  OneclickRefernet.api_token = 'c343522686964c72aa96b0c15180c5da'
    
   # Set the default radius for finding nearby services
   OneclickRefernet.default_radius_meters = (ENV['REFERNET_RADIUS_METERS'] || 48280.3).to_f 
