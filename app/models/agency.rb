@@ -19,14 +19,15 @@ class Agency < ApplicationRecord
   contact_fields email: :email, phone: :phone, url: :url
     
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
-  scope :partner_agencies, -> { where(type: "PartnerAgency") }
+  scope :partner_agencies, -> { where(type: %w[PartnerAgency OversightAgency]) }
   
   has_many :services, foreign_key: "agency_id", dependent: :nullify
     
   AGENCY_TYPES = [
   # [ label, value(class name) ],
     ["Transportation", "TransportationAgency"],
-    ["Partner", "PartnerAgency"]
+    ["Partner", "PartnerAgency"],
+    ["Oversight", "OversightAgency"]
   ]
   
   
@@ -38,7 +39,8 @@ class Agency < ApplicationRecord
   
   def self.with_role(role, user)
     TransportationAgency.with_role(role, user) +
-    PartnerAgency.with_role(role, user)
+    PartnerAgency.with_role(role, user) +
+    OversightAgency.with_role(role, user)
   end
   
   
@@ -61,7 +63,7 @@ class Agency < ApplicationRecord
 
   # Checks if is a PartnerAgency
   def partner?
-    self.type == "PartnerAgency"
+    self.type == "PartnerAgency" || self.type == "OversightAgency"
   end
   
   def to_s

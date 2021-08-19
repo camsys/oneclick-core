@@ -44,6 +44,8 @@ class Admin::AgenciesController < Admin::AdminController
       params[:agency] = params.delete(:transportation_agency)
     elsif params.has_key?(:partner_agency)
       params[:agency] = params.delete(:partner_agency)
+    elsif params.has_key?(:oversight_agency)
+      params[:agency] = params.delete(:oversight_agency)
     end
     
     params.require(:agency).permit(
