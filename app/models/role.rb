@@ -2,6 +2,7 @@ class Role < ApplicationRecord
   
   ROLES = [ :admin, :staff ]
 
+  # Resource will generally refer to an Agency
   belongs_to :resource,
              :polymorphic => true,
              :optional => true
