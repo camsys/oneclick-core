@@ -51,6 +51,11 @@ class Ability
       can :manage, :all # Can perform all actions on all models
     end
 
+    ### SUPERUSER PERMISSIONS ###
+    if user.superuser?
+      can :manage, :all # Can perform all actions on all models
+    end
+
 
   end
   
