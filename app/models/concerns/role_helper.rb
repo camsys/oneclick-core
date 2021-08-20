@@ -11,15 +11,17 @@ module RoleHelper
     base.scope :any_role, -> do
       base.querify(base.with_any_role(
         {name: :admin, resource: :any},
-        {name: :staff, resource: :any}
+        {name: :staff, resource: :any},
+        {name: :superuser, resource: :any},
       ))
     end
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
+    base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
     end
     base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
     base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
+    base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
     base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
     base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
@@ -38,6 +40,10 @@ module RoleHelper
       through: :roles,
       source: :resource,
       source_type: "PartnerAgency"
+    base.has_many :oversight_agencies,
+      through: :roles,
+      source: :resource,
+      source_type: "OversightAgency"
 
     base.validate :must_have_a_role, if: :role_required?
     
@@ -62,6 +68,10 @@ module RoleHelper
   # Check to see if the user is an Admin, any scope
   def admin?
     has_role?(:admin) || has_role?(:admin, :any)
+  end
+
+  def superuser?
+    has_role?(:superuser, :any)
   end
 
   # Check to see if the user is a guest (i.e. not registered)
@@ -104,7 +114,7 @@ module RoleHelper
 
   # Returns the agencies that the user is staff for
   def agencies
-    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id))
+    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id) + oversight_agencies.pluck(:id))
   end
 
   # Returns the last of the user's staffing agencies (of which there are hopefully just one)
