@@ -6,12 +6,12 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-## Create a default Admin User
-admin = User.where(email: '1-click@camsys.com').first_or_create do |user|
+## Create a default Superuser
+superuser = User.where(email: '1-click@camsys.com').first_or_create do |user|
   user.password = 'welcome1'
   user.password_confirmation = 'welcome1'
-  user.add_role :admin
-  puts 'Creating Default Admin User (Change these settings)'
+  user.add_role :superuser
+  puts 'Creating Default Superuser (Change these settings)'
   puts 'email: ' + user.email
   puts 'password: '+ 'welcome1'
 end
