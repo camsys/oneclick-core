@@ -3,3 +3,7 @@
     .col-md-3.text-center
       %h3
         =link_to page[:label], page[:url]
+  - if @admin_pages.empty?
+    .row.text-center
+      %h1 Unaffiliated User
+      %p You do not have permission to view as you are unaffiliated with any agency. Please contact your agency's administrator if you think you should be able to access this page.
