@@ -104,6 +104,26 @@ module RoleHelper
     staff? && agencies.any? { |a| a.partner? }
   end
 
+  # Check to see if the user is a OversightAgency staff
+  def oversight_staff?
+    staff? && agencies.any? { |a| a.oversight? }
+  end
+
+  # Check to see if the user is a TransportationAgency admin
+  def transportation_admin?
+    admin? && agencies.any? { |a| a.transportation? }
+  end
+
+  # Check to see if the user is a PartnerAgency admin
+  def partner_admin?
+    admin? && agencies.any? { |a| a.partner? }
+  end
+
+  # Check to see if the user is a OversightAgency admin
+  def oversight_admin?
+    staff? && agencies.any? { |a| a.oversight? }
+  end
+
   # Check to see if the user is a traveler (i.e. has no roles)
   def traveler?
     !admin_or_staff?
