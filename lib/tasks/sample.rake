@@ -238,6 +238,9 @@ namespace :db do
       ta = TransportationAgency.find_or_create_by(name: "Test Transportation Agency", 
           email: "test_transportation_agency@oneclick.com", 
           published: true)
+      oa = OversightAgency.find_or_create_by(name: "Test Oversight Agency",
+        email: "test_oversight_agency@oneclick.com",
+        published: true)
       ta.services << Service.first
       ta.services << Service.last
           
