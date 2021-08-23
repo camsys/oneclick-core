@@ -63,7 +63,12 @@ class Agency < ApplicationRecord
 
   # Checks if is a PartnerAgency
   def partner?
-    self.type == "PartnerAgency" || self.type == "OversightAgency"
+    self.type == "PartnerAgency"
+  end
+
+  # Checks if is an OversightAgency
+  def oversight?
+    self.type == "OversightAgency"
   end
   
   def to_s
