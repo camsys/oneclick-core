@@ -68,4 +68,16 @@ namespace :agency_restriction do
     end
   end
 
+  desc "Add Penn DOT oversight agency and associate other transit agencies to it"
+  task add_penn_dot: :environment do
+    penn_dot = OversightAgency.create(
+      name: "Penn DOT",
+      published: "true"
+    )
+    TransportationAgency.all.each do |ta|
+      AgencyOversightAgency.create(
+        transportation_agency_id: ta.id,
+        oversight_agency_id: penn_dot.id)
+    end
+  end
 end
