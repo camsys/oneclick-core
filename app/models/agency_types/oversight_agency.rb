@@ -4,5 +4,5 @@ class OversightAgency < Agency
   
   resourcify  # user roles may be scoped to agencies
   include ResourceHelper
-  
+  has_many :agency_oversight_agency
 end
