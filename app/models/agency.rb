@@ -55,6 +55,11 @@ class Agency < ApplicationRecord
   def add_staff(user)
     user.add_role(:staff, self)
   end
+
+  # Add an admin user to this agency
+  def add_admin(user)
+    user.add_role(:admin, self)
+  end
   
   # Checks if is a TransportationAgency
   def transportation?

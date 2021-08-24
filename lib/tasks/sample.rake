@@ -238,9 +238,6 @@ namespace :db do
       ta = TransportationAgency.find_or_create_by(name: "Test Transportation Agency", 
           email: "test_transportation_agency@oneclick.com", 
           published: true)
-      oa = OversightAgency.find_or_create_by(name: "Test Oversight Agency",
-        email: "test_oversight_agency@oneclick.com",
-        published: true)
       ta.services << Service.first
       ta.services << Service.last
           
@@ -251,28 +248,10 @@ namespace :db do
       ta.save
     end
 
-    desc "Sample Unaffiliated Users"
-    task unaffiliated_users: :environment do
-      us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
-        user.password = 'guest1'
-        user.password_confirmation = 'guest1'
-        user.add_role(:staff)
-        puts 'Creating test unaffiliated staff user'
-      end
-      ua = User.where(email: 'test-unaffiliated-admin@camsys.com').first_or_create do |user|
-        user.password = 'guest1'
-        user.password_confirmation = 'guest1'
-        user.add_role(:admin)
-        puts 'Creating test unaffiliated admin user'
-      end
-      us.save
-      ua.save
-    end
-
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agencies, :unaffiliated_users]
+                :agencies]
 
   end
 end

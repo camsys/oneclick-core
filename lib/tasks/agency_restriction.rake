@@ -21,5 +21,51 @@ namespace :agency_restriction do
     end
   end
 
+  desc "Sample Unaffiliated Users"
+  task unaffiliated_users: :environment do
+    us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
+      user.password = 'guest1'
+      user.password_confirmation = 'guest1'
+      user.add_role(:staff)
+      puts 'Creating test unaffiliated staff user'
+    end
+    ua = User.where(email: 'test-unaffiliated-admin@camsys.com').first_or_create do |user|
+      user.password = 'guest1'
+      user.password_confirmation = 'guest1'
+      user.add_role(:admin)
+      puts 'Creating test unaffiliated admin user'
+    end
+    us.save
+    ua.save
+  end
+
+  desc "Seed initial oversight agency and staff"
+  task seed_oversight_agency: :environment do
+    puts "Seeding default oversight agency"
+    oa = OversightAgency.find_or_create_by(name: "Test Oversight Agency",
+                                           email: "test_oversight_agency@oneclick.com",
+                                           published:true)
+    [
+      {
+        email: "test-oversight-staff@camsys.com",
+        password: 'guest1',
+        password_confirmation: 'guest1',
+      },      {
+        email: "test-oversight-admin@camsys.com",
+        password: 'guest1',
+        password_confirmation: 'guest1',
+      },
+    ].each_with_index do |json,ind|
+      user = User.find_or_create_by(email: json.delete(:email))
+      user.password = json[:password]
+      user.password_confirmation = json[:password_confirmation]
+      if ind == 1
+        oa.add_admin(user)
+      else
+        oa.add_staff(user)
+      end
+      user.save
+    end
+  end
 
 end
