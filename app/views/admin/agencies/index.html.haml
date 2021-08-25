@@ -7,10 +7,11 @@
       %th Logo
       %th Name
       %th Type
+      %th Oversight Agency
       %th Published?
   =render partial: 'agency', collection: @agencies
 
-=simple_form_for :agency, 
+=simple_form_for :agency,
     url: admin_agencies_path, 
     html: {class: 'form-horizontal', multipart: true, method: :post }, 
     authenticity_token: true do |f|
