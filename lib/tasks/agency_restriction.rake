@@ -74,10 +74,32 @@ namespace :agency_restriction do
       name: "Penn DOT",
       published: "true"
     )
+    puts "Assigning all Transportation Agencies to Penn DOT"
     TransportationAgency.all.each do |ta|
       AgencyOversightAgency.create(
         transportation_agency_id: ta.id,
         oversight_agency_id: penn_dot.id)
     end
   end
+
+  desc "Assign staff and admin with an @pa.gov email to Penn DOT"
+  task assign_staff_to_penn_dot: :environment do
+    # Search for Staff and admin with a pa.gov email
+    pa_gov_staff = User.staff_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
+    pa_gov_admin = User.admin_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
+    ar = %w[]
+    pa_gov_staff.each do |user|
+      user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
+      ar.push(user.email)
+    end
+    pa_gov_admin.each do |user|
+      user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
+      ar.push(user.email)
+    end
+    puts "The following users with emails have been assigned to Penn DOT: #{ar.to_s}"
+    puts "NOTE: ALL PREVIOUS ADMINS HAVE BEEN CHANGED TO BE STAFF"
+  end
+
+  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
+  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
 end
