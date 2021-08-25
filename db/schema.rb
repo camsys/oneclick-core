@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191108152422) do
+ActiveRecord::Schema.define(version: 20210824155237) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,6 +56,13 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.datetime "updated_at",                 null: false
     t.boolean  "published",  default: false
     t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
+  create_table "agency_oversight_agencies", force: :cascade do |t|
+    t.integer "transportation_agency_id"
+    t.integer "oversight_agency_id"
+    t.index ["oversight_agency_id"], name: "index_agency_oversight_agencies_on_oversight_agency_id", using: :btree
+    t.index ["transportation_agency_id"], name: "index_agency_oversight_agencies_on_transportation_agency_id", using: :btree
   end
 
   create_table "alerts", force: :cascade do |t|
@@ -555,6 +562,8 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
+  add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "itineraries", "services"
