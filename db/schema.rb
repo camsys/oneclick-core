@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210824155237) do
+ActiveRecord::Schema.define(version: 20210825173222) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -352,6 +352,13 @@ ActiveRecord::Schema.define(version: 20210824155237) do
     t.index ["service_id"], name: "index_schedules_on_service_id", using: :btree
   end
 
+  create_table "service_oversight_agencies", force: :cascade do |t|
+    t.integer "service_id"
+    t.integer "oversight_agency_id"
+    t.index ["oversight_agency_id"], name: "index_service_oversight_agencies_on_oversight_agency_id", using: :btree
+    t.index ["service_id"], name: "index_service_oversight_agencies_on_service_id", using: :btree
+  end
+
   create_table "services", force: :cascade do |t|
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
@@ -573,6 +580,8 @@ ActiveRecord::Schema.define(version: 20210824155237) do
   add_foreign_key "oneclick_refernet_sub_categories", "oneclick_refernet_categories", column: "category_id"
   add_foreign_key "oneclick_refernet_sub_sub_categories", "oneclick_refernet_sub_categories", column: "sub_category_id"
   add_foreign_key "schedules", "services"
+  add_foreign_key "service_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
+  add_foreign_key "service_oversight_agencies", "services", on_delete: :cascade
   add_foreign_key "services", "agencies"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
