@@ -8,8 +8,7 @@
     if they are an oversight agency admin
   - if current_user.staff_agency&.type == "OversightAgency"
     = foa.input :oversight_agency_id,
-      required: true,
-      as: string,
+      readonly: true,
       value: current_user.staff_agency.id,
       class: 'hidden',
       wrapper_html: {id: 'oversight_select'}
