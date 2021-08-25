@@ -10,7 +10,15 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def create
+    # For agency creation, if it's a Transit Agency then automagically
+    # ...assign it to the first Oversight Agency?
+    oversight_agency_id = oversight_params
+
     if @agency.update_attributes(agency_params)
+      if oversight_agency_id
+        AgencyOversightAgency.create(transportation_agency_id:@agency.id,
+                                             oversight_agency_id: oversight_agency_id)
+      end
       flash[:success] = "Agency Created Successfully"
       redirect_to admin_agency_path(@agency)
     else
@@ -38,7 +46,12 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   private
-  
+
+  def oversight_params
+    oversight = params.delete(:oversight)
+    oversight[:oversight_agency_id]
+  end
+
   def agency_params
     if params.has_key?(:transportation_agency)
       params[:agency] = params.delete(:transportation_agency)
@@ -47,10 +60,15 @@ class Admin::AgenciesController < Admin::AdminController
     elsif params.has_key?(:oversight_agency)
       params[:agency] = params.delete(:oversight_agency)
     end
-    
+    #
+    # if params[:agency][:type] == 'OversightAgency'
+    #   params[:oversight].delete(:oversight_agency_id)
+    # end
+
     params.require(:agency).permit(
       base_agency_params + description_params
     )
+    # params.require(:oversight).permit(:oversight_agency_id)
   end
   
   def base_agency_params
