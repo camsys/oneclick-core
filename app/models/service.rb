@@ -26,6 +26,8 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+  has_one :service_oversight_agency, dependent: :destroy
+
   # has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
