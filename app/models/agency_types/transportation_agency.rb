@@ -4,5 +4,5 @@ class TransportationAgency < Agency
 
   resourcify  # user roles may be scoped to transportation agencies
   include ResourceHelper
-  has_one :agency_oversight_agency
+  has_one :agency_oversight_agency, dependent: :destroy
 end
