@@ -13,12 +13,14 @@ class Admin::AgenciesController < Admin::AdminController
     # For agency creation, if it's a Transit Agency then automagically
     # ...assign it to the first Oversight Agency?
     oversight_agency_id = oversight_params
-
+    if oversight_agency_id == ''
+      flash[:danger] = "Agency creation failed! Oversight Agency cannot be empty!"
+      redirect_to admin_agencies_path
+      return
+    end
     if @agency.update_attributes(agency_params)
-      if oversight_agency_id
-        AgencyOversightAgency.create(transportation_agency_id:@agency.id,
-                                             oversight_agency_id: oversight_agency_id)
-      end
+      AgencyOversightAgency.create(transportation_agency_id:@agency.id,
+                                           oversight_agency_id: oversight_agency_id)
       flash[:success] = "Agency Created Successfully"
       redirect_to admin_agency_path(@agency)
     else
@@ -28,7 +30,19 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def update
+    oversight_agency_id = oversight_params
+    if oversight_agency_id == ''
+      flash[:danger] = "Agency update failed! Oversight Agency cannot be empty!"
+      redirect_to admin_agencies_path
+      return
+    end
     if @agency.update_attributes(agency_params)
+      if oversight_agency_id && @agency.agency_oversight_agency
+        @agency.agency_oversight_agency.update(oversight_agency_id: oversight_agency_id)
+      elsif oversight_agency_id
+        AgencyOversightAgency.create(transportation_agency_id:@agency.id,oversight_agency_id: oversight_agency_id)
+      end
+
       flash[:success] = "Agency Updated Successfully"
     else
       present_error_messages(@agency)

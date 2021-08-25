@@ -6,6 +6,6 @@
   %td
     =agency.type
   %td
-    =agency.type == 'TransportationAgency' ? agency.agency_oversight_agency&.oversight_agency.name : nil
+    =agency.type == 'TransportationAgency' ? agency.agency_oversight_agency&.oversight_agency&.name : nil
   %td
     =render partial: "shared/published_badge", locals: {object: agency}
