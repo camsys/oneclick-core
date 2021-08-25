@@ -70,7 +70,7 @@ namespace :agency_restriction do
 
   desc "Add Penn DOT oversight agency and associate other transit agencies to it"
   task add_penn_dot: :environment do
-    penn_dot = OversightAgency.create(
+    penn_dot = OversightAgency.find_or_create_by(
       name: "Penn DOT",
       published: "true"
     )
