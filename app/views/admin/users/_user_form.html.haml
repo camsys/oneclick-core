@@ -4,14 +4,14 @@
 = f.input :password, required: true, :as => :password
 = f.input :password_confirmation, required: true, :as => :password
 
--if can? :manage, Role && (current_user.roles_name.last == 'admin' || current_user.roles_name.last == 'superuser')
+-if (can? :manage, Role) && (current_user.admin? || current_user.superuser?)
   %hr
   %h4.text-center Roles
-  = f.input :admin?,
-      as: :boolean,
-      boolean_style: :inline,
-      label: "Admin?",
-      disabled: @user == current_user
+  = f.input :roles,
+    label: "User Role",
+    selected: @user.roles.last.try(:name),
+    collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
+    disabled: @user == current_user || (cannot? :update, @user)
   = f.input :staff_agency,
       as: :select,
       collection: current_user.accessible_agencies,

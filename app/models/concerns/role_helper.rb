@@ -1,6 +1,10 @@
 # Module to extend users, etc. with role helper functions
 module RoleHelper
 
+  PERMISSIBLE_CREATES = {
+    admin: [:admin, :staff],
+    superuser: Role::ROLES
+  }
   ### SCOPES & CLASS METHODS ###
 
   def self.included(base)
@@ -16,9 +20,11 @@ module RoleHelper
       ))
     end
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
+    base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
     base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
     end
+    base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
     base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
     base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
     base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
@@ -121,7 +127,7 @@ module RoleHelper
 
   # Check to see if the user is a OversightAgency admin
   def oversight_admin?
-    staff? && agencies.any? { |a| a.oversight? }
+    admin? && agencies.any? { |a| a.oversight? }
   end
 
   # Check to see if the user is a traveler (i.e. has no roles)
@@ -179,6 +185,25 @@ module RoleHelper
       r = self.roles.last
     end
   end
+
+  # General set role method
+  # - just like set_staff_role, should be wrapped in a transaction so changes can be rolledback
+  def set_role(role, agency)
+    if !agency && !role
+      raise "Expecting values for role and agency"
+    end
+    if role == "superuser"
+      self.add_role(role)
+    elsif agency == ""
+      self.add_role(role)
+    elsif staff_agency.nil?
+      self.add_role(role,agency)
+    elsif agency
+      self.remove_role(self.roles.last.name.to_sym)
+      self.add_role(role,agency)
+    end
+  end
+
 
   # Adds or removes the user's admin permissions based on passed boolean
   # wraps in a transaction so changes will be rolled back on error
