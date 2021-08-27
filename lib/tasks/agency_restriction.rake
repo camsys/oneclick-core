@@ -102,4 +102,23 @@ namespace :agency_restriction do
 
   desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
   task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
+
+  desc "Update Travelers with an associated county"
+  task associate_travelers_to_county: :environment do
+    users = User.where("users.email ~* :ecolane", :ecolane => '\@ecolane_user\.com')
+    puts "#{users.count} users have a fake email with a county"
+  end
+
+  desc "Update Travelers with an associated transit agency"
+  task associate_travelers_to_agency: :environment do
+    count = 0
+    booking_profiles = UserBookingProfile.where.not(user_id:nil)
+    booking_profiles.each do |profile|
+      transit = profile.service.agency
+      user = profile.user
+      TravelerTransitAgency.create(transportation_agency: transit, user: user)
+      count += 1
+    end
+    puts "Associated #{count} travelers to transit agencies"
+  end
 end

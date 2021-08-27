@@ -40,6 +40,7 @@ class User < ApplicationRecord
 
 
   ### Associations ###
+  has_one :traveler_transit_agency, dependent: :destroy
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
   has_many :origins, through: :trips
@@ -66,9 +67,18 @@ class User < ApplicationRecord
   validates :password_confirmation, presence: true, on: :create
   before_save :downcase_email
   validate :password_complexity
-  
+
+  ### Attribute Accessors ###
+  attr_accessor :county
+
   ### Instance Methods ###
-  
+  # Custom initializer with instance variable instantiation
+  def initialize(attributes={})
+    super
+    @county ||= return_county_if_ecolane_email
+  end
+
+
   # To String prints out user's email address
   def to_s
     email
@@ -97,6 +107,15 @@ class User < ApplicationRecord
   # Alias for subscribed_to_emails boolean
   def subscribed_to_emails?
     self.subscribed_to_emails
+  end
+
+  def return_county_if_ecolane_email
+    regex = /ecolane_user\.com$/
+    if regex.match(email)
+      # Ecolane fake email has format: 9999_@ecolane.com so split from the @, then split from the _
+      county = email.split('@').first&.split('_').last
+      County.find_by(name: county&.capitalize)
+    end
   end
 
   # Check to see if this user owns the object
