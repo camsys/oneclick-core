@@ -127,7 +127,8 @@ namespace :agency_restriction do
   task associate_service_to_penn_dot: :environment do
     count = 0
     penn_dot = OversightAgency.find_by(name: "Penn DOT")
-    Service.all.each do |service|
+    # Only update Transit/ Paratransit services
+    Service.where(type: %w[Transit Paratransit]).each do |service|
       ServiceOversightAgency.create(oversight_agency_id: penn_dot.id, service_id: service.id)
       count += 1
     end
