@@ -113,7 +113,8 @@ namespace :agency_restriction do
   task associate_travelers_to_agency: :environment do
     count = 0
     booking_profiles = UserBookingProfile.where.not(user_id:nil)
-    booking_profiles.each do |profile|
+    ecolane_profiles = booking_profiles.where(booking_api: :ecolane)
+    ecolane_profiles.each do |profile|
       transit = profile.service.agency
       user = profile.user
       TravelerTransitAgency.create(transportation_agency: transit, user: user)
