@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210827143959) do
+ActiveRecord::Schema.define(version: 20210827172001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -214,6 +214,8 @@ ActiveRecord::Schema.define(version: 20210827143959) do
     t.decimal  "lng",                                                    precision: 10, scale: 6
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
     t.string   "county"
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
   end
 
@@ -584,6 +586,7 @@ ActiveRecord::Schema.define(version: 20210827143959) do
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "landmarks", "agencies"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_services", column: "service_id"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_sub_sub_categories", column: "sub_sub_category_id"
   add_foreign_key "oneclick_refernet_sub_categories", "oneclick_refernet_categories", column: "category_id"
