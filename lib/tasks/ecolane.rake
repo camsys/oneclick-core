@@ -26,7 +26,8 @@ namespace :ecolane do
 
       begin
         # Get a Hash of new POIs from Ecolane
-        new_poi_hashes = service.booking_ambassador.get_pois
+        # NOTE: INCLUDES THE SERVICE'S AGENCY
+        new_poi_hashes = { agency: service.agency,**service.booking_ambassador.get_pois }
 
         if new_poi_hashes.nil?
           #If anything goes wrong, delete the new pois and reinstate the old_pois
