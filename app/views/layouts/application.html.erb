@@ -32,17 +32,13 @@
           <ul class="nav navbar-nav navbar-right">
             <% if current_user%>
               <li class="menu-item agency">
-                <% if @agency_map.count > 1 %>
+                <% if current_user.admin? && @agency_map.count > 1 %>
                   <%= form_tag change_agency_admin_users_path %>
                   <select name="agency_id" onchange="form.submit();">
                     <%= options_for_select(@agency_map, selected = current_user.current_agency&.id) %>
                   </select>
                   <%= hidden_field_tag "come_from", request.fullpath %>
                   </form>
-                <% else %>
-                <span class="">
-                    <span class="label">Agency: </span><span class="selected-agency"><%= current_user.current_agency&.name %></span>
-                </span>
                 <% end %>
               </li>
               <li>
