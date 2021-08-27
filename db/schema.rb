@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210825173222) do
+ActiveRecord::Schema.define(version: 20210827143959) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -422,6 +422,13 @@ ActiveRecord::Schema.define(version: 20210825173222) do
     t.datetime "updated_at",         null: false
   end
 
+  create_table "traveler_transit_agencies", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "transportation_agency_id"
+    t.index ["transportation_agency_id"], name: "index_traveler_transit_agencies_on_transportation_agency_id", using: :btree
+    t.index ["user_id"], name: "index_traveler_transit_agencies_on_user_id", using: :btree
+  end
+
   create_table "trip_accommodations", force: :cascade do |t|
     t.integer "trip_id",          null: false
     t.integer "accommodation_id", null: false
@@ -530,8 +537,10 @@ ActiveRecord::Schema.define(version: 20210825173222) do
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
+    t.integer  "current_agency_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
+    t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
     t.index ["last_name", "first_name"], name: "index_users_on_last_name_and_first_name", using: :btree
     t.index ["preferred_locale_id"], name: "index_users_on_preferred_locale_id", using: :btree
@@ -586,6 +595,8 @@ ActiveRecord::Schema.define(version: 20210825173222) do
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "stomping_grounds", "users"
+  add_foreign_key "traveler_transit_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
+  add_foreign_key "traveler_transit_agencies", "users", on_delete: :cascade
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
   add_foreign_key "trips", "purposes"
   add_foreign_key "trips", "trips", column: "previous_trip_id"
@@ -596,5 +607,6 @@ ActiveRecord::Schema.define(version: 20210825173222) do
   add_foreign_key "user_booking_profiles", "users"
   add_foreign_key "user_eligibilities", "eligibilities"
   add_foreign_key "user_eligibilities", "users"
+  add_foreign_key "users", "agencies", column: "current_agency_id"
   add_foreign_key "users", "locales", column: "preferred_locale_id"
 end
