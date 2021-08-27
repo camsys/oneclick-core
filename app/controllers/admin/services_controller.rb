@@ -38,8 +38,10 @@ class Admin::ServicesController < Admin::AdminController
     # @service.build_comments # Builds a comment for each available locale
   end
 
-  def update   
+  def update
+    os_params = oversight_params
     @service.update_attributes(service_params)
+    @service.service_oversight_agency.update(oversight_agency_id:os_params[:oversight_agency_id])
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
