@@ -122,4 +122,17 @@ namespace :agency_restriction do
     end
     puts "Associated #{count} travelers to transit agencies"
   end
+
+  desc "Update Services with Penn DOT as the oversight agency"
+  task associate_service_to_penn_dot: :environment do
+    count = 0
+    penn_dot = OversightAgency.find_by(name: "Penn DOT")
+    Service.all.each do |service|
+      ServiceOversightAgency.create(oversight_agency_id: penn_dot.id, service_id: service.id)
+      count += 1
+    end
+    puts "#{count} services assigned to Penn DOT as their oversight agency"
+
+  end
+
 end
