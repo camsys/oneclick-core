@@ -217,6 +217,7 @@ Rails.application.routes.draw do
       collection do
           get "staff"
           get "travelers"
+          post "change_agency"
         end
       end
 

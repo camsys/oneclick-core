@@ -41,6 +41,7 @@ class User < ApplicationRecord
 
   ### Associations ###
   has_one :traveler_transit_agency, dependent: :destroy
+  belongs_to :current_agency, class_name:'Agency', foreign_key: :current_agency_id
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
   has_many :origins, through: :trips
