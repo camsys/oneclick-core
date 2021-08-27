@@ -16,8 +16,16 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-    @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
+    # If the user is a transit agency admin then automatically assign its oversight agency
+    os_params = oversight_params
+    oversight_agency_id = os_params[:oversight_agency_id]
+    transportation_agency_id = os_params[:transportation_agency_id]
+    # Assign the transportation agency based on the passed in id
+    @service.agency = TransportationAgency.find(transportation_agency_id)
   	if @service.update_attributes(service_params)
+      if oversight_agency_id != ''
+        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      end
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -45,6 +53,10 @@ class Admin::ServicesController < Admin::AdminController
 
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])
+  end
+
+  def oversight_params
+    params.delete(:oversight)
   end
 
   def service_params
