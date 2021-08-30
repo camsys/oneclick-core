@@ -19,10 +19,23 @@ module RoleHelper
         {name: :superuser, resource: :any},
       ))
     end
+    base.scope :any_staff_admin_for_agencies, -> (agencies) do
+      base.querify(base.with_any_role(
+        *agencies.map{|ag| { :name => :staff, :resource => ag }},
+        *agencies.map{|ag| { :name => :admin, :resource => ag }}))
+    end
+    base.scope :any_staff_admin_for_agency, -> (agency) do
+      base.querify(base.with_any_role(
+        { :name => :staff, :resource => agency },
+        { :name => :admin, :resource => agency }))
+    end
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
     base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-    base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
+      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
+    end
+    base.scope :admin_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
+      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :admin, :resource => ag }}) )
     end
     base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
     base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
