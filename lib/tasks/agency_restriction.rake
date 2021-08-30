@@ -86,16 +86,15 @@ namespace :agency_restriction do
   task assign_staff_to_penn_dot: :environment do
     # Search for Staff and admin with a pa.gov email
     pa_gov_staff = User.staff_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
-    pa_gov_admin = User.admin_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
     ar = %w[]
     pa_gov_staff.each do |user|
+      # Make all current Penn DOT admin staff by default
+      # SHOULD BE UPDATED LATER
+      user.remove_role(:admin)
       user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
       ar.push(user.email)
     end
-    pa_gov_admin.each do |user|
-      user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
-      ar.push(user.email)
-    end
+
     puts "The following users with emails have been assigned to Penn DOT: #{ar.to_s}"
     puts "NOTE: ALL PREVIOUS ADMINS HAVE BEEN CHANGED TO BE STAFF"
   end
@@ -134,6 +133,21 @@ namespace :agency_restriction do
     end
     puts "#{count} services assigned to Penn DOT as their oversight agency"
 
+  end
+
+  desc "Associate staff with transit agencies"
+  task associate_transit_staff: :environment do
+    rabbit = TransportationAgency.find_or_create_by(name: "Rabbit")
+    delaware = TransportationAgency.find_or_create_by(name: "Delaware County")
+    User.staff_for_none.where("users.email ~* :delco",:delco => 'ctdelco\.org').each do |staff|
+      staff.remove_role(:admin)
+      staff.set_staff_role(delaware)
+    end
+
+    User.staff_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
+      staff.remove_role(:admin)
+      staff.set_staff_role(rabbit)
+    end
   end
 
 end
