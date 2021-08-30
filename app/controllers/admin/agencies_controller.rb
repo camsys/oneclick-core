@@ -3,7 +3,14 @@ class Admin::AgenciesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @agency/@agencies instance variable
 
   def index
-    @agencies = @agencies.order(:name)
+    if current_user.superuser?
+      @agencies = @agencies.order(:name)
+    elsif current_user.oversight_admin? ||current_user.oversight_staff?
+      # Get all agencies associated with that oversight agency, and it'self
+      oa = current_user.staff_agency
+      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
+      @agencies = Agency.where(id: [*tas,nil,current_user.staff_agency.id])
+    end
   end
   
   def show
