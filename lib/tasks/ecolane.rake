@@ -17,18 +17,18 @@ namespace :ecolane do
       end
     end
 
+    puts "starting sync"
     # Get the current POIs and mark them as old
     Landmark.update_all(old: true)
     poi_with_no_city = 0
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
-
+      agency_id = service.agency&.id
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
-        new_poi_hashes = { agency: service.agency,**service.booking_ambassador.get_pois }
-
+        new_poi_hashes = service.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           #If anything goes wrong, delete the new pois and reinstate the old_pois
           Landmark.is_new.delete_all
@@ -51,6 +51,7 @@ namespace :ecolane do
 
           new_poi = Landmark.new hash
           new_poi.old = false
+          new_poi.agency_id = agency_id
           # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.name.blank? or new_poi.name.downcase == 'home'
