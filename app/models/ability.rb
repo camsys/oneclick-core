@@ -54,6 +54,9 @@ class Ability
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
+        can :read, Agency
+        can :read, Service
+        can :read, GeographyRecord
       end
       
     end # staff
