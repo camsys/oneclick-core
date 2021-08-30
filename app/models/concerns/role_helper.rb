@@ -170,6 +170,13 @@ module RoleHelper
     return User.none
   end
 
+  def currently_oversight?
+    self.current_agency&.type == "OversightAgency"
+  end
+
+  def currently_transportation?
+    self.current_agency&.type == "TransportationAgency"
+  end
 
   ### MODIFYING USER ROLES ###
 
