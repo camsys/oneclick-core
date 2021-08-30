@@ -8,6 +8,19 @@ class Admin::ServicesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
+    # NOTE: Includes unaffiliated Services by default
+    if current_user.superuser?
+      @services
+    elsif current_user.currently_oversight? && current_user.oversight_admin?
+      oa = current_user.staff_agency
+      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
+      @services = Service.where(agency_id: [nil,*tas])
+    elsif current_user.currently_transportation? && current_user.oversight_admin?
+      @services = Service.where(agency_id: [nil,current_user.current_agency.id])
+      # otherwise the current user is probably transportation staff
+    else
+      @services = Service.where(agency_id: [nil, current_user.staff_agency.id])
+    end
   end
 
   def destroy
