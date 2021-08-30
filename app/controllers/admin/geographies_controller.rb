@@ -38,6 +38,7 @@ class Admin::GeographiesController < Admin::AdminController
       geo_type: :custom_geography,
       column_mappings: {name: 'NAME'})
     uploader.load
+    uploader.update_model_agency(params[:agency][:agency])
     present_error_messages(uploader)
     redirect_to admin_geographies_path
   end

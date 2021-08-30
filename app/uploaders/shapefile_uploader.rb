@@ -33,6 +33,9 @@ class ShapefileUploader
     @errors.empty?
   end
 
+  def update_model_agency(agency)
+    @model.update(agency: agency)
+  end
   private
 
   def extract_shapefiles(zip_file, &block)
