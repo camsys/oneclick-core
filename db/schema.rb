@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210827172001) do
+ActiveRecord::Schema.define(version: 20210830135651) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -134,6 +134,8 @@ ActiveRecord::Schema.define(version: 20210827172001) do
     t.datetime "created_at",                                          null: false
     t.datetime "updated_at",                                          null: false
     t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_custom_geographies_on_agency_id", using: :btree
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
 
@@ -584,6 +586,7 @@ ActiveRecord::Schema.define(version: 20210827172001) do
   add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
+  add_foreign_key "custom_geographies", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "landmarks", "agencies"
