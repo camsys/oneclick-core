@@ -72,7 +72,7 @@ class Ability
       can [:read, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff
-          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none,User.admin_for_none)
+          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none,User.admin_for_none).concat([nil])
       can :manage, Service,             # Can CRUD services under their agency
           id: user.services.pluck(:id)
       can :create, Service              # Can create new services
@@ -80,7 +80,8 @@ class Ability
       can :read, :report         # Can view all reports
       # Mapping related permissions
       can :create, GeographyRecord      # Can create Geography records
-
+      can :manage, Role,                # Can manage roles for current agency
+          resource_id: user.staff_agency.id
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
         can :manage, Agency,

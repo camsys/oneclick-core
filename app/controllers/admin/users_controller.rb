@@ -17,7 +17,7 @@ class Admin::UsersController < Admin::AdminController
     set_user_role(role,staff_agency)
 
   	if @user.save
-      flash[:success] = "Created #{@user.first_name} #{@user.last_name} as #{@user.roles.last.name}"
+      flash[:success] = "Created #{@user&.first_name} #{@user&.last_name} as #{@user.roles.last.name}"
       respond_to do |format|
         format.js
         format.html {redirect_to staff_admin_users_path}
@@ -34,7 +34,7 @@ class Admin::UsersController < Admin::AdminController
   def destroy
     redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
     @user.destroy
-    flash[:success] = "#{@user.first_name} #{@user.last_name} Deleted"
+    flash[:success] = "#{@user&.first_name} #{@user&.last_name} Deleted"
     redirect_to redirect_path
   end
 
@@ -120,7 +120,9 @@ class Admin::UsersController < Admin::AdminController
   def set_user_role(role, agency_id)
     agency = Agency.find(agency_id)
     User.transaction do
-      if (can? :manage, agency) && (can? :manage, Role)
+      # If the user can read the selected agency and manage roles
+      # then assign the input role and agency to the user
+      if (can? :read, agency) && (can? :manage, Role)
         @user.set_role(role, agency)
       else
         raise ActiveRecord::Rollback
