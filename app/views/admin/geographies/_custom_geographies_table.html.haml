@@ -23,23 +23,27 @@
                 = f.input :agency,
                   collection: TransportationAgency.all,
                   selected: record.agency&.id,
-                  wrapper_html: {class:'col-md-6'}
+                  wrapper_html: {class:'col-md-6'},
+                  include_blank: "Select an Agency"
               - if current_user.transportation_admin?
                 = f.input :agency,
                   collection: [current_user.staff_agency],
                   selected: record.agency&.id,
                   readonly: true,
-                  wrapper_html: {class:'col-md-6'}
+                  wrapper_html: {class:'col-md-6'},
+                  include_blank: "Select an Agency"
               -if current_user.currently_oversight?
                 = f.input :agency,
                   collection: current_user.accessible_agencies,
                   selected: record.agency&.id,
-                  wrapper_html: {class:'col-md-6'}
+                  wrapper_html: {class:'col-md-6'},
+                  include_blank: "Select an Agency"
               -if current_user.currently_transportation?
                 = f.input :agency,
                   collection: [current_user.staff_agency],
                   selected: record.agency&.id,
                   readonly: true,
-                  wrapper_html: {class:'col-md-6'}
+                  wrapper_html: {class:'col-md-6'},
+                  include_blank: "Select an Agency"
               = f.button :submit, 'Update Geography',
                 class: 'btn btn-primary'
