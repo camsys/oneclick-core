@@ -24,6 +24,7 @@
     url: admin_users_path,
     html: {method: :post, class: "form-horizontal" },
     authenticity_token: true do |f|
+  =hidden_field_tag :is_traveler, true
   =render partial: 'new_traveler', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript

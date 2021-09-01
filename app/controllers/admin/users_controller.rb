@@ -1,7 +1,7 @@
 class Admin::UsersController < Admin::AdminController
 
   # before_action :initialize_user, only: [:index, :create]
-  authorize_resource
+  authorize_resource :except => [:travelers, :staff]
   before_action :load_user
   before_action :load_staff
 
@@ -14,10 +14,15 @@ class Admin::UsersController < Admin::AdminController
     role = create_params.delete(:roles)
     staff_agency = create_params.delete(:staff_agency)
     @user.assign_attributes(create_params)
-    set_user_role(role,staff_agency)
+
+    # Quick check to make sure we're not assigning a role to a traveler
+    # unless we're a superuser
+    if params[:is_traveler].nil?
+      set_user_role(roles, staff_agency)
+    end
 
   	if @user.save
-      flash[:success] = "Created #{@user&.first_name} #{@user&.last_name} as #{@user.roles.last.name}"
+      flash[:success] = "Created #{@user&.first_name} #{@user&.last_name} as #{@user.roles.last&.name || "traveler"}"
       respond_to do |format|
         format.js
         format.html {redirect_to staff_admin_users_path}
@@ -85,7 +90,6 @@ class Admin::UsersController < Admin::AdminController
 
     @user.update_attributes(update_params)
 
-    set_user_role(roles, staff_agency)
 
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
@@ -183,7 +187,8 @@ class Admin::UsersController < Admin::AdminController
       :password_confirmation,
       :admin,
       :roles,
-      :staff_agency
+      :staff_agency,
+      :is_traveler
     )
   end
 
