@@ -161,4 +161,20 @@ namespace :agency_restriction do
   desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
   task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
 
+  desc "Update partner agencies so they're oversight agencies"
+  task update_partner_agencies: :environment do
+    names = []
+    PartnerAgency.all.each do |agency|
+      agency.update(type: "OversightAgency")
+      names.push agency.name
+    end
+    puts "#{names.to_s} Partner agencies have been updated to oversight agencies"
+  end
+
+
+  desc "Do all but update partner agencies"
+  task [:add_admin, :update_default_admin, :sample_unaffiliated_users,
+        :seed_oversight_agency, :create_and_assign_to_penn_dot,
+        :associate_travelers_to_county, :associate_travelers_to_agency,
+        :associate_service_to_penn_dot, :associate_transit_staff]
 end
