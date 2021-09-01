@@ -196,6 +196,23 @@ module RoleHelper
     self.current_agency&.type == "TransportationAgency"
   end
 
+  def travelers_for_agency(agencies)
+    # Search for travelers not associated with the input agencies ids
+    agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
+    # Return travelers associated with the input agency and also with no agency
+    User.travelers.where.not(id: agency_travelers_id)
+  end
+
+  def travelers_for_staff_agency
+    ta = TransportationAgency.find(self.staff_agency.id)
+    travelers_for_agency(ta)
+  end
+
+  def travelers_for_oversight_agency
+    transportation_agencies = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
+    travelers_for_agency(transportation_agencies)
+  end
+
   ### MODIFYING USER ROLES ###
 
   # Replaces the user's staff agency role with the passed agency
