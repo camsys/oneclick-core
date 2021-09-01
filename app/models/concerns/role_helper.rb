@@ -29,6 +29,11 @@ module RoleHelper
         { :name => :staff, :resource => agency },
         { :name => :admin, :resource => agency }))
     end
+    base.scope :any_staff_admin_for_none, -> do
+      base.querify(base.with_any_role(
+        { :name => :staff, :resource => nil },
+        { :name => :admin, :resource => nil }))
+    end
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
     base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection

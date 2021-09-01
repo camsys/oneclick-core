@@ -5,6 +5,7 @@ namespace :agency_restriction do
     Agency.all.each do |agency|
       Role.where(name: "admin", resource_id: agency.id, resource_type: agency.class.name).first_or_create
     end
+    puts "added admin roles to agencies"
   end
 
   desc "Add superuser role and change default admin user to superuser"
@@ -22,7 +23,7 @@ namespace :agency_restriction do
   end
 
   desc "Sample Unaffiliated Users"
-  task unaffiliated_users: :environment do
+  task sample_unaffiliated_users: :environment do
     us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
@@ -37,6 +38,7 @@ namespace :agency_restriction do
     end
     us.save
     ua.save
+    puts "Seeded unaffiliated staff and admin users"
   end
 
   desc "Seed initial oversight agency and staff"
@@ -66,6 +68,7 @@ namespace :agency_restriction do
       end
       user.save
     end
+    puts "Seeded test oversight agency with staff"
   end
 
   desc "Add Penn DOT oversight agency and associate other transit agencies to it"
@@ -75,11 +78,14 @@ namespace :agency_restriction do
       published: "true"
     )
     puts "Assigning all Transportation Agencies to Penn DOT"
+    count= 0
     TransportationAgency.all.each do |ta|
       AgencyOversightAgency.create(
         transportation_agency_id: ta.id,
         oversight_agency_id: penn_dot.id)
+      count+=1
     end
+    puts "#{count} Transportation agencies assigned to Penn DOT"
   end
 
   desc "Assign staff and admin with an @pa.gov email to Penn DOT"
@@ -98,9 +104,6 @@ namespace :agency_restriction do
     puts "The following users with emails have been assigned to Penn DOT: #{ar.to_s}"
     puts "NOTE: ALL PREVIOUS ADMINS HAVE BEEN CHANGED TO BE STAFF"
   end
-
-  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
-  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
 
   desc "Update Travelers with an associated county"
   task associate_travelers_to_county: :environment do
@@ -139,15 +142,23 @@ namespace :agency_restriction do
   task associate_transit_staff: :environment do
     rabbit = TransportationAgency.find_or_create_by(name: "Rabbit")
     delaware = TransportationAgency.find_or_create_by(name: "Delaware County")
-    User.staff_for_none.where("users.email ~* :delco",:delco => 'ctdelco\.org').each do |staff|
+    count_rabbit = 0
+    count_delaware = 0
+    User.any_staff_admin_for_none.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
       staff.remove_role(:admin)
       staff.set_staff_role(delaware)
+      count_delaware+=1
     end
 
-    User.staff_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
+    User.any_staff_admin_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
       staff.remove_role(:admin)
       staff.set_staff_role(rabbit)
+      count_rabbit+=1
     end
+    puts "#{count_rabbit} staff assigned to Rabbit, #{count_delaware} staff assigned to Delaware"
   end
+
+  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
+  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
 
 end
