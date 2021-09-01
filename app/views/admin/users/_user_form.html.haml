@@ -4,7 +4,9 @@
 = f.input :password, required: true, :as => :password
 = f.input :password_confirmation, required: true, :as => :password
 
--if (can? :manage, Role) && (current_user.admin? || current_user.superuser?)
+-# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
+  then display the role management form
+-if (can? :manage, Role) && (current_user.admin? || current_user.superuser?) && @user.roles.count > 0
   %hr
   %h4.text-center Roles
   = f.input :roles,
