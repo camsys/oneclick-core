@@ -30,8 +30,8 @@ class Ability
       ## General Staff Permissions ##
       can [:read, :update], Agency,     # Can read or update their own agency
         id: user.staff_agency.try(:id)
-      can :read, User,                # Can manage users that are staff for the same agency
-        id: user.accessible_staff.pluck(:id)
+      can :read, User,                # Can read users that are staff for the same agency and travelers for that agency
+        id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
       can :read, Service,              # Can read services under that user
         id: user.services.pluck(:id)
       can :manage, Alert                # Can manage alerts
@@ -42,7 +42,7 @@ class Ability
       if user.transportation_staff?
         can [:read, :update], Feedback, # Can read/update feedbacks related to their agency's services
           id: Feedback.about(user.services).pluck(:id)
-        can [:read,:create], User
+        can :create, User
       end
       
       ## PartnerAgency Staff Permissions ##
@@ -56,9 +56,12 @@ class Ability
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
         can :read, Agency
         can :read, Service
+        can :read, User
         can :read, GeographyRecord
       end
-      
+      # staff users can update themselves
+      can :update, User,
+          id: user.id
     end # staff
     
     ### ADMIN PERMISSIONS ###
