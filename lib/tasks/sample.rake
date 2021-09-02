@@ -229,6 +229,13 @@ namespace :db do
         StompingGround.where(name: place[:name], user: u).first_or_create!(place)
       end
     end
+
+    desc "Sample Agency Types"
+    task agency_types: :environment do
+      %w[TransportationAgency OversightAgency].each do |at|
+        AgencyType.create(name: at)
+      end
+    end
     
     desc "Sample Agencies"
     task agencies: :environment do      
@@ -251,7 +258,7 @@ namespace :db do
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agencies]
+                :agency_types, :agencies]
 
   end
 end
