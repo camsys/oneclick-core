@@ -12,7 +12,7 @@
   =f.input :url
   =f.input :phone
   =f.input :email
-  -if can? :manage, Agency  # Only show agency menu if the user can manage agencies
+  -if can? :manage, Service  # Only show agency menu if the user can manage services
     =f.association :agency,
       label: 'Transportation Agency',
       include_blank: "Select a Transit Agency",
