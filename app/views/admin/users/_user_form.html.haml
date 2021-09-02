@@ -6,7 +6,8 @@
 
 -# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
   then display the role management form
--if (can? :manage, Role) && (current_user.admin? || current_user.superuser?) && @user.roles.count > 0
+  - the staff locals is true if we're creating or editing a staff user
+-if (can? :manage, Role) && (current_user.admin? || current_user.superuser?) && staff == true
   %hr
   %h4.text-center Roles
   = f.input :roles,
