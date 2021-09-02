@@ -59,6 +59,9 @@ class Service < ApplicationRecord
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
 
+  scope :no_agency, -> do
+    where(agency_id: nil)
+  end
   # Filter by age
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
