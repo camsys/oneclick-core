@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210830135651) do
+ActiveRecord::Schema.define(version: 20210902200020) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -52,9 +52,11 @@ ActiveRecord::Schema.define(version: 20210830135651) do
     t.string   "email"
     t.string   "url"
     t.string   "logo"
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
-    t.boolean  "published",  default: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+    t.boolean  "published",      default: false
+    t.integer  "agency_type_id"
+    t.index ["agency_type_id"], name: "index_agencies_on_agency_type_id", using: :btree
     t.index ["published"], name: "index_agencies_on_published", using: :btree
   end
 
@@ -63,6 +65,10 @@ ActiveRecord::Schema.define(version: 20210830135651) do
     t.integer "oversight_agency_id"
     t.index ["oversight_agency_id"], name: "index_agency_oversight_agencies_on_oversight_agency_id", using: :btree
     t.index ["transportation_agency_id"], name: "index_agency_oversight_agencies_on_transportation_agency_id", using: :btree
+  end
+
+  create_table "agency_types", force: :cascade do |t|
+    t.string "name"
   end
 
   create_table "alerts", force: :cascade do |t|
@@ -582,6 +588,7 @@ ActiveRecord::Schema.define(version: 20210830135651) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "agencies", "agency_types"
   add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
   add_foreign_key "bookings", "itineraries"
