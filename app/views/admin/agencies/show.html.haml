@@ -1,7 +1,7 @@
 =content_for :title do
   = "Editing #{@agency.name}"
 
-=render partial: 'edit_agency', layout: '/layouts/panel'
+=render partial: 'edit_agency', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @agency)}
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 -if can_access_all?(Agency)
