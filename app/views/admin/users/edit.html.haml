@@ -1,6 +1,7 @@
 =content_for :title do
   = "#{@user.first_name} #{@user.last_name}".strip
-=render partial: 'edit_user', layout: '/layouts/panel'
+  -# Add local var, disable submit, make it run off of can? :update, User
+=render partial: 'edit_user', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @user)}
 
 -# If the user is not the current user and can manage the selected user
 -if @user != current_user && can?(:manage, Role)
