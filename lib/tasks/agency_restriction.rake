@@ -173,7 +173,7 @@ namespace :agency_restriction do
 
 
   desc "Do all but update partner agencies"
-  task [:add_admin, :update_default_admin, :sample_unaffiliated_users,
+  task all: [:add_admin, :update_default_admin, :sample_unaffiliated_users,
         :seed_oversight_agency, :create_and_assign_to_penn_dot,
         :associate_travelers_to_county, :associate_travelers_to_agency,
         :associate_service_to_penn_dot, :associate_transit_staff]
