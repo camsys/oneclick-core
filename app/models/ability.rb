@@ -32,8 +32,8 @@ class Ability
         id: user.staff_agency.try(:id)
       can :read, User,                # Can read users that are staff for the same agency and travelers for that agency
         id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
-      can :read, Service,              # Can read services under that user
-        id: user.services.pluck(:id)
+      can :read, Service,              # Can read services under that user and services with no agency
+        id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can :manage, Alert                # Can manage alerts
       can :read, :report         # Can read reports
 
@@ -75,9 +75,9 @@ class Ability
       can [:read, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff
-          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none,User.admin_for_none).concat([nil])
+          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id), user.travelers_for_staff_agency.pluck(:id))
       can :manage, Service,             # Can CRUD services under their agency
-          id: user.services.pluck(:id)
+          id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can :create, Service              # Can create new services
       can :manage, Alert
       can :read, :report         # Can view all reports
@@ -85,6 +85,7 @@ class Ability
       can :create, GeographyRecord      # Can create Geography records
       can :manage, Role,                # Can manage roles for current agency
           resource_id: user.staff_agency.id
+
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
         can :manage, Agency,
@@ -92,6 +93,7 @@ class Ability
         can :manage, Role               # Can manage Roles
         # Mapping related permissions
         can :manage, GeographyRecord    # Can manage geography records
+
         # Oversight Admins cannot manage superusers
         cannot :manage, User,           # Cannot manage superusers
            id: User.all.superuser.pluck(:id)
