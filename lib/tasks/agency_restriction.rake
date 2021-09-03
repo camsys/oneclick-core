@@ -186,6 +186,7 @@ namespace :agency_restriction do
     names = []
     PartnerAgency.all.each do |agency|
       agency.update(type: "OversightAgency")
+      agency.agency_type = AgencyType.find_by(name:"OversightAgency")
       names.push agency.name
     end
     puts "#{names.to_s} Partner agencies have been updated to oversight agencies"
@@ -198,14 +199,21 @@ namespace :agency_restriction do
     end
   end
 
+  desc "Associate agencies with agency_type"
+  task associate_agency_type: :environment do
+    Agency.all.each do |ag|
+      ag.update(agency_type_id:AgencyType.find_by(name: ag.type).id)
+    end
+  end
+
   desc "Do all but update partner agencies for QA"
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,
         :associate_travelers_to_county, :associate_travelers_to_agency,
-        :associate_service_to_penn_dot, :associate_transit_staff]
+        :associate_service_to_penn_dot, :associate_transit_staff, :associate_agency_type]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,
         :associate_travelers_to_agency, :associate_service_to_penn_dot,
-        :associate_transit_staff]
+        :associate_transit_staff, :associate_agency_type]
 end
