@@ -22,8 +22,8 @@ namespace :agency_restriction do
     end
   end
 
-  desc "Sample Unaffiliated Users"
-  task sample_unaffiliated_users: :environment do
+  desc "Seed Unaffiliated Users"
+  task seed_unaffiliated_users: :environment do
     us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
@@ -35,6 +35,26 @@ namespace :agency_restriction do
       user.password_confirmation = 'guest1'
       user.add_role(:admin)
       puts 'Creating test unaffiliated admin user'
+    end
+    us.save
+    ua.save
+    puts "Seeded unaffiliated staff and admin users"
+  end
+  desc "Seed Transportation  Users"
+  task seed_transportation_users: :environment do
+    ta = TransportationAgency.first
+    us = User.where(email: 'test-transportation-staff@camsys.com').first_or_create do |user|
+      user.password = 'guest1'
+      user.password_confirmation = 'guest1'
+      ta.add_staff(user)
+      puts 'Creating test transportation staff user'
+    end
+    ua = User.where(email: 'test-transportation-admin@camsys.com').first_or_create do |user|
+      user.password = 'guest1'
+      user.password_confirmation = 'guest1'
+      user.add_role(:admin)
+      ta.add_admin(user)
+      puts 'Creating test transportation admin user'
     end
     us.save
     ua.save
@@ -172,9 +192,16 @@ namespace :agency_restriction do
   end
 
 
-  desc "Do all but update partner agencies"
-  task all: [:add_admin, :update_default_admin, :sample_unaffiliated_users,
+  end
+
+  desc "Do all but update partner agencies for QA"
+  task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency, :create_and_assign_to_penn_dot,
         :associate_travelers_to_county, :associate_travelers_to_agency,
         :associate_service_to_penn_dot, :associate_transit_staff]
+  desc "Do all but update partner agencies for production"
+  task all_prod: [:add_admin, :update_default_admin,
+        :create_and_assign_to_penn_dot,:associate_travelers_to_county,
+        :associate_travelers_to_agency, :associate_service_to_penn_dot,
+        :associate_transit_staff]
 end
