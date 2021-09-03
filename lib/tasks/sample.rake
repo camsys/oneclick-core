@@ -232,8 +232,8 @@ namespace :db do
 
     desc "Sample Agency Types"
     task agency_types: :environment do
-      %w[TransportationAgency OversightAgency].each do |at|
-        AgencyType.create(name: at)
+      %w[TransportationAgency OversightAgency PartnerAgency].each do |at|
+        AgencyType.find_or_create_by(name: at)
       end
     end
     
@@ -258,7 +258,7 @@ namespace :db do
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agency_types, :agencies]
+                :agency_types, :agencies,:agency_types]
 
   end
 end

@@ -191,12 +191,16 @@ namespace :agency_restriction do
     puts "#{names.to_s} Partner agencies have been updated to oversight agencies"
   end
 
-
+  desc "Add agency type to existing agencies"
+  task add_agency_type: :environment do
+    %w[PartnerAgency OversightAgency TransportationAgency].each do |type|
+      AgencyType.find_or_create_by(name: type)
+    end
   end
 
   desc "Do all but update partner agencies for QA"
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
-        :seed_oversight_agency, :create_and_assign_to_penn_dot,
+        :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,
         :associate_travelers_to_county, :associate_travelers_to_agency,
         :associate_service_to_penn_dot, :associate_transit_staff]
   desc "Do all but update partner agencies for production"
