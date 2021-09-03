@@ -2,6 +2,9 @@ language: ruby
 rvm:
   - 2.4.0
 
+services:
+- postgresql
+
 before_script:
 - pwd
 - ls -a
@@ -16,7 +19,6 @@ before_script:
 # - sudo apt-get autoremove postgresql*
 # - sudo apt-get install postgresql-9.3-postgis-2.1
 ###############################################################
-
 - psql -U postgres -c "create extension postgis"
 
 script:
