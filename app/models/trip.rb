@@ -41,6 +41,8 @@ class Trip < ApplicationRecord
 
 
   ### SCOPES ###
+  # Trips where users under an input transportation agency
+  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id))}
 
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }
@@ -81,6 +83,11 @@ class Trip < ApplicationRecord
   scope :connecting, -> do # Connecting trips: the middle legs
     where.not(previous_trip_id: nil) # Trips with a previous trip...
     .where(id: Trip.pluck(:previous_trip)) # ...AND a next trip
+  end
+
+  # Scopes based on user
+  scope :partner_agency_in, -> (partner_agency) do
+    where(user_id: partner_agency.staff.pluck(:id))
   end
 
   # Scopes based on user

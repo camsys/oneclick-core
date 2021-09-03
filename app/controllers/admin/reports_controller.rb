@@ -94,8 +94,16 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    # trips where agency is thing
-    @trips = Trip.all
+    if current_user.superuser?
+      @trips = Trip.all
+    elsif current_user.transportation_admin? ||current_user.transportation_staff?
+      @trips = Trip.with_transportation_agency(current_user.staff_agency.id)
+    elsif (current_user.oversight_admin? ||current_user.oversight_staff?) && current_user.currently_oversight?
+      tas = AgencyOversightAgency.where(oversight_agency_id: current_user.staff_agency.id).pluck(:transportation_agency_id)
+      @trips = Trip.with_transportation_agency(tas)
+    elsif (current_user.oversight_admin? ||current_user.oversight_staff?) && current_user.currently_transportation?
+      @trips = Trip.with_transportation_agency(current_user.current_agency.id)
+    end
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
