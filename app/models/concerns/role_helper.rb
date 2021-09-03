@@ -213,6 +213,11 @@ module RoleHelper
     travelers_for_agency(transportation_agencies)
   end
 
+  def travelers_for_current_agency
+    ta = TransportationAgency.find(self.current_agency.id)
+    travelers_for_agency(ta)
+  end
+
   ### MODIFYING USER ROLES ###
 
   # Replaces the user's staff agency role with the passed agency

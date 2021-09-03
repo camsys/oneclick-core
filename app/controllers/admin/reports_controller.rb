@@ -73,7 +73,15 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def users_table
-    @users = User.all
+    if current_user.superuser?
+      @users = User.all
+    elsif current_user.transportation_admin? ||current_user.transportation_staff?
+      @users = current_user.travelers_for_staff_agency
+    elsif (current_user.oversight_admin? ||current_user.oversight_staff?) && current_user.currently_oversight?
+      @users = current_user.travelers_for_oversight_agency
+    elsif (current_user.oversight_admin? ||current_user.oversight_staff?) && current_user.currently_transportation?
+      @users = current_user.travelers_for_current_agency
+    end
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
@@ -85,7 +93,8 @@ class Admin::ReportsController < Admin::AdminController
     end
   end
   
-  def trips_table    
+  def trips_table
+    # trips where agency is thing
     @trips = Trip.all
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
