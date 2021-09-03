@@ -11,10 +11,10 @@ before_script:
 ## Done because travis stopped playing nice with postgis
 ## From: https://github.com/travis-ci/travis-ci/issues/7048
 ## Maybe remove these 4 lines eventually.
-- sudo apt-get update
-- sudo apt-get autoremove postgis*
-- sudo apt-get autoremove postgresql*
-- sudo apt-get install postgresql-9.3-postgis-2.1
+# - sudo apt-get update
+# - sudo apt-get autoremove postgis*
+# - sudo apt-get autoremove postgresql*
+# - sudo apt-get install postgresql-9.3-postgis-2.1
 ###############################################################
 
 - psql -U postgres -c "create extension postgis"
