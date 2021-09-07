@@ -189,11 +189,11 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.type == "OversightAgency"
+    self.current_agency&.oversight?
   end
 
   def currently_transportation?
-    self.current_agency&.type == "TransportationAgency"
+    self.current_agency&.transportation?
   end
 
   def travelers_for_agency(agencies)
