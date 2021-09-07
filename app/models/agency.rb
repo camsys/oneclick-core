@@ -15,13 +15,16 @@ class Agency < ApplicationRecord
   ### SCOPES, CONSTANTS, & VALIDATIONS ###
   
   validates :name, presence: true
-  validates :type, presence: true
+  validates :agency_type_id, presence: true
   contact_fields email: :email, phone: :phone, url: :url
     
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
-  scope :partner_agencies, -> { where(type: %w[PartnerAgency OversightAgency]) }
-  
+  scope :partner_agencies, -> { where(type: "PartnerAgency") }
+  scope :oversight_agencies, -> { where(type: "OversightAgency") }
+
   has_many :services, foreign_key: "agency_id", dependent: :nullify
+  # this is to help access the Agency index page, although it's a bit redundant
+  has_one :agency_oversight_agency,foreign_key:"transportation_agency_id", dependent: :destroy
   belongs_to :agency_type
 
   AGENCY_TYPE_MAP = {
