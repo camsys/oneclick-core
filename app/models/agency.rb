@@ -24,6 +24,11 @@ class Agency < ApplicationRecord
   has_many :services, foreign_key: "agency_id", dependent: :nullify
   belongs_to :agency_type
 
+  AGENCY_TYPE_MAP = {
+    transportation: 'TransportationAgency',
+    partner: 'PartnerAgency',
+    oversight: 'OversightAgency'
+  }
   AGENCY_TYPES = [
   # [ label, value(class name) ],
     ["Transportation", "TransportationAgency"],
@@ -64,17 +69,17 @@ class Agency < ApplicationRecord
   
   # Checks if is a TransportationAgency
   def transportation?
-    self.type == "TransportationAgency"
+    self.type == AGENCY_TYPE_MAP[:transportation] || agency_type.name == AGENCY_TYPE_MAP[:transportation]
   end
 
   # Checks if is a PartnerAgency
   def partner?
-    self.type == "PartnerAgency"
+    self.type == AGENCY_TYPE_MAP[:partner] || agency_type.name == AGENCY_TYPE_MAP[:partner]
   end
 
   # Checks if is an OversightAgency
   def oversight?
-    self.type == "OversightAgency"
+    self.type == AGENCY_TYPE_MAP[:oversight] || agency_type.name == AGENCY_TYPE_MAP[:oversight]
   end
   
   def to_s
