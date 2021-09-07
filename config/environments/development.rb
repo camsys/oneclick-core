@@ -73,5 +73,7 @@ Rails.application.configure do
     # Should largely be okay to build this here since this is only tracking db migrations
     # and rake tasks run in development by default
     config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
+    config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+
   end
 end
