@@ -116,19 +116,6 @@ class Admin::UsersController < Admin::AdminController
     redirect_back(fallback_location: root_path)
   end
   private
-
-  # TODO: Remove this once it's safe
-  # Sets admin and staff roles for user. Wraps actions in a transaction block,
-  # so it can be rolled back if there is a validation error.
-  def set_roles(admin, staff_agency)
-    User.transaction do
-      # seems to add both an admin role, and then a staff role at the agency
-      set_admin_role(admin)
-      set_staff_role(staff_agency)
-      raise ActiveRecord::Rollback unless @user.valid?
-    end
-  end
-
   def set_user_role(role, agency_id)
     agency = Agency.find(agency_id)
     User.transaction do
