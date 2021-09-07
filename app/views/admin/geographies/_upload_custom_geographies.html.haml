@@ -11,7 +11,7 @@
     = fa.input :agency,
       collection: current_user.accessible_agencies,
       include_blank: "Select an Agency"
-  -if current_user&.staff_agency&.type == "TransportationAgency"
+  -if current_user&.staff_agency&.transportation?
     = fa.input :agency,
       readonly:true,
       collection: [current_user.staff_agency],

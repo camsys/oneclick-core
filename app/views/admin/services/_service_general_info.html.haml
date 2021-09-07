@@ -47,7 +47,7 @@
         value_method: :id,
         selected: @service.service_oversight_agency.oversight_agency.id,
         wrapper_html: {id: 'oversight_select'}
-    - if current_user.staff_agency&.type == "TransportationAgency"
+    - if current_user.staff_agency&.transportation?
       = foa.input :oversight_agency_id,
           collection: [@service.service_oversight_agency.oversight_agency],
           readonly:true,

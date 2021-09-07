@@ -15,7 +15,7 @@
       value_method: :id,
       wrapper_html: {id: 'oversight_select'}
   -# if the current user is part of a staff agency, then try set their oversight agency
-  - if current_user.staff_agency&.type == "TransportationAgency"
+  - if current_user.staff_agency&.transportation?
     = foa.input :transportation_agency_id,
         collection: [current_user.staff_agency],
         readonly:true,
@@ -32,13 +32,13 @@
         selected: current_user.staff_agency.agency_oversight_agency.oversight_agency.id,
         wrapper_html: {id: 'oversight_select'}
   -# Automatically assign the new agency to the current user's oversight agency if they are an oversight agency admin
-  - if current_user.staff_agency&.type == "OversightAgency" && current_user.admin?
-    - if current_user.current_agency&.type == 'OversightAgency'
+  - if current_user.staff_agency&.oversight? && current_user.admin?
+    - if current_user.current_agency&.oversight?
       = foa.input :transportation_agency_id,
         collection: TransportationAgency.where(id:current_user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id)),
         label_method: :name,
         value_method: :id
-    - if current_user.current_agency&.type == "TransportationAgency"
+    - if current_user.current_agency&.transportation?
       = foa.input :transportation_agency_id,
         collection: [current_user.current_agency],
         readonly:true,

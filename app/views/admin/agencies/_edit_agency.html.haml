@@ -15,7 +15,7 @@
   =render partial: "shared/description_fields", locals: { form: f, record: @agency }
 
   -# For type-specific fields
-  -case @agency.type
+  -case @agency.agency_type.name
   -when "TransportationAgency"
     =simple_form_for :oversight do |foa|
       -# Automatically assign the new agency to the current user's oversight agency
