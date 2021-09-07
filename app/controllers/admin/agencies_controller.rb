@@ -1,7 +1,7 @@
 class Admin::AgenciesController < Admin::AdminController
   
   load_and_authorize_resource # Loads and authorizes @agency/@agencies instance variable
-
+  before_action :get_all_agency_types
   def index
     if current_user.superuser?
       @agencies = @agencies.order(:name)
@@ -17,10 +17,8 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def create
-    # For agency creation, if it's a Transit Agency then automagically
-    # ...assign it to the first Oversight Agency?
     oversight_agency_id = oversight_params
-    if oversight_agency_id == ''
+    if oversight_agency_id == '' && AgencyType.find_by(name: "TransportationAgency").id.to_s == agency_params[:agency_type_id]
       flash[:danger] = "Agency creation failed! Oversight Agency cannot be empty!"
       redirect_to admin_agencies_path
       return
@@ -67,6 +65,9 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   private
+  def get_all_agency_types
+    @agency_types = AgencyType.all
+  end
 
   def oversight_params
     oversight = params.delete(:oversight)
@@ -91,10 +92,10 @@ class Admin::AgenciesController < Admin::AdminController
     )
     # params.require(:oversight).permit(:oversight_agency_id)
   end
-  
+
   def base_agency_params
     [
-      :type,
+      :agency_type_id,
       :name,
       :url,
       :phone,
