@@ -20,7 +20,8 @@ namespace :scheduled do
         fixed_route: [7,3,1]
       }
     }
-    User.all.each do |user|
+    # Fetch all registered travelers and build them a default booking profile
+    User.registered_travelers.each do |user|
       unless !user.user_booking_profiles.where(service_id: nil).empty? && !user.registered_traveler?
         user.user_booking_profiles.create({details: hash})
       end
