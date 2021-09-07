@@ -5,7 +5,7 @@ class UserMailerPreview < ActionMailer::Preview
   end
 
   def user_trip_email
-    UserMailer.user_trip_email(User.find(2), Trip.selected.transit_trips.first)
+    UserMailer.user_trip_email(User.find(2), Trip.selected.joins('inner join itineraries on trips.selected_itinerary_id = itineraries.id').where("itineraries.trip_type = 'transit'").first)
   end
 
   def ecolane_trip_email

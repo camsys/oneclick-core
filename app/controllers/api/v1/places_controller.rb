@@ -14,6 +14,9 @@ module Api
         if search_string == "% %"
           recent_places = authentication_successful? ? @traveler.recent_waypoints(3*max_results) : []
           recent_places.each do |landmark|
+            if landmark.city == "" || landmark.city.nil?
+              next
+            end
             landmark_hash = landmark.google_place_hash
             ["id"].each do |key|
               landmark_hash.delete(key)
@@ -36,10 +39,17 @@ module Api
         count = 0
         landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
         landmarks.each do |landmark|
-          locations.append(landmark.google_place_hash)
-          count += 1
-          if count >= max_results
-            break
+          # Skip returning a Place if it doesn't have a city
+          # - this helps prevent users from selecting a city-less Place
+          # ...and booking shared ride trips with it(it shows up in Ecolane with no city)
+          if !landmark.city.nil? && landmark.city != ''
+            locations.append(landmark.google_place_hash)
+            count += 1
+            if count >= max_results
+              break
+            end
+          else
+            next
           end
         end
 

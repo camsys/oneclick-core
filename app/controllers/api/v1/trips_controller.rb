@@ -259,7 +259,15 @@ module Api
         trip_id = params[:trip_id]
         if booking_confirmations
           bookings  = @traveler.bookings.where(confirmation: booking_confirmations).order(:earliest_pu)
-          UserMailer.ecolane_trip_email([email_address], bookings).deliver
+          decorated_bookings = []
+          bookings.each do |booking|
+            # GV include calculations to make email look like front end itin
+            trip_hash = hash_trip_itinerary(booking.itinerary.trip)
+            trip_hash[:trip_id] = trip_id
+            # PAMF-633 add same information used to display myrides on front end
+            decorated_bookings << {booking: booking, trip_hash: trip_hash}
+          end
+          UserMailer.ecolane_trip_email([email_address], decorated_bookings).deliver
         else 
           trip = Trip.find(trip_id.to_i)
           UserMailer.user_trip_email([email_address], trip).deliver
@@ -344,9 +352,7 @@ module Api
       def trip_hash(trip)
         trip_hash = {}
         itin_hash = {}
-        service_hash = {
-          service_name: ""
-        }
+        service_hash = {}
 
         # Trip attributes
         trip_hash = {
@@ -356,6 +362,15 @@ module Api
           destination: WaypointSerializer.new(trip.destination).to_hash
         }
 
+        # Itinerary Attributes
+        itin_hash = hash_trip_itinerary(trip)
+        service_hash = hash_itinerary_service(trip.selected_itinerary)
+        combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
+      end
+
+      def hash_trip_itinerary(trip)
+        # Trip attributes
+        itinerary_hash = {}
         # Itinerary Attributes
         itinerary = trip.selected_itinerary
         if itinerary
@@ -399,9 +414,7 @@ module Api
             duration = itinerary.duration 
           end
 
-
-
-          itin_hash = {
+          itinerary_hash = {
             arrival: arrival ? arrival.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
@@ -425,7 +438,15 @@ module Api
             wait_end: itinerary.booking ? itinerary.booking.latest_pu : nil,
             estimated_pickup_time: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil
           }
+        end
+        itinerary_hash
+      end
 
+      def hash_itinerary_service(itinerary)
+        service_hash = {
+          service_name: ""
+        }
+        if itinerary
           # Service Attributes
           svc = itinerary.service
           if svc
@@ -437,10 +458,8 @@ module Api
               url: svc.url
             }
           end
-
         end
-
-        combined_hash = trip_hash.merge(itin_hash).merge(service_hash)
+        service_hash
       end
 
       # Builds a location hash out of the location param, packaging it as a google place hash

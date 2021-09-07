@@ -227,7 +227,7 @@ namespace :scheduled do
     end
   end
 
-  desc "Send Fixed Trip Reminders"
+ desc "Send Fixed Trip Reminders"
   task send_fixed_trip_reminders: :environment do
     count = 0
     console_str = Config::DEFAULT_NOTIFICATION_PREFS.join(", ")
@@ -268,5 +268,40 @@ namespace :scheduled do
   end
 
 
+  desc "Incrementally delete orphaned Waypoints"
+  task clean_waypoints: :environment do
+    origin_id_set = Trip.pluck(:origin_id).to_set
+    dest_id_set = Trip.pluck(:destination_id).to_set
+
+    puts "Starting count: #{Waypoint.count}"
+    # Limit processing time
+    start = Time.now
+    limit = 2.hours
+
+    batch_size = 1000
+    last_id = 0
     
+    count = 0
+    deleted = 0
+    
+    Waypoint.uncached do
+      while (Time.now - start < limit)
+        ids = Waypoint.order(:id).where('id > ?', last_id).limit(batch_size).pluck(:id)
+        break if ids.count < 1
+        ids.each do |id|
+          count += 1
+          unless ((origin_id_set.include? id) || (dest_id_set.include? id))
+            Waypoint.delete(id)
+            deleted += 1
+          end
+        end
+        last_id = ids.last
+        print '.'
+      end
+    end
+    puts
+    puts "Processed: #{count}, deleted: #{deleted}, elapsed: #{Time.at(Time.now - start).utc.strftime('%H:%M:%S')}"
+    puts "Ending count: #{Waypoint.count}"
+  end
+      
 end
