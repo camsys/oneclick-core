@@ -86,7 +86,8 @@ namespace :ecolane do
       Landmark.is_old.delete_all
       new_poi_count = Landmark.count
       messages << "Successfully loaded  #{new_poi_count} POIs"
-      puts "count of pois with no city: #{poi_with_no_city}"
+      messages << "count of pois with no city: #{poi_with_no_city}"
+      puts messages.to_s
     end
 
   end #update_pois
