@@ -14,7 +14,8 @@ class Config < ApplicationRecord
     :feedback_reminders,
     :purge_unused_guests,
     :sync_all_ecolane_users_3_days,
-    :send_fixed_trip_reminders
+    :send_fixed_trip_reminders,
+    :add_notification_preferences
   ].freeze
 
   # Default notification preferences for users, freezing for now

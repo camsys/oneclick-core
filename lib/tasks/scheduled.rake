@@ -13,7 +13,7 @@ namespace :scheduled do
     Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(14)
   end
 
-  desc "TEMPORARY - Add notification preferences"
+  desc "Add notification preferences for users that don't have one already"
   task add_notification_preferences: :environment do
     hash = {
       notification_preferences: {
@@ -53,7 +53,7 @@ namespace :scheduled do
     puts "Starting #{ndays} day #{verbose ? "": "non-"}verbose Sync for #{count} users at #{task_start}" 
     User.all.order(:id).each do |u|
       user_start = Time.now
-      begin 
+      begin
         u.sync(ndays)
         users_processed += 1
         if verbose
