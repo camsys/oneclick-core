@@ -71,6 +71,8 @@ namespace :ecolane do
         messages << "Error loading POIs for #{system}. #{e.message}."
         global_error = true
         local_error = true
+        # Log if errors happen
+        puts messages.to_s
       end
 
       unless local_error
