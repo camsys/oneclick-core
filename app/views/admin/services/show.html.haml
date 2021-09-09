@@ -29,6 +29,6 @@
   =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
   =render partial: 'lyft_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
   
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_delete: (cannot? :delete, @service) }
 
 =back_link admin_services_path, label: "All Services"
