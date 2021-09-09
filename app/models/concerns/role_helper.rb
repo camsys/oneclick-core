@@ -204,7 +204,11 @@ module RoleHelper
   end
 
   def travelers_for_staff_agency
-    ta = TransportationAgency.find(self.staff_agency.id)
+    if self.staff_agency.oversight?
+      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).select(:transportation_agency_id)
+    else
+      ta = TransportationAgency.find(self.staff_agency.id)
+    end
     travelers_for_agency(ta)
   end
 
