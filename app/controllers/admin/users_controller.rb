@@ -18,7 +18,7 @@ class Admin::UsersController < Admin::AdminController
     # Quick check to make sure we're not assigning a role to a traveler
     # unless we're a superuser
     if params[:is_traveler].nil?
-      set_user_role(roles, staff_agency)
+      set_user_role(role, staff_agency)
     end
 
   	if @user.save
