@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210113183237) do
+ActiveRecord::Schema.define(version: 20210927202329) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -229,8 +229,8 @@ ActiveRecord::Schema.define(version: 20210113183237) do
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
     t.boolean  "confirmed",    default: false
-    t.integer  "sequence_nbr"
     t.string   "code"
+    t.integer  "sequence_nbr"
     t.index ["name"], name: "index_oneclick_refernet_categories_on_name", using: :btree
   end
 
@@ -267,8 +267,8 @@ ActiveRecord::Schema.define(version: 20210113183237) do
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
     t.boolean  "confirmed",            default: false
-    t.integer  "refernet_category_id"
     t.string   "code"
+    t.integer  "refernet_category_id"
     t.index ["category_id"], name: "index_oneclick_refernet_sub_categories_on_category_id", using: :btree
     t.index ["name"], name: "index_oneclick_refernet_sub_categories_on_name", using: :btree
   end
@@ -415,6 +415,8 @@ ActiveRecord::Schema.define(version: 20210113183237) do
     t.text     "value"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
+    t.index ["locale_id"], name: "index_translations_on_locale_id", using: :btree
+    t.index ["translation_key_id"], name: "index_translations_on_translation_key_id", using: :btree
   end
 
   create_table "trip_accommodations", force: :cascade do |t|
@@ -450,6 +452,8 @@ ActiveRecord::Schema.define(version: 20210113183237) do
     t.integer  "purpose_id"
     t.integer  "previous_trip_id"
     t.string   "external_purpose"
+    t.integer  "user_age"
+    t.inet     "user_ip"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree
