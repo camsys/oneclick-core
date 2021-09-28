@@ -72,11 +72,11 @@ module Admin
     end
 
     def traveler_age
-      @record.user&.age
+      @record.user_age
     end
 
     def traveler_ip
-      @record.user&.current_sign_in_ip
+      @record.user_ip
     end
 
     def traveler_accommodations
