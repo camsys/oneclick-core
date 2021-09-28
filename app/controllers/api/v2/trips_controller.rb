@@ -44,9 +44,12 @@ module Api
         # Plan the trip (build itineraries and save it)
         if @trip_planner.plan
           @trip.relevant_purposes = @trip_planner.relevant_purposes
-          @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities
-          @trip.relevant_accommodations = @trip_planner.relevant_accommodations
-          @trip.save 
+          # Using array filter as Trip Planner returns an array of eligibilities not an Active Record Collection
+          @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities.select {|elig| acc_elig_hash[:eligibilities].include?(elig.id)}
+          @trip.relevant_accommodations = @trip_planner.relevant_accommodations.where(id: acc_elig_hash[:accommodations])
+          @trip.user_age = @trip.user.age
+          @trip.user_ip = @trip.user.current_sign_in_ip
+          @trip.save
           render success_response(@trip, serializer_opts: {include: ['*.*.*']})
         end
         
