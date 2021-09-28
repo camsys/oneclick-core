@@ -65,9 +65,10 @@ module Admin
     def dest_lng
       @record.destination && @record.destination.lng
     end
-    
+
+    # 211 Ride/ OCC-IEUW SPECIFIC: pull trip types from the generated itineraries that are attached to a trip
     def selected_trip_type
-      @record.selected_itinerary && @record.selected_itinerary.trip_type
+      @record.itineraries.pluck(:trip_type).uniq.reduce('') {|string, trip_type| "#{string}#{trip_type}; "}
     end
 
     def traveler_age
