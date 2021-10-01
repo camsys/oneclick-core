@@ -31,7 +31,6 @@ module Api
       def create
               
         # Update the traveler's user profile before planning the trip.
-        # and return the accommodations/ eligibilities
         update_traveler_profile
         
         # Set purpose_id in trip_params
@@ -44,8 +43,7 @@ module Api
         @trip_planner = TripPlanner.new(@trip, trip_planner_options)
 
         # Plan the trip (build itineraries and save it)
-        # NOTE: check how different OCC instances that use the V2 API handle trip accommodations and eligibilities
-        # - make sure this doesn't break anything in other one click instances(FMR doesn't use eligibilities/ accommodations so not really checking that)
+        # TODO: check different OCC instances to ensure that new updates didn't break it
         if @trip_planner.plan
           # Pull accommodations and eligibilities from the user's profile
           user_acc = @trip.user.accommodations
@@ -53,7 +51,6 @@ module Api
 
           @trip.relevant_purposes = @trip_planner.relevant_purposes
           # Set trip eligibilities and accommodations based on both the trip planner and the user profile
-          # Using array filter as Trip Planner returns an array of eligibilities not an Active Record Collection
           @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities.select {|elig| user_elig.include?(elig)}
           @trip.relevant_accommodations = @trip_planner.relevant_accommodations.where(id: user_acc.pluck(:id))
           @trip.user_age = @trip.user.age
