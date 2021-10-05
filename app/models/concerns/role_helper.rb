@@ -1,6 +1,10 @@
 # Module to extend users, etc. with role helper functions
 module RoleHelper
 
+  PERMISSIBLE_CREATES = {
+    admin: [:admin, :staff],
+    superuser: Role::ROLES
+  }
   ### SCOPES & CLASS METHODS ###
 
   def self.included(base)
@@ -11,15 +15,37 @@ module RoleHelper
     base.scope :any_role, -> do
       base.querify(base.with_any_role(
         {name: :admin, resource: :any},
-        {name: :staff, resource: :any}
+        {name: :staff, resource: :any},
+        {name: :superuser, resource: :any},
       ))
     end
+    base.scope :any_staff_admin_for_agencies, -> (agencies) do
+      base.querify(base.with_any_role(
+        *agencies.map{|ag| { :name => :staff, :resource => ag }},
+        *agencies.map{|ag| { :name => :admin, :resource => ag }}))
+    end
+    base.scope :any_staff_admin_for_agency, -> (agency) do
+      base.querify(base.with_any_role(
+        { :name => :staff, :resource => agency },
+        { :name => :admin, :resource => agency }))
+    end
+    base.scope :any_staff_admin_for_none, -> do
+      base.querify(base.with_any_role(
+        { :name => :staff, :resource => nil },
+        { :name => :admin, :resource => nil }))
+    end
     base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
+    base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
     base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
       base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
     end
+    base.scope :admin_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
+      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :admin, :resource => ag }}) )
+    end
+    base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
     base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
     base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
+    base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
     base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
     base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
@@ -38,6 +64,10 @@ module RoleHelper
       through: :roles,
       source: :resource,
       source_type: "PartnerAgency"
+    base.has_many :oversight_agencies,
+      through: :roles,
+      source: :resource,
+      source_type: "OversightAgency"
 
     base.validate :must_have_a_role, if: :role_required?
     
@@ -62,6 +92,10 @@ module RoleHelper
   # Check to see if the user is an Admin, any scope
   def admin?
     has_role?(:admin) || has_role?(:admin, :any)
+  end
+
+  def superuser?
+    has_role?(:superuser, :any)
   end
 
   # Check to see if the user is a guest (i.e. not registered)
@@ -94,6 +128,26 @@ module RoleHelper
     staff? && agencies.any? { |a| a.partner? }
   end
 
+  # Check to see if the user is a OversightAgency staff
+  def oversight_staff?
+    staff? && agencies.any? { |a| a.oversight? }
+  end
+
+  # Check to see if the user is a TransportationAgency admin
+  def transportation_admin?
+    admin? && agencies.any? { |a| a.transportation? }
+  end
+
+  # Check to see if the user is a PartnerAgency admin
+  def partner_admin?
+    admin? && agencies.any? { |a| a.partner? }
+  end
+
+  # Check to see if the user is a OversightAgency admin
+  def oversight_admin?
+    admin? && agencies.any? { |a| a.oversight? }
+  end
+
   # Check to see if the user is a traveler (i.e. has no roles)
   def traveler?
     !admin_or_staff?
@@ -104,7 +158,7 @@ module RoleHelper
 
   # Returns the agencies that the user is staff for
   def agencies
-    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id))
+    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id) + oversight_agencies.pluck(:id))
   end
 
   # Returns the last of the user's staffing agencies (of which there are hopefully just one)
@@ -134,6 +188,39 @@ module RoleHelper
     return User.none
   end
 
+  def currently_oversight?
+    self.current_agency&.oversight?
+  end
+
+  def currently_transportation?
+    self.current_agency&.transportation?
+  end
+
+  def travelers_for_agency(agencies)
+    # Search for travelers not associated with the input agencies ids
+    agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
+    # Return travelers associated with the input agency and also with no agency
+    User.travelers.where.not(id: agency_travelers_id)
+  end
+
+  def travelers_for_staff_agency
+    if self.staff_agency.oversight?
+      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).select(:transportation_agency_id)
+    else
+      ta = TransportationAgency.find(self.staff_agency.id)
+    end
+    travelers_for_agency(ta)
+  end
+
+  def travelers_for_oversight_agency
+    transportation_agencies = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
+    travelers_for_agency(transportation_agencies)
+  end
+
+  def travelers_for_current_agency
+    ta = TransportationAgency.find(self.current_agency.id)
+    travelers_for_agency(ta)
+  end
 
   ### MODIFYING USER ROLES ###
 
@@ -149,6 +236,25 @@ module RoleHelper
       r = self.roles.last
     end
   end
+
+  # General set role method
+  # - just like set_staff_role, should be wrapped in a transaction so changes can be rolledback
+  def set_role(role, agency)
+    if !agency && !role
+      raise "Expecting values for role and agency"
+    end
+    if role == "superuser"
+      self.add_role(role)
+    elsif agency == ""
+      self.add_role(role)
+    elsif staff_agency.nil?
+      self.add_role(role,agency)
+    elsif agency
+      self.remove_role(self.roles.last.name.to_sym)
+      self.add_role(role,agency)
+    end
+  end
+
 
   # Adds or removes the user's admin permissions based on passed boolean
   # wraps in a transaction so changes will be rolled back on error

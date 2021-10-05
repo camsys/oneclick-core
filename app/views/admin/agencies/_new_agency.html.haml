@@ -2,4 +2,38 @@
   = "Create a New Agency"
 
 = f.input :name, required: true, as: :string
-= f.input :type, required: true, collection: Agency::AGENCY_TYPES, include_blank: "Select an Agency Type"
+= f.input :agency_type_id, required: true, collection: AgencyType.all, include_blank: "Select an Agency Type"
+=simple_form_for :oversight do |foa|
+  -# Automatically assign the new agency to the current user's oversight agency
+    if they are an oversight agency admin
+  - if current_user.staff_agency&.oversight?
+    = foa.input :oversight_agency_id,
+      readonly: true,
+      value: current_user.staff_agency.id,
+      class: 'hidden',
+      wrapper_html: {id: 'oversight_select'}
+  -# Otherwise, if they're a superuser, render a dropdown
+  - if current_user.superuser?
+    = foa.input :oversight_agency_id,
+      required: true,
+      collection: OversightAgency.all,
+      label_method: :name,
+      value_method: :id,
+      wrapper_html: {id: 'oversight_select'}
+
+:javascript
+  $(document).ready(function() {
+    const typeSelect = document.getElementById('agency_agency_type_id')
+    /** Register an event listener on the agency_type input
+      that toggles the display on the oversight select form depending
+      on the value they select
+    */
+    typeSelect.addEventListener('change', function(event) {
+      if (event.target.value !== "#{@agency_types.find_by(name:'TransportationAgency').id}") {
+        document.getElementById('oversight_select').style["display"] = "none"
+      } else {
+        document.getElementById('oversight_select').style["display"] = "block"
+
+      }
+    })
+  });

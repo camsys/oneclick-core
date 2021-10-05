@@ -30,8 +30,17 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
-            
             <% if current_user%>
+              <li class="menu-item agency">
+                <% if current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 1 %>
+                  <%= form_tag change_agency_admin_users_path %>
+                  <select name="agency_id" onchange="form.submit();">
+                    <%= options_for_select(@agency_map, selected = current_user.current_agency&.id) %>
+                  </select>
+                  <%= hidden_field_tag "come_from", request.fullpath %>
+                  </form>
+                <% end %>
+              </li>
               <li>
                 <%= link_to("Welcome #{current_user.full_name}", edit_admin_user_path(current_user), :method => :get) %> 
               </li>

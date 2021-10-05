@@ -6,21 +6,21 @@
       %th Last Name
       %th First Name
       %th Email
-      %th Admin?
+      %th User Type
       %th Staff Agency
       %th Last Signed In
 
   -@staff.each do |member|
     %tr{style: "cursor: pointer", data: {url: edit_admin_user_path(member)}}
       %td
-        =member.last_name
+        =member.last_name&.capitalize
       %td
-        =member.first_name
+        =member.first_name&.capitalize
       %td
         =member.email
+      -# hope that the user doesn't have multiple roles
       %td
-        -if member.admin?
-          %span.glyphicon.glyphicon-ok
+        =member.roles_name.last&.capitalize
       %td
         =member.staff_agency.try(:name)
       %td

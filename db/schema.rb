@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191108152422) do
+ActiveRecord::Schema.define(version: 20210902200020) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -52,10 +52,23 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.string   "email"
     t.string   "url"
     t.string   "logo"
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
-    t.boolean  "published",  default: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+    t.boolean  "published",      default: false
+    t.integer  "agency_type_id"
+    t.index ["agency_type_id"], name: "index_agencies_on_agency_type_id", using: :btree
     t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
+  create_table "agency_oversight_agencies", force: :cascade do |t|
+    t.integer "transportation_agency_id"
+    t.integer "oversight_agency_id"
+    t.index ["oversight_agency_id"], name: "index_agency_oversight_agencies_on_oversight_agency_id", using: :btree
+    t.index ["transportation_agency_id"], name: "index_agency_oversight_agencies_on_transportation_agency_id", using: :btree
+  end
+
+  create_table "agency_types", force: :cascade do |t|
+    t.string "name"
   end
 
   create_table "alerts", force: :cascade do |t|
@@ -127,6 +140,8 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.datetime "created_at",                                          null: false
     t.datetime "updated_at",                                          null: false
     t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_custom_geographies_on_agency_id", using: :btree
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
 
@@ -207,6 +222,8 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.decimal  "lng",                                                    precision: 10, scale: 6
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
     t.string   "county"
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
   end
 
@@ -345,6 +362,13 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.index ["service_id"], name: "index_schedules_on_service_id", using: :btree
   end
 
+  create_table "service_oversight_agencies", force: :cascade do |t|
+    t.integer "service_id"
+    t.integer "oversight_agency_id"
+    t.index ["oversight_agency_id"], name: "index_service_oversight_agencies_on_oversight_agency_id", using: :btree
+    t.index ["service_id"], name: "index_service_oversight_agencies_on_service_id", using: :btree
+  end
+
   create_table "services", force: :cascade do |t|
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
@@ -406,6 +430,13 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.text     "value"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
+  end
+
+  create_table "traveler_transit_agencies", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "transportation_agency_id"
+    t.index ["transportation_agency_id"], name: "index_traveler_transit_agencies_on_transportation_agency_id", using: :btree
+    t.index ["user_id"], name: "index_traveler_transit_agencies_on_user_id", using: :btree
   end
 
   create_table "trip_accommodations", force: :cascade do |t|
@@ -516,8 +547,10 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
+    t.integer  "current_agency_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
+    t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
     t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
     t.index ["last_name", "first_name"], name: "index_users_on_last_name_and_first_name", using: :btree
     t.index ["preferred_locale_id"], name: "index_users_on_preferred_locale_id", using: :btree
@@ -555,19 +588,28 @@ ActiveRecord::Schema.define(version: 20191108152422) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "agencies", "agency_types"
+  add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
+  add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
+  add_foreign_key "custom_geographies", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "landmarks", "agencies"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_services", column: "service_id"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_sub_sub_categories", column: "sub_sub_category_id"
   add_foreign_key "oneclick_refernet_sub_categories", "oneclick_refernet_categories", column: "category_id"
   add_foreign_key "oneclick_refernet_sub_sub_categories", "oneclick_refernet_sub_categories", column: "sub_category_id"
   add_foreign_key "schedules", "services"
+  add_foreign_key "service_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
+  add_foreign_key "service_oversight_agencies", "services", on_delete: :cascade
   add_foreign_key "services", "agencies"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "stomping_grounds", "users"
+  add_foreign_key "traveler_transit_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
+  add_foreign_key "traveler_transit_agencies", "users", on_delete: :cascade
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"
   add_foreign_key "trips", "purposes"
   add_foreign_key "trips", "trips", column: "previous_trip_id"
@@ -578,5 +620,6 @@ ActiveRecord::Schema.define(version: 20191108152422) do
   add_foreign_key "user_booking_profiles", "users"
   add_foreign_key "user_eligibilities", "eligibilities"
   add_foreign_key "user_eligibilities", "users"
+  add_foreign_key "users", "agencies", column: "current_agency_id"
   add_foreign_key "users", "locales", column: "preferred_locale_id"
 end

@@ -12,10 +12,59 @@
   =f.input :url
   =f.input :phone
   =f.input :email
-  -if can? :manage, Agency  # Only show agency menu if the user can manage agencies
-    =f.association :agency, collection: current_user.accessible_agencies, include_blank: "Select an Umbrella Agency"
-
-
+  - if current_user.transportation_staff? || current_user.transportation_admin?
+    =f.association :agency,
+      label: 'Transportation Agency',
+      include_blank: "Select a Transit Agency",
+      selected: @service.agency&.id,
+      collection: TransportationAgency.where(id:current_user.accessible_agencies.pluck(:id)),
+      readonly: (@service && (cannot? :update, @service)) ||(can? :create, Service )
+  -if current_user.superuser?
+    =f.association :agency,
+      label: 'Transportation Agency',
+      include_blank: "Select a Transit Agency",
+      selected: @service.agency&.id,
+      collection: TransportationAgency.all
+  - if current_user.currently_oversight? && current_user.oversight_admin?
+    =f.association :agency,
+      label: 'Transportation Agency',
+      include_blank: "Select a Transit Agency",
+      selected: @service.agency&.id,
+      collection: current_user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
+  - if current_user.currently_transportation? && current_user.oversight_admin?
+    =f.association :agency,
+      label: 'Transportation Agency',
+      include_blank: "Select a Transit Agency",
+      selected: @service.agency&.id,
+      collection: [current_user.current_agency]
+  =simple_form_for :oversight do |foa|
+    -# If they're a superuser, show all oversight agencies
+    - if current_user.superuser?
+      = foa.input :oversight_agency_id,
+        required: true,
+        collection: OversightAgency.all,
+        label_method: :name,
+        value_method: :id,
+        selected: @service.service_oversight_agency.oversight_agency.id,
+        wrapper_html: {id: 'oversight_select'}
+    - if current_user.staff_agency&.transportation?
+      = foa.input :oversight_agency_id,
+          collection: [@service.service_oversight_agency.oversight_agency],
+          readonly:true,
+          include_blank: false,
+          label_method: :name,
+          value_method: :id,
+          selected: @service.service_oversight_agency.oversight_agency.id,
+          wrapper_html: {id: 'oversight_select'}
+    - if current_user.currently_oversight? && current_user.oversight_admin?
+      = foa.input :oversight_agency_id,
+          collection: [@service.service_oversight_agency.oversight_agency],
+          readonly:true,
+          include_blank: false,
+          label_method: :name,
+          value_method: :id,
+          selected: @service.service_oversight_agency.oversight_agency.id,
+          wrapper_html: {id: 'oversight_select'}
 
 :javascript
   $(document).ready(function() {

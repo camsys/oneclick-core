@@ -8,4 +8,6 @@
   %td
     =service.agency.try(:name)
   %td
+    =service.service_oversight_agency&.oversight_agency.try(:name)
+  %td
     =render partial: "shared/published_badge", locals: {object: service}

@@ -38,7 +38,17 @@ class Admin::GeographiesController < Admin::AdminController
       geo_type: :custom_geography,
       column_mappings: {name: 'NAME'})
     uploader.load
+    uploader.update_model_agency(params[:agency][:agency])
     present_error_messages(uploader)
+    redirect_to admin_geographies_path
+  end
+
+  def update_custom_geographies
+    custom_geography_params
+    cg = CustomGeography.find(custom_geography_params[:id])
+    agency = Agency.find(custom_geography_params[:agency])
+    cg.update(agency: agency)
+    flash[:success] = "Successfully updated #{cg.name}"
     redirect_to admin_geographies_path
   end
   
@@ -55,9 +65,18 @@ class Admin::GeographiesController < Admin::AdminController
       end
     end
   end
+
+  private
+
+  def custom_geography_params
+    params.require(:custom_geography).permit(
+    :agency,
+    :id
+    )
+  end
   
   protected
-  
+
   def check_for_missing_geometries(*collections)
     messages = []
     collections.each do |collection|

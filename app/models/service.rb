@@ -26,6 +26,8 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+  has_one :service_oversight_agency, dependent: :destroy
+
   # has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
@@ -57,6 +59,9 @@ class Service < ApplicationRecord
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
 
+  scope :no_agency, -> do
+    where(agency_id: nil)
+  end
   # Filter by age
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }

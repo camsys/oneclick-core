@@ -8,6 +8,19 @@ class Admin::ServicesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
+    # NOTE: Includes unaffiliated Services by default
+    if current_user.superuser?
+      @services
+    elsif current_user.currently_oversight? && current_user.oversight_admin?
+      oa = current_user.staff_agency
+      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
+      @services = Service.where(agency_id: [nil,*tas])
+    elsif current_user.currently_transportation? && current_user.oversight_admin?
+      @services = Service.where(agency_id: [nil,current_user.current_agency.id])
+      # otherwise the current user is probably transportation staff
+    else
+      @services = Service.where(agency_id: [nil, current_user.staff_agency.id])
+    end
   end
 
   def destroy
@@ -16,8 +29,16 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def create
-    @service.agency = current_user.staff_agency # Assign the service to the user's staff agency
+    # If the user is a transit agency admin then automatically assign its oversight agency
+    os_params = oversight_params
+    oversight_agency_id = os_params[:oversight_agency_id]
+    transportation_agency_id = os_params[:transportation_agency_id]
+    # Assign the transportation agency based on the passed in id
+    @service.agency = TransportationAgency.find(transportation_agency_id)
   	if @service.update_attributes(service_params)
+      if oversight_agency_id != ''
+        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      end
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -30,8 +51,10 @@ class Admin::ServicesController < Admin::AdminController
     # @service.build_comments # Builds a comment for each available locale
   end
 
-  def update   
+  def update
+    os_params = oversight_params
     @service.update_attributes(service_params)
+    @service.service_oversight_agency.update(oversight_agency_id:os_params[:oversight_agency_id])
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
@@ -45,6 +68,10 @@ class Admin::ServicesController < Admin::AdminController
 
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])
+  end
+
+  def oversight_params
+    params.delete(:oversight)
   end
 
   def service_params

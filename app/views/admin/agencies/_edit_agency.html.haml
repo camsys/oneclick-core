@@ -15,9 +15,30 @@
   =render partial: "shared/description_fields", locals: { form: f, record: @agency }
 
   -# For type-specific fields
-  -case @agency.type
+  -case @agency.agency_type.name
   -when "TransportationAgency"
+    =simple_form_for :oversight do |foa|
+      -# Automatically assign the new agency to the current user's oversight agency
+        if they are an oversight agency admin
+      - if current_user.superuser?
+        = foa.input :oversight_agency_id,
+          required: true,
+          collection: OversightAgency.all,
+          label_method: :name,
+          value_method: :id,
+          selected: @agency.agency_oversight_agency&.oversight_agency_id,
+          wrapper_html: {id: 'oversight_select'}
+      - if current_user.staff_agency == 'OversightAgency'
+        = foa.input :oversight_agency_id,
+          collection: [@agency.agency_oversight_agency],
+          label_method: :name,
+          value_method: :id,
+          include_blank: false,
+          readonly: true,
+          selected: @agency.agency_oversight_agency&.oversight_agency_id,
+          wrapper_html: {id: 'oversight_select'}
   -when "PartnerAgency"
+  -when "OversightAgency"
   -else
   
 :javascript
