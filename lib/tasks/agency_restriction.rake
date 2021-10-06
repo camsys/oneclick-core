@@ -230,12 +230,12 @@ namespace :agency_restriction do
 
   desc "Do all but update partner agencies for QA"
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
-        :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,
+        :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_service_to_penn_dot, :associate_transit_staff, :associate_agency_type]
+        :associate_service_to_penn_dot, :associate_transit_staff]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
-        :create_and_assign_to_penn_dot,:associate_travelers_to_county,
+        :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_transit_staff, :associate_agency_type]
+        :associate_transit_staff ]
 end
