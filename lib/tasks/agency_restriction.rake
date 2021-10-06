@@ -97,6 +97,15 @@ namespace :agency_restriction do
       name: "Penn DOT",
       published: "true"
     )
+    puts "Penn DOT Oversight Agency created with id: #{penn_dot.id}"
+  end
+
+  desc "Assigning all Transportation Agencies to Penn DOT"
+  task assign_agency_to_penn_dot: :environment do
+    penn_dot = OversightAgency.find_by(
+      name: "Penn DOT",
+      published: "true"
+    )
     puts "Assigning all Transportation Agencies to Penn DOT"
     count= 0
     TransportationAgency.all.each do |ta|
@@ -178,8 +187,9 @@ namespace :agency_restriction do
     puts "#{count_rabbit} staff assigned to Rabbit, #{count_delaware} staff assigned to Delaware"
   end
 
+
   desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
-  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
+  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_agency_to_penn_dot,:assign_staff_to_penn_dot]
 
   desc "Update partner agencies so they're oversight agencies"
   task update_partner_agencies: :environment do
