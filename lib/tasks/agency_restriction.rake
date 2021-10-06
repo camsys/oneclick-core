@@ -169,10 +169,14 @@ namespace :agency_restriction do
 
   end
 
-  desc "Associate staff with transit agencies"
+  desc "Associate staff with Rabbit/ Delaware County transit agencies"
   task associate_transit_staff: :environment do
-    rabbit = TransportationAgency.find_or_create_by(name: "Rabbit")
-    delaware = TransportationAgency.find_or_create_by(name: "Delaware County")
+    rabbit = TransportationAgency.find_by(name: "Rabbit")
+    delaware = TransportationAgency.find_by(name: "Delaware County")
+    if rabbit.nil? || delaware.nil?
+      puts "Transportation Agencies Rabbit or Delaware County do not exist, create those agencies adn re-run the  agency_restriction:associate_transit_staff rake task"
+      return
+    end
     count_rabbit = 0
     count_delaware = 0
     User.any_staff_admin_for_none.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
@@ -201,7 +205,7 @@ namespace :agency_restriction do
     puts "#{names.to_s} Partner agencies have been updated to oversight agencies"
   end
 
-  desc "Add agency type to existing agencies"
+  desc "Add agency types"
   task add_agency_type: :environment do
     %w[PartnerAgency OversightAgency TransportationAgency].each do |type|
       AgencyType.find_or_create_by(name: type)
