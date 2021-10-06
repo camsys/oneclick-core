@@ -188,9 +188,6 @@ namespace :agency_restriction do
   end
 
 
-  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
-  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_agency_to_penn_dot,:assign_staff_to_penn_dot]
-
   desc "Update partner agencies so they're oversight agencies"
   task update_partner_agencies: :environment do
     names = []
@@ -211,19 +208,28 @@ namespace :agency_restriction do
 
   desc "Associate agencies with agency_type"
   task associate_agency_type: :environment do
+    count = 0
     Agency.all.each do |ag|
       ag.update(agency_type_id:AgencyType.find_by(name: ag.type).id)
+      count += 1
     end
+    puts "#{count} Agencies have been updated to use the AgencyType table"
   end
+
+  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
+  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_agency_to_penn_dot,:assign_staff_to_penn_dot]
+
+  desc "Associate Travelers to respective tables"
+  task associate_travelers_to_tables:  [:associate_travelers_to_county, :associate_travelers_to_agency]
 
   desc "Do all but update partner agencies for QA"
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,
-        :associate_travelers_to_county, :associate_travelers_to_agency,
+        :associate_travelers_to_tables,
         :associate_service_to_penn_dot, :associate_transit_staff, :associate_agency_type]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,
-        :associate_travelers_to_agency, :associate_service_to_penn_dot,
+        :associate_travelers_to_tables,
         :associate_transit_staff, :associate_agency_type]
 end
