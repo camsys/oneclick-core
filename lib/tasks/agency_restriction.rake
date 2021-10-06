@@ -93,11 +93,13 @@ namespace :agency_restriction do
 
   desc "Add Penn DOT oversight agency and associate other transit agencies to it"
   task add_penn_dot: :environment do
-    penn_dot = OversightAgency.find_or_create_by(
-      name: "Penn DOT",
-      published: "true"
-    )
-    puts "Penn DOT Oversight Agency created with id: #{penn_dot.id}"
+    penn_dot = OversightAgency.find_or_create_by(name: "Penn DOT") do |oa|
+      oa.published = true
+      # Assign to Agency Type of Oversight Agency or it won't write
+      oa.agency_type = AgencyType.find_by(name:'OversightAgency')
+    end
+    penn_dot.save
+    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type.name}"
   end
 
   desc "Assigning all Transportation Agencies to Penn DOT"
