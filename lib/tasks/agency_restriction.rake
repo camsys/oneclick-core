@@ -169,28 +169,44 @@ namespace :agency_restriction do
 
   end
 
-  desc "Associate staff with Rabbit/ Delaware County transit agencies"
-  task associate_transit_staff: :environment do
-    rabbit = TransportationAgency.find_by(name: "Rabbit")
-    delaware = TransportationAgency.find_by(name: "Delaware County")
-    if rabbit.nil? || delaware.nil?
-      puts "Transportation Agencies Rabbit or Delaware County do not exist, create those agencies adn re-run the  agency_restriction:associate_transit_staff rake task"
-      return
+  desc "Associate transit staff with Rabbit Transit"
+  task associate_transit_staff_to_rabbit: :environment do
+    rabbit = TransportationAgency.find_or_create_by(name: "Rabbit") do |ta|
+      if ta&.agency_type&.name != 'TransportationAgency'
+        ta.agency_type = AgencyType.find_by(name:'TransportationAgency')
+        puts "Created Rabbit Transportation Agency"
+      end
+
     end
-    count_rabbit = 0
-    count_delaware = 0
-    User.any_staff_admin_for_none.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
-      staff.remove_role(:admin)
-      staff.set_staff_role(delaware)
-      count_delaware+=1
-    end
+    count = 0
 
     User.any_staff_admin_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
       staff.remove_role(:admin)
       staff.set_staff_role(rabbit)
-      count_rabbit+=1
+      count+=1
     end
-    puts "#{count_rabbit} staff assigned to Rabbit, #{count_delaware} staff assigned to Delaware"
+    puts "#{count} staff assigned to Rabbit Transit"
+  end
+
+  desc "Associate transit staff with Delaware County Transit"
+  task associate_transit_staff_to_delaware: :environment do
+    delaware = TransportationAgency.find_or_create_by(name: "Delaware County") do |ta|
+      if ta&.agency_type&.name != 'TransportationAgency'
+        ta.agency_type = AgencyType.find_by(name:'TransportationAgency')
+        puts "Created Delaware County Transportation Agency"
+      end
+    end
+    if delaware.nil?
+      next
+    end
+    count = 0
+
+    User.any_staff_admin_for_none.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
+      staff.remove_role(:admin)
+      staff.set_staff_role(delaware)
+      count+=1
+    end
+    puts "#{count} staff assigned to Delaware County Transit"
   end
 
 
@@ -221,6 +237,9 @@ namespace :agency_restriction do
     end
     puts "#{count} Agencies have been updated to use the AgencyType table"
   end
+
+  desc "Associate staff with Rabbit/ Delaware County transit agencies"
+  task associate_transit_staff: [:associate_transit_staff_to_rabbit,:associate_transit_staff_to_delaware]
 
   desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
   task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_agency_to_penn_dot,:assign_staff_to_penn_dot]
