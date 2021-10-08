@@ -66,7 +66,9 @@ namespace :agency_restriction do
     puts "Seeding default oversight agency"
     oa = OversightAgency.find_or_create_by(name: "Test Oversight Agency",
                                            email: "test_oversight_agency@oneclick.com",
-                                           published:true)
+                                           published:true) do |oa|
+      oa.agency_type = AgencyType.find_by(name: "OversightAgency")
+    end
     [
       {
         email: "test-oversight-staff@camsys.com",
