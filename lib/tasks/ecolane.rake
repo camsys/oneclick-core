@@ -94,25 +94,17 @@ namespace :ecolane do
 
   end #update_pois
 
+  # NOTE: This is all hard-coded, ideally there's be a better way to do this
   desc "Update Waypoints/ Landmarks with a city of West Manchester"
-  task update_west_manchester: :environment do
-    w_manchester = "West Manchester Township"
-    landmarks = Landmark.where(city: w_manchester)
-    travelers = User.registered_travelers
-    count_landmarks = landmarks.count
-    count_waypoints = 0
-    begin
-      landmarks.update_all(city: "York")
-      travelers.each do |traveler|
-        waypoints =traveler.waypoints.where(city: w_manchester)
-        waypoints.update_all(city: "York")
-        count_waypoints += waypoints.count
-      end
-      puts "Updated #{count_landmarks} landmarks and #{count_waypoints} waypoints"
-    rescue
-      puts "Landmarks/ waypoints update failed"
-      return
+  task fix_townships_city: :environment do
+    messages = []
+    Trip::CORRECTED_CITIES_HASHES.each do |tp|
+      puts "Updating waypoints for #{tp[:incorrect]}"
+      wps = Waypoint.where(city:tp[:incorrect])
+      wps.update_all(city: tp[:correct])
+      messages << "Updated #{wps.length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"
     end
+    puts messages.to_s
   end
 
 end #ecolane
