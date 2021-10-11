@@ -1,0 +1,7 @@
+# ENGLISH LOCALES FOR THE ADMIN CONSOLE/ ROUTES
+# TODO: Move this file to the correct place
+en:
+  admin:
+    reporting:
+      guest: "Public User"
+      public_user: "Guest"

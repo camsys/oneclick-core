@@ -16,9 +16,9 @@ module Admin
       if @record.user&.admin_or_staff? == true
         '211 Ride Staff User'
       elsif @record.user&.guest? == true
-        'Guest'
-      else
-        'Public User'
+        I18n.t('admin.reporting.guest') ||'Guest'
+      elsif @record.user.registered_traveler?
+        I18n.t('admin.reporting.public_user') || 'Public User'
       end
     end
 
