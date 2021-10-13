@@ -23,6 +23,7 @@ class Ability
     if user.staff?
       # If a staff user has no agency, then they can only update themselves
       if user.staff_agency.nil?
+        cannot :manage, :all
         can :update, User, id: user.id
         return
       end
@@ -67,11 +68,17 @@ class Ability
     ### ADMIN PERMISSIONS ###
     if user.admin?
       if user.staff_agency.nil?
+        cannot :manage, :all
         can :update, User, id: user.id
         return
       end
 
       # General affiliated admin permissions
+      can :manage, Eligibility
+      can :manage, Accommodation
+      can :manage, Purpose
+      can :manage, Feedback
+      can :manage, Landmark
       can [:read, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
