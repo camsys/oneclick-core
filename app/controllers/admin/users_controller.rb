@@ -1,7 +1,7 @@
 class Admin::UsersController < Admin::AdminController
 
   # before_action :initialize_user, only: [:index, :create]
-  authorize_resource :except => [:travelers, :staff]
+  authorize_resource
   before_action :load_user
   before_action :load_staff
 
@@ -59,18 +59,18 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def staff
-      if current_user.superuser?
-        @staff = User.any_role
-      elsif current_user.currently_oversight? && current_user.oversight_admin?
-        oa = current_user.staff_agency
-        tas = TransportationAgency.where(id:oa.agency_oversight_agency.pluck(:transportation_agency_id))
-        @staff = User.any_staff_admin_for_agencies(tas)
-      elsif current_user.currently_transportation? && current_user.oversight_admin?
-        @staff = User.any_staff_admin_for_agency(current_user.current_agency)
-        # otherwise the current user is probably transportation staff
-      else
-        @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
-      end
+    if current_user.superuser?
+      @staff = User.any_role
+    elsif current_user.currently_oversight? && current_user.oversight_admin?
+      oa = current_user.staff_agency
+      tas = TransportationAgency.where(id:oa.agency_oversight_agency.pluck(:transportation_agency_id))
+      @staff = User.any_staff_admin_for_agencies(tas)
+    elsif current_user.currently_transportation? && current_user.oversight_admin?
+      @staff = User.any_staff_admin_for_agency(current_user.current_agency)
+      # otherwise the current user is probably transportation staff
+    else
+      @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
+    end
   end
 
   def update
