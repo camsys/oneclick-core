@@ -24,6 +24,8 @@ class Admin::AgenciesController < Admin::AdminController
       return
     end
     if @agency.update_attributes(agency_params)
+      @agency.type = @agency.agency_type.name
+      @agency.save
       AgencyOversightAgency.create(transportation_agency_id:@agency.id,
                                            oversight_agency_id: oversight_agency_id)
       flash[:success] = "Agency Created Successfully"
