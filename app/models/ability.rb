@@ -97,6 +97,7 @@ class Ability
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
+        can :create, Agency
         can :manage, Role               # Can manage Roles
         # Mapping related permissions
         can :manage, GeographyRecord    # Can manage geography records
