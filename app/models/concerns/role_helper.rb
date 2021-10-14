@@ -200,12 +200,12 @@ module RoleHelper
     # Search for travelers not associated with the input agencies ids
     agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
     # Return travelers associated with the input agency and also with no agency
-    User.travelers.where.not(id: agency_travelers_id)
+    User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
   end
 
   def travelers_for_staff_agency
     if self.staff_agency.oversight?
-      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).select(:transportation_agency_id)
+      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
     else
       ta = TransportationAgency.find(self.staff_agency.id)
     end
