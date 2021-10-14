@@ -11,11 +11,10 @@ class Admin::ServicesController < Admin::AdminController
     # NOTE: Includes unaffiliated Services by default
     if current_user.superuser?
       @services
-    elsif current_user.currently_oversight? && current_user.oversight_admin?
+    elsif current_user.currently_oversight?
       oa = current_user.staff_agency
-      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
-      @services = Service.where(agency_id: [nil,*tas])
-    elsif current_user.currently_transportation? && current_user.oversight_admin?
+      @services = Service.no_agencies_assigned + Service.with_oversight_agency(oa)
+    elsif current_user.currently_transportation?
       @services = Service.where(agency_id: [nil,current_user.current_agency.id])
       # otherwise the current user is probably transportation staff
     else
