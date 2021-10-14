@@ -54,9 +54,11 @@ class Ability
 
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
+        associated_services = user.staff_agency.service_oversight_agency.pluck(:service_id)
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
         can :read, Agency
-        can :read, Service
+        can :read, Service,
+            id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :read, User
         can :read, GeographyRecord
       end
@@ -83,8 +85,8 @@ class Ability
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
           id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id),user.travelers_for_staff_agency.pluck(:id))
-      can :manage, Service,             # Can CRUD services under their agency
-          id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
+      can :manage, Service,             # Can CRUD services with no agency
+          id: Service.no_agency.pluck(:id)
       can :create, Service              # Can create new services
       can :manage, Alert
       can :read, :report         # Can view all reports
@@ -93,11 +95,20 @@ class Ability
       can :manage, Role,                # Can manage roles for current agency
           resource_id: user.staff_agency.id
 
+      # Transportation Admin Permissions
+      if user.transportation_admin?
+        can :manage, Service,
+            id: user.staff_agency.services.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with the users transportation agency
+      end
+
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
+        associated_services = user.staff_agency.service_oversight_agency.pluck(:service_id)
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
         can :create, Agency
+        can :manage, Service,
+          id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Role               # Can manage Roles
         # Mapping related permissions
         can :manage, GeographyRecord    # Can manage geography records
