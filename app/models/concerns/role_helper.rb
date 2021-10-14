@@ -189,7 +189,7 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.oversight?
+    self.current_agency&.oversight? || (self.staff_agency.oversight? && self.current_agency == nil)
   end
 
   def currently_transportation?
