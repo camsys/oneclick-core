@@ -20,6 +20,7 @@
         as: :select,
         collection: current_user.accessible_agencies,
         label: "Staff for: ",
+        selected: @user.staff_agency.try(:id),
         include_blank: "Select an Agency"
   - if current_user.transportation_admin?
     = f.input :staff_agency,
