@@ -33,7 +33,7 @@ class Admin::ServicesController < Admin::AdminController
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = os_params[:transportation_agency_id]
     # Assign the transportation agency based on the passed in id
-    @service.agency = TransportationAgency.find(transportation_agency_id)
+    @service.agency = TransportationAgency.find_by(id:transportation_agency_id)
   	if @service.update_attributes(service_params)
       if oversight_agency_id != ''
         ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
