@@ -88,6 +88,9 @@ class Admin::UsersController < Admin::AdminController
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
+    if roles != '' && staff_agency != ''
+      set_user_role(roles,staff_agency)
+    end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
@@ -121,12 +124,12 @@ class Admin::UsersController < Admin::AdminController
   end
   private
   def set_user_role(role, agency_id)
-    agency = Agency.find(agency_id)
+    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, agency) && (can? :manage, Role)
-        @user.set_role(role, agency)
+      if (can? :read, ag) && (can? :manage, Role)
+        @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
       end
