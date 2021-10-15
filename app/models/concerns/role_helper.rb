@@ -241,7 +241,7 @@ module RoleHelper
     end
     if role == "superuser"
       self.add_role(role)
-    elsif agency == ""
+    elsif agency == ""|| agency.nil?
       self.add_role(role)
     elsif staff_agency.nil?
       self.add_role(role,agency)
