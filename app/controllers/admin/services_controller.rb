@@ -33,10 +33,12 @@ class Admin::ServicesController < Admin::AdminController
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = os_params[:transportation_agency_id]
     # Assign the transportation agency based on the passed in id
-    @service.agency = TransportationAgency.find(transportation_agency_id)
+    @service.agency = TransportationAgency.find_by(id:transportation_agency_id)
   	if @service.update_attributes(service_params)
-      if oversight_agency_id != ''
+      if oversight_agency_id != '' && !current_user.superuser?
         ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      elsif current_user.superuser?
+        ServiceOversightAgency.create(oversight_agency_id: @service.agency&.agency_oversight_agency&.oversight_agency&.id, service_id: @service.id)
       end
       redirect_to admin_service_path(@service)
     else
@@ -53,12 +55,25 @@ class Admin::ServicesController < Admin::AdminController
   def update
     os_params = oversight_params
     @service.update_attributes(service_params)
-    @service.service_oversight_agency.update(oversight_agency_id:os_params[:oversight_agency_id])
+    # If the service doesn't have a service oversight agency and has an agency assigned
+    if @service.service_oversight_agency.nil? && !@service.agency.nil?
+      ServiceOversightAgency.create(oversight_agency_id: @service.agency.agency_oversight_agency.oversight_agency_id, service_id: @service.id)
+    # Else If the service doesn't have a service oversight agency and does not have an agency assigned
+    elsif @service.service_oversight_agency.nil? && @service.agency.nil?
+      ServiceOversightAgency.create(oversight_agency_id: os_params[:oversight_agency_id], service_id: @service.id)
+    # Else If the service has a service oversight agency object, but no oversight agency and no transportation agency
+    elsif @service.service_oversight_agency.oversight_agency.nil? && @service.agency.nil?
+      @service.service_oversight_agency.update(oversight_agency_id: os_params[:oversight_agency_id])
+    # Else update the service's oversight agency with the agency
+    else
+      @service.service_oversight_agency.update(oversight_agency_id:@service.agency&.agency_oversight_agency&.oversight_agency_id)
+    end
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
     # If a partial_path parameter is set, serve back that partial
     respond_with_partial_or do
+      flash[:success] = "#{@service.name} updated successfully."
       redirect_to admin_service_path(@service)
     end    
   end
