@@ -8,12 +8,12 @@
   - if current_user.superuser?
     = foa.input :transportation_agency_id,
       collection: TransportationAgency.all
-    = foa.input :oversight_agency_id,
-      required: true,
-      collection: OversightAgency.all,
-      label_method: :name,
-      value_method: :id,
-      wrapper_html: {id: 'oversight_select'}
+    -# = foa.input :oversight_agency_id,
+    -#   required: true,
+    -#   collection: OversightAgency.all,
+    -#   label_method: :name,
+    -#   value_method: :id,
+    -#   wrapper_html: {id: 'oversight_select'}
   -# if the current user is part of a staff agency, then try set their oversight agency
   - if current_user.staff_agency&.transportation?
     = foa.input :transportation_agency_id,

@@ -35,8 +35,10 @@ class Admin::ServicesController < Admin::AdminController
     # Assign the transportation agency based on the passed in id
     @service.agency = TransportationAgency.find_by(id:transportation_agency_id)
   	if @service.update_attributes(service_params)
-      if oversight_agency_id != ''
+      if oversight_agency_id != '' && !current_user.superuser?
         ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      elsif current_user.superuser?
+        ServiceOversightAgency.create(oversight_agency_id: @service.agency&.agency_oversight_agency&.oversight_agency&.id, service_id: @service.id)
       end
       redirect_to admin_service_path(@service)
     else
