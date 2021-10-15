@@ -12,6 +12,10 @@ module RoleHelper
     base.extend(ClassMethods)
 
     # SCOPES
+    # NOTE: the with_(any_)role method in Rolify <v6.0 is buggy
+    # ... and does not work the way it should work
+    # see: https://github.com/RolifyCommunity/rolify/issues/362 and the v6.0 release notes
+    # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
     base.scope :any_role, -> do
       base.querify(base.with_any_role(
         {name: :admin, resource: :any},
@@ -19,32 +23,24 @@ module RoleHelper
         {name: :superuser, resource: :any},
       ))
     end
-    base.scope :any_staff_admin_for_agencies, -> (agencies) do
-      base.querify(base.with_any_role(
-        *agencies.map{|ag| { :name => :staff, :resource => ag }},
-        *agencies.map{|ag| { :name => :admin, :resource => ag }}))
-    end
-    base.scope :any_staff_admin_for_agency, -> (agency) do
-      base.querify(base.with_any_role(
-        { :name => :staff, :resource => agency },
-        { :name => :admin, :resource => agency }))
-    end
-    base.scope :any_staff_admin_for_none, -> do
-      base.querify(base.with_any_role(
-        { :name => :staff, :resource => nil },
-        { :name => :admin, :resource => nil }))
-    end
-    base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
-    base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
-    base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
-    end
-    base.scope :admin_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :admin, :resource => ag }}) )
-    end
+    # SCOPES FOR LOOKING UP STAFF
+    base.scope :staff_for_none, -> { base.with_role_for_instance(:staff, nil) }
+    base.scope :staff, -> { base.querify(base.with_role_for_instances_or_none(:staff, Agency.all)) }
+    base.scope :staff_for, -> (agency) { base.with_role_for_instance(:staff, agency) }
+    base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances_or_none(:staff, agencies) }
+
+    # SCOPES FOR LOOKING UP ADMINS
     base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
-    base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
-    base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
+    base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
+    base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
+    base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances_or_none(:admin, agencies) }
+
+    # SCOPES FOR LOOKING UP BOTH STAFF AND ADMIN
+    base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances_or_none([:staff, :admin], agencies) }
+    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance_or_none([:staff, :admin], agency) }
+    base.scope :any_staff_admin_for_none, -> { base.with_roles_for_instance_or_none([:staff,:admin],nil) }
+
+    # GENERAL USER ROLE SCOPES
     base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
     base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
     base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
@@ -189,7 +185,7 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.oversight? || (self.staff_agency.oversight? && self.current_agency == nil)
+    self.current_agency&.oversight? || (self.staff_agency&.oversight? && self.current_agency == nil)
   end
 
   def currently_transportation?
