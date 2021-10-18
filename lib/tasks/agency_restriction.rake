@@ -267,9 +267,11 @@ namespace :agency_restriction do
     puts "#{count} Agencies have been updated to use the AgencyType table"
   end
 
-  desc "Promote CamSys users to admin"
+  desc "Promote CamSys users to admin for Penn DOT"
   task assign_camsys_to_admin: :environment do
     final_message = []
+    # TODO: Ask whether or not assigning camsys users to Penn DOT is fine
+    penn_dot = OversightAgency.find_by name: "Penn DOT"
     User.where("users.email ~* :camsys", :camsys => 'camsys\.com').each do |staff|
       # Don't change the staff user if their email doesn't have test OR if they're the initial 1-click@camsys.com user
       # - the extra REGEX is for test users currently on QA that have @camsys.com as their email domain
@@ -285,7 +287,7 @@ namespace :agency_restriction do
         roles_removed += "#{role_name} for #{role_resource},"
       end
       # Add admin role to the current camsys user
-      staff.set_role(:admin,nil)
+      staff.set_role(:admin,penn_dot)
       final_message << "#{staff.email} changed to admin, removed #{roles_removed}"
     end
     puts final_message.to_s
