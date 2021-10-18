@@ -15,6 +15,7 @@ module RoleHelper
     # NOTE: the with_(any_)role method in Rolify <v6.0 is buggy
     # ... and does not work the way it should work
     # see: https://github.com/RolifyCommunity/rolify/issues/362 and the v6.0 release notes
+
     # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
     base.scope :any_role, -> do
       base.querify(base.with_any_role(

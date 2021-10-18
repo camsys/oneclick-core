@@ -3,7 +3,7 @@
 # https://gist.github.com/jamesmarkcook/0435bb68a3840c89bda4a0e7da81cb24
 module RolifyAddons
   extend ActiveSupport::Concern
-
+  # NOTE: ALL OF THESE SCOPES REQUIRE THE RECORD(S) TO BE PASSED IN AS METHOD PARAMS
   included do
     scope :with_role_for_instance, ->(role_name, instance) do
       resource_name = instance.class.name
