@@ -62,7 +62,6 @@ class Ability
         can :read, Agency
         can :read, Service,
             id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
-        can :read, User
         can :read, GeographyRecord
       end
       # staff users can update themselves
