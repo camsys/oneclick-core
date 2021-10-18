@@ -190,13 +190,22 @@ namespace :agency_restriction do
 
     end
     count = 0
-
-    User.any_staff_admin_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
-      staff.remove_role(:admin)
-      staff.set_staff_role(rabbit)
-      count+=1
+    final_message=[]
+    User.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
+      roles_removed = ""
+      # Remove all roles attached to the current camsys user
+      staff.roles.each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        staff.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
+      # Add staff role to the current Rabbit user
+      staff.set_role(:staff,rabbit)
+      final_message << "#{staff.email} changed to #{staff.roles.last&.name} for #{staff.staff_agency&.name}, removed #{roles_removed}"
     end
-    puts "#{count} staff assigned to Rabbit Transit"
+    puts "The following users with emails have been assigned to Rabbit"
+    puts final_message.to_s
   end
 
   desc "Associate transit staff with Delaware County Transit"
