@@ -268,7 +268,7 @@ namespace :agency_restriction do
   end
 
   desc "Promote CamSys users to admin"
-  task promote_camsys_to_admin: :environment do
+  task assign_camsys_to_admin: :environment do
     final_message = []
     User.where("users.email ~* :camsys", :camsys => 'camsys\.com').each do |staff|
       # Don't change the staff user if their email doesn't have test OR if they're the initial 1-click@camsys.com user
@@ -304,10 +304,10 @@ namespace :agency_restriction do
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_service_to_penn_dot, :associate_transit_staff,:promote_camsys_to_admin]
+        :associate_service_to_penn_dot, :associate_transit_staff,:assign_camsys_to_admin]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_transit_staff, :promote_camsys_to_admin]
+        :associate_transit_staff, :assign_camsys_to_admin]
 end
