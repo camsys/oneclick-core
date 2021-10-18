@@ -12,7 +12,7 @@
   %h4.text-center Roles
   = f.input :roles,
     label: "User Role",
-    selected: @user.roles.last.try(:name),
+    selected: @user.roles.last.try(:name) || :staff,
     collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
     readonly: @user.valid? && (@user == current_user || (cannot? :update, @user))
   - if current_user.superuser? || (current_user.currently_oversight? && current_user.oversight_admin?)
@@ -21,7 +21,8 @@
         collection: current_user.accessible_agencies,
         label: "Staff for: ",
         selected: @user.staff_agency.try(:id),
-        include_blank: "Select an Agency"
+        include_blank: "Select an Agency",
+        readonly: @user.id == current_user.id
   - if current_user.transportation_admin?
     = f.input :staff_agency,
         as: :select,
