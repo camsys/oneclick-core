@@ -123,18 +123,27 @@ namespace :agency_restriction do
 
   desc "Assign staff and admin with an @pa.gov email to Penn DOT"
   task assign_staff_to_penn_dot: :environment do
+    final_message = []
     # Search for Staff and admin with a pa.gov email
-    pa_gov_staff = User.staff_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
+    pa_gov_staff = User.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
     ar = %w[]
     pa_gov_staff.each do |user|
+      roles_removed = ""
       # Make all current Penn DOT admin staff by default
       # SHOULD BE UPDATED LATER
-      user.remove_role(:admin)
+      user.roles.each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        user.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
       user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
+      final_message << "#{user.email} changed to #{user.roles&.last&.name} for #{user.staff_agency&.name}, removed #{roles_removed}"
       ar.push(user.email)
     end
 
-    puts "The following users with emails have been assigned to Penn DOT: #{ar.to_s}"
+    puts "The following users with emails have been assigned to Penn DOT"
+    puts final_message.to_s
     puts "NOTE: ALL PREVIOUS ADMINS HAVE BEEN CHANGED TO BE STAFF"
   end
 
