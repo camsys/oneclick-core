@@ -67,7 +67,7 @@ class Admin::UsersController < Admin::AdminController
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
       tas = TransportationAgency.where(id:oa.agency_oversight_agency.pluck(:transportation_agency_id))
-      @staff = User.any_staff_admin_for_agencies(Agency.querify([oa,tas]))
+      @staff = User.any_staff_admin_for_agencies([oa] + tas)
     # else if the current user is currently browsing as a transportation agency
     elsif current_user.currently_transportation?
       @staff = User.any_staff_admin_for_agency(current_user.current_agency)
