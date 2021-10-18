@@ -12,7 +12,7 @@ namespace :agency_restriction do
   task update_default_admin: :environment do
     puts "Updating default admin user to superuser"
     Role.where(name: "superuser").first_or_create
-    default = User.find_by(email: "1-click@camsys.com")
+    default = User.find_by(email: "1-click@faketest.com")
     if default.admin?
       default.add_role("superuser")
       default.remove_role("admin")
@@ -24,13 +24,13 @@ namespace :agency_restriction do
 
   desc "Seed Unaffiliated Users"
   task seed_unaffiliated_users: :environment do
-    us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
+    us = User.where(email: 'test-unaffiliated-staff@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:staff)
       puts 'Creating test unaffiliated staff user'
     end
-    ua = User.where(email: 'test-unaffiliated-admin@camsys.com').first_or_create do |user|
+    ua = User.where(email: 'test-unaffiliated-admin@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:admin)
@@ -43,13 +43,13 @@ namespace :agency_restriction do
   desc "Seed Transportation  Users"
   task seed_transportation_users: :environment do
     ta = TransportationAgency.first
-    us = User.where(email: 'test-transportation-staff@camsys.com').first_or_create do |user|
+    us = User.where(email: 'test-transportation-staff@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       ta.add_staff(user)
       puts 'Creating test transportation staff user'
     end
-    ua = User.where(email: 'test-transportation-admin@camsys.com').first_or_create do |user|
+    ua = User.where(email: 'test-transportation-admin@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:admin)
@@ -71,11 +71,11 @@ namespace :agency_restriction do
     end
     [
       {
-        email: "test-oversight-staff@camsys.com",
+        email: "test-oversight-staff@faketest.com",
         password: 'guest1',
         password_confirmation: 'guest1',
       },      {
-        email: "test-oversight-admin@camsys.com",
+        email: "test-oversight-admin@faketest.com",
         password: 'guest1',
         password_confirmation: 'guest1',
       },
