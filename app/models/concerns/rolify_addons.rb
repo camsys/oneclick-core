@@ -31,7 +31,7 @@ module RolifyAddons
 
     scope :with_roles_for_instances_or_none, -> (role_names, instances) do
       joins(:roles).where(roles: {
-        name: role_names.to_s,
+        name: role_names.map{|role| role.to_s},
         resource_id: instances&.pluck(:id).concat([nil])
       })
     end
