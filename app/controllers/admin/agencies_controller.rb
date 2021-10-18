@@ -73,7 +73,7 @@ class Admin::AgenciesController < Admin::AdminController
 
   def oversight_params
     oversight = params.delete(:oversight)
-    oversight[:oversight_agency_id]
+    oversight.try(:oversight_agency_id)
   end
 
   def agency_params
