@@ -37,6 +37,9 @@ class Ability
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can :manage, Alert                # Can manage alerts
       can :read, :report         # Can read reports
+      can :read, Eligibility
+      can :read, Accommodation
+      can :read, Purpose
 
 
       ## TransportationAgency Staff Permissions ##
