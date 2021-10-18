@@ -89,7 +89,9 @@ class Admin::UsersController < Admin::AdminController
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
     if roles != '' && staff_agency != ''
-      set_user_role(roles,staff_agency)
+      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
+      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
+      replace_user_role(roles,staff_agency)
     end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
@@ -129,6 +131,22 @@ class Admin::UsersController < Admin::AdminController
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
       if (can? :read, ag) && (can? :manage, Role)
+        @user.set_role(role, ag)
+      else
+        raise ActiveRecord::Rollback
+      end
+      raise ActiveRecord::Rollback unless @user.valid?
+    end
+  end
+
+  def replace_user_role(role, agency_id)
+    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    User.transaction do
+      # If the user can read the selected agency and manage roles
+      # then assign the input role and agency to the user
+      if (can? :read, ag || ag.nil?) && (can? :manage, Role)
+        last_role = @user.roles.last
+        @user.remove_role(last_role.name,last_role.resource)
         @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
