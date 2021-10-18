@@ -155,6 +155,7 @@ class Admin::UsersController < Admin::AdminController
     end
   end
 
+  # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
   def set_superuser_role(admin_param)
     return false if admin_param.nil?
