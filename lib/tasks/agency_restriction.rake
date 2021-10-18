@@ -240,13 +240,13 @@ namespace :agency_restriction do
     puts "#{count} Agencies have been updated to use the AgencyType table"
   end
 
-  desc "Promote CamSys users to superuser"
-  task promote_camsys_to_superuser: :environment do
+  desc "Promote CamSys users to admin"
+  task promote_camsys_to_admin: :environment do
     final_message = []
     User.where("users.email ~* :camsys", :camsys => 'camsys\.com').each do |staff|
-      # Don't change the staff user if they only have the superuser role already and if their email doesn't have test in the name
-      # - the extra REGEX is for test users currently on QA that have @camsys.com as their email domain(which isn't ideal but hindsight 2020)
-      if (staff.superuser? && staff.roles.length == 1) || !/^test/.match(staff.email).nil?
+      # Don't change the staff user if their email doesn't have test OR if they're the initial 1-click@camsys.com user
+      # - the extra REGEX is for test users currently on QA that have @camsys.com as their email domain
+      if !/^test/.match(staff.email).nil? || staff.email == '1-click@camsys.com'
         next
       end
       roles_removed = ""
@@ -257,9 +257,9 @@ namespace :agency_restriction do
         staff.remove_role(role.name,role.resource)
         roles_removed += "#{role_name} for #{role_resource},"
       end
-      # Add superuser role to the current camsys user
-      staff.set_role(:superuser,nil)
-      final_message << "#{staff.email} promoted to superuser, removed #{roles_removed}"
+      # Add admin role to the current camsys user
+      staff.set_role(:admin,nil)
+      final_message << "#{staff.email} changed to admin, removed #{roles_removed}"
     end
     puts final_message.to_s
   end
@@ -277,11 +277,10 @@ namespace :agency_restriction do
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_service_to_penn_dot, :associate_transit_staff,:promote_camsys_to_superuser]
+        :associate_service_to_penn_dot, :associate_transit_staff,:promote_camsys_to_admin]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_transit_staff, :promote_camsys_to_superuser]
-
+        :associate_transit_staff, :promote_camsys_to_admin]
 end
