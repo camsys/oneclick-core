@@ -252,7 +252,7 @@ namespace :agency_restriction do
 
   desc "Add agency types"
   task add_agency_type: :environment do
-    %w[PartnerAgency OversightAgency TransportationAgency].each do |type|
+    %w[OversightAgency TransportationAgency].each do |type|
       AgencyType.find_or_create_by(name: type)
     end
   end
