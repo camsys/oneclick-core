@@ -34,13 +34,15 @@ class Ability
       # NOTE: :staff and :travelers are specified due to how cancan? plugs into Rails Controller actions and authorizes users
       can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
         id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
-      can :read, Service,              # Can read services under that user and services with no agency
+      can :read, Service,               # Can read services under that user and services with no agency
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
-      can :read, Alert                # Can manage alerts
+      can :read, Alert                  # Can read alerts
       can :read, :report         # Can read reports
       can :read, Eligibility
       can :read, Accommodation
       can :read, Purpose
+      can :read, GeographyRecord
+      can :read, Landmark
 
 
       ## TransportationAgency Staff Permissions ##
@@ -63,7 +65,6 @@ class Ability
         can :read, Agency
         can :read, Service,
             id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
-        can :read, GeographyRecord
       end
       # staff users can update themselves
       can :update, User,
