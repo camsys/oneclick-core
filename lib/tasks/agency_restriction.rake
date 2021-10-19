@@ -252,7 +252,7 @@ namespace :agency_restriction do
 
   desc "Add agency types"
   task add_agency_type: :environment do
-    %w[PartnerAgency OversightAgency TransportationAgency].each do |type|
+    %w[OversightAgency TransportationAgency].each do |type|
       AgencyType.find_or_create_by(name: type)
     end
   end
@@ -291,6 +291,18 @@ namespace :agency_restriction do
       final_message << "#{staff.email} changed to admin, removed #{roles_removed}"
     end
     puts final_message.to_s
+  end
+
+  # NOTE: THIS ONLY GETS RUN IF PARTNER AGENCY IS ADDED AS AN AGENCY TYPE
+  desc "Remove Partner Agency Type"
+  task remove_partner_agency_type: :environment do
+    pa = PartnerAgency.all
+    if pa.length > 0
+      raise StandardError.new "More than 0 Partner Agencies exist, bailing out"
+    end
+    ag_type = AgencyType.find_by(name: "PartnerAgency").delete
+
+    puts "Deleted Agency Type: #{ag_type.name}"
   end
 
   desc "Associate staff with Rabbit/ Delaware County transit agencies"
