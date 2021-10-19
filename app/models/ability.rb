@@ -31,12 +31,18 @@ class Ability
       ## General Staff Permissions ##
       can [:read, :update], Agency,     # Can read or update their own agency
         id: user.staff_agency.try(:id)
-      can :read, User,                # Can read users that are staff for the same agency and travelers for that agency
+      # NOTE: :staff and :travelers are specified due to how cancan? plugs into Rails Controller actions and authorizes users
+      can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
         id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
-      can :read, Service,              # Can read services under that user and services with no agency
+      can :read, Service,               # Can read services under that user and services with no agency
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can :manage, Alert                # Can manage alerts
       can :read, :report         # Can read reports
+      can :read, Eligibility
+      can :read, Accommodation
+      can :read, Purpose
+      can :read, GeographyRecord
+      can :read, Landmark
 
 
       ## TransportationAgency Staff Permissions ##
@@ -59,8 +65,6 @@ class Ability
         can :read, Agency
         can :read, Service,
             id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
-        can :read, User
-        can :read, GeographyRecord
       end
       # staff users can update themselves
       can :update, User,
@@ -84,7 +88,7 @@ class Ability
       can [:read, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
-          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id),user.travelers_for_staff_agency.pluck(:id))
+          id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id),user.get_travelers_for_staff_user.pluck(:id))
       can :manage, Service,             # Can CRUD services with no agency
           id: Service.no_agency.pluck(:id)
       can :create, Service              # Can create new services
