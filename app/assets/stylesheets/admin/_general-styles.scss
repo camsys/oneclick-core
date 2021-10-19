@@ -6,3 +6,9 @@ div.checkbox,
 div.radio {
   padding-left: 15px;
 }
+
+.nav.navbar-right.navbar-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline
+}
