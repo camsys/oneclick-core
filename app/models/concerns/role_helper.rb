@@ -37,8 +37,8 @@ module RoleHelper
     base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances_or_none(:admin, agencies) }
 
     # SCOPES FOR LOOKING UP BOTH STAFF AND ADMIN
-    base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances_or_none([:staff, :admin], agencies) }
-    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance_or_none([:staff, :admin], agency) }
+    base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances([:staff, :admin], agencies) }
+    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }
     base.scope :any_staff_admin_for_none, -> { base.with_roles_for_instance_or_none([:staff,:admin],nil) }
 
     # GENERAL USER ROLE SCOPES
