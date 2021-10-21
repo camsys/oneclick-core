@@ -18,6 +18,9 @@ class Admin::ServicesController < Admin::AdminController
     elsif current_user.currently_transportation?
       @services = always_unaffiliated_services+Service.where(agency_id: current_user.current_agency.id)
       # otherwise the current user is probably transportation staff
+    elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
+      # Return services with no transportation agency and oversight agency
+      @services = Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
       @services = always_unaffiliated_services+Service.where(agency_id: current_user.staff_agency.id)
     end
@@ -37,8 +40,10 @@ class Admin::ServicesController < Admin::AdminController
     @service.agency = TransportationAgency.find_by(id:transportation_agency_id)
   	if @service.update_attributes(service_params)
       if oversight_agency_id != '' && !current_user.superuser?
+        # Oversight Agency is automatically populated if the user creating the Service is part of a Transportation/ Oversight Agency
         ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
       elsif current_user.superuser?
+        # If the user is a superuser, then try to populate it from the service's assigned agency instead
         ServiceOversightAgency.create(oversight_agency_id: @service.agency&.agency_oversight_agency&.oversight_agency&.id, service_id: @service.id)
       end
       redirect_to admin_service_path(@service)
