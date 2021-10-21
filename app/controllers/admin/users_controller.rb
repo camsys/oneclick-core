@@ -115,11 +115,9 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def change_agency
-    agency = Agency.find(params[:agency][:id])
-    if !agency.nil?
-      current_user.current_agency = agency
-      current_user.save!
-    end
+    agency = Agency.find_by(id:params[:agency][:id])
+    current_user.current_agency = agency
+    current_user.save!
 
     redirect_back(fallback_location: root_path)
   end
