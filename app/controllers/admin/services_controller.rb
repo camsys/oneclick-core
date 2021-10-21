@@ -8,17 +8,18 @@ class Admin::ServicesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
+    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     # NOTE: Includes unaffiliated Services by default
     if current_user.superuser?
       @services
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
-      @services = Service.no_agencies_assigned + Service.with_oversight_agency(oa)
+      @services = always_unaffiliated_services + Service.with_oversight_agency(oa).order(agency_id: :desc)
     elsif current_user.currently_transportation?
-      @services = Service.where(agency_id: [nil,current_user.current_agency.id])
+      @services = always_unaffiliated_services+Service.where(agency_id: current_user.current_agency.id)
       # otherwise the current user is probably transportation staff
     else
-      @services = Service.where(agency_id: [nil, current_user.staff_agency.id])
+      @services = always_unaffiliated_services+Service.where(agency_id: current_user.staff_agency.id)
     end
   end
 
