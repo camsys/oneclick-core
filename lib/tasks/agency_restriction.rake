@@ -12,7 +12,7 @@ namespace :agency_restriction do
   task update_default_admin: :environment do
     puts "Updating default admin user to superuser"
     Role.where(name: "superuser").first_or_create
-    default = User.find_by(email: "1-click@faketest.com")
+    default = User.find_by(email: "1-click@camsys.com")
     if default.admin?
       default.add_role("superuser")
       default.remove_role("admin")
@@ -252,9 +252,12 @@ namespace :agency_restriction do
 
   desc "Add agency types"
   task add_agency_type: :environment do
+    final_st = ""
     %w[OversightAgency TransportationAgency].each do |type|
-      AgencyType.find_or_create_by(name: type)
+      ag_t =AgencyType.find_or_create_by(name: type)
+      final_st +="#{ag_t.name}, "
     end
+    puts "Agency types created: #{final_st}"
   end
 
   desc "Associate agencies with agency_type"
