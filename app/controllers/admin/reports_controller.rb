@@ -139,19 +139,21 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def services_table
+    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     if current_user.superuser?
       @services = Service.all
     elsif current_user.transportation_admin? ||current_user.transportation_staff?
-      @services = Service.where(agency_id: current_user.staff_agency.id)
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
     elsif current_user.currently_oversight?
       sids = ServiceOversightAgency.where(oversight_agency_id: current_user.staff_agency.id).pluck(:service_id)
-      @services = Service.where(id: sids)
+      @services = Service.where(id: sids).or(always_unaffiliated_services)
     elsif current_user.currently_transportation?
-      @services = Service.where(agency_id: current_user.current_agency.id)
+      @services = Service.where(agency_id: current_user.current_agency.id).or(always_unaffiliated_services)
       # Fallback just in case an edge case is missed
+    elsif current_user.current_agency.nil?
+      @services = Service.where(agency_id: nil).or(always_unaffiliated_services)
     else
-      puts "Got to service report fallback, returning no services for #{current_user.email}"
-      @services = Service.none
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
     end
     @services = @services.where(type: @service_type) unless @service_type.blank?
     @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?
