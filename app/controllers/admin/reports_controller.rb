@@ -107,10 +107,11 @@ class Admin::ReportsController < Admin::AdminController
       @trips = Trip.with_transportation_agency(tas)
     elsif current_user.currently_transportation?
       @trips = Trip.with_transportation_agency(current_user.current_agency.id)
+    elsif current_user.current_agency.nil?
+      @trips = Trip.with_no_transportation_agency
     # Fallback just in case an edge case is missed
     else
-      puts "Got to trips report fallback, returning no trips for #{current_user.email}"
-      @trips = Trip.none
+      @trips = Trip.with(current_user.staff_agency.id)
     end
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
