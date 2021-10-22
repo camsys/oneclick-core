@@ -94,15 +94,23 @@ namespace :ecolane do
 
   end #update_pois
 
-  # NOTE: This is all hard-coded, ideally there's be a better way to do this
-  desc "Update Waypoints/ Landmarks with a city of West Manchester"
+  # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
+  desc "Update Waypoints with an incorrect township as the city to the correct city"
   task fix_townships_city: :environment do
     messages = []
     Trip::CORRECTED_CITIES_HASHES.each do |tp|
       puts "Updating waypoints for #{tp[:incorrect]}"
-      wps = Waypoint.where(city:tp[:incorrect])
+      wps = Waypoint.where(city: tp[:incorrect])
+      incorrect_waypoints_length = wps.length
       wps.update_all(city: tp[:correct])
-      messages << "Updated #{wps.length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"
+      messages << "Updated #{incorrect_waypoints_length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"
+
+      # Correct the Waypoint name if it includes the incorrect township.
+      Waypoint.where("name like ?", "%#{tp[:incorrect]}%").map do |wp|
+        puts "Updating waypoint name #{wp.name}"
+        wp.name.gsub!(tp[:incorrect], tp[:correct])
+        wp.save!
+      end
     end
     puts messages.to_s
   end
