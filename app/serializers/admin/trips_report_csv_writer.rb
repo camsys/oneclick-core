@@ -12,15 +12,16 @@ module Admin
     end
 
     def user_type
-      puts @record.user['last_sign_in_ip']
       if @record.user&.admin_or_staff? == true
         '211 Ride Staff User'
         # NOTE: the below translations are 211 Ride specific and have values that are not the same
         # as the fallback value, nor are they values that you'd generally expect
       elsif @record.user&.guest? == true
         I18n.t('admin.reporting.guest') ||'Guest'
-      elsif @record.user.registered_traveler?
+      elsif @record.user&.registered_traveler?
         I18n.t('admin.reporting.public_user') || 'Public User'
+      else
+        ''
       end
     end
 
@@ -82,11 +83,11 @@ module Admin
     end
 
     def traveler_accommodations
-      @record.trip_accommodations.reduce('') {|string, acc_hash| "#{string}#{acc_hash.accommodation.code}; "}
+      @record.trip_accommodations.reduce('') {|string, acc_hash| "#{string}#{acc_hash&.accommodation&.code}; "}
     end
 
     def traveler_eligibilities
-      @record.trip_eligibilities.reduce('') {|string, elg_hash| "#{string}#{elg_hash.eligibility.code}; "}
+      @record.trip_eligibilities.reduce('') {|string, elg_hash| "#{string}#{elg_hash&.eligibility&.code}; "}
     end
 
   end
