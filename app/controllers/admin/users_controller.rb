@@ -53,6 +53,8 @@ class Admin::UsersController < Admin::AdminController
       @travelers = current_user.travelers_for_staff_agency
     elsif current_user.currently_oversight?
       @travelers = current_user.travelers_for_oversight_agency
+    elsif current_user.current_agency.nil?
+      @travelers = current_user.travelers_for_none
     else
       @travelers = current_user.travelers_for_agency(current_user.current_agency)
     end
@@ -70,7 +72,11 @@ class Admin::UsersController < Admin::AdminController
     # else if the current user is currently browsing as a transportation agency
     elsif current_user.currently_transportation?
       @staff = User.any_staff_admin_for_agency(current_user.current_agency)
-    # otherwise the current user is probably transportation staff
+    # else if the current user decides to view as an unaffiliated user
+    elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
+      # Return services with no transportation agency and oversight agency
+      @staff = User.any_staff_admin_for_none
+      # otherwise the current user is probably transportation staff
     else
       @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
     end

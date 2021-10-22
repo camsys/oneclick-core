@@ -186,11 +186,15 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.oversight? || (self.staff_agency&.oversight? && self.current_agency == nil)
+    self.current_agency&.oversight?
   end
 
   def currently_transportation?
     self.current_agency&.transportation?
+  end
+
+  def travelers_for_none
+    User.travelers.select{|u| u.traveler_transit_agency&.transportation_agency.nil? || u.booking_profiles.length == 0}
   end
 
   def travelers_for_agency(agencies)
@@ -212,7 +216,7 @@ module RoleHelper
 
   def travelers_for_oversight_agency
     transportation_agencies = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
-    travelers_for_agency(transportation_agencies)
+    travelers_for_agency(self.staff_agency.id)
   end
 
   def travelers_for_current_agency
