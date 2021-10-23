@@ -35,6 +35,7 @@ namespace :ecolane do
           messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
           global_error = true
           local_error = true
+          puts messages.to_s
           next
         end
 
