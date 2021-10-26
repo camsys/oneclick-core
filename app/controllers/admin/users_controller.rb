@@ -47,17 +47,7 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def travelers
-    if current_user.superuser?
-      @travelers = User.travelers
-    elsif current_user.transportation_admin? || current_user.transportation_staff?
-      @travelers = current_user.travelers_for_staff_agency
-    elsif current_user.currently_oversight?
-      @travelers = current_user.travelers_for_oversight_agency
-    elsif current_user.current_agency.nil?
-      @travelers = current_user.travelers_for_none
-    else
-      @travelers = current_user.travelers_for_agency(current_user.current_agency)
-    end
+    @travelers = current_user.get_travelers_for_staff_user
   end
 
   def staff
