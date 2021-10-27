@@ -223,13 +223,12 @@ module RoleHelper
   end
 
   def travelers_for_oversight_agency
-    transportation_agencies = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
     travelers_for_agency(self.staff_agency.id)
   end
 
   def travelers_for_current_agency
-    ta = TransportationAgency.find(self.current_agency.id)
-    travelers_for_agency(ta)
+    ag = Agency.find(self.current_agency.id)
+    travelers_for_agency(ag)
   end
 
   ### MODIFYING USER ROLES ###

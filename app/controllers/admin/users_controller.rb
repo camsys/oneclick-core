@@ -57,18 +57,17 @@ class Admin::UsersController < Admin::AdminController
     # else if the current user is currently browsing as the oversight admin/ staff
     # - then see all oversight staff/admin AND associated transportation agency staff/admin
     elsif current_user.currently_oversight?
-      oa = current_user.staff_agency
-      @staff = User.any_staff_admin_for_agency(oa)
+      @staff = current_user.any_users_for_staff_agency
     # else if the current user is currently browsing as a transportation agency
     elsif current_user.currently_transportation?
-      @staff = User.any_staff_admin_for_agency(current_user.current_agency)
+      @staff = current_user.any_users_for_current_agency
     # else if the current user decides to view as an unaffiliated user
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
       @staff = User.any_staff_admin_for_none
       # otherwise the current user is probably transportation staff
     else
-      @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
+      @staff = current_user.any_users_for_staff_agency
     end
   end
 
