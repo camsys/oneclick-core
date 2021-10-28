@@ -292,15 +292,15 @@ module RoleHelper
   #
   def get_travelers_for_staff_user
     if self.superuser?
-      @travelers = User.travelers
+      User.travelers
     elsif self.transportation_admin? || self.transportation_staff?
-      @travelers = self.travelers_for_staff_agency
+      self.travelers_for_staff_agency
     elsif self.currently_oversight?
-      @travelers = self.travelers_for_oversight_agency
+      self.travelers_for_oversight_agency
     elsif self.current_agency.nil?
-      @travelers = self.travelers_for_none
+      self.travelers_for_none
     else
-      @travelers = self.travelers_for_agency(self.current_agency)
+      self.travelers_for_agency(self.current_agency)
     end
   end
 
