@@ -99,7 +99,7 @@ class Ability
       can :manage, Alert
       can :read, :report         # Can view all reports
       # Mapping related permissions
-      can :create, GeographyRecord      # Can create Geography records
+      can :manage, GeographyRecord      # Can create Geography records
       can :manage, Role,                # Can manage roles for current agency
           resource_id: user.staff_agency.id
 
