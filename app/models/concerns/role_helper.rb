@@ -214,16 +214,8 @@ module RoleHelper
   end
 
   def travelers_for_staff_agency
-    if self.staff_agency.oversight?
-      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
-    else
-      ta = TransportationAgency.find(self.staff_agency.id)
-    end
+    ta = TransportationAgency.find(self.staff_agency.id)
     travelers_for_agency(ta)
-  end
-
-  def travelers_for_oversight_agency
-    travelers_for_agency(self.staff_agency.id)
   end
 
   def travelers_for_current_agency
@@ -289,14 +281,27 @@ module RoleHelper
   end
 
   ### GENERAL ADMIN CONSOLE BASED HELPERS ###
-  #
+  def get_admin_staff_for_staff_user
+    if self.superuser?
+      User.staff
+    elsif self.transportation_admin? || self.transportation_staff?
+      self.any_users_for_staff_agency
+    elsif self.currently_oversight? || self.currently_transportation?
+      self.any_users_for_current_agency
+    elsif self.current_agency.nil?
+      User.any_staff_admin_for_none
+    else
+      []
+    end
+  end
+
   def get_travelers_for_staff_user
     if self.superuser?
       User.travelers
     elsif self.transportation_admin? || self.transportation_staff?
       self.travelers_for_staff_agency
-    elsif self.currently_oversight?
-      self.travelers_for_oversight_agency
+    elsif self.currently_oversight? || self.currently_transportation?
+      self.travelers_for_current_agency
     elsif self.current_agency.nil?
       self.travelers_for_none
     else

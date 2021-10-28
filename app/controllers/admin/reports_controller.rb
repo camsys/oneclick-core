@@ -80,9 +80,7 @@ class Admin::ReportsController < Admin::AdminController
       @users = User.all
     elsif current_user.transportation_admin? ||current_user.transportation_staff?
       @users = User.querify(current_user.any_users_for_staff_agency + current_user.travelers_for_staff_agency)
-    elsif current_user.currently_oversight?
-      @users = User.querify(current_user.any_users_for_staff_agency + current_user.travelers_for_oversight_agency)
-    elsif current_user.currently_transportation?
+    elsif current_user.currently_oversight? || current_user.currently_transportation?
       @users = User.querify(current_user.any_users_for_current_agency + current_user.travelers_for_current_agency)
       # Fallback just in case an edge case is missed
     else
