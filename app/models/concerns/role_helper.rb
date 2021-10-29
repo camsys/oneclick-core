@@ -173,6 +173,14 @@ module RoleHelper
     Agency.accessible_by(Ability.new(self))
   end
 
+  def accessible_transportation_agencies
+    TransportationAgency.accessible_by(Ability.new(self))
+  end
+
+  def accessible_oversight_agencies
+    OversightAgency.accessible_by(Ability.new(self))
+  end
+
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
     User.staff_for_any(agencies)
