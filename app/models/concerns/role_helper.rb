@@ -331,4 +331,24 @@ module RoleHelper
     end
   end
 
+  def get_services_for_staff
+    if self.superuser?
+      Service.all
+    elsif self.staff_agency.transportation?
+      self.services
+    elsif self.currently_transportation?
+      Service.where(agency: self.current_agency)
+    elsif self.currently_oversight?
+      Service.joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': self.current_agency)
+    end
+  end
+
+  def get_services_for_oversight
+    tas = Agency.left_joins(:agency_oversight_agency)
+                .where('agency_oversight_agencies.oversight_agency_id': self.staff_agency)
+                .select('agency_oversight_agencies.transportation_agency_id').pluck(:transportation_agency_id)
+    Service.left_joins(:service_oversight_agency)
+           .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency.id, tas)
+  end
+
 end

@@ -33,7 +33,7 @@ class Ability
         id: user.staff_agency.try(:id)
       # NOTE: :staff and :travelers are specified due to how cancan? plugs into Rails Controller actions and authorizes users
       can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
-        id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
+        id: user.accessible_staff.pluck(:id)
       can :read, Service,               # Can read services under that user and services with no agency
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can :read, Alert                # Can manage alerts
@@ -47,6 +47,8 @@ class Ability
 
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?
+        can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
+            id: user.accessible_staff.pluck(:id).concat(user.travelers_for_staff_agency.pluck(:id))
         can [:read, :update], Feedback, # Can read/update feedbacks related to their agency's services
           id: Feedback.about(user.services).pluck(:id)
         can :create, User
@@ -60,11 +62,13 @@ class Ability
 
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
-        associated_services = user.staff_agency.service_oversight_agency.pluck(:service_id)
+        can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
+            id: user.accessible_staff.pluck(:id).concat(user.travelers_for_current_agency.pluck(:id))
+
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
         can :read, Agency
         can :read, Service,
-            id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
+            id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
       end
       # staff users can update themselves
       can :update, User,
@@ -107,12 +111,11 @@ class Ability
 
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
-        associated_services = user.staff_agency.service_oversight_agency.pluck(:service_id)
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
         can :create, Agency
         can :manage, Service,
-          id: associated_services.concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
+          id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Role               # Can manage Roles
         # Mapping related permissions
         can :manage, GeographyRecord    # Can manage geography records
@@ -136,5 +139,4 @@ class Ability
   def can_access_all?(model_class)
     model_class.accessible_by(self).count == model_class.count
   end
-  
 end
