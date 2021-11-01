@@ -17,7 +17,7 @@
     readonly: @user.valid? && (@user == current_user || (cannot? :update, @user))
   = f.input :staff_agency,
       as: :select,
-      collection: current_user.accessible_agencies,
+      collection: current_user.accessible_agencies.order(:name),
       label: "Staff for: ",
       selected: @user.staff_agency&.id || @user.current_agency&.id,
       include_blank: "Select an Agency",

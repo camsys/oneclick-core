@@ -17,7 +17,7 @@
     required: true,
     include_blank: 'Select a Transportation Agency for the Service',
     selected: @service.agency&.id ,
-    collection: current_user.accessible_transportation_agencies,
+    collection: current_user.accessible_transportation_agencies.order(:name),
     readonly: (@service && (cannot? :update, @service)) ||(@service.nil? && (can? :create, Service))
   =simple_form_for :oversight do |foa|
     = foa.input :oversight_agency_id,

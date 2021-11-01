@@ -10,9 +10,9 @@ class Admin::ServicesController < Admin::AdminController
   def index
     @services = get_services_for_current_user
     @oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
-                            current_user.accessible_oversight_agencies :
-                            Agency.querify([current_user.staff_agency&.agency_oversight_agency&.oversight_agency])
-    @transportation_agencies = current_user.accessible_transportation_agencies
+                            current_user.accessible_oversight_agencies.order(:name) :
+                            Agency.querify([current_user.staff_agency&.agency_oversight_agency&.oversight_agency]).order(:name)
+    @transportation_agencies = current_user.accessible_transportation_agencies.order(:name)
   end
 
   def destroy

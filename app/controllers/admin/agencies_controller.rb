@@ -7,7 +7,7 @@ class Admin::AgenciesController < Admin::AdminController
       @agencies = @agencies.order(:name)
     elsif current_user.oversight_admin? ||current_user.oversight_staff?
       # Get all agencies associated with that oversight agency, and it'self
-      @agencies = current_user.accessible_agencies
+      @agencies = current_user.accessible_agencies.order(:name)
     end
   end
   

@@ -23,7 +23,7 @@
       - if current_user.superuser?
         = foa.input :oversight_agency_id,
           required: true,
-          collection: OversightAgency.all,
+          collection: OversightAgency.all.order(:name),
           label_method: :name,
           value_method: :id,
           selected: @agency.agency_oversight_agency&.oversight_agency_id,
