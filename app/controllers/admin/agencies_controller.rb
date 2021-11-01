@@ -7,9 +7,7 @@ class Admin::AgenciesController < Admin::AdminController
       @agencies = @agencies.order(:name)
     elsif current_user.oversight_admin? ||current_user.oversight_staff?
       # Get all agencies associated with that oversight agency, and it'self
-      oa = current_user.staff_agency
-      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
-      @agencies = Agency.where(id: [*tas,nil,current_user.staff_agency.id])
+      @agencies = current_user.accessible_agencies
     end
   end
   
