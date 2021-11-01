@@ -79,18 +79,6 @@ class Admin::GeographiesController < Admin::AdminController
     end
   end
 
-  def get_agencies_for_current_user
-    if current_user.superuser?
-      TransportationAgency.all
-    elsif current_user.staff_agency.transportation?
-      [current_user.staff_agency]
-    elsif current_user.currently_transportation?
-      [current_user.current_agency]
-    elsif current_user.staff_agency.oversight? && current_user.current_agency.nil?
-      ta_ids = current_user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
-      TransportationAgency.where(id:ta_ids)
-    end
-  end
   protected
 
   def check_for_missing_geometries(*collections)
