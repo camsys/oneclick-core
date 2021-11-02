@@ -281,6 +281,19 @@ module RoleHelper
   end
 
   ### GENERAL ADMIN CONSOLE BASED HELPERS ###
+  def get_transportation_agencies_for_user
+    if self.superuser?
+      TransportationAgency.all
+    elsif self.currently_oversight? || (self.current_agency.nil? && self.staff_agency.oversight?)
+      Agency.querify([self.accessible_transportation_agencies])
+    elsif self.currently_transportation?
+      Agency.querify([self.current_agency])
+    else
+      Agency.querify([self.staff_agency])
+
+    end
+  end
+
   def get_admin_staff_for_staff_user
     if self.superuser?
       User.staff
@@ -353,7 +366,7 @@ module RoleHelper
                 .where('agency_oversight_agencies.oversight_agency_id': self.staff_agency)
                 .select('agency_oversight_agencies.transportation_agency_id').pluck(:transportation_agency_id)
     Service.left_joins(:service_oversight_agency)
-           .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency.id, tas)
+           .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency&.id, tas)
   end
 
 end
