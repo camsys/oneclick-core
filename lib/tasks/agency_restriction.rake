@@ -321,10 +321,10 @@ namespace :agency_restriction do
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
         :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_service_to_penn_dot, :associate_transit_staff,:promote_camsys_to_admin]
+        :associate_service_to_penn_dot, :associate_transit_staff,:assign_camsys_to_admin]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
         :associate_travelers_to_tables,
-        :associate_transit_staff, :promote_camsys_to_admin]
+        :associate_transit_staff, :assign_camsys_to_admin]
 end
