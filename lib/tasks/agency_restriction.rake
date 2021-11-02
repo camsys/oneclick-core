@@ -101,7 +101,7 @@ namespace :agency_restriction do
       oa.agency_type = AgencyType.find_by(name:'OversightAgency')
     end
     penn_dot.save
-    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type.name}"
+    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type&.name}"
   end
 
   desc "Assigning all Transportation Agencies to Penn DOT"

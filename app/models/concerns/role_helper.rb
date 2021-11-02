@@ -227,7 +227,7 @@ module RoleHelper
   end
 
   def travelers_for_current_agency
-    ag = Agency.find(self.current_agency.id)
+    ag = Agency.find_by(id:self.current_agency&.id)
     travelers_for_agency(ag)
   end
 
