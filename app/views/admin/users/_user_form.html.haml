@@ -12,6 +12,7 @@
   %h4.text-center Roles
   = f.input :roles,
     label: "User Role",
+    required: true,
     selected: @user.roles.last.try(:name) || :staff,
     collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
     readonly: @user.valid? && (@user == current_user || (cannot? :update, @user))
