@@ -118,11 +118,11 @@ class Admin::UsersController < Admin::AdminController
   end
   private
   def set_user_role(role, agency_id)
-    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    ag = agency_id.present? ? Agency.find_by(id:agency_id) : nil
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, ag) && (can? :manage, Role)
+      if ((can? :read, ag) || ag.nil?) && (can? :manage, Role)
         @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
