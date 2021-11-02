@@ -89,6 +89,8 @@ class Service < ApplicationRecord
     :schedule, :geography, :eligibility, :accommodation, :purpose
   ]
 
+  TAXI_SERVICES = %w[ Taxi Uber Lyft ]
+
   ### MASTER AVAILABILITY SCOPE ###
   # Returns all services available for the given trip.
   # Optional :only_by and :except_by params allow you to only filter
