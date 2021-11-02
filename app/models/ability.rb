@@ -69,6 +69,8 @@ class Ability
         can :read, Agency
         can :read, Service,
             id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
+        can :change_agency, User,
+            id: user.id
       end
       # staff users can update themselves
       can :update, User,
