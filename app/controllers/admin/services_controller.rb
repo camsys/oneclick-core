@@ -135,7 +135,7 @@ class Admin::ServicesController < Admin::AdminController
     # If either are empty, or if the Service is a Taxi service, return false
     is_empty = oversight_id&.empty? || transportation_id&.empty?  && !Service::TAXI_SERVICES.include?(@service.type)
     if is_empty
-      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not perform create/ update"
+      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
       return is_empty
     end
 
