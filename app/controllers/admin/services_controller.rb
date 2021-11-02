@@ -13,6 +13,7 @@ class Admin::ServicesController < Admin::AdminController
                             current_user.accessible_oversight_agencies.order(:name) :
                             Agency.querify([current_user.staff_agency&.agency_oversight_agency&.oversight_agency]).order(:name)
     @transportation_agencies = current_user.accessible_transportation_agencies.order(:name)
+    @default_agency = get_default_tranpsortation_agency_selection
   end
 
   def destroy
