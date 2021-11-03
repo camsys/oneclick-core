@@ -71,7 +71,7 @@ class Admin::GeographiesController < Admin::AdminController
   def get_geographies_for_user
     if current_user.superuser?
       CustomGeography.all.order(:name)
-    elsif current_user.staff_agency.transportation?
+    elsif current_user.transportation_staff? || current_user.transportation_admin?
       CustomGeography.where(agency_id: current_user.staff_agency.id).order(:name)
     elsif current_user.currently_oversight? || current_user.currently_transportation?
       CustomGeography.where(agency_id: current_user.current_agency.id).order(:name)
