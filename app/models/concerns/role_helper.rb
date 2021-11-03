@@ -159,7 +159,7 @@ module RoleHelper
 
   # Returns the agencies that the user is staff for
   def agencies
-    Agency.where(id: transportation_agencies.pluck(:id) + partner_agencies.pluck(:id) + oversight_agencies.pluck(:id))
+    Agency.where(id: transportation_agencies.pluck(:id) + oversight_agencies.pluck(:id))
   end
 
   # Returns the last of the user's staffing agencies (of which there are hopefully just one)
@@ -297,12 +297,13 @@ module RoleHelper
     if self.superuser?
       TransportationAgency.all
     elsif self.currently_oversight? || (self.current_agency.nil? && self.staff_agency.oversight?)
-      Agency.querify([self.accessible_transportation_agencies])
+      self.accessible_transportation_agencies
     elsif self.currently_transportation?
       Agency.querify([self.current_agency])
-    else
+    elsif self.transportation_admin? || self.transportation_staff?
       Agency.querify([self.staff_agency])
-
+    else
+      nil
     end
   end
 
@@ -330,7 +331,7 @@ module RoleHelper
     elsif self.current_agency.nil?
       self.travelers_for_none
     else
-      self.travelers_for_agency(self.current_agency)
+      nil
     end
   end
 
@@ -342,11 +343,11 @@ module RoleHelper
     # If current user is viewing as oversight staff => return Trips associated with all agencies under the oversight agency
     # If current user is viewing as transportation agency staff => return Trips associated with the current transportation agency
     # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
-    if self.traveler?
+    if self.traveler? || self.staff_agency.nil?
       nil
     elsif self.superuser?
       Trip.all
-    elsif self.staff_agency.transportation?
+    elsif self.transportation_admin? || self.transportation_staff?
       Trip.with_transportation_agency(self.staff_agency.id)
     elsif self.currently_oversight?
       tas = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
@@ -357,19 +358,21 @@ module RoleHelper
       Trip.with_no_transportation_agency
       # Fallback just in case an edge case is missed
     else
-      Trip.with(current_user.staff_agency.id)
+      nil
     end
   end
 
   def get_services_for_staff
     if self.superuser?
       Service.all
-    elsif self.staff_agency.transportation?
+    elsif self.transportation_admin? || self.transportation_staff?
       self.services
     elsif self.currently_transportation?
       Service.where(agency: self.current_agency)
     elsif self.currently_oversight?
       Service.joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': self.current_agency)
+    else
+      nil
     end
   end
 
