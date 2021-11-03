@@ -5,8 +5,9 @@ class Admin::GeographiesController < Admin::AdminController
     @counties = County.all.order(:state, :name)
     @cities = City.all.order(:state, :name)
     @zipcodes = Zipcode.all.order(:name)
-    @custom_geographies = CustomGeography.all.order(:name)
-    
+    @custom_geographies = get_geographies_for_user
+    @agencies = current_user.get_transportation_agencies_for_user.order(:name)
+
     check_for_missing_geometries(@counties, @cities, @zipcodes, @custom_geographies)
   end
 
@@ -42,15 +43,6 @@ class Admin::GeographiesController < Admin::AdminController
     present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
-
-  def update_custom_geographies
-    custom_geography_params
-    cg = CustomGeography.find(custom_geography_params[:id])
-    agency = Agency.find(custom_geography_params[:agency])
-    cg.update(agency: agency)
-    flash[:success] = "Successfully updated #{cg.name}"
-    redirect_to admin_geographies_path
-  end
   
   # Serves JSON responses to geography searches to enable autocomplete
   def autocomplete
@@ -74,7 +66,19 @@ class Admin::GeographiesController < Admin::AdminController
     :id
     )
   end
-  
+
+  def get_geographies_for_user
+    if current_user.superuser?
+      CustomGeography.all.order(:name)
+    elsif current_user.staff_agency.transportation?
+      CustomGeography.where(agency_id: current_user.staff_agency.id).order(:name)
+    elsif current_user.currently_oversight? || current_user.currently_transportation?
+      CustomGeography.where(agency_id: current_user.current_agency.id).order(:name)
+    elsif current_user.staff_agency.oversight? && current_user.current_agency.nil?
+      CustomGeography.where(agency_id: nil).order(:name)
+    end
+  end
+
   protected
 
   def check_for_missing_geometries(*collections)

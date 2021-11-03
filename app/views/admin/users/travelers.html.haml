@@ -6,6 +6,7 @@
       %th Last Name
       %th First Name
       %th Email
+      %th Agency
       %th Last Signed In
 
   -@travelers.each do |member|
@@ -17,15 +18,19 @@
       %td
         =member.email
       %td
+        =member.traveler_transit_agency&.transportation_agency&.name || "N/A"
+      %td
         -unless member.last_sign_in_at.nil?
           =member.last_sign_in_at.to_formatted_s(:long)
 
-= simple_form_for @user,
-    url: admin_users_path,
-    html: {method: :post, class: "form-horizontal" },
-    authenticity_token: true do |f|
-  =hidden_field_tag :is_traveler, true
-  =render partial: 'new_traveler', layout: '/layouts/new_record_panel', locals: {f: f}
+-# If the current user can manage user roles and create users, then render create new user form
+- if can?(:create, User) && can?(:manage, Role)
+  = simple_form_for @user,
+      url: admin_users_path,
+      html: {method: :post, class: "form-horizontal" },
+      authenticity_token: true do |f|
+    =hidden_field_tag :is_traveler, true
+    =render partial: 'new_traveler', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript
   $(document).ready(function() {

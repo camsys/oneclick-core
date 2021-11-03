@@ -12,6 +12,11 @@ module RoleHelper
     base.extend(ClassMethods)
 
     # SCOPES
+    # NOTE: the with_(any_)role method in Rolify <v6.0 is buggy
+    # ... and does not work the way it should work
+    # see: https://github.com/RolifyCommunity/rolify/issues/362 and the v6.0 release notes
+
+    # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
     base.scope :any_role, -> do
       base.querify(base.with_any_role(
         {name: :admin, resource: :any},
@@ -19,32 +24,24 @@ module RoleHelper
         {name: :superuser, resource: :any},
       ))
     end
-    base.scope :any_staff_admin_for_agencies, -> (agencies) do
-      base.querify(base.with_any_role(
-        *agencies.map{|ag| { :name => :staff, :resource => ag }},
-        *agencies.map{|ag| { :name => :admin, :resource => ag }}))
-    end
-    base.scope :any_staff_admin_for_agency, -> (agency) do
-      base.querify(base.with_any_role(
-        { :name => :staff, :resource => agency },
-        { :name => :admin, :resource => agency }))
-    end
-    base.scope :any_staff_admin_for_none, -> do
-      base.querify(base.with_any_role(
-        { :name => :staff, :resource => nil },
-        { :name => :admin, :resource => nil }))
-    end
-    base.scope :staff_for, -> (agency) { base.with_role(:staff, agency) }
-    base.scope :staff_for_none, -> { base.with_role(:staff, nil) }
-    base.scope :staff_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :staff, :resource => ag }}) )
-    end
-    base.scope :admin_for_any, -> (agencies) do # Returns staff for any of the agencies in the passed collection
-      base.querify( base.with_any_role(*agencies.map{|ag| { :name => :admin, :resource => ag }}) )
-    end
+    # SCOPES FOR LOOKING UP STAFF
+    base.scope :staff_for_none, -> { base.with_role_for_instance(:staff, nil) }
+    base.scope :staff, -> { base.querify(base.with_role_for_instances_or_none(:staff, Agency.all)) }
+    base.scope :staff_for, -> (agency) { base.with_role_for_instance(:staff, agency) }
+    base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances_or_none(:staff, agencies) }
+
+    # SCOPES FOR LOOKING UP ADMINS
     base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
-    base.scope :admins, -> { base.querify(base.with_role(:admin, :any)) }
-    base.scope :staff, -> { base.querify(base.with_role(:staff, :any)) }
+    base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
+    base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
+    base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances_or_none(:admin, agencies) }
+
+    # SCOPES FOR LOOKING UP BOTH STAFF AND ADMIN
+    base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances([:staff, :admin], agencies) }
+    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }
+    base.scope :any_staff_admin_for_none, -> { base.with_roles_for_instance_or_none([:staff,:admin],nil) }
+
+    # GENERAL USER ROLE SCOPES
     base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
     base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
     base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
@@ -176,6 +173,14 @@ module RoleHelper
     Agency.accessible_by(Ability.new(self))
   end
 
+  def accessible_transportation_agencies
+    TransportationAgency.accessible_by(Ability.new(self))
+  end
+
+  def accessible_oversight_agencies
+    OversightAgency.accessible_by(Ability.new(self))
+  end
+
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
     User.staff_for_any(agencies)
@@ -196,30 +201,34 @@ module RoleHelper
     self.current_agency&.transportation?
   end
 
+  def any_users_for_staff_agency
+    User.any_staff_admin_for_agency(self.staff_agency)
+  end
+
+  def any_users_for_current_agency
+    User.any_staff_admin_for_agency(self.current_agency)
+  end
+
+  def travelers_for_none
+    User.querify(User.travelers.select{|u| u.traveler_transit_agency&.transportation_agency.nil? || u.booking_profiles.length == 0})
+  end
+
   def travelers_for_agency(agencies)
     # Search for travelers not associated with the input agencies ids
     agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
     # Return travelers associated with the input agency and also with no agency
-    User.travelers.where.not(id: agency_travelers_id)
+    uu = User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
+    User.querify(uu.select{|u| u.traveler_transit_agency&.transportation_agency&.present?})
   end
 
   def travelers_for_staff_agency
-    if self.staff_agency.oversight?
-      ta = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).select(:transportation_agency_id)
-    else
-      ta = TransportationAgency.find(self.staff_agency.id)
-    end
+    ta = TransportationAgency.find(self.staff_agency.id)
     travelers_for_agency(ta)
-  end
-
-  def travelers_for_oversight_agency
-    transportation_agencies = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
-    travelers_for_agency(transportation_agencies)
   end
 
   def travelers_for_current_agency
-    ta = TransportationAgency.find(self.current_agency.id)
-    travelers_for_agency(ta)
+    ag = Agency.find_by(id:self.current_agency&.id)
+    travelers_for_agency(ag)
   end
 
   ### MODIFYING USER ROLES ###
@@ -245,7 +254,7 @@ module RoleHelper
     end
     if role == "superuser"
       self.add_role(role)
-    elsif agency == ""
+    elsif agency == ""|| agency.nil?
       self.add_role(role)
     elsif staff_agency.nil?
       self.add_role(role,agency)
@@ -279,5 +288,93 @@ module RoleHelper
     errors.add(:roles, "Must have a staff or admin role") unless admin_or_staff?
   end
 
+  ### GENERAL ADMIN CONSOLE BASED HELPERS ###
+  def get_transportation_agencies_for_user
+    if self.superuser?
+      TransportationAgency.all
+    elsif self.currently_oversight? || (self.current_agency.nil? && self.staff_agency.oversight?)
+      Agency.querify([self.accessible_transportation_agencies])
+    elsif self.currently_transportation?
+      Agency.querify([self.current_agency])
+    else
+      Agency.querify([self.staff_agency])
+
+    end
+  end
+
+  def get_admin_staff_for_staff_user
+    if self.superuser?
+      User.staff
+    elsif self.transportation_admin? || self.transportation_staff?
+      self.any_users_for_staff_agency
+    elsif self.currently_oversight? || self.currently_transportation?
+      self.any_users_for_current_agency
+    elsif self.current_agency.nil?
+      User.any_staff_admin_for_none
+    else
+      []
+    end
+  end
+
+  def get_travelers_for_staff_user
+    if self.superuser?
+      User.travelers
+    elsif self.transportation_admin? || self.transportation_staff?
+      self.travelers_for_staff_agency
+    elsif self.currently_oversight? || self.currently_transportation?
+      self.travelers_for_current_agency
+    elsif self.current_agency.nil?
+      self.travelers_for_none
+    else
+      self.travelers_for_agency(self.current_agency)
+    end
+  end
+
+  def get_trips_for_staff_user
+    # Conditional statement flow:
+    # If current user is a traveler => return nil
+    # If current user is a superuser => return all Trips
+    # If current user is a transportation agency staff => return Trips associated with the agency
+    # If current user is viewing as oversight staff => return Trips associated with all agencies under the oversight agency
+    # If current user is viewing as transportation agency staff => return Trips associated with the current transportation agency
+    # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
+    if self.traveler?
+      nil
+    elsif self.superuser?
+      Trip.all
+    elsif self.staff_agency.transportation?
+      Trip.with_transportation_agency(self.staff_agency.id)
+    elsif self.currently_oversight?
+      tas = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
+      Trip.with_transportation_agency(tas)
+    elsif self.currently_transportation?
+       Trip.with_transportation_agency(self.current_agency.id)
+    elsif self.staff_agency.oversight? && self.current_agency.nil?
+      Trip.with_no_transportation_agency
+      # Fallback just in case an edge case is missed
+    else
+      Trip.with(current_user.staff_agency.id)
+    end
+  end
+
+  def get_services_for_staff
+    if self.superuser?
+      Service.all
+    elsif self.staff_agency.transportation?
+      self.services
+    elsif self.currently_transportation?
+      Service.where(agency: self.current_agency)
+    elsif self.currently_oversight?
+      Service.joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': self.current_agency)
+    end
+  end
+
+  def get_services_for_oversight
+    tas = Agency.left_joins(:agency_oversight_agency)
+                .where('agency_oversight_agencies.oversight_agency_id': self.staff_agency)
+                .select('agency_oversight_agencies.transportation_agency_id').pluck(:transportation_agency_id)
+    Service.left_joins(:service_oversight_agency)
+           .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency&.id, tas)
+  end
 
 end

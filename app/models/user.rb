@@ -4,6 +4,7 @@ class User < ApplicationRecord
   rolify  # user may be an admin, staff, traveler, ...
   include BookingHelpers::UserHelpers #has_many :booking_profiles, etc.
   include Contactable
+  include RolifyAddons
   include RoleHelper
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call

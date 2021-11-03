@@ -5,22 +5,7 @@ class Admin::AdminController < ApplicationController
   before_action :confirm_admin
   before_action :get_admin_pages
   before_action :allow_iframes
-  
-  # Add some prebuilt reports for displaying on the homepage
-  DashboardReport.prebuilt_reports.merge!({
-    planned_trips_this_week: [  
-      :planned_trips,
-      trips: Trip.where(trip_time: DateTime.this_week),
-      grouping: :day,
-      title: "Trips Planned this Week"
-    ],
-    unique_users_this_week: [
-      :unique_users,
-      user_requests: RequestLog.where(created_at: DateTime.this_week),
-      grouping: :day,
-      title: "Unique Users this Week"
-    ]
-  })
+  before_action :build_homepage_charts, only: [:index]
   
   def index
     # Configure dashboard reports to display in an array of symbols under Config.dashboard_reports
@@ -42,6 +27,31 @@ class Admin::AdminController < ApplicationController
 
   def allow_iframes
     response.headers.delete "X-Frame-Options"
+  end
+
+  def build_homepage_charts
+    # If current user, then get trips for staff, otherwise fall back to all trips this week
+    trips = current_user.get_trips_for_staff_user&.where(trip_time: DateTime.this_week) || Trip.where(trip_time: DateTime.this_week)
+    relevant_auth_emails = current_user.get_travelers_for_staff_user.pluck(:email)
+                                       .concat(current_user.get_admin_staff_for_staff_user.pluck(:email))
+    # Add some prebuilt reports for displaying on the homepage
+    DashboardReport.prebuilt_reports.merge!({
+                                              planned_trips_this_week: [
+                                                :planned_trips,
+                                                trips: trips,
+                                                grouping: :day,
+                                                title: "Trips Planned this Week"
+                                              ],
+                                              unique_users_this_week: [
+                                                :unique_users,
+                                                user_requests: RequestLog.where(
+                                                  created_at: DateTime.this_week,
+                                                  auth_email: relevant_auth_emails
+                                                ),
+                                                grouping: :day,
+                                                title: "Unique Users this Week"
+                                              ]
+                                            })
   end
     
 end

@@ -7,9 +7,7 @@ class Admin::AgenciesController < Admin::AdminController
       @agencies = @agencies.order(:name)
     elsif current_user.oversight_admin? ||current_user.oversight_staff?
       # Get all agencies associated with that oversight agency, and it'self
-      oa = current_user.staff_agency
-      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
-      @agencies = Agency.where(id: [*tas,nil,current_user.staff_agency.id])
+      @agencies = current_user.accessible_agencies.order(:name)
     end
   end
   
@@ -24,6 +22,8 @@ class Admin::AgenciesController < Admin::AdminController
       return
     end
     if @agency.update_attributes(agency_params)
+      @agency.type = @agency.agency_type.name
+      @agency.save
       AgencyOversightAgency.create(transportation_agency_id:@agency.id,
                                            oversight_agency_id: oversight_agency_id)
       flash[:success] = "Agency Created Successfully"
@@ -71,7 +71,7 @@ class Admin::AgenciesController < Admin::AdminController
 
   def oversight_params
     oversight = params.delete(:oversight)
-    oversight[:oversight_agency_id]
+    oversight.try(:oversight_agency_id)
   end
 
   def agency_params

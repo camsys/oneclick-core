@@ -44,7 +44,11 @@ class Trip < ApplicationRecord
 
   ### SCOPES ###
   # Trips where users under an input transportation agency
-  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id))}
+  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id).pluck(:user_id))}
+  # Trips with no transportation agency
+  scope :with_no_transportation_agency, -> {where.not(user_id: TravelerTransitAgency.where(
+    transportation_agency_id: TransportationAgency.all.pluck(:id)
+  ).pluck(:user_id))}
 
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }

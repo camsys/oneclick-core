@@ -24,13 +24,13 @@ namespace :agency_restriction do
 
   desc "Seed Unaffiliated Users"
   task seed_unaffiliated_users: :environment do
-    us = User.where(email: 'test-unaffiliated-staff@camsys.com').first_or_create do |user|
+    us = User.where(email: 'test-unaffiliated-staff@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:staff)
       puts 'Creating test unaffiliated staff user'
     end
-    ua = User.where(email: 'test-unaffiliated-admin@camsys.com').first_or_create do |user|
+    ua = User.where(email: 'test-unaffiliated-admin@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:admin)
@@ -43,13 +43,13 @@ namespace :agency_restriction do
   desc "Seed Transportation  Users"
   task seed_transportation_users: :environment do
     ta = TransportationAgency.first
-    us = User.where(email: 'test-transportation-staff@camsys.com').first_or_create do |user|
+    us = User.where(email: 'test-transportation-staff@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       ta.add_staff(user)
       puts 'Creating test transportation staff user'
     end
-    ua = User.where(email: 'test-transportation-admin@camsys.com').first_or_create do |user|
+    ua = User.where(email: 'test-transportation-admin@faketest.com').first_or_create do |user|
       user.password = 'guest1'
       user.password_confirmation = 'guest1'
       user.add_role(:admin)
@@ -66,14 +66,16 @@ namespace :agency_restriction do
     puts "Seeding default oversight agency"
     oa = OversightAgency.find_or_create_by(name: "Test Oversight Agency",
                                            email: "test_oversight_agency@oneclick.com",
-                                           published:true)
+                                           published:true) do |oa|
+      oa.agency_type = AgencyType.find_by(name: "OversightAgency")
+    end
     [
       {
-        email: "test-oversight-staff@camsys.com",
+        email: "test-oversight-staff@faketest.com",
         password: 'guest1',
         password_confirmation: 'guest1',
       },      {
-        email: "test-oversight-admin@camsys.com",
+        email: "test-oversight-admin@faketest.com",
         password: 'guest1',
         password_confirmation: 'guest1',
       },
@@ -93,7 +95,18 @@ namespace :agency_restriction do
 
   desc "Add Penn DOT oversight agency and associate other transit agencies to it"
   task add_penn_dot: :environment do
-    penn_dot = OversightAgency.find_or_create_by(
+    penn_dot = OversightAgency.find_or_create_by(name: "Penn DOT") do |oa|
+      oa.published = true
+      # Assign to Agency Type of Oversight Agency or it won't write
+      oa.agency_type = AgencyType.find_by(name:'OversightAgency')
+    end
+    penn_dot.save
+    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type&.name}"
+  end
+
+  desc "Assigning all Transportation Agencies to Penn DOT"
+  task assign_agency_to_penn_dot: :environment do
+    penn_dot = OversightAgency.find_by(
       name: "Penn DOT",
       published: "true"
     )
@@ -110,18 +123,27 @@ namespace :agency_restriction do
 
   desc "Assign staff and admin with an @pa.gov email to Penn DOT"
   task assign_staff_to_penn_dot: :environment do
+    final_message = []
     # Search for Staff and admin with a pa.gov email
-    pa_gov_staff = User.staff_for_none.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
+    pa_gov_staff = User.where("users.email ~* :pagov", :pagov => '\@pa\.gov')
     ar = %w[]
     pa_gov_staff.each do |user|
+      roles_removed = ""
       # Make all current Penn DOT admin staff by default
       # SHOULD BE UPDATED LATER
-      user.remove_role(:admin)
+      user.roles.each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        user.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
       user.set_staff_role(OversightAgency.find_by(name: 'Penn DOT'))
+      final_message << "#{user.email} changed to #{user.roles&.last&.name} for #{user.staff_agency&.name}, removed #{roles_removed}"
       ar.push(user.email)
     end
 
-    puts "The following users with emails have been assigned to Penn DOT: #{ar.to_s}"
+    puts "The following users with emails have been assigned to Penn DOT"
+    puts final_message.to_s
     puts "NOTE: ALL PREVIOUS ADMINS HAVE BEEN CHANGED TO BE STAFF"
   end
 
@@ -158,28 +180,64 @@ namespace :agency_restriction do
 
   end
 
-  desc "Associate staff with transit agencies"
-  task associate_transit_staff: :environment do
-    rabbit = TransportationAgency.find_or_create_by(name: "Rabbit")
-    delaware = TransportationAgency.find_or_create_by(name: "Delaware County")
-    count_rabbit = 0
-    count_delaware = 0
-    User.any_staff_admin_for_none.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
-      staff.remove_role(:admin)
-      staff.set_staff_role(delaware)
-      count_delaware+=1
-    end
+  desc "Associate transit staff with Rabbit Transit"
+  task associate_transit_staff_to_rabbit: :environment do
+    rabbit = TransportationAgency.find_or_create_by(name: "Rabbit") do |ta|
+      if ta&.agency_type&.name != 'TransportationAgency'
+        ta.agency_type = AgencyType.find_by(name:'TransportationAgency')
+        puts "Created Rabbit Transportation Agency"
+      end
 
-    User.any_staff_admin_for_none.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
-      staff.remove_role(:admin)
-      staff.set_staff_role(rabbit)
-      count_rabbit+=1
     end
-    puts "#{count_rabbit} staff assigned to Rabbit, #{count_delaware} staff assigned to Delaware"
+    count = 0
+    final_message=[]
+    User.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
+      roles_removed = ""
+      # Remove all roles attached to the current camsys user
+      staff.roles.reverse_each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        staff.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
+      # Add staff role to the current Rabbit user
+      staff.set_role(:staff,rabbit)
+      final_message << "#{staff.email} changed to #{staff.roles.last&.name} for #{staff.staff_agency&.name}, removed #{roles_removed}"
+    end
+    puts "The following users with emails have been assigned to Rabbit"
+    puts final_message.to_s
   end
 
-  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
-  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_staff_to_penn_dot]
+  desc "Associate transit staff with Delaware County Transit"
+  task associate_transit_staff_to_delaware: :environment do
+    delaware = TransportationAgency.find_or_create_by(name: "Delaware County") do |ta|
+      if ta&.agency_type&.name != 'TransportationAgency'
+        ta.agency_type = AgencyType.find_by(name:'TransportationAgency')
+        puts "Created Delaware County Transportation Agency"
+      end
+    end
+    if delaware.nil?
+      next
+    end
+    count = 0
+    final_message = []
+    User.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
+      roles_removed = ""
+      # Remove all roles attached to the current camsys user
+      staff.roles.reverse_each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        staff.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
+      # Add staff role to the current Delaware County staff user
+      staff.set_role(:staff,delaware)
+      final_message << "#{staff.email} changed to #{staff.roles.last&.name} for #{staff.staff_agency&.name}, removed #{roles_removed}"
+    end
+    puts "The following users with emails have been assigned to Delaware County"
+    puts final_message.to_s
+  end
+
 
   desc "Update partner agencies so they're oversight agencies"
   task update_partner_agencies: :environment do
@@ -192,28 +250,81 @@ namespace :agency_restriction do
     puts "#{names.to_s} Partner agencies have been updated to oversight agencies"
   end
 
-  desc "Add agency type to existing agencies"
+  desc "Add agency types"
   task add_agency_type: :environment do
-    %w[PartnerAgency OversightAgency TransportationAgency].each do |type|
-      AgencyType.find_or_create_by(name: type)
+    final_st = ""
+    %w[OversightAgency TransportationAgency].each do |type|
+      ag_t =AgencyType.find_or_create_by(name: type)
+      final_st +="#{ag_t.name}, "
     end
+    puts "Agency types created: #{final_st}"
   end
 
   desc "Associate agencies with agency_type"
   task associate_agency_type: :environment do
+    count = 0
     Agency.all.each do |ag|
       ag.update(agency_type_id:AgencyType.find_by(name: ag.type).id)
+      count += 1
     end
+    puts "#{count} Agencies have been updated to use the AgencyType table"
   end
+
+  desc "Promote CamSys users to admin for Penn DOT"
+  task assign_camsys_to_admin: :environment do
+    final_message = []
+    # TODO: Ask whether or not assigning camsys users to Penn DOT is fine
+    penn_dot = OversightAgency.find_by name: "Penn DOT"
+    User.where("users.email ~* :camsys", :camsys => 'camsys\.com').each do |staff|
+      # Don't change the staff user if their email doesn't have test OR if they're the initial 1-click@camsys.com user
+      # - the extra REGEX is for test users currently on QA that have @camsys.com as their email domain
+      if !/^test/.match(staff.email).nil? || staff.email == '1-click@camsys.com'
+        next
+      end
+      roles_removed = ""
+      # Remove all roles attached to the current camsys user
+      staff.roles.reverse_each do |role|
+        role_name = role.name
+        role_resource = role.resource
+        staff.remove_role(role.name,role.resource)
+        roles_removed += "#{role_name} for #{role_resource},"
+      end
+      # Add admin role to the current camsys user
+      staff.set_role(:admin,penn_dot)
+      final_message << "#{staff.email} changed to admin, removed #{roles_removed}"
+    end
+    puts final_message.to_s
+  end
+
+  # NOTE: THIS ONLY GETS RUN IF PARTNER AGENCY IS ADDED AS AN AGENCY TYPE
+  desc "Remove Partner Agency Type"
+  task remove_partner_agency_type: :environment do
+    pa = PartnerAgency.all
+    if pa.length > 0
+      raise StandardError.new "More than 0 Partner Agencies exist, bailing out"
+    end
+    ag_type = AgencyType.find_by(name: "PartnerAgency").delete
+
+    puts "Deleted Agency Type: #{ag_type.name}"
+  end
+
+  desc "Associate staff with Rabbit/ Delaware County transit agencies"
+  task associate_transit_staff: [:associate_transit_staff_to_rabbit,:associate_transit_staff_to_delaware]
+
+  desc "Create Penn DOT, and assign all transit agencies/ staff to Penn DOT"
+  task create_and_assign_to_penn_dot:  [:add_penn_dot, :assign_agency_to_penn_dot,:assign_staff_to_penn_dot]
+
+  desc "Associate Travelers to respective tables"
+  task associate_travelers_to_tables:  [:associate_travelers_to_county, :associate_travelers_to_agency]
 
   desc "Do all but update partner agencies for QA"
   task all_qa: [:add_admin, :update_default_admin, :seed_unaffiliated_users,:seed_transportation_users,
-        :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,
-        :associate_travelers_to_county, :associate_travelers_to_agency,
-        :associate_service_to_penn_dot, :associate_transit_staff, :associate_agency_type]
+        :seed_oversight_agency,:add_agency_type ,:create_and_assign_to_penn_dot,:associate_agency_type,
+        :associate_travelers_to_tables,
+        :associate_service_to_penn_dot, :associate_transit_staff,:assign_camsys_to_admin]
   desc "Do all but update partner agencies for production"
   task all_prod: [:add_admin, :update_default_admin,
-        :create_and_assign_to_penn_dot,:associate_travelers_to_county,
-        :associate_travelers_to_agency, :associate_service_to_penn_dot,
-        :associate_transit_staff, :associate_agency_type]
+        :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
+        :associate_travelers_to_tables,
+        :associate_transit_staff, :assign_camsys_to_admin]
 end

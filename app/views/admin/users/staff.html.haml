@@ -27,11 +27,13 @@
         -unless member.last_sign_in_at.nil?
           =member.last_sign_in_at.to_formatted_s(:long)
 
-= simple_form_for @user,
-    url: admin_users_path,
-    html: {method: :post, class: "form-horizontal" },
-    authenticity_token: true do |f|
-  =render partial: 'new_user', layout: '/layouts/new_record_panel', locals: {f: f}
+-# If the current user can manage user roles and create users, then render create new user form
+- if can?(:create, User) && can?(:manage, Role)
+  = simple_form_for @user,
+      url: admin_users_path,
+      html: {method: :post, class: "form-horizontal" },
+      authenticity_token: true do |f|
+    =render partial: 'new_user', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript
   $(document).ready(function() {

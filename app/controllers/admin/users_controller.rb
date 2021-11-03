@@ -1,7 +1,7 @@
 class Admin::UsersController < Admin::AdminController
 
   # before_action :initialize_user, only: [:index, :create]
-  authorize_resource :except => [:travelers, :staff]
+  authorize_resource
   before_action :load_user
   before_action :load_staff
 
@@ -47,30 +47,28 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def travelers
-    if current_user.superuser?
-      @travelers = User.travelers
-    elsif current_user.transportation_admin? || current_user.transportation_staff?
-      @travelers = current_user.travelers_for_staff_agency
-    elsif current_user.currently_oversight?
-      @travelers = current_user.travelers_for_oversight_agency
-    else
-      @travelers = current_user.travelers_for_agency(current_user.current_agency)
-    end
+    @travelers = current_user.get_travelers_for_staff_user
   end
 
   def staff
-      if current_user.superuser?
-        @staff = User.any_role
-      elsif current_user.currently_oversight? && current_user.oversight_admin?
-        oa = current_user.staff_agency
-        tas = TransportationAgency.where(id:oa.agency_oversight_agency.pluck(:transportation_agency_id))
-        @staff = User.any_staff_admin_for_agencies(tas)
-      elsif current_user.currently_transportation? && current_user.oversight_admin?
-        @staff = User.any_staff_admin_for_agency(current_user.current_agency)
-        # otherwise the current user is probably transportation staff
-      else
-        @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
-      end
+    # If the current user is a superuser
+    if current_user.superuser?
+      @staff = User.any_role
+    # else if the current user is currently browsing as the oversight admin/ staff
+    # - then see all oversight staff/admin AND associated transportation agency staff/admin
+    elsif current_user.currently_oversight?
+      @staff = current_user.any_users_for_staff_agency
+    # else if the current user is currently browsing as a transportation agency
+    elsif current_user.currently_transportation?
+      @staff = current_user.any_users_for_current_agency
+    # else if the current user decides to view as an unaffiliated user
+    elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
+      # Return services with no transportation agency and oversight agency
+      @staff = User.any_staff_admin_for_none
+      # otherwise the current user is probably transportation staff
+    else
+      @staff = current_user.any_users_for_staff_agency
+    end
   end
 
   def update
@@ -84,6 +82,11 @@ class Admin::UsersController < Admin::AdminController
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
+    if roles != '' && staff_agency != ''
+      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
+      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
+      replace_user_role(roles,staff_agency)
+    end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
@@ -107,22 +110,20 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def change_agency
-    agency = Agency.find(params[:agency_id])
-    if !agency.nil?
-      current_user.current_agency = agency
-      current_user.save!
-    end
+    agency = Agency.find_by(id:params[:agency][:id])
+    current_user.current_agency = agency
+    current_user.save!
 
     redirect_back(fallback_location: root_path)
   end
   private
   def set_user_role(role, agency_id)
-    agency = Agency.find(agency_id)
+    ag = agency_id.present? ? Agency.find_by(id:agency_id) : nil
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, agency) && (can? :manage, Role)
-        @user.set_role(role, agency)
+      if ((can? :read, ag) || ag.nil?) && (can? :manage, Role)
+        @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
       end
@@ -130,6 +131,23 @@ class Admin::UsersController < Admin::AdminController
     end
   end
 
+  def replace_user_role(role, agency_id)
+    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    User.transaction do
+      # If the user can read the selected agency and manage roles
+      # then assign the input role and agency to the user
+      if (can? :read, ag || ag.nil?) && (can? :manage, Role)
+        last_role = @user.roles.last
+        @user.remove_role(last_role.name,last_role.resource)
+        @user.set_role(role, ag)
+      else
+        raise ActiveRecord::Rollback
+      end
+      raise ActiveRecord::Rollback unless @user.valid?
+    end
+  end
+
+  # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
   def set_superuser_role(admin_param)
     return false if admin_param.nil?
