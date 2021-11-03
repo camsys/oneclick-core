@@ -145,6 +145,10 @@ module RoleHelper
     admin? && agencies.any? { |a| a.oversight? }
   end
 
+  def unaffiliated_user?
+    (admin? || staff?) && roles.length == 1 && roles.first.resource.nil?
+  end
+
   # Check to see if the user is a traveler (i.e. has no roles)
   def traveler?
     !admin_or_staff?
