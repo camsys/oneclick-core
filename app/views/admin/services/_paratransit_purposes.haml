@@ -1,3 +1,8 @@
+- ## LOCALS:
+-# should_be_readonly: A boolean meant to represent whether or not the current user
+-# can update the form
+- should_be_readonly = !local_assigns[:can_update]
+
 =content_for :header do
   Purposes
 
@@ -6,7 +11,7 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  = f.association :purposes, as: :check_boxes
+  = f.association :purposes, as: :check_boxes, disabled: should_be_readonly
 
 :javascript
   $(document).ready(function() {

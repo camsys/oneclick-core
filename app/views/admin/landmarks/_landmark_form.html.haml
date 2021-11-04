@@ -1,8 +1,8 @@
-= f.input :name, required: true, :as => :string
-= f.input :street_number, required: false, :as => :string
-= f.input :route, required: false, :as => :string
-= f.input :city, required: false, :as => :string
-= f.input :state, required: false, :as => :string
-= f.input :zip, required: false, :as => :string
-= f.input :lat, required: true, :as => :string
-= f.input :lng, required: true, :as => :string
+= f.input :name, required: true, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :street_number, required: false, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :route, required: false, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :city, required: false, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :state, required: false, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :zip, required: false, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :lat, required: true, :as => :string, readonly: (cannot? :update, @landmark)
+= f.input :lng, required: true, :as => :string, readonly: (cannot? :update, @landmark)

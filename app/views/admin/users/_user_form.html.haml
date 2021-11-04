@@ -1,8 +1,23 @@
-= f.input :email, required: true, :as => :string
-= f.input :first_name, required: false, :as => :string
-= f.input :last_name, required: false, :as => :string
-= f.input :password, required: true, :as => :password
-= f.input :password_confirmation, required: true, :as => :password
+= f.input :email,
+  required: true,
+  :as => :string,
+  readonly: (cannot? :update, @user)
+= f.input :first_name,
+  required: false,
+  :as => :string,
+  readonly: (cannot? :update, @user)
+= f.input :last_name,
+  required: false,
+  :as => :string,
+  readonly: (cannot? :update, @user)
+= f.input :password,
+  required: true,
+  :as => :password,
+  readonly: (cannot? :update, @user)
+= f.input :password_confirmation,
+  required: true,
+  :as => :password,
+  readonly: (cannot? :update, @user)
 
 -# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
   then display the role management form

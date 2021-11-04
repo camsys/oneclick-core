@@ -36,13 +36,13 @@ class Ability
         id: user.accessible_staff.pluck(:id)
       can :read, Service,               # Can read services under that user and services with no agency
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
-      can :read, Alert                # Can manage alerts
+      can [:read, :edit], Alert                # Can manage alerts
       can :read, :report         # Can read reports
-      can :read, Eligibility
-      can :read, Accommodation
-      can :read, Purpose
+      can [:read,:edit], Eligibility
+      can [:read,:edit], Accommodation
+      can [:read,:edit], Purpose
       can :read, GeographyRecord
-      can :read, Landmark
+      can [:read, :edit], Landmark
 
 
       ## TransportationAgency Staff Permissions ##

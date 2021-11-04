@@ -1,33 +1,33 @@
+- can_update = (can? :update, @service)
 =content_for :title do
-  = "Editing #{@service.type} Service: #{@service.name}"
-
+  = "#{can_update ? "Editing" : "Viewing"} #{@service.type} Service: #{@service.name}"
 =content_for :last_updated do
   = "Last Updated: #{@service.updated_at.strftime('%b %e, %Y at %I:%M %p')}"
 
-=render partial: 'service_general_info', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-=render partial: 'service_description', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+=render partial: 'service_general_info', layout: '/layouts/panel', locals: {hide_footer: !can_update, can_update: can_update}
+=render partial: 'service_description', layout: '/layouts/panel', locals: {hide_footer: !can_update, can_update: can_update}
 
 -case @service.type
 -when 'Transit'
-  =render partial: 'transit_details', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+  =render partial: 'transit_details', layout: '/layouts/panel', locals: {hide_footer: !can_update, can_update: can_update}
+  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: !can_update, can_update: can_update}
 -when 'Paratransit'
-  =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'paratransit_schedules', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'paratransit_booking', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+  =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'paratransit_schedules', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'paratransit_booking', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
 -when 'Taxi'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'taxi_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'taxi_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'service_fares', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
 -when 'Uber'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'uber_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'uber_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
 -when 'Lyft'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
-  =render partial: 'lyft_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service)}
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
+  =render partial: 'lyft_service_area', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @service), can_update: can_update}
   
 =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_delete: (cannot? :delete, @service), hide_footer: true }
 

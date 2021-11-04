@@ -1,10 +1,10 @@
 =content_for :header do
-  ="Edit Eligibility"
+  ="#{(can? :update, @eligibility) ? "Editing" : "Viewing"} Eligibility"
 
 =simple_form_for @eligibility,
   url: admin_eligibility_path, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
-  = f.input :rank, required:true, as: :integer
+  = f.input :rank, required:true, as: :integer, readonly: (cannot? :update, @eligibility)
 
 
   =remote_form_input
@@ -12,9 +12,9 @@
   -I18n.available_locales.each do |locale|
     %h3.text-center
       =locale
-    = f.input "#{locale}_name", label:"Name", :as => :string
-    = f.input "#{locale}_note", label:"Note", :as => :text
-    = f.input "#{locale}_question", label:"Question", :as => :text
+    = f.input "#{locale}_name", label:"Name", :as => :string, readonly: (cannot? :update, @eligibility)
+    = f.input "#{locale}_note", label:"Note", :as => :text, readonly: (cannot? :update, @eligibility)
+    = f.input "#{locale}_question", label:"Question", :as => :text, readonly: (cannot? :update, @eligibility)
 
 :javascript
   $(document).ready(function() {

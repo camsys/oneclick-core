@@ -1,7 +1,8 @@
 =content_for :title do
   = @eligibility.code
 
-=render partial: 'edit_eligibility', layout: '/layouts/panel'
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+=render partial: 'edit_eligibility', layout: '/layouts/panel', locals: { hide_footer: (cannot? :update, @eligibility) }
+-if can? :delete, @eligibility
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 =back_link admin_eligibilities_path, label: "All Eligibilities"
