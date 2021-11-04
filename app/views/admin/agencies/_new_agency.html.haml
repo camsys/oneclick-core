@@ -9,10 +9,10 @@
   - if current_user.staff_agency&.oversight?
     = foa.input :oversight_agency_id,
       readonly: true,
-      collection: [current_user.staff_agency],
+      collection: @agencies,
       include_blank: 'Select an Oversight Agency',
       label_method: :name,
-      selected: current_user.staff_agency,
+      selected: current_user.staff_agency&.id,
       class: 'hidden',
       wrapper_html: {id: 'oversight_select'}
   -# Otherwise, if they're a superuser, render a dropdown

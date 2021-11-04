@@ -5,9 +5,11 @@ class Admin::AgenciesController < Admin::AdminController
   def index
     if current_user.superuser?
       @agencies = @agencies.order(:name)
-    elsif current_user.oversight_admin? ||current_user.oversight_staff?
+    elsif current_user.staff_agency&.oversight?
       # Get all agencies associated with that oversight agency, and it'self
-      @agencies = current_user.accessible_agencies.order(:name)
+      @agencies = Agency.querify([current_user.staff_agency])
+    elsif current_user.transportation_staff? || current_user.transportation_admin?
+      @agencies = Agency.querify([current_user.staff_agency])
     end
   end
   
