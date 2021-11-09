@@ -1,7 +1,7 @@
 - ## LOCALS:
 -# should_be_readonly: A boolean meant to represent whether or not the current user
 -# can update the form
-- should_be_readonly = !local_assigns[:can_update]
+- should_be_readonly = (cannot? :update, @service)
 
 =content_for :header do
   Booking

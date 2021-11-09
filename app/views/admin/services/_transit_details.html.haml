@@ -1,7 +1,7 @@
 - ## LOCALS:
 -# is_readonly: A boolean meant to represent whether or not the current user
 -# can update the form
-- is_readonly = !local_assigns[:can_update]
+- is_readonly = (cannot? :update, @service)
 
 =content_for :header do
   Transit Details
