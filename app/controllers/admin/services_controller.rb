@@ -61,38 +61,39 @@ class Admin::ServicesController < Admin::AdminController
   def update
     os_params = oversight_params
     s_params = service_params
-    @service.update_attributes(s_params)
     if os_params.present?
       oversight_agency_id = os_params[:oversight_agency_id]
       transportation_agency_id = s_params[:agency_id]
-      # If the service doesn't have a service oversight agency and has an agency assigned
-      if @service.service_oversight_agency.nil?
-        is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-        if is_not_included == true
-          @service.errors.add(:agency,"Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the agencies updated.")      else
-          ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+      # If agency combination is bad, then redirect with an error message
+      if is_not_included == true
+        respond_with_partial_or do
+          redirect_to admin_service_path(@service)
         end
-        # Assign the transportation agency based on the passed in id after validating the
-        # chosen Oversight Agency and Transportation Agency
-      else
-        # update the existing service_oversight_agency if it's valid
-        is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-        if is_not_included == true
+        return
+        # Else if is_not_included is false/ valid combination of oversight agency and transportation agency
+        # ... update the service_oversight_agency with the new oversight_agency
+      elsif is_not_included == false || is_not_included.nil?
+        # update the existing service_oversight_agency if it's valid and exists
+        if @service.service_oversight_agency.present?
+          @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id)
         else
-          @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id,
-                                                   service_id: @service.id)
+          ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id,service_id: @service.id)
         end
       end
+      # Finally update service attributes(in this case agency_id)
+      @service.update_attributes(s_params)
+    # if no oversight_params then just update service attributes as normal
+    else
+      @service.update_attributes(s_params)
     end
 
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
-    # If a partial_path parameter is set, serve back that partial
     flash[:success] = "#{@service.name} updated successfully."
 
-    # flash[:danger] = err_message unless err_message.nil?
-    # What does respond_with_partial_or do that just extracting the block contents and using that doesn't?
+    # If a partial_path parameter is set, serve back that partial
     respond_with_partial_or do
       redirect_to admin_service_path(@service)
     end    
@@ -155,7 +156,7 @@ class Admin::ServicesController < Admin::AdminController
     is_included = associated_tas.include?(ta)
 
     unless is_included
-      flash[:danger] = err_message
+      @service.errors.add(:agency,err_message)
     end
 
     !is_included
