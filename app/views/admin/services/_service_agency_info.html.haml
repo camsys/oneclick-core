@@ -2,6 +2,13 @@
 -# should_be_readonly: A boolean meant to represent whether or not the current user
 -# can update the form
 - should_be_readonly = (cannot? :update, @service)
+-# NOTE: this is duplicated from Admin::ServicesController#show as Rails/ Turbolinks
+  ...does some tricky redirecting to enable users to only reload the micro-form that got updated.
+  ...Downside is, the partial loses access to the instance variables so they need to be redeclared
+-accessible_oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ? current_user.accessible_oversight_agencies.to_a : [current_user.staff_agency&.agency_oversight_agency&.oversight_agency]
+-accessible_transportation_agencies = current_user.get_transportation_agencies_for_user.to_a
+-@transportation_agencies ||= Agency.querify(accessible_transportation_agencies.concat([@service&.agency])).order(:name)
+-@oversight_agencies ||= Agency.querify(accessible_oversight_agencies.concat([@service.service_oversight_agency&.oversight_agency])).order(:name)
 
 =content_for :header do
   Agency Info
@@ -15,14 +22,14 @@
     required: true,
     include_blank: 'Select a Transportation Agency for the Service',
     selected: @service.agency&.id ,
-    collection: current_user.accessible_transportation_agencies.order(:name),
+    collection: @transportation_agencies,
     readonly: (@service && (cannot? :update, @service)) ||(@service.nil? && (can? :create, Service))
   =simple_form_for :oversight do |foa|
     = foa.input :oversight_agency_id,
         as: :select,
-        collection: current_user.accessible_oversight_agencies.order(:name),
+        collection: @oversight_agencies,
         required: true,
-        readonly: should_be_readonly,
+        readonly: should_be_readonly && !current_user.superuser?,
         include_blank: 'Select an Oversight Agency for the Service',
         label_method: :name,
         value_method: :id,

@@ -49,6 +49,13 @@ class Admin::ServicesController < Admin::AdminController
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     # @service.build_comments # Builds a comment for each available locale
+    #
+    accessible_oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
+                            current_user.accessible_oversight_agencies.to_a :
+                            [current_user.staff_agency&.agency_oversight_agency&.oversight_agency]
+    accessible_transportation_agencies = current_user.get_transportation_agencies_for_user.to_a
+    @oversight_agencies = Agency.querify(accessible_oversight_agencies.concat([@service.service_oversight_agency&.oversight_agency])).order(:name)
+    @transportation_agencies = Agency.querify(accessible_transportation_agencies.concat([@service&.agency])).order(:name)
   end
 
   def update
