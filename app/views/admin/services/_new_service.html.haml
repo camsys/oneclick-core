@@ -3,18 +3,21 @@
 
 = f.input :name, required: true, :as => :string
 = f.input :type, required: true, collection: Service::SERVICE_TYPES, include_blank: "Select a Service Type"
+-# Transportation Agency field is readonly if the user is not a super user or an oversight user
+= f.input :agency_id,
+  collection: @transportation_agencies,
+  readonly: !current_user.superuser? && !current_user.oversight_admin? && !current_user.oversight_staff?,
+  required:true,
+  include_blank: 'Select a Transportation Agency for the new Service',
+  label_method: :name,
+  label: "Transportation Agency",
+  selected: @default_agency&.id,
+  wrapper_html: {id: 'oversight_select'}
 =simple_form_for :oversight do |foa|
-  = f.input :agency_id,
-    collection: @transportation_agencies,
-    required:true,
-    include_blank: 'Select a Transportation Agency for the new Service',
-    label_method: :name,
-    selected: @default_agency&.id,
-    wrapper_html: {id: 'oversight_select'}
   - default_oversight = current_user.staff_agency&.transportation? ? current_user.staff_agency&.agency_oversight_agency&.oversight_agency&.id : current_user.staff_agency&.id
   = foa.input :oversight_agency_id,
       collection: @oversight_agencies,
-      readonly: !current_user.superuser? && !current_user.oversight_admin? && !current_user.transportation_admin?,
+      readonly: !current_user.superuser?,
       required:true,
       include_blank: 'Select an Oversight Agency for the new Service',
       label_method: :name,

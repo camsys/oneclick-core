@@ -27,17 +27,18 @@ class Admin::ServicesController < Admin::AdminController
     s_params = service_params
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
-    # Validate input oversight agency and transportation agency first
-    # if oversight is empty/ a bad combo of oversight, then redirect
-    is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-    if is_not_included == true
-      redirect_to admin_services_path
-      return
-    end
+
   	if @service.update_attributes(service_params)
-      # Assign the transportation agency based on the passed in id
-      # chosen Oversight Agency and Transportation Agency
-      ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      # if oversight is empty/ a bad combo of oversight, then redirect
+      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+      if is_not_included == true
+        redirect_to admin_services_path
+        return
+        # else if, valid agency combo OR validate_agencies_choices returned nil,
+        # ...then create the association even if oversight agency might be empty
+      elsif is_not_included == false || is_not_included.nil?
+        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      end
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -133,10 +134,11 @@ class Admin::ServicesController < Admin::AdminController
   # Validates oversight and transportation agency choice
   def validate_agencies_choices(oversight_id, transportation_id)
     # If either are empty, or if the Service is a Taxi service, return false
-    is_empty = oversight_id&.empty? || transportation_id&.empty?  && !Service::TAXI_SERVICES.include?(@service.type)
+    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
+    is_empty = oversight_id&.empty? || transportation_id&.empty?
+    # if either oversight id or transportation id is empty, don't validate
     if is_empty
-      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
-      return is_empty
+      return nil
     end
 
     oa = OversightAgency.find oversight_id
@@ -146,8 +148,7 @@ class Admin::ServicesController < Admin::AdminController
     is_included = associated_tas.include?(ta)
 
     unless is_included
-      # @service.errors.add :agency,:bad_combo, message: "Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the agencies updated."
-      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the Oversight Agency updated."
+      flash[:danger] = err_message
     end
 
     !is_included
