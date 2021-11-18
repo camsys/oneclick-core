@@ -73,12 +73,16 @@ class Admin::AgenciesController < Admin::AdminController
 
   private
   def get_all_agency_types
-    @agency_types = AgencyType.all
+    if current_user.superuser?
+      @agency_types = AgencyType.all
+    else
+      @agency_types = AgencyType.querify([AgencyType.find_by(name: 'TransportationAgency')])
+    end
   end
 
   def oversight_params
     oversight = params.delete(:oversight)
-    oversight.try(:oversight_agency_id)
+    oversight["oversight_agency_id"]
   end
 
   def agency_params

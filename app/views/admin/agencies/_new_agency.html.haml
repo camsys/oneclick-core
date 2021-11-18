@@ -2,7 +2,12 @@
   = "Create a New Agency"
 
 = f.input :name, required: true, as: :string
-= f.input :agency_type_id, required: true, collection: AgencyType.all, include_blank: "Select an Agency Type"
+= f.input :agency_type_id,
+  selected: !current_user.superuser? && @agency_types.first&.id,
+  readonly: !current_user.superuser?,
+  required: true,
+  collection: @agency_types,
+  include_blank: "Select an Agency Type"
 =simple_form_for :oversight do |foa|
   -# Automatically assign the new agency to the current user's oversight agency
     if they are an oversight agency admin
