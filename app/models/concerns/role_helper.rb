@@ -205,6 +205,10 @@ module RoleHelper
     self.current_agency&.transportation?
   end
 
+  def currently_viewing_as_none?
+    self.current_agency&.nil? && self.staff_agency.oversight?
+  end
+
   def any_users_for_staff_agency
     User.any_staff_admin_for_agency(self.staff_agency)
   end
