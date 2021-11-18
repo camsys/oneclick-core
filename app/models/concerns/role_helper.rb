@@ -343,9 +343,7 @@ module RoleHelper
     # If current user is viewing as oversight staff => return Trips associated with all agencies under the oversight agency
     # If current user is viewing as transportation agency staff => return Trips associated with the current transportation agency
     # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
-    if self.traveler? || self.staff_agency.nil?
-      nil
-    elsif self.superuser?
+    if self.superuser?
       Trip.all
     elsif self.transportation_admin? || self.transportation_staff?
       Trip.with_transportation_agency(self.staff_agency.id)
