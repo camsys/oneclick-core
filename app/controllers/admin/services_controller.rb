@@ -112,21 +112,20 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def get_services_for_current_user
-    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     # NOTE: Includes unaffiliated Services by default
     if current_user.superuser?
       @services
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
-      always_unaffiliated_services + Service.with_oversight_agency(oa).order(agency_id: :desc)
+      Service.with_oversight_agency(oa).order(agency_id: :desc)
     elsif current_user.currently_transportation?
-      always_unaffiliated_services+Service.where(agency_id: current_user.current_agency.id)
+      Service.where(agency_id: current_user.current_agency.id)
       # otherwise the current user is probably transportation staff
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
       Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
-      always_unaffiliated_services+Service.where(agency_id: current_user.staff_agency.id)
+      Service.where(agency_id: current_user.staff_agency.id)
     end
   end
 
