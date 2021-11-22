@@ -29,7 +29,7 @@ class Ability
       end
 
       ## General Staff Permissions ##
-      can [:read, :update], Agency,     # Can read or update their own agency
+      can [:read, :show], Agency,     # Can read or update their own agency
         id: user.staff_agency.try(:id)
       # NOTE: :staff and :travelers are specified due to how cancan? plugs into Rails Controller actions and authorizes users
       can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
@@ -66,7 +66,6 @@ class Ability
             id: user.accessible_staff.pluck(:id).concat(user.travelers_for_current_agency.pluck(:id))
 
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
-        can :read, Agency
         can :read, Service,
             id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :change_agency, User,
