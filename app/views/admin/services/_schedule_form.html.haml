@@ -1,12 +1,15 @@
+- can_update = local_assigns[:can_update]
 =f.simple_fields_for :schedules, schedules, include_id: false do |sched_form|
   .schedule-body
     =sched_form.input :day, wrapper_html: {class: 'hidden'}, input_html: {class: 'day', name: input_name(f, :schedules, :day)}
     =sched_form.input :start_time,
+      readonly:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
       input_html: {name: input_name(f, :schedules, :start_time), class: 'schedule-input start-time'}
     %span to
     =sched_form.input :end_time,
+      readonly:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
       input_html: {name: input_name(f, :schedules, :end_time), class: 'schedule-input end-time'}
@@ -16,5 +19,5 @@
     =sched_form.input :_destroy,
       wrapper_html: {class: 'hidden'},
       input_html: {class: 'destroy', name: input_name(f, :schedules, :_destroy), value: false}
-    .btn.btn-link.delete-schedule
+    %button.btn.btn-link.delete-schedule{type:"button", disabled: can_update == false}
       %span.glyphicon.glyphicon-remove
