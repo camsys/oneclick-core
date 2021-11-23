@@ -7,5 +7,5 @@
                 collection: @agencies,
                 label: 'Transportation Agency',
                 selected: @agencies&.length == 1 ? @agencies&.first.id : nil,
-                readonly: !current_user.superuser? && !current_user.oversight_admin? && !current_user.transportation_admin?,
+                readonly: !current_user.superuser? && !current_user.currently_oversight?,
                 include_blank: "Select a Transportation Agency"
