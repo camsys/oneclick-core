@@ -354,7 +354,7 @@ module RoleHelper
       Trip.with_transportation_agency(tas)
     elsif self.currently_transportation?
        Trip.with_transportation_agency(self.current_agency.id)
-    elsif self.staff_agency.oversight? && self.current_agency.nil?
+    elsif self.staff_agency&.oversight? && self.current_agency.nil?
       Trip.with_no_transportation_agency
       # Fallback just in case an edge case is missed
     else
