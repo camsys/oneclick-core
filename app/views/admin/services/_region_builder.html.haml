@@ -17,5 +17,5 @@
     .add-ingredient
       .ingredient-input
         .input-group
-          %input.form-control.string.optional.region-input{type: 'text', placeholder: 'add a region'}
+          %input.form-control.string.optional.region-input{type: 'text', placeholder: 'add a region', readonly: (cannot? :update, @service)}
         .dropdown.region-results{style: 'position:absolute; z-index:500'}
