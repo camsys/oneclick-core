@@ -1,24 +1,28 @@
-- can_update_user = can? :update, @user
+-# NOTE: The local_assigns[:action] locals needs to exist so that we can set form inputs to readonly
+  properly. Otherwise if @user.nil? == true, like in user creation, then the form locks up which
+  is not desired
+- can_update_user = (can? :update, @user)
+- readonly_field = local_assigns[:action] == 'create' ? true : can_update_user
 = f.input :email,
   required: true,
   :as => :string,
-  readonly: !can_update_user
+  readonly: !readonly_field
 = f.input :first_name,
   required: false,
   :as => :string,
-  readonly: !can_update_user
+  readonly: !readonly_field
 = f.input :last_name,
   required: false,
   :as => :string,
-  readonly: !can_update_user
+  readonly: !readonly_field
 = f.input :password,
   required: true,
   :as => :password,
-  readonly: !can_update_user
+  readonly: !readonly_field
 = f.input :password_confirmation,
   required: true,
   :as => :password,
-  readonly: !can_update_user
+  readonly: !readonly_field
 
 -# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
   then display the role management form
@@ -32,7 +36,7 @@
     prompt: '',
     selected: @user.roles.last.try(:name) || :staff,
     collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
-    readonly: @user.valid? && (@user == current_user || !can_update_user)
+    readonly: @user.valid? && (@user == current_user || !readonly_field)
   = f.input :staff_agency,
       as: :select,
       collection: current_user.accessible_agencies.order(:name),
