@@ -1,23 +1,24 @@
+- can_update_user = can? :update, @user
 = f.input :email,
   required: true,
   :as => :string,
-  readonly: (cannot? :update, @user)
+  readonly: !can_update_user
 = f.input :first_name,
   required: false,
   :as => :string,
-  readonly: (cannot? :update, @user)
+  readonly: !can_update_user
 = f.input :last_name,
   required: false,
   :as => :string,
-  readonly: (cannot? :update, @user)
+  readonly: !can_update_user
 = f.input :password,
   required: true,
   :as => :password,
-  readonly: (cannot? :update, @user)
+  readonly: !can_update_user
 = f.input :password_confirmation,
   required: true,
   :as => :password,
-  readonly: (cannot? :update, @user)
+  readonly: !can_update_user
 
 -# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
   then display the role management form
@@ -31,7 +32,7 @@
     prompt: '',
     selected: @user.roles.last.try(:name) || :staff,
     collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
-    readonly: @user.valid? && (@user == current_user || (cannot? :update, @user))
+    readonly: @user.valid? && (@user == current_user || !can_update_user)
   = f.input :staff_agency,
       as: :select,
       collection: current_user.accessible_agencies.order(:name),

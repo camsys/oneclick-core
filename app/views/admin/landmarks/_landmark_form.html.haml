@@ -1,8 +1,9 @@
-= f.input :name, required: true, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :street_number, required: false, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :route, required: false, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :city, required: false, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :state, required: false, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :zip, required: false, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :lat, required: true, :as => :string, readonly: (cannot? :update, @landmark)
-= f.input :lng, required: true, :as => :string, readonly: (cannot? :update, @landmark)
+- cannot_update_landmark = cannot? :update, @landmark
+= f.input :name, required: true, :as => :string, readonly: cannot_update_landmark
+= f.input :street_number, required: false, :as => :string, readonly: cannot_update_landmark
+= f.input :route, required: false, :as => :string, readonly: cannot_update_landmark
+= f.input :city, required: false, :as => :string, readonly: cannot_update_landmark
+= f.input :state, required: false, :as => :string, readonly: cannot_update_landmark
+= f.input :zip, required: false, :as => :string, readonly: cannot_update_landmark
+= f.input :lat, required: true, :as => :string, readonly: cannot_update_landmark
+= f.input :lng, required: true, :as => :string, readonly: cannot_update_landmark

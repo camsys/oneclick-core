@@ -1,5 +1,5 @@
 =content_for :header do
-  ="#{(can? :update, @user) ? "Editing" : "Viewinging"} User"
+  ="#{(can? :update, @user) ? "Editing" : "Viewing"} User"
 
 =simple_form_for @user,
   url: admin_user_path, authenticity_token: true, data: {type: 'html'},
