@@ -1,7 +1,6 @@
 - ## LOCALS:
 -# should_be_readonly: A boolean meant to represent whether or not the current user
 -# can update the form
-- should_be_readonly = (cannot? :update, @service)
 -# NOTE: this is duplicated from Admin::ServicesController#show as Rails/ Turbolinks
   ...does some tricky redirecting to enable users to only reload the micro-form that got updated.
   ...Downside is, the partial loses access to the instance variables so they need to be redeclared
@@ -23,13 +22,13 @@
     include_blank: 'Select a Transportation Agency for the Service',
     selected: @service.agency&.id ,
     collection: @transportation_agencies,
-    readonly: (@service && (cannot? :update, @service)) ||(@service.nil? && (can? :create, Service))
+    readonly: !current_user.superuser? && !current_user.oversight_admin?
   =simple_form_for :oversight do |foa|
     = foa.input :oversight_agency_id,
         as: :select,
         collection: @oversight_agencies,
         required: true,
-        readonly: should_be_readonly && !current_user.superuser?,
+        readonly: !current_user.superuser?,
         include_blank: 'Select an Oversight Agency for the Service',
         label_method: :name,
         value_method: :id,
