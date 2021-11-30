@@ -41,6 +41,6 @@
       as: :select,
       collection: current_user.accessible_agencies.order(:name),
       label: "Staff for: ",
-      selected: @user.staff_agency&.id || @user.current_agency&.id,
+      selected: @user.staff_agency&.id || @user.current_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id,
       include_blank: "Select an Agency",
-      readonly: @user.id == current_user.id
+      readonly: @user.id == current_user.id  || !(current_user.superuser? || current_user.currently_oversight?)
