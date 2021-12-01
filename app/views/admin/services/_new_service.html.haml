@@ -3,10 +3,10 @@
 
 = f.input :name, required: true, :as => :string
 = f.input :type, required: true, collection: Service::SERVICE_TYPES, include_blank: "Select a Service Type"
--# Transportation Agency field is readonly if the user is not a super user or an oversight user
+-# Transportation Agency field is readonly if the user is not a super user or an oversight user viewing as oversight
 = f.input :agency_id,
   collection: @transportation_agencies,
-  readonly: !current_user.superuser? && !current_user.oversight_admin? && !current_user.oversight_staff?,
+  readonly: !current_user.superuser? && !current_user.currently_oversight?,
   required:true,
   include_blank: 'Select a Transportation Agency for the new Service',
   label_method: :name,
@@ -24,3 +24,13 @@
       value_method: :id,
       selected: default_oversight || '',
       wrapper_html: {id: 'oversight_select'}
+
+:javascript
+
+  $(document).ready(function() {
+
+    // add onchange listener to the input for transit agency
+    // on change, jquery select the input for oversight agency
+      // find the option with the transit agency's oversight agency(does not seem possible unless you store it as a data-attribute)
+      
+  });
