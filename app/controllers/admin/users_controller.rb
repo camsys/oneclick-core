@@ -82,17 +82,20 @@ class Admin::UsersController < Admin::AdminController
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
-    if roles != '' && staff_agency != ''
-      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
-      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
-      replace_user_role(roles,staff_agency)
-    end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
 
     @user.update_attributes(update_params)
 
+    # Update user roles last otherwise the record error gets cleared
+    if roles != 'superuser' && staff_agency == ''
+      @user.errors.add(:agency, 'cannot be empty for non-superuser level users. Please choose an agency to assign to this user.')
+    else
+      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
+      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
+      replace_user_role(roles,staff_agency)
+    end
 
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
