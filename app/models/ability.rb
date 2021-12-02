@@ -90,7 +90,7 @@ class Ability
       can :manage, Purpose
       can :manage, Feedback
       can :manage, Landmark
-      can [:read, :update], Agency,     # Can read or update their own agency
+      can [:show, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
       can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
           id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id),user.get_travelers_for_staff_user.pluck(:id))
@@ -113,7 +113,7 @@ class Ability
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
         can :manage, Agency,
-            id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
+            id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :create, Agency
         can :manage, Service,
           id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
