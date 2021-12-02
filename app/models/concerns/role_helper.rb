@@ -3,6 +3,7 @@ module RoleHelper
 
   PERMISSIBLE_CREATES = {
     admin: [:admin, :staff],
+    staff: [:admin, :staff],
     superuser: Role::ROLES
   }
   ### SCOPES & CLASS METHODS ###
@@ -175,6 +176,10 @@ module RoleHelper
   # Returns the agencies that the user may manage
   def accessible_agencies
     Agency.accessible_by(Ability.new(self))
+  end
+
+  def showable_agencies
+    Agency.accessible_by(Ability.new(self), :show)
   end
 
   def accessible_transportation_agencies
