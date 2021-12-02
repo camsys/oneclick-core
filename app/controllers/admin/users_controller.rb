@@ -3,7 +3,6 @@ class Admin::UsersController < Admin::AdminController
   # before_action :initialize_user, only: [:index, :create]
   authorize_resource
   before_action :load_user
-  before_action :load_staff
 
   def index
   end
@@ -51,23 +50,18 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def staff
-    # If the current user is a superuser
+    # If the current user is a superuser return users with role
     if current_user.superuser?
       @staff = User.any_role
-    # else if the current user is currently browsing as the oversight admin/ staff
-    # - then see all oversight staff/admin AND associated transportation agency staff/admin
+      # Else if the current user is currently viewing as an oversight agency, return both oversight users
+      # and users for all agencies currently under that oversight agency
     elsif current_user.currently_oversight?
-      @staff = current_user.any_users_for_staff_agency
-    # else if the current user is currently browsing as a transportation agency
+      @staff = current_user.get_admin_staff_for_staff_user
     elsif current_user.currently_transportation?
       @staff = current_user.any_users_for_current_agency
-    # else if the current user decides to view as an unaffiliated user
-    elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
-      # Return services with no transportation agency and oversight agency
-      @staff = User.any_staff_admin_for_none
-      # otherwise the current user is probably transportation staff
+      # else if the current user decides to view as an unaffiliated user
     else
-      @staff = current_user.any_users_for_staff_agency
+      @staff = current_user.any_users_for_staff_agency.order(:last_name, :first_name, :email)
     end
   end
 
@@ -180,10 +174,6 @@ class Admin::UsersController < Admin::AdminController
 
   def load_user
     @user = User.find_by(id: params[:id]) || User.new
-  end
-
-  def load_staff
-    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
   end
 
   def user_params

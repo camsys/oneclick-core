@@ -316,7 +316,13 @@ module RoleHelper
       User.staff
     elsif self.transportation_admin? || self.transportation_staff?
       self.any_users_for_staff_agency
-    elsif self.currently_oversight? || self.currently_transportation?
+    elsif self.currently_oversight?
+      ta_ids = self.current_agency.agency_oversight_agency.pluck(:transportation_agency_id)
+      tas = TransportationAgency.where(id: ta_ids)
+      transportation_users = User.any_staff_admin_for_agencies(tas)
+      oversight_users = self.any_users_for_current_agency
+      oversight_users + transportation_users
+    elsif self.currently_transportation?
       self.any_users_for_current_agency
     elsif self.current_agency.nil?
       User.any_staff_admin_for_none
