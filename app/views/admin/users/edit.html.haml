@@ -7,7 +7,7 @@
 -if @user != current_user && can?(:manage, Role)
   =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-- if @user.admin_or_staff? && can?(:read, User)
+- if @user.admin_or_staff? || @user.superuser? && can?(:read, User)
   =back_link staff_admin_users_path, label: "All Staff"
 - elsif can?(:read,User)
   =back_link travelers_admin_users_path, label: "All Travelers"

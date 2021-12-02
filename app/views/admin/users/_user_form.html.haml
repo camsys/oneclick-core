@@ -44,3 +44,38 @@
       selected: @user.staff_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id,
       include_blank: "Select an Agency",
       readonly: @user.id == current_user.id  || !(current_user.superuser? || (current_user.oversight_admin? && current_user.currently_oversight?))
+
+:javascript
+  $(document).ready(function() {
+  const NAText = 'Not Applicable'
+  const SelectAgencyText = 'Select An Agency'
+  const staffRoleInput = $('#user_roles')
+  const staffAgencyInput = $('#user_staff_agency')
+  // If the current @user is a superuser, then set the agency input to readonly, and set the blank option to have
+  // "Not Applicable" as the text
+    if (staffRoleInput.length > 0) {
+      if (staffRoleInput.val() === 'superuser') {
+        staffAgencyInput.attr('readonly', 'readonly')
+        const emptyOption = $('#user_staff_agency option[value=""]')
+        emptyOption.text(NAText)
+      }
+
+      // On role input change, if the selected role is superuser,
+      // ...set it to readonly and set the blank option to have text of "Not Applicable"
+      // else
+      // ... remove the readonly attribute and set the blank option to have text of "Select an Agency"
+
+      staffRoleInput.change(function({target,...event}) {
+        const roleSelected = target.value
+        const emptyOption = $('#user_staff_agency option[value=""]')
+        if (roleSelected === 'superuser') {
+          staffAgencyInput.val('')
+          staffAgencyInput.attr('readonly', 'readonly')
+          emptyOption.text(NAText)
+        } else if (staffAgencyInput.attr('readonly')) {
+          staffAgencyInput.removeAttr('readonly')
+          emptyOption.text(SelectAgencyText)
+        }
+      })
+    }
+  });
