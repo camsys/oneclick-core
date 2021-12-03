@@ -41,7 +41,7 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def destroy
-    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
+    redirect_path = @user.admin_or_staff? || @user.superuser? ? staff_admin_users_path : travelers_admin_users_path
     @user.destroy
     flash[:success] = "#{@user&.first_name} #{@user&.last_name} Deleted"
     redirect_to redirect_path
@@ -71,7 +71,6 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def update
-
     success_redirect_path = (@user.admin_or_staff? || @user.superuser?) ? staff_admin_users_path : travelers_admin_users_path
     error_redirect_path = edit_admin_user_path(@user)
 
@@ -118,6 +117,7 @@ class Admin::UsersController < Admin::AdminController
 
     redirect_back(fallback_location: root_path)
   end
+
   private
   def set_user_role(role, agency_id)
     ag = agency_id.present? ? Agency.find_by(id:agency_id) : nil
