@@ -8,6 +8,7 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def create
+    redirect_path = params[:is_traveler].nil? ? staff_admin_users_path : travelers_admin_users_path
     create_params = user_params
     create_params.delete(:admin)
     role = create_params.delete(:roles)
@@ -17,19 +18,23 @@ class Admin::UsersController < Admin::AdminController
     # Quick check to make sure we're not assigning a role to a traveler
     # unless we're a superuser
     if params[:is_traveler].nil?
-      set_user_role(role, staff_agency)
+      if staff_agency.empty? && role != 'superuser'
+        @user.errors.add(:agency, 'cannot be empty for non-superuser level users. Please choose an agency to assign to this user.')
+      else
+        set_user_role(role, staff_agency)
+      end
     end
 
-  	if @user.save
+  	if @user.errors.empty? && @user.save
       flash[:success] = "Created #{@user&.first_name} #{@user&.last_name} as #{@user.roles.last&.name || "traveler"}"
       respond_to do |format|
         format.js
-        format.html {redirect_to staff_admin_users_path}
+        format.html {redirect_to redirect_path}
       end
     else
       present_error_messages(@user)
       respond_to do |format|
-        format.html {render :index}
+        format.html {redirect_to redirect_path}
       end
     end
 
