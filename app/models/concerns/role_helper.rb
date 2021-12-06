@@ -231,7 +231,7 @@ module RoleHelper
     agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
     # Return travelers associated with the input agency and also with no agency
     uu = User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
-    User.querify(uu.select{|u| u.traveler_transit_agency&.transportation_agency&.present?})
+    uu.joins(:traveler_transit_agency).where('traveler_transit_agencies.transportation_agency_id':agencies).distinct
   end
 
   def travelers_for_staff_agency
@@ -240,8 +240,12 @@ module RoleHelper
   end
 
   def travelers_for_current_agency
-    ag = Agency.find_by(id:self.current_agency&.id)
-    travelers_for_agency(ag)
+    if self.currently_oversight?
+      ta_ids = self.staff_agency.agency_oversight_agency.map { |aoa| aoa.transportation_agency.id}
+      travelers_for_agency(ta_ids)
+    else
+      travelers_for_agency(self.current_agency.id)
+    end
   end
 
   ### MODIFYING USER ROLES ###
@@ -343,8 +347,6 @@ module RoleHelper
       self.travelers_for_staff_agency
     elsif self.currently_oversight? || self.currently_transportation?
       self.travelers_for_current_agency
-    elsif self.current_agency.nil?
-      self.travelers_for_none
     else
       nil
     end
