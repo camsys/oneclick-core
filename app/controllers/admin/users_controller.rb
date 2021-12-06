@@ -124,7 +124,7 @@ class Admin::UsersController < Admin::AdminController
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if ((can? :read, ag) || ag.nil?) && (can? :manage, Role)
+      if ((can? :show, ag) || ag.nil?) && (can? :manage, Role)
         @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
@@ -138,7 +138,7 @@ class Admin::UsersController < Admin::AdminController
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, ag || ag.nil?) && (can? :manage, Role)
+      if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
         @user.remove_role(last_role.name,last_role.resource)
         @user.set_role(role, ag)
