@@ -12,6 +12,7 @@
 =content_for :header do
   Agency Info
 
+- disable_agency_field = !(current_user.superuser? || (current_user.currently_oversight?))
 =simple_form_for @service,
   url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
@@ -22,18 +23,33 @@
     include_blank: 'Select a Transportation Agency for the Service',
     selected: @service.agency&.id ,
     collection: @transportation_agencies,
-    readonly: !current_user.superuser? && !current_user.oversight_admin?
+    disabled: disable_agency_field
+  -# HIDDEN INPUT FOR AGENCY ID WHEN APPLICABLE
+  = f.input :agency_id,
+    as: :hidden,
+    input_html: {id: 'hidden_agency',
+      value: @service.agency&.id },
+    disabled: !disable_agency_field
   =simple_form_for :oversight do |foa|
     = foa.input :oversight_agency_id,
         as: :select,
         collection: @oversight_agencies,
         required: true,
-        readonly: !current_user.superuser?,
+        disabled: !current_user.superuser?,
         include_blank: 'Select an Oversight Agency for the Service',
         label_method: :name,
         value_method: :id,
         selected: @service&.service_oversight_agency&.oversight_agency&.id,
         wrapper_html: {id: 'oversight_select'}
+    -# HIDDEN INPUT FOR OVERSIGHT AGENCY ID WHEN APPLICABLE,
+      SHOULD BE DISABLED IF SUPERUSER AS SUPERUSER CAN SELECT ALL OVERSIGHT AGENCIES
+    = foa.input :oversight_agency_id,
+      as: :hidden,
+      name: 'oversight[oversight_agency_id]',
+      label: 'Oversight Agency:',
+      input_html: {id: 'hidden_oversight_agency',
+        value: @service&.service_oversight_agency&.oversight_agency&.id},
+      disabled: current_user.superuser?
 
 :javascript
   $(document).ready(function() {
