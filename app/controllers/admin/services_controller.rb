@@ -28,17 +28,18 @@ class Admin::ServicesController < Admin::AdminController
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
 
+    # if oversight is empty/ a bad combo of oversight, then redirect
+    is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+
+    if is_not_included == true
+      present_error_messages(@service)
+      redirect_to admin_services_path
+      return
+    end
+
+    # else proceed
   	if @service.update_attributes(service_params)
-      # if oversight is empty/ a bad combo of oversight, then redirect
-      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-      if is_not_included == true
-        redirect_to admin_services_path
-        return
-        # else if, valid agency combo OR validate_agencies_choices returned nil,
-        # ...then create the association even if oversight agency might be empty
-      elsif is_not_included == false || is_not_included.nil?
         ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
-      end
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
