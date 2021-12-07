@@ -29,9 +29,10 @@
           value_method: :id,
           selected: @agency.agency_oversight_agency&.oversight_agency_id,
           wrapper_html: {id: 'oversight_select'}
-      - if current_user.staff_agency == 'OversightAgency'
+      - if !current_user.superuser?
         = foa.input :oversight_agency_id,
-          collection: [@agency.agency_oversight_agency],
+          disabled: !current_user.superuser?,
+          collection: [@agency.agency_oversight_agency.oversight_agency],
           label_method: :name,
           value_method: :id,
           include_blank: false,
