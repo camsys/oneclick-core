@@ -1,3 +1,8 @@
+- ## LOCALS:
+-# is_readonly: A boolean meant to represent whether or not the current user
+-# can update the form
+- is_readonly = (cannot? :update, @service)
+
 =content_for :header do
   Transit Details
 
@@ -6,7 +11,7 @@
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  =f.input :gtfs_agency_id
+  =f.input :gtfs_agency_id, readonly: is_readonly
 
 :javascript
   $(document).ready(function() {

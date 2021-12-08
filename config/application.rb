@@ -90,6 +90,14 @@ module OneclickCore
       log_to_db: false
     })
     config.admin_console_logger.start
+    # Enable app logging when applicable
+    if ENV["RAILS_LOG_TO_STDOUT"].present?
+      # Create logger for logging database changes(creating/ altering/ dropping tables)
+      # Should largely be okay to build this here since this is only tracking db migrations
+      # and rake tasks run in development by default
+      config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
+      config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+    end
 
 
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'

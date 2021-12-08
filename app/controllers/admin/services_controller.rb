@@ -12,7 +12,7 @@ class Admin::ServicesController < Admin::AdminController
     @oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
                             current_user.accessible_oversight_agencies.order(:name) :
                             Agency.querify([current_user.staff_agency&.agency_oversight_agency&.oversight_agency]).order(:name)
-    @transportation_agencies = current_user.accessible_transportation_agencies.order(:name)
+    @transportation_agencies = current_user.get_transportation_agencies_for_user.order(:name)
     @default_agency = get_default_tranpsortation_agency_selection
   end
 
@@ -27,17 +27,18 @@ class Admin::ServicesController < Admin::AdminController
     s_params = service_params
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
-    # Validate input oversight agency and transportation agency first
     # if oversight is empty/ a bad combo of oversight, then redirect
     is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+
     if is_not_included == true
+      present_error_messages(@service)
       redirect_to admin_services_path
       return
     end
+
+    # else proceed
   	if @service.update_attributes(service_params)
-      # Assign the transportation agency based on the passed in id
-      # chosen Oversight Agency and Transportation Agency
-      ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -48,38 +49,50 @@ class Admin::ServicesController < Admin::AdminController
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     # @service.build_comments # Builds a comment for each available locale
+    #
+    accessible_oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
+                            current_user.accessible_oversight_agencies.to_a :
+                            [current_user.staff_agency&.agency_oversight_agency&.oversight_agency]
+    accessible_transportation_agencies = current_user.get_transportation_agencies_for_user.to_a
+    @oversight_agencies = Agency.querify(accessible_oversight_agencies.concat([@service.service_oversight_agency&.oversight_agency])).order(:name)
+    @transportation_agencies = Agency.querify(accessible_transportation_agencies.concat([@service&.agency])).order(:name)
   end
 
   def update
     os_params = oversight_params
     s_params = service_params
-    @service.update_attributes(s_params)
     if os_params.present?
       oversight_agency_id = os_params[:oversight_agency_id]
       transportation_agency_id = s_params[:agency_id]
-      # If the service doesn't have a service oversight agency and has an agency assigned
-      if @service.service_oversight_agency.nil?
-        is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-        if is_not_included == true
-          @service.errors.add(:agency,"Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the agencies updated.")      else
-          ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+      # If agency combination is bad, then redirect with an error message
+      if is_not_included == true
+        respond_with_partial_or do
+          redirect_to admin_service_path(@service)
         end
-        # Assign the transportation agency based on the passed in id after validating the
-        # chosen Oversight Agency and Transportation Agency
-      else
-        # update the existing service_oversight_agency if it's valid
-        is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-        if is_not_included == true
+        return
+        # Else if is_not_included is false/ valid combination of oversight agency and transportation agency
+        # ... update the service_oversight_agency with the new oversight_agency
+      elsif is_not_included == false || is_not_included.nil?
+        # update the existing service_oversight_agency if it's valid and exists
+        if @service.service_oversight_agency.present?
+          @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id)
         else
-          @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id,
-                                                   service_id: @service.id)
+          ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id,service_id: @service.id)
         end
       end
+      # Finally update service attributes(in this case agency_id)
+      @service.update_attributes(s_params)
+    # if no oversight_params then just update service attributes as normal
+    else
+      @service.update_attributes(s_params)
     end
 
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
+    flash[:success] = "#{@service.name} updated successfully."
+
     # If a partial_path parameter is set, serve back that partial
     flash[:success] = "#{@service.name} updated successfully."
 
@@ -103,21 +116,21 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def get_services_for_current_user
-    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     # NOTE: Includes unaffiliated Services by default
     if current_user.superuser?
       @services
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
-      always_unaffiliated_services + Service.with_oversight_agency(oa).order(agency_id: :desc)
+
+      Service.with_oversight_agency(oa).order(agency_id: :desc)
     elsif current_user.currently_transportation?
-      always_unaffiliated_services+Service.where(agency_id: current_user.current_agency.id)
+      Service.where(agency_id: current_user.current_agency.id)
       # otherwise the current user is probably transportation staff
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
       Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
-      always_unaffiliated_services+Service.where(agency_id: current_user.staff_agency.id)
+      Service.where(agency_id: current_user.staff_agency.id)
     end
   end
 
@@ -133,10 +146,11 @@ class Admin::ServicesController < Admin::AdminController
   # Validates oversight and transportation agency choice
   def validate_agencies_choices(oversight_id, transportation_id)
     # If either are empty, or if the Service is a Taxi service, return false
-    is_empty = oversight_id&.empty? || transportation_id&.empty?  && !Service::TAXI_SERVICES.include?(@service.type)
+    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
+    is_empty = oversight_id&.empty? || transportation_id&.empty?
+    # if either oversight id or transportation id is empty, don't validate
     if is_empty
-      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
-      return is_empty
+      return nil
     end
 
     oa = OversightAgency.find oversight_id
@@ -146,8 +160,7 @@ class Admin::ServicesController < Admin::AdminController
     is_included = associated_tas.include?(ta)
 
     unless is_included
-      # @service.errors.add :agency,:bad_combo, message: "Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the agencies updated."
-      flash[:danger] = "Bad combination of Oversight Agency and Transportation Agency, #{@service.name} updated without the Oversight Agency updated."
+      @service.errors.add(:agency,err_message)
     end
 
     !is_included

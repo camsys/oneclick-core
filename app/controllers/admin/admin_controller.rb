@@ -9,7 +9,7 @@ class Admin::AdminController < ApplicationController
   
   def index
     # Configure dashboard reports to display in an array of symbols under Config.dashboard_reports
-    @dashboard_reports = (Config.dashboard_reports || [])
+    @dashboard_reports = !current_user.unaffiliated_user? && (Config.dashboard_reports || [])
     .map { |rep| DashboardReport.prebuilt(rep) }
     .compact
     .select { |rep| rep.valid? }
