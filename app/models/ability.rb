@@ -62,9 +62,10 @@ class Ability
 
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
-        can [:read,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
+        can [:edit,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
             id: user.accessible_staff.pluck(:id).concat(user.travelers_for_current_agency.pluck(:id))
-
+        can :show, Agency,
+            id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
         can :read, Service,
             id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
