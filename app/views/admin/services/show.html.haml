@@ -33,4 +33,5 @@
 -if can? :update, @service
   =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_delete: (cannot? :delete, @service), hide_footer: true }
 
+
 =back_link admin_services_path, label: "All Services"

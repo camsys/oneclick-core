@@ -80,6 +80,11 @@ class Admin::UsersController < Admin::AdminController
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
+    if roles != '' && staff_agency != ''
+      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
+      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
+      replace_user_role(roles,staff_agency)
+    end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
@@ -149,7 +154,7 @@ class Admin::UsersController < Admin::AdminController
     end
   end
 
-  # NOTE: Is the below dead code with the new agency restrictions/ role handling??
+    # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
   def set_superuser_role(admin_param)
     return false if admin_param.nil?

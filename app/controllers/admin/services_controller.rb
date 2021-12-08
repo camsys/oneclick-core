@@ -27,7 +27,6 @@ class Admin::ServicesController < Admin::AdminController
     s_params = service_params
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
-
     # if oversight is empty/ a bad combo of oversight, then redirect
     is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
 
@@ -95,6 +94,10 @@ class Admin::ServicesController < Admin::AdminController
     flash[:success] = "#{@service.name} updated successfully."
 
     # If a partial_path parameter is set, serve back that partial
+    flash[:success] = "#{@service.name} updated successfully."
+
+    # flash[:danger] = err_message unless err_message.nil?
+    # What does respond_with_partial_or do that just extracting the block contents and using that doesn't?
     respond_with_partial_or do
       redirect_to admin_service_path(@service)
     end    
@@ -118,6 +121,7 @@ class Admin::ServicesController < Admin::AdminController
       @services
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
+
       Service.with_oversight_agency(oa).order(agency_id: :desc)
     elsif current_user.currently_transportation?
       Service.where(agency_id: current_user.current_agency.id)

@@ -39,7 +39,12 @@ class Trip < ApplicationRecord
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
   # Constant list of bad cities and the correct city
-  CORRECTED_CITIES_HASHES = [{ incorrect: 'West Manchester Township', correct: 'York'}, { incorrect: 'Hampden Township', correct: 'Mechanicsburg'}]
+  CORRECTED_CITIES_HASHES = [
+    { incorrect: 'West Manchester Township', correct: 'York'}, 
+    { incorrect: 'West Manchester Twp', correct: 'York'}, 
+    { incorrect: 'Hampden Township', correct: 'Mechanicsburg'},
+    { incorrect: 'Hampden Twp', correct: 'Mechanicsburg'}
+  ]
   BAD_CITIES = CORRECTED_CITIES_HASHES.map{|h| h[:incorrect]}
 
   ### SCOPES ###

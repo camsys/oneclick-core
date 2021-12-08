@@ -210,6 +210,7 @@ module RoleHelper
     self.current_agency&.transportation?
   end
 
+
   def currently_viewing_as_none?
     self.current_agency&.nil? && self.staff_agency.oversight?
   end
@@ -231,6 +232,7 @@ module RoleHelper
     agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
     # Return travelers associated with the input agency and also with no agency
     uu = User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
+
     uu.joins(:traveler_transit_agency).where('traveler_transit_agencies.transportation_agency_id':agencies).distinct
   end
 
