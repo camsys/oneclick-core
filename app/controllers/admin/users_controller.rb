@@ -3,12 +3,12 @@ class Admin::UsersController < Admin::AdminController
   # before_action :initialize_user, only: [:index, :create]
   authorize_resource
   before_action :load_user
-  before_action :load_staff
 
   def index
   end
 
   def create
+    redirect_path = params[:is_traveler].nil? ? staff_admin_users_path : travelers_admin_users_path
     create_params = user_params
     create_params.delete(:admin)
     role = create_params.delete(:roles)
@@ -18,26 +18,30 @@ class Admin::UsersController < Admin::AdminController
     # Quick check to make sure we're not assigning a role to a traveler
     # unless we're a superuser
     if params[:is_traveler].nil?
-      set_user_role(role, staff_agency)
+      if staff_agency.empty? && role != 'superuser'
+        @user.errors.add(:agency, 'cannot be empty for non-superuser level users. Please choose an agency to assign to this user.')
+      else
+        set_user_role(role, staff_agency)
+      end
     end
 
-  	if @user.save
+  	if @user.errors.empty? && @user.save
       flash[:success] = "Created #{@user&.first_name} #{@user&.last_name} as #{@user.roles.last&.name || "traveler"}"
       respond_to do |format|
         format.js
-        format.html {redirect_to staff_admin_users_path}
+        format.html {redirect_to redirect_path}
       end
     else
       present_error_messages(@user)
       respond_to do |format|
-        format.html {render :index}
+        format.html {redirect_to redirect_path}
       end
     end
 
   end
 
   def destroy
-    redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
+    redirect_path = @user.admin_or_staff? || @user.superuser? ? staff_admin_users_path : travelers_admin_users_path
     @user.destroy
     flash[:success] = "#{@user&.first_name} #{@user&.last_name} Deleted"
     redirect_to redirect_path
@@ -47,39 +51,27 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def travelers
-    if current_user.superuser?
-      @travelers = User.travelers
-    elsif current_user.transportation_admin? || current_user.transportation_staff?
-      @travelers = current_user.travelers_for_staff_agency
-    elsif current_user.currently_oversight?
-      @travelers = current_user.travelers_for_oversight_agency
-    else
-      @travelers = current_user.travelers_for_agency(current_user.current_agency)
-    end
+    @travelers = current_user.get_travelers_for_staff_user
   end
 
   def staff
-    # If the current user is a superuser
+    # If the current user is a superuser return users with role
     if current_user.superuser?
       @staff = User.any_role
-    # else if the current user is currently browsing as the oversight admin/ staff
-    # - then see all oversight staff/admin AND associated transportation agency staff/admin
+      # Else if the current user is currently viewing as an oversight agency, return both oversight users
+      # and users for all agencies currently under that oversight agency
     elsif current_user.currently_oversight?
-      oa = current_user.staff_agency
-      tas = TransportationAgency.where(id:oa.agency_oversight_agency.pluck(:transportation_agency_id))
-      @staff = User.any_staff_admin_for_agencies([oa] + tas)
-    # else if the current user is currently browsing as a transportation agency
+      @staff = current_user.get_admin_staff_for_staff_user
     elsif current_user.currently_transportation?
-      @staff = User.any_staff_admin_for_agency(current_user.current_agency)
-    # otherwise the current user is probably transportation staff
+      @staff = current_user.any_users_for_current_agency
+      # else if the current user decides to view as an unaffiliated user
     else
-      @staff = User.any_staff_admin_for_agency(current_user.staff_agency)
+      @staff = current_user.any_users_for_staff_agency.order(:last_name, :first_name, :email)
     end
   end
 
   def update
-
-    success_redirect_path = @user.admin_or_staff? ? staff_admin_users_path : travelers_admin_users_path
+    success_redirect_path = (@user.admin_or_staff? || @user.superuser?) ? staff_admin_users_path : travelers_admin_users_path
     error_redirect_path = edit_admin_user_path(@user)
 
     #We need to pull out the password and password_confirmation and handle them separately
@@ -99,6 +91,14 @@ class Admin::UsersController < Admin::AdminController
 
     @user.update_attributes(update_params)
 
+    # Update user roles last otherwise the record error gets cleared
+    if roles != 'superuser' && staff_agency == ''
+      @user.errors.add(:agency, 'cannot be empty for non-superuser level users. Please choose an agency to assign to this user.')
+    else
+      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
+      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
+      replace_user_role(roles,staff_agency)
+    end
 
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
@@ -116,21 +116,20 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def change_agency
-    agency = Agency.find(params[:agency][:id])
-    if !agency.nil?
-      current_user.current_agency = agency
-      current_user.save!
-    end
+    agency = Agency.find_by(id:params[:agency][:id])
+    current_user.current_agency = agency
+    current_user.save!
 
     redirect_back(fallback_location: root_path)
   end
+
   private
   def set_user_role(role, agency_id)
-    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    ag = agency_id.present? ? Agency.find_by(id:agency_id) : nil
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, ag) && (can? :manage, Role)
+      if ((can? :show, ag) || ag.nil?) && (can? :manage, Role)
         @user.set_role(role, ag)
       else
         raise ActiveRecord::Rollback
@@ -144,7 +143,7 @@ class Admin::UsersController < Admin::AdminController
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
-      if (can? :read, ag || ag.nil?) && (can? :manage, Role)
+      if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
         @user.remove_role(last_role.name,last_role.resource)
         @user.set_role(role, ag)
@@ -185,10 +184,6 @@ class Admin::UsersController < Admin::AdminController
 
   def load_user
     @user = User.find_by(id: params[:id]) || User.new
-  end
-
-  def load_staff
-    @staff = current_user.accessible_staff.order(:last_name, :first_name, :email)
   end
 
   def user_params

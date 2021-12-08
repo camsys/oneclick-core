@@ -37,6 +37,11 @@ end
 
 Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
   begin
+    # When an Oversight Agency user signs in and their current agency is nil, reset it to their staff agency
+    # - it's kind of hacky/ there's a nicer UI way to do this but this is faster
+    if user.staff_agency&.oversight? && user.current_agency.nil?
+      user.current_agency = user.staff_agency
+    end
     # Adds logging for authentication success
     user_role = nil
     user_id = user.id
@@ -58,7 +63,8 @@ Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
       timestamp: Time.now
     }
     Rails.application.config.logger.info(JSON::dump(json))
-  rescue
+  rescue => e
+    puts e
     puts "Warden auth success logging failed"
   end
 end

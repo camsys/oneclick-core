@@ -5,11 +5,16 @@ class Admin::AgenciesController < Admin::AdminController
   def index
     if current_user.superuser?
       @agencies = @agencies.order(:name)
-    elsif current_user.oversight_admin? ||current_user.oversight_staff?
-      # Get all agencies associated with that oversight agency, and it'self
-      oa = current_user.staff_agency
-      tas = oa.agency_oversight_agency.pluck(:transportation_agency_id)
-      @agencies = Agency.where(id: [*tas,nil,current_user.staff_agency.id])
+    elsif current_user.currently_oversight?
+      tas_id = AgencyOversightAgency.where(oversight_agency_id:current_user.current_agency.id).pluck(:transportation_agency_id)
+      tas = TransportationAgency.where(id:tas_id)
+      @agencies = Agency.querify([current_user.staff_agency].concat(tas))
+    elsif current_user.currently_transportation?
+      @agencies = Agency.querify([current_user.current_agency])
+    elsif current_user.currently_viewing_as_none?
+      @agencies = Agency.all
+    elsif current_user.transportation_staff? || current_user.transportation_admin?
+      @agencies = Agency.querify([current_user.staff_agency])
     end
   end
   
@@ -68,12 +73,16 @@ class Admin::AgenciesController < Admin::AdminController
 
   private
   def get_all_agency_types
-    @agency_types = AgencyType.all
+    if current_user.superuser?
+      @agency_types = AgencyType.all
+    else
+      @agency_types = AgencyType.querify([AgencyType.find_by(name: 'TransportationAgency')])
+    end
   end
 
   def oversight_params
     oversight = params.delete(:oversight)
-    oversight.try(:oversight_agency_id)
+    oversight["oversight_agency_id"]
   end
 
   def agency_params

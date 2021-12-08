@@ -39,12 +39,21 @@ class Trip < ApplicationRecord
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
   # Constant list of bad cities and the correct city
-  CORRECTED_CITIES_HASHES = [{ incorrect: 'West Manchester Township', correct: 'York'}, { incorrect: 'Hampden Township', correct: 'Mechanicsburg'}]
+  CORRECTED_CITIES_HASHES = [
+    { incorrect: 'West Manchester Township', correct: 'York'}, 
+    { incorrect: 'West Manchester Twp', correct: 'York'}, 
+    { incorrect: 'Hampden Township', correct: 'Mechanicsburg'},
+    { incorrect: 'Hampden Twp', correct: 'Mechanicsburg'}
+  ]
   BAD_CITIES = CORRECTED_CITIES_HASHES.map{|h| h[:incorrect]}
 
   ### SCOPES ###
   # Trips where users under an input transportation agency
-  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id))}
+  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id).pluck(:user_id))}
+  # Trips with no transportation agency
+  scope :with_no_transportation_agency, -> {where.not(user_id: TravelerTransitAgency.where(
+    transportation_agency_id: TransportationAgency.all.pluck(:id)
+  ).pluck(:user_id))}
 
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }

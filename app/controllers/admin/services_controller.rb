@@ -8,18 +8,12 @@ class Admin::ServicesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   def index
-    # NOTE: Includes unaffiliated Services by default
-    if current_user.superuser?
-      @services
-    elsif current_user.currently_oversight?
-      oa = current_user.staff_agency
-      @services = Service.no_agencies_assigned + Service.with_oversight_agency(oa)
-    elsif current_user.currently_transportation?
-      @services = Service.where(agency_id: [nil,current_user.current_agency.id])
-      # otherwise the current user is probably transportation staff
-    else
-      @services = Service.where(agency_id: [nil, current_user.staff_agency.id])
-    end
+    @services = get_services_for_current_user
+    @oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
+                            current_user.accessible_oversight_agencies.order(:name) :
+                            Agency.querify([current_user.staff_agency&.agency_oversight_agency&.oversight_agency]).order(:name)
+    @transportation_agencies = current_user.get_transportation_agencies_for_user.order(:name)
+    @default_agency = get_default_tranpsortation_agency_selection
   end
 
   def destroy
@@ -30,16 +24,21 @@ class Admin::ServicesController < Admin::AdminController
   def create
     # If the user is a transit agency admin then automatically assign its oversight agency
     os_params = oversight_params
+    s_params = service_params
     oversight_agency_id = os_params[:oversight_agency_id]
-    transportation_agency_id = os_params[:transportation_agency_id]
-    # Assign the transportation agency based on the passed in id
-    @service.agency = TransportationAgency.find_by(id:transportation_agency_id)
+    transportation_agency_id = s_params[:agency_id]
+    # if oversight is empty/ a bad combo of oversight, then redirect
+    is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+
+    if is_not_included == true
+      present_error_messages(@service)
+      redirect_to admin_services_path
+      return
+    end
+
+    # else proceed
   	if @service.update_attributes(service_params)
-      if oversight_agency_id != '' && !current_user.superuser?
-        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
-      elsif current_user.superuser?
-        ServiceOversightAgency.create(oversight_agency_id: @service.agency&.agency_oversight_agency&.oversight_agency&.id, service_id: @service.id)
-      end
+      ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -50,28 +49,55 @@ class Admin::ServicesController < Admin::AdminController
   def show
     @service.build_geographies # Build empty start_or_end_area, trip_within_area, etc. based on service type.
     # @service.build_comments # Builds a comment for each available locale
+    #
+    accessible_oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
+                            current_user.accessible_oversight_agencies.to_a :
+                            [current_user.staff_agency&.agency_oversight_agency&.oversight_agency]
+    accessible_transportation_agencies = current_user.get_transportation_agencies_for_user.to_a
+    @oversight_agencies = Agency.querify(accessible_oversight_agencies.concat([@service.service_oversight_agency&.oversight_agency])).order(:name)
+    @transportation_agencies = Agency.querify(accessible_transportation_agencies.concat([@service&.agency])).order(:name)
   end
 
   def update
     os_params = oversight_params
-    @service.update_attributes(service_params)
-    # If the service doesn't have a service oversight agency and has an agency assigned
-    if @service.service_oversight_agency.nil? && !@service.agency.nil?
-      ServiceOversightAgency.create(oversight_agency_id: @service.agency.agency_oversight_agency.oversight_agency_id, service_id: @service.id)
-    # Else If the service doesn't have a service oversight agency and does not have an agency assigned
-    elsif @service.service_oversight_agency.nil? && @service.agency.nil?
-      ServiceOversightAgency.create(oversight_agency_id: os_params[:oversight_agency_id], service_id: @service.id)
-    # Else If the service has a service oversight agency object, but no oversight agency and no transportation agency
-    elsif @service.service_oversight_agency.oversight_agency.nil? && @service.agency.nil?
-      @service.service_oversight_agency.update(oversight_agency_id: os_params[:oversight_agency_id])
-    # Else update the service's oversight agency with the agency
+    s_params = service_params
+    if os_params.present?
+      oversight_agency_id = os_params[:oversight_agency_id]
+      transportation_agency_id = s_params[:agency_id]
+      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+      # If agency combination is bad, then redirect with an error message
+      if is_not_included == true
+        respond_with_partial_or do
+          redirect_to admin_service_path(@service)
+        end
+        return
+        # Else if is_not_included is false/ valid combination of oversight agency and transportation agency
+        # ... update the service_oversight_agency with the new oversight_agency
+      elsif is_not_included == false || is_not_included.nil?
+        # update the existing service_oversight_agency if it's valid and exists
+        if @service.service_oversight_agency.present?
+          @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id)
+        else
+          ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id,service_id: @service.id)
+        end
+      end
+      # Finally update service attributes(in this case agency_id)
+      @service.update_attributes(s_params)
+    # if no oversight_params then just update service attributes as normal
     else
-      @service.service_oversight_agency.update(oversight_agency_id:@service.agency&.agency_oversight_agency&.oversight_agency_id)
+      @service.update_attributes(s_params)
     end
+
     #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
     @service.update_attributes({updated_at: Time.now}) 
     present_error_messages(@service)
+    flash[:success] = "#{@service.name} updated successfully."
+
     # If a partial_path parameter is set, serve back that partial
+    flash[:success] = "#{@service.name} updated successfully."
+
+    # flash[:danger] = err_message unless err_message.nil?
+    # What does respond_with_partial_or do that just extracting the block contents and using that doesn't?
     respond_with_partial_or do
       flash[:success] = "#{@service.name} updated successfully."
       redirect_to admin_service_path(@service)
@@ -80,12 +106,65 @@ class Admin::ServicesController < Admin::AdminController
 
   private
 
+  def get_default_tranpsortation_agency_selection
+    if current_user.superuser? || current_user.currently_oversight? || (current_user.staff_agency.oversight? && current_user.current_agency.nil?)
+      nil
+    elsif current_user.currently_transportation?
+      current_user.current_agency
+    else
+      current_user.staff_agency
+    end
+  end
+
+  def get_services_for_current_user
+    # NOTE: Includes unaffiliated Services by default
+    if current_user.superuser?
+      @services
+    elsif current_user.currently_oversight?
+      oa = current_user.staff_agency
+
+      Service.with_oversight_agency(oa).order(agency_id: :desc)
+    elsif current_user.currently_transportation?
+      Service.where(agency_id: current_user.current_agency.id)
+      # otherwise the current user is probably transportation staff
+    elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
+      # Return services with no transportation agency and oversight agency
+      Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
+    else
+      Service.where(agency_id: current_user.staff_agency.id)
+    end
+  end
+
+
   def service_type
     (@service && @service.type) || (params[:service] && params[:service][:type])
   end
 
   def oversight_params
     params.delete(:oversight)
+  end
+
+  # Validates oversight and transportation agency choice
+  def validate_agencies_choices(oversight_id, transportation_id)
+    # If either are empty, or if the Service is a Taxi service, return false
+    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
+    is_empty = oversight_id&.empty? || transportation_id&.empty?
+    # if either oversight id or transportation id is empty, don't validate
+    if is_empty
+      return nil
+    end
+
+    oa = OversightAgency.find oversight_id
+    ta  = TransportationAgency.find transportation_id
+
+    associated_tas = oa.agency_oversight_agency.map{|aoa| aoa.transportation_agency}
+    is_included = associated_tas.include?(ta)
+
+    unless is_included
+      @service.errors.add(:agency,err_message)
+    end
+
+    !is_included
   end
 
   def service_params

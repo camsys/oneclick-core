@@ -14,7 +14,8 @@ module Api
         if search_string == "% %"
           recent_places = authentication_successful? ? @traveler.recent_waypoints(3*max_results) : []
           recent_places.each do |landmark|
-            if landmark.city == "" || landmark.city.nil?
+            # Skip landmarks with no cities and landmarks with a bad city value
+            if landmark.city == "" || landmark.city.nil? || landmark.city.in?(Trip::BAD_CITIES)
               next
             end
             landmark_hash = landmark.google_place_hash
@@ -39,10 +40,10 @@ module Api
         count = 0
         landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
         landmarks.each do |landmark|
-          # Skip returning a Place if it doesn't have a city
+          # Skip returning a Place if it doesn't have a city or if it has a bad city
           # - this helps prevent users from selecting a city-less Place
           # ...and booking shared ride trips with it(it shows up in Ecolane with no city)
-          if !landmark.city.nil? && landmark.city != ''
+          if !landmark.city.nil? && landmark.city != '' && !landmark.city.in?(Trip::BAD_CITIES)
             locations.append(landmark.google_place_hash)
             count += 1
             if count >= max_results
@@ -60,7 +61,8 @@ module Api
         landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").limit(max_results)
         names = []
         landmarks.each do |landmark|
-          unless landmark.name.in? names 
+          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
+          if !landmark.name.in?(names) && !landmark.city.nil? && landmark.city != '' && !landmark.city.in?(Trip::BAD_CITIES)
             locations.append(landmark.google_place_hash)
             names << landmark.name
             count += 1

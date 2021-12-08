@@ -3,4 +3,7 @@
 
 -if record
   -I18n.available_locales.each do |locale|
-    = form.input "#{locale}_description", label:"Description (#{locale})", :as => :text
+    = form.input "#{locale}_description",
+    label:"Description (#{locale})",
+      :as => :text,
+      readonly: (cannot? :update, local_assigns[:record])
