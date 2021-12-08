@@ -1,7 +1,8 @@
 =content_for :title do
   = @purpose.code
 
-=render partial: 'edit_purpose', layout: '/layouts/panel'
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+=render partial: 'edit_purpose', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @purpose)}
+- if can? :delete, @purpose
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 =back_link admin_purposes_path, label: "All Purposes"

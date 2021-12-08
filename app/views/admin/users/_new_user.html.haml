@@ -3,6 +3,6 @@
 =content_for :body do
   -# This is a bit of a hack to get the user edit form to differentiate between
     editing staff/ admins and travelers
-  =render partial: "user_form", locals: { f: f, staff: true }
+  =render partial: "user_form", locals: { f: f, staff: true, action: 'create' }
 =content_for :footer do
   = f.button :submit, "OK", class: 'btn action-button btn-primary', role: 'button'

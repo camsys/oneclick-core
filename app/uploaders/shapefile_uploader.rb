@@ -34,7 +34,7 @@ class ShapefileUploader
   end
 
   def update_model_agency(agency)
-    @model.update(agency: agency) unless (agency.empty? || agency.nil?)
+    @model.update(agency: agency) unless (agency.nil?)
   end
   private
 

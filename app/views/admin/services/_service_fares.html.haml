@@ -1,3 +1,8 @@
+- ## LOCALS:
+-# should_be_readonly: A boolean meant to represent whether or not the current user
+-# can update the form
+- should_be_readonly = (cannot? :update, @service)
+
 =content_for :header do
   Fares
 
@@ -9,7 +14,8 @@
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   =f.input :fare_structure, 
-      input_html: {class: 'fare-structure'}, 
+      input_html: {class: 'fare-structure'},
+      readonly: should_be_readonly,
       include_blank: false,
       collection: FareHelper::VALID_STRUCTURES.map {|fs| [fs.to_s.titleize, fs]}
 
@@ -18,19 +24,31 @@
   -# FLAT
   .fare-inputs.flat-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :flat_base_fare, as: :float, input_html: {value: number_with_precision(fare_details[:flat_base_fare], precision: 2)}
+      =fd.input :flat_base_fare,
+       as: :float,
+       readonly: should_be_readonly,
+       input_html: {value: number_with_precision(fare_details[:flat_base_fare], precision: 2)}
 
   -# MILEAGE ONLY
   .fare-inputs.mileage-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :mileage_base_fare, as: :float, input_html: {value: number_with_precision(fare_details[:mileage_base_fare], precision: 2)}
-      =fd.input :mileage_rate, as: :float, input_html: {value: number_with_precision(fare_details[:mileage_rate], precision: 2)}
+      =fd.input :mileage_base_fare,
+        as: :float,
+       readonly: should_be_readonly,
+        input_html: {value: number_with_precision(fare_details[:mileage_base_fare], precision: 2)}
+      =fd.input :mileage_rate,
+        as: :float,
+       readonly: should_be_readonly,
+        input_html: {value: number_with_precision(fare_details[:mileage_rate], precision: 2)}
       =fd.input :trip_type, as: :hidden, input_html: {value: @service.type}
   
   -# URL
   .fare-inputs.url-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :url, as: :string, input_html: {value: fare_details[:url]}
+      =fd.input :url,
+        as: :string,
+       readonly: should_be_readonly,
+        input_html: {value: fare_details[:url]}
 
   -# ZONE
   .fare-inputs.zone-fare.hidden
@@ -48,7 +66,9 @@
   -# TFF
   .fare-inputs.taxi_fare_finder-fare.hidden
     =f.fields_for :fare_details do |fd|
-      =fd.input :taxi_fare_finder_city, input_html: {value: fare_details[:taxi_fare_finder_city]}
+      =fd.input :taxi_fare_finder_city,
+        readonly: should_be_readonly,
+        input_html: {value: fare_details[:taxi_fare_finder_city]}
 
 :javascript
   $(document).ready(function() {

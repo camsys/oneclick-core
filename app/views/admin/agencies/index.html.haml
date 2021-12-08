@@ -15,7 +15,7 @@
     url: admin_agencies_path, 
     html: {class: 'form-horizontal', multipart: true, method: :post }, 
     authenticity_token: true do |f|
-  - if can? :create, Agency
+  - if (can? :create, Agency) && !current_user.currently_transportation?
     =render partial: 'new_agency', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript
