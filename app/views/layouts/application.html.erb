@@ -32,11 +32,11 @@
           <ul class="nav navbar-nav navbar-right">
             <% if current_user%>
               <li class="menu-item agency">
-                <% if current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 1 %>
+                <% if current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 0 %>
                   <%= form_tag change_agency_admin_users_path do %>
                   <%= select("agency",
                              "id",
-                             options_for_select(@agency_map, selected = (current_user&.current_agency&.id || current_user.staff_agency.id)), {},
+                             options_for_select(@agency_map, selected = (current_user&.current_agency&.id)), {:include_blank => false},
                              :onchange => "form.submit();") %>
                   <%= hidden_field_tag "come_from", request.fullpath %>
                   <% end %>

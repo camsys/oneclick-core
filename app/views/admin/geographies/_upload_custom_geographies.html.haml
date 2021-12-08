@@ -3,23 +3,19 @@
 
 = f.input "file", required:true, label: "Upload Shapefile", :as => :file
 = simple_form_for :agency do |fa|
-  -if current_user.superuser?
-    = fa.input :agency,
-      collection: TransportationAgency.all,
-      include_blank: "Select an Agency"
-  -if current_user.currently_oversight?
-    = fa.input :agency,
-      collection: current_user.accessible_agencies,
-      include_blank: "Select an Agency"
-  -if current_user&.staff_agency&.transportation?
-    = fa.input :agency,
-      readonly:true,
-      collection: [current_user.staff_agency],
-      selected: current_user.staff_agency.id,
-      include_blank: "Select an Agency"
-  -if current_user.currently_transportation?
-    = fa.input :agency,
-      readonly:true,
-      collection: [current_user.current_agency],
-      selected: current_user.current_agency.id,
-      include_blank: "Select an Agency"
+  = fa.input :agency,
+    collection: @agencies,
+    label: 'Transportation Agency',
+    selected: @agencies&.length == 1 ? @agencies&.first.id : nil,
+    disabled: !(current_user.superuser? || current_user.currently_oversight?),
+    include_blank: "Select a Transportation Agency"
+  = fa.input :agency,
+    as: :hidden,
+    collection: @agencies,
+    label: 'Transportation Agency',
+    selected: @agencies&.length == 1 ? @agencies&.first.id : nil,
+    disabled: current_user.superuser? || current_user.currently_oversight?,
+    include_blank: "Select a Transportation Agency",
+    input_html: { id: 'hidden_agency',
+      value:@agencies&.length == 1 ? @agencies&.first.id : nil}
+

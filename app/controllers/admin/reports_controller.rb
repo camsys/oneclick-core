@@ -41,16 +41,19 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def planned_trips_dashboard
-    @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = current_user.get_trips_for_staff_user
+    @trips = @trips.from_date(@from_date).to_date(@to_date)
     @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
   end
 
-  def unique_users_dashboard 
-    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+  def unique_users_dashboard
+    travelers_emails = current_user.get_travelers_for_staff_user.pluck(:email)
+    @user_requests = RequestLog.where(auth_email:travelers_emails).from_date(@from_date).to_date(@to_date)
   end
   
   def popular_destinations_dashboard
-    @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = current_user.get_trips_for_staff_user
+    @trips = @trips.from_date(@from_date).to_date(@to_date)
   end
   
   ### / graphical dashboards
@@ -76,15 +79,12 @@ class Admin::ReportsController < Admin::AdminController
     if current_user.superuser?
       @users = User.all
     elsif current_user.transportation_admin? ||current_user.transportation_staff?
-      @users = current_user.travelers_for_staff_agency
-    elsif current_user.currently_oversight?
-      @users = current_user.travelers_for_oversight_agency
-    elsif current_user.currently_transportation?
-      @users = current_user.travelers_for_current_agency
+      @users = User.querify(current_user.any_users_for_staff_agency + current_user.travelers_for_staff_agency)
+    elsif current_user.currently_oversight? || current_user.currently_transportation?
+      @users = User.querify(current_user.any_users_for_current_agency + current_user.travelers_for_current_agency)
       # Fallback just in case an edge case is missed
     else
-      puts "Got to users report fallback, returning no users for #{current_user.email}"
-      @users = User.none
+      @users = current_user.travelers_for_none
     end
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
@@ -98,20 +98,10 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    if current_user.superuser?
-      @trips = Trip.all
-    elsif current_user.transportation_admin? ||current_user.transportation_staff?
-      @trips = Trip.with_transportation_agency(current_user.staff_agency.id)
-    elsif current_user.currently_oversight?
-      tas = AgencyOversightAgency.where(oversight_agency_id: current_user.staff_agency.id).pluck(:transportation_agency_id)
-      @trips = Trip.with_transportation_agency(tas)
-    elsif current_user.currently_transportation?
-      @trips = Trip.with_transportation_agency(current_user.current_agency.id)
-    # Fallback just in case an edge case is missed
-    else
-      puts "Got to trips report fallback, returning no trips for #{current_user.email}"
-      @trips = Trip.none
-    end
+    # Get trips for the current user's agency and role
+    @trips = current_user.get_trips_for_staff_user
+
+    # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
@@ -139,19 +129,21 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def services_table
+    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     if current_user.superuser?
       @services = Service.all
     elsif current_user.transportation_admin? ||current_user.transportation_staff?
-      @services = Service.where(agency_id: current_user.staff_agency.id)
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
     elsif current_user.currently_oversight?
       sids = ServiceOversightAgency.where(oversight_agency_id: current_user.staff_agency.id).pluck(:service_id)
-      @services = Service.where(id: sids)
+      @services = Service.where(id: sids).or(always_unaffiliated_services)
     elsif current_user.currently_transportation?
-      @services = Service.where(agency_id: current_user.current_agency.id)
+      @services = Service.where(agency_id: current_user.current_agency.id).or(always_unaffiliated_services)
       # Fallback just in case an edge case is missed
+    elsif current_user.current_agency.nil?
+      @services = Service.where(agency_id: nil).or(always_unaffiliated_services)
     else
-      puts "Got to service report fallback, returning no services for #{current_user.email}"
-      @services = Service.none
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
     end
     @services = @services.where(type: @service_type) unless @service_type.blank?
     @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?

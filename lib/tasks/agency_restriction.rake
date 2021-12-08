@@ -101,7 +101,7 @@ namespace :agency_restriction do
       oa.agency_type = AgencyType.find_by(name:'OversightAgency')
     end
     penn_dot.save
-    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type.name}"
+    puts "Penn DOT Agency created with id: #{penn_dot.id} and agency type of: #{penn_dot.agency_type&.name}"
   end
 
   desc "Assigning all Transportation Agencies to Penn DOT"
@@ -194,7 +194,7 @@ namespace :agency_restriction do
     User.where("users.email ~* :rabbit", :rabbit => 'rabbittransit\.org').each do |staff|
       roles_removed = ""
       # Remove all roles attached to the current camsys user
-      staff.roles.each do |role|
+      staff.roles.reverse_each do |role|
         role_name = role.name
         role_resource = role.resource
         staff.remove_role(role.name,role.resource)
@@ -224,7 +224,7 @@ namespace :agency_restriction do
     User.where("users.email ~* :delco", :delco => 'ctdelco\.org').each do |staff|
       roles_removed = ""
       # Remove all roles attached to the current camsys user
-      staff.roles.each do |role|
+      staff.roles.reverse_each do |role|
         role_name = role.name
         role_resource = role.resource
         staff.remove_role(role.name,role.resource)
@@ -252,9 +252,12 @@ namespace :agency_restriction do
 
   desc "Add agency types"
   task add_agency_type: :environment do
+    final_st = ""
     %w[OversightAgency TransportationAgency].each do |type|
-      AgencyType.find_or_create_by(name: type)
+      ag_t =AgencyType.find_or_create_by(name: type)
+      final_st +="#{ag_t.name}, "
     end
+    puts "Agency types created: #{final_st}"
   end
 
   desc "Associate agencies with agency_type"
@@ -280,7 +283,7 @@ namespace :agency_restriction do
       end
       roles_removed = ""
       # Remove all roles attached to the current camsys user
-      staff.roles.each do |role|
+      staff.roles.reverse_each do |role|
         role_name = role.name
         role_resource = role.resource
         staff.remove_role(role.name,role.resource)

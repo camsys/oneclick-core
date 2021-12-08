@@ -6,6 +6,7 @@
       %th Last Name
       %th First Name
       %th Email
+      %th Agency
       %th Last Signed In
 
   -@travelers.each do |member|
@@ -16,6 +17,8 @@
         =member.first_name
       %td
         =member.email
+      %td
+        =member.traveler_transit_agency&.transportation_agency&.name || "N/A"
       %td
         -unless member.last_sign_in_at.nil?
           =member.last_sign_in_at.to_formatted_s(:long)

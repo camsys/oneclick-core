@@ -1,5 +1,5 @@
 =content_for :header do
-  ="Edit Landmark"
+  ="#{(can? :update, @landmark) ? "Editing" : "Viewing"} Landmark"
 
 =simple_form_for @landmark,
   url: admin_landmark_path, authenticity_token: true, data: {type: 'html'},

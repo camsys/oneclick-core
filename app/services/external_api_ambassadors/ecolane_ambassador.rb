@@ -19,6 +19,7 @@ class EcolaneAmbassador < BookingAmbassador
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
+    check_travelers_transit_agency
     add_missing_attributes
     
     # Funding Rules Shortcuts
@@ -60,6 +61,22 @@ class EcolaneAmbassador < BookingAmbassador
     return if @booking_profile 
     if @service and @user 
       @booking_profile = UserBookingProfile.find_by(service: @service, user: @user)
+    end
+  end
+
+  def check_travelers_transit_agency
+    # If @user is not present, return
+    return unless @user.present? && @booking_profile.present?
+
+    # if user is a user but has no traveler transit agency
+    #   make one with the user booking profile
+    # if the user has a traveler transit agency but agency is nil
+    #   check booking profile for the service's agency and populate with that
+    if @user.traveler_transit_agency.nil?
+      ag = @booking_profile.service.agency
+      TravelerTransitAgency.find_or_create_by(user_id: @user.id, transportation_agency_id: ag.id)
+    elsif @user.traveler_transit_agency.transportation_agency.nil? && @booking_profile.present?
+      @user.traveler_transit_agency.transportation_agency = @booking_profile.service.agency
     end
   end
 

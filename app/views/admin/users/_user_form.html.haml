@@ -1,39 +1,98 @@
-= f.input :email, required: true, :as => :string
-= f.input :first_name, required: false, :as => :string
-= f.input :last_name, required: false, :as => :string
-= f.input :password, required: true, :as => :password
-= f.input :password_confirmation, required: true, :as => :password
+-# NOTE: The local_assigns[:action] locals needs to exist so that we can set form inputs to readonly
+  properly. Otherwise if @user.nil? == true, like in user creation, then the form locks up which
+  is not desired
+- can_update_user = (can? :update, @user)
+- readonly_field = local_assigns[:action] == 'create' ? true : can_update_user
+= f.input :email,
+  required: true,
+  :as => :string,
+  readonly: !readonly_field
+= f.input :first_name,
+  required: false,
+  :as => :string,
+  readonly: !readonly_field
+= f.input :last_name,
+  required: false,
+  :as => :string,
+  readonly: !readonly_field
+= f.input :password,
+  required: true,
+  :as => :password,
+  readonly: !readonly_field
+= f.input :password_confirmation,
+  required: true,
+  :as => :password,
+  readonly: !readonly_field
 
 -# If the current user can manage roles, is admin/ superuser, and the current user has more than one role
   then display the role management form
   - the staff locals is true if we're creating or editing a staff user
--if (can? :manage, Role) && (current_user.admin? || current_user.superuser?) && staff == true
+-if staff == true
   %hr
   %h4.text-center Roles
   = f.input :roles,
     label: "User Role",
-    selected: @user.roles.last.try(:name) || :staff,
-    collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles_name.last.to_sym],
-    readonly: @user.valid? && (@user == current_user || (cannot? :update, @user))
-  - if current_user.superuser? || (current_user.currently_oversight? && current_user.oversight_admin?)
-    = f.input :staff_agency,
-        as: :select,
-        collection: current_user.accessible_agencies,
-        label: "Staff for: ",
-        selected: @user.staff_agency.try(:id),
-        include_blank: "Select an Agency",
-        readonly: @user.id == current_user.id
-  - if current_user.transportation_admin?
-    = f.input :staff_agency,
-        as: :select,
-        collection: current_user.accessible_agencies,
-        selected: @user.staff_agency.try(:id),
-        readonly: true,
-        include_blank: false
-  - if current_user.oversight_admin? && current_user.currently_transportation?
-    = f.input :staff_agency,
-        as: :select,
-        collection: [current_user.current_agency],
-        selected: @user.current_agency.try(:id),
-        readonly: true,
-        include_blank: false
+    required: true,
+    prompt: '',
+    selected: @user.valid? ? @user.roles.last.name.to_s : :staff,
+    collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles.last.name.to_sym],
+    disabled: @user.valid? && (@user == current_user || !readonly_field)
+  - disable_agency_field = @user.id == current_user.id  || !(current_user.superuser? || (current_user.oversight_admin? && current_user.currently_oversight?))
+  = f.input :staff_agency,
+      as: :select,
+      collection: current_user.showable_agencies.order(:name),
+      label: "Staff for: ",
+      selected: @user.staff_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id,
+      include_blank: "Select an Agency",
+      disabled: disable_agency_field || @user.superuser?
+  -# HIDDEN STAFF AGENCY FIELD FOR DISABLED STAFF AGENCY SELECT WHEN APPLICABLE
+  = f.input :staff_agency,
+      as: :hidden,
+      label: "Staff for: ",
+      input_html: {id: 'hidden_staff_agency',
+        value: @user.staff_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id },
+      disabled: !disable_agency_field
+
+:javascript
+  $(document).ready(function() {
+  const NAText = 'Not Applicable'
+  const SelectAgencyText = 'Select An Agency'
+  const staffRoleInput = $('#user_roles')
+  const hiddenAgencyInput = $('#hidden_staff_agency')
+
+  const staffAgencyInput = $('#user_staff_agency')
+  // If the current @user is a superuser, then set the agency input to readonly, and set the blank option to have
+  // "Not Applicable" as the text
+    if (staffRoleInput.length > 0) {
+      if (staffRoleInput.val() === 'superuser') {
+        staffAgencyInput.attr('disabled', 'true')
+        hiddenAgencyInput.removeAttr('disabled')
+        hiddenAgencyInput.val('')
+        const emptyOption = $('#user_staff_agency option[value=""]')
+        emptyOption.text(NAText)
+      }
+
+      // On role input change, if the selected role is superuser,
+      // ...set it to disabled and set the blank option to have text of "Not Applicable"
+      // else
+      // ... remove the disabled attribute and set the blank option to have text of "Select an Agency"
+      staffRoleInput.change(function({target}) {
+        const roleSelected = target.value
+        const emptyOption = $('#user_staff_agency option[value=""]')
+        if (roleSelected === 'superuser') {
+          // Disable staff agency input
+          staffAgencyInput.val('')
+          staffAgencyInput.attr('disabled', 'true')
+          emptyOption.text(NAText)
+          // enable hidden agency input and set the value to '' or in other words, no agency
+          hiddenAgencyInput.removeAttr('disabled')
+          hiddenAgencyInput.val('')
+
+        } else if (staffAgencyInput.attr('disabled') && ('#{disable_agency_field}' === 'false')) {
+          hiddenAgencyInput.attr('disabled', 'true')
+          staffAgencyInput.removeAttr('disabled')
+          emptyOption.text(SelectAgencyText)
+        }
+      })
+    }
+  });

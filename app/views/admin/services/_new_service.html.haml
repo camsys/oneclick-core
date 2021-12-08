@@ -3,54 +3,40 @@
 
 = f.input :name, required: true, :as => :string
 = f.input :type, required: true, collection: Service::SERVICE_TYPES, include_blank: "Select a Service Type"
+-# Transportation Agency field is readonly if the user is not a super user or an oversight user viewing as oversight
+- disable_agency_field = !(current_user.superuser? || (current_user.currently_oversight?))
+= f.input :agency_id,
+  collection: @transportation_agencies,
+  disabled: disable_agency_field,
+  required:true,
+  include_blank: 'Select a Transportation Agency for the new Service',
+  label_method: :name,
+  label: "Transportation Agency",
+  selected: @default_agency&.id,
+  wrapper_html: {id: 'oversight_select'}
+-# HIDDEN INPUT FOR AGENCY ID WHEN APPLICABLE
+= f.input :agency_id,
+  as: :hidden,
+  input_html: {id: 'hidden_agency',
+    value: current_user.current_agency&.id || current_user.staff_agency&.id },
+  disabled: !disable_agency_field
 =simple_form_for :oversight do |foa|
-  -# If they're a superuser, show all transportation and oversight agencies
-  - if current_user.superuser?
-    = foa.input :transportation_agency_id,
-      collection: TransportationAgency.all
-    -# = foa.input :oversight_agency_id,
-    -#   required: true,
-    -#   collection: OversightAgency.all,
-    -#   label_method: :name,
-    -#   value_method: :id,
-    -#   wrapper_html: {id: 'oversight_select'}
-  -# if the current user is part of a staff agency, then try set their oversight agency
-  - if current_user.staff_agency&.transportation?
-    = foa.input :transportation_agency_id,
-        collection: [current_user.staff_agency],
-        readonly:true,
-        include_blank: false,
-        label_method: :name,
-        value_method: :id,
-        selected: current_user.staff_agency.id
-    = foa.input :oversight_agency_id,
-        collection: [current_user.staff_agency.agency_oversight_agency.oversight_agency],
-        readonly:true,
-        include_blank: false,
-        label_method: :name,
-        value_method: :id,
-        selected: current_user.staff_agency.agency_oversight_agency.oversight_agency.id,
-        wrapper_html: {id: 'oversight_select'}
-  -# Automatically assign the new agency to the current user's oversight agency if they are an oversight agency admin
-  - if current_user.staff_agency&.oversight? && current_user.admin?
-    - if current_user.current_agency&.oversight?
-      = foa.input :transportation_agency_id,
-        collection: TransportationAgency.where(id:current_user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id)),
-        label_method: :name,
-        value_method: :id
-    - if current_user.current_agency&.transportation?
-      = foa.input :transportation_agency_id,
-        collection: [current_user.current_agency],
-        readonly:true,
-        include_blank: false,
-        label_method: :name,
-        value_method: :id,
-        selected: current_user.current_agency.id
-    = foa.input :oversight_agency_id,
-        collection: [current_user.staff_agency],
-        readonly:true,
-        include_blank: false,
-        label_method: :name,
-        value_method: :id,
-        selected: current_user.staff_agency.id,
-        wrapper_html: {id: 'oversight_select'}
+  - default_oversight = current_user.staff_agency&.transportation? ? current_user.staff_agency&.agency_oversight_agency&.oversight_agency&.id : current_user.staff_agency&.id
+  = foa.input :oversight_agency_id,
+      collection: @oversight_agencies,
+      disabled: !current_user.superuser?,
+      required:true,
+      include_blank: 'Select an Oversight Agency for the new Service',
+      label_method: :name,
+      value_method: :id,
+      selected: default_oversight || '',
+      wrapper_html: {id: 'oversight_select'}
+  -# HIDDEN INPUT FOR OVERSIGHT AGENCY ID WHEN APPLICABLE,
+    SHOULD BE DISABLED IF SUPERUSER AS SUPERUSER CAN SELECT ALL OVERSIGHT AGENCIES
+  = foa.input :oversight_agency_id,
+    as: :hidden,
+    name: 'oversight[oversight_agency_id]',
+    label: 'Oversight Agency:',
+    input_html: {id: 'hidden_oversight_agency',
+      value: default_oversight},
+    disabled: current_user.superuser?
