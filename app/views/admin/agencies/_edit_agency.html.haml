@@ -39,6 +39,11 @@
           readonly: true,
           selected: @agency.agency_oversight_agency&.oversight_agency_id,
           wrapper_html: {id: 'oversight_select'}
+        = foa.input :oversight_agency_id,
+          as: :hidden,
+          disabled: current_user.superuser?,
+          input_html: {id: :hidden_oversight_agency_id,
+            value: @agency.agency_oversight_agency&.oversight_agency_id}
   -when "PartnerAgency"
   -when "OversightAgency"
   -else
