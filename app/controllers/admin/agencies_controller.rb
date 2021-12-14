@@ -49,9 +49,9 @@ class Admin::AgenciesController < Admin::AdminController
       return
     end
     if @agency.update_attributes(agency_params)
-      if oversight_agency_id && @agency.agency_oversight_agency
+      if oversight_agency_id.present? && @agency.agency_oversight_agency
         @agency.agency_oversight_agency.update(oversight_agency_id: oversight_agency_id)
-      elsif oversight_agency_id
+      elsif oversight_agency_id.present?
         AgencyOversightAgency.create(transportation_agency_id:@agency.id,oversight_agency_id: oversight_agency_id)
       end
 
@@ -81,8 +81,8 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   def oversight_params
-    oversight = params.delete(:oversight)
-    oversight["oversight_agency_id"]
+    oversight = params&.delete(:oversight)
+    oversight.present? && oversight["oversight_agency_id"]
   end
 
   def agency_params
