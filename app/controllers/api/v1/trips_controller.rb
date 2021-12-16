@@ -38,6 +38,7 @@ module Api
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
+            details = trip[:details] || Trip::DEFAULT_TRIP_DETAILS
             trip_params(ActionController::Parameters.new({
               trip: {
                 origin_attributes: start_location,
@@ -46,7 +47,8 @@ module Api
                 arrive_by: (trip[:departure_type] == "arrive"),
                 user_id: @traveler && @traveler.id,
                 purpose_id: purpose ? purpose.id : nil,
-                external_purpose: external_purpose
+                external_purpose: external_purpose,
+                details: details
               }
             }))
           end
@@ -189,6 +191,22 @@ module Api
       
       end
 
+      # Method does batch updates to round trips
+      # - trip details are merged with the current details
+      def update_trip_details
+        params.permit({details: details_attributes}, :trip)
+        params.require(:trip)
+        @trips = Trip.where(["id = :trip_id or previous_trip_id = :trip_id", { trip_id: params[:trip] } ])
+        if !@trips.empty?
+          @trips.each do |trip|
+            trip.update(details: trip.details.merge(params[:details]))
+          end
+          render status:200, json:{trip: @trips}
+        else
+          render status:404, json: nil
+        end
+      end
+
       # POST trips/cancel, itineraries/cancel
       # Unselects and cancels the target itinerary
       def cancel
@@ -293,12 +311,17 @@ module Api
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
           {destination_attributes: place_attributes},
+          {details: details_attributes},
           :trip_time,
           :arrive_by,
           :user_id,
           :purpose_id,
           :external_purpose
         )
+      end
+
+      def details_attributes
+        [:notification_preferences]
       end
 
       def place_attributes
@@ -334,6 +357,7 @@ module Api
         # Trip attributes
         trip_hash = {
           trip_id: trip.id,
+          details: trip.details,
           origin: WaypointSerializer.new(trip.origin).to_hash,
           destination: WaypointSerializer.new(trip.destination).to_hash
         }

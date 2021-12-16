@@ -10,6 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+
 ActiveRecord::Schema.define(version: 20210902200020) do
 
   # These are extensions that must be enabled in order to support this database
@@ -472,6 +473,7 @@ ActiveRecord::Schema.define(version: 20210902200020) do
     t.integer  "purpose_id"
     t.integer  "previous_trip_id"
     t.string   "external_purpose"
+    t.text     "details"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree

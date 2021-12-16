@@ -12,7 +12,10 @@ class UserBookingProfile < ApplicationRecord
   
   ### VALIDATIONS ###
   validates :user_id, presence: true
-  
+
+  ### SCOPES ###
+  scope :valid_service, -> {where.not(service_id: nil)}
+
   ### INSTANCE METHODS ###
   
   # Returns the appropriate booking ambassador based on the booking_api field

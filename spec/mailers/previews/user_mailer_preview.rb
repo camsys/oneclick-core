@@ -9,7 +9,11 @@ class UserMailerPreview < ActionMailer::Preview
   end
 
   def ecolane_trip_email
-    UserMailer.ecolane_trip_email('wjiang@camsys.com', Booking.limit(5))
+    UserMailer.ecolane_trip_email(User.first.email, Booking.limit(5))
+  end
+
+  def user_trip_reminder
+    UserMailer.user_trip_reminder(User.first.email, Trip.selected.transit_trips.first, 7)
   end
 
 end
