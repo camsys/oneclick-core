@@ -4,6 +4,8 @@
   %td
     =agency.name
   %td
-    =agency.type
+    =agency.agency_type.name
+  %td
+    =agency.transportation? ? agency&.agency_oversight_agency&.oversight_agency&.name : nil
   %td
     =render partial: "shared/published_badge", locals: {object: agency}

@@ -1,5 +1,5 @@
 =content_for :header do
-  ="Edit Purpose Translations"
+  ="#{(can? :update, @purpose) ? "Editing" : "Viewing"} Purpose Translations"
 
 =simple_form_for @purpose,
   url: admin_purpose_path, authenticity_token: true, data: {type: 'html'},
@@ -10,9 +10,9 @@
   -I18n.available_locales.each do |locale|
     %h3.text-center
       =locale
-    = f.input "#{locale}_name", label:"Name", :as => :string
-    = f.input "#{locale}_note", label:"Note", :as => :text
-    = f.input "#{locale}_question", label:"Question", :as => :text
+    = f.input "#{locale}_name", label:"Name", :as => :string, readonly: (cannot? :update, @purpose)
+    = f.input "#{locale}_note", label:"Note", :as => :text, readonly: (cannot? :update, @purpose)
+    = f.input "#{locale}_question", label:"Question", :as => :text, readonly: (cannot? :update, @purpose)
 
 :javascript
   $(document).ready(function() {

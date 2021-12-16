@@ -68,12 +68,4 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
-  if ENV["RAILS_LOG_TO_STDOUT"].present?
-    # Create logger for logging database changes(creating/ altering/ dropping tables)
-    # Should largely be okay to build this here since this is only tracking db migrations
-    # and rake tasks run in development by default
-    config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
-    config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
-
-  end
 end

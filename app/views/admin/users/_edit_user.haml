@@ -1,11 +1,10 @@
 =content_for :header do
-  ="Edit User"
+  ="#{(can? :update, @user) ? "Editing" : "Viewing"} User"
 
 =simple_form_for @user,
   url: admin_user_path, authenticity_token: true, data: {type: 'html'},
   html: {id: form_id_from_path, method: :put, class: "form-horizontal" } do |f|
-  
-  = render partial: "user_form", locals: { f: f }
+  = render partial: "user_form", locals: { f: f, staff: @user.admin_or_staff? || @user.superuser?, action: 'update' }
 
 
   :javascript

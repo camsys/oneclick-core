@@ -5,8 +5,9 @@ class Admin::GeographiesController < Admin::AdminController
     @counties = County.all.order(:state, :name)
     @cities = City.all.order(:state, :name)
     @zipcodes = Zipcode.all.order(:name)
-    @custom_geographies = CustomGeography.all.order(:name)
-    
+    @custom_geographies = get_geographies_for_user
+    @agencies = current_user.get_transportation_agencies_for_user.order(:name)
+
     check_for_missing_geometries(@counties, @cities, @zipcodes, @custom_geographies)
   end
 
@@ -34,10 +35,12 @@ class Admin::GeographiesController < Admin::AdminController
   end
 
   def upload_custom_geographies
+    agency = Agency.find_by(id: params[:agency][:agency])
     uploader = ShapefileUploader.new(params[:geographies][:file],
       geo_type: :custom_geography,
       column_mappings: {name: 'NAME'})
     uploader.load
+    uploader.update_model_agency(agency)
     present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
@@ -55,9 +58,33 @@ class Admin::GeographiesController < Admin::AdminController
       end
     end
   end
-  
+
+  private
+
+  def custom_geography_params
+    params.require(:custom_geography).permit(
+    :agency,
+    :id
+    )
+  end
+
+  def get_geographies_for_user
+    if current_user.superuser?
+      CustomGeography.all.order(:name)
+    elsif current_user.transportation_staff? || current_user.transportation_admin?
+      CustomGeography.where(agency_id: current_user.staff_agency.id).order(:name)
+    elsif current_user.currently_oversight?
+      tas = current_user.staff_agency.agency_oversight_agency.map {|aoa| aoa.transportation_agency.id}
+      CustomGeography.where(agency_id: tas).order(:name)
+    elsif current_user.currently_transportation?
+      CustomGeography.where(agency_id: current_user.current_agency.id).order(:name)
+    elsif current_user.staff_agency.oversight? && current_user.current_agency.nil?
+      CustomGeography.where(agency_id: nil).order(:name)
+    end
+  end
+
   protected
-  
+
   def check_for_missing_geometries(*collections)
     messages = []
     collections.each do |collection|
