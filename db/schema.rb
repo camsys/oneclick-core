@@ -462,8 +462,8 @@ ActiveRecord::Schema.define(version: 20210902200020) do
   end
 
   create_table "trips", force: :cascade do |t|
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
+    t.datetime "created_at",                                            null: false
+    t.datetime "updated_at",                                            null: false
     t.integer  "user_id"
     t.integer  "origin_id"
     t.integer  "destination_id"
@@ -474,6 +474,7 @@ ActiveRecord::Schema.define(version: 20210902200020) do
     t.integer  "previous_trip_id"
     t.string   "external_purpose"
     t.text     "details"
+    t.string   "disposition_status",    default: "Unknown Disposition"
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree

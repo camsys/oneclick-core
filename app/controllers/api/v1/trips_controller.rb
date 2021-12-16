@@ -85,10 +85,13 @@ module Api
           trip.relevant_eligibilities = trip_planner.relevant_eligibilities
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
-
+        puts @trips.length
         #Link up the trips
         previous_trip = nil
         @trips.sort_by{ |t| t.trip_time}.each do |trip|
+          if trip.no_valid_services == true
+            trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_denied])
+          end
           if previous_trip
             previous_trip.next_trip = trip 
             previous_trip.save
@@ -110,8 +113,10 @@ module Api
         select_itineraries.each do |itin|
           itinerary = Itinerary.find_by(id: itin[:itinerary_id].to_i)
           if itinerary && @traveler.owns?(itinerary)
+            # attach itinerary to the trip
             itinerary.select
             results[itinerary.id] = true
+            Trip.find(itin["trip_id"]).update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_saved])
           else
             results[itin[:itinerary_id]] = false
           end
@@ -152,8 +157,7 @@ module Api
           end
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
-
-          # Pull the itinerary out of the booking_request hash and set up a 
+          # Pull the itinerary out of the booking_request hash and set up a
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 
           itins << itin       
@@ -173,7 +177,9 @@ module Api
             next response 
           end
           #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
-          
+
+          # Update Trip Disposition Status to ecolane succeeded
+          itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
@@ -183,12 +189,16 @@ module Api
           responses = []
           itins.each do |itin|
             itin.booked? ? itin.cancel : itin.unselect
+
+            # Update Trip Disposition Status with ecolane denied if it failed
+            itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
             responses << booking_response_base(itin).merge({booked: false})
           end
+          render status: 500, json: {booking_results: responses}
+        else
+          render status: 200, json: {booking_results: responses}
         end
 
-        render status: 200, json: {booking_results: responses}
-      
       end
 
       # Method does batch updates to round trips
