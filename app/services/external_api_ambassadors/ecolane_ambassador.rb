@@ -19,6 +19,7 @@ class EcolaneAmbassador < BookingAmbassador
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
+    check_travelers_transit_agency
     add_missing_attributes
     
     # Funding Rules Shortcuts
@@ -60,6 +61,22 @@ class EcolaneAmbassador < BookingAmbassador
     return if @booking_profile 
     if @service and @user 
       @booking_profile = UserBookingProfile.find_by(service: @service, user: @user)
+    end
+  end
+
+  def check_travelers_transit_agency
+    # If @user is not present, return
+    return unless @user.present? && @booking_profile.present?
+
+    # if user is a user but has no traveler transit agency
+    #   make one with the user booking profile
+    # if the user has a traveler transit agency but agency is nil
+    #   check booking profile for the service's agency and populate with that
+    if @user.traveler_transit_agency.nil?
+      ag = @booking_profile.service.agency
+      TravelerTransitAgency.find_or_create_by(user_id: @user.id, transportation_agency_id: ag.id)
+    elsif @user.traveler_transit_agency.transportation_agency.nil? && @booking_profile.present?
+      @user.traveler_transit_agency.transportation_agency = @booking_profile.service.agency
     end
   end
 
@@ -290,7 +307,7 @@ class EcolaneAmbassador < BookingAmbassador
     else
       order = build_order 
     end
-
+    # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
     return nil if resp.code != "200"
     resp = Hash.from_xml(resp.body)
@@ -366,10 +383,11 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info Hash.from_xml(message).ai 
+      Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
+      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
       return resp
     rescue Exception=>e
@@ -506,9 +524,7 @@ class EcolaneAmbassador < BookingAmbassador
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
-    origin = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :location))
     origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
-    destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100
@@ -862,35 +878,53 @@ class EcolaneAmbassador < BookingAmbassador
     [:future, :past].each do |times|
       if times == :future # Get all future trips
         trips = @user.trips.selected.future
-      else # Get the 10 most recent past trps
-        trips = @user.trips.selected.past.limit(10).reverse 
+      else # Get the most recent past 14 days of trips
+        trips = @user.trips.selected.past.past_14_days.reverse
       end
       
-      trips.each_cons(2) do |trip, next_trip|
-
-        #If this is already a round trip, keep moving. 
-        if trip.previous_trip or trip.next_trip
-          next
+      # Group trips on same day.
+      trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone('UTC').to_date}
+      trips_by_date.each do |trip_date, same_day_trips|
+        # Reset links on existing trips, unless trip has been created directly in 1click.
+        same_day_trips.each do |trip|
+          if trip.previous_trip and !trip&.selected_itinerary&.booking&.created_in_1click
+            trip.previous_trip = nil
+            trip.save 
+          end
         end
 
-        #Are these trips on the same day?
-        unless trip.trip_time.to_date == next_trip.trip_time.to_date
-          next
-        end
+        # Compare combinations of same day trips.
+        same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
+          trip = Trip.find_by(id: trip_id)
+          next_trip = Trip.find_by(id: next_trip_id)
 
-        #Does these trips have inverted origins/destinations?
-        unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
-          next
-        end
-        unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
-          next
-        end
+          # If this is already a round trip, and if trip has been created directly in 1click, 
+          # don't try to re-link. Otherwise, continue.
+          if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
+            next
+          end
 
-        #Ok these trips passed all the tests, combine them into one trip
-        next_trip.previous_trip = trip
-        next_trip.save 
+          # Are these trips on the same day?
+          # The trip_time is saved in the database as Eastern time in a UTC data type.
+          # Therefore we need to specify time zone to return as UTC in order to get trip_time back as Eastern time.
+          unless trip.trip_time.in_time_zone('UTC').to_date == next_trip.trip_time.in_time_zone('UTC').to_date
+            next
+          end
 
-      end #trips.each
+          #Does these trips have inverted origins/destinations?
+          unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
+            next
+          end
+          unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
+            next
+          end
+
+          #Ok these trips passed all the tests, combine them into one trip
+          next_trip.previous_trip = trip
+          next_trip.save 
+
+        end #trips.each
+      end #trips_by_date.each
     end #times.each
   end #link_trips
 

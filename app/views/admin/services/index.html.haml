@@ -7,12 +7,13 @@
       %th Logo
       %th Name
       %th Type
-      %th Agency
+      %th Transportation Agency
+      %th Oversight Agency
       %th Published?
   =render partial: 'service', collection: @services
-
-= simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
-  =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}
+-if can? :create, Service
+  = simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+    =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}
 
 :javascript
 

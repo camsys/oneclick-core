@@ -1,3 +1,5 @@
 #!/bin/sh
 sudo apachectl restart
 echo "restarted apache"
+bundle exec whenever --update-crontab
+echo "updated crontab"

@@ -2,8 +2,9 @@
   = @alert.subject
 
 
-=render partial: 'edit_alert', layout: '/layouts/panel'
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+=render partial: 'edit_alert', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @alert)}
+-if can? :delete, @alert
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
 =back_link admin_alerts_path, label: "All Alerts"
 

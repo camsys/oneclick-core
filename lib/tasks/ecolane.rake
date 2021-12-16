@@ -17,17 +17,18 @@ namespace :ecolane do
       end
     end
 
+    puts "starting sync"
     # Get the current POIs and mark them as old
     Landmark.update_all(old: true)
-
+    poi_with_no_city = 0
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
-
+      agency_id = service.agency&.id
       begin
         # Get a Hash of new POIs from Ecolane
+        # NOTE: INCLUDES THE SERVICE'S AGENCY
         new_poi_hashes = service.booking_ambassador.get_pois
-
         if new_poi_hashes.nil?
           #If anything goes wrong, delete the new pois and reinstate the old_pois
           Landmark.is_new.delete_all
@@ -35,6 +36,7 @@ namespace :ecolane do
           messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
           global_error = true
           local_error = true
+          puts messages.to_s
           next
         end
 
@@ -50,8 +52,16 @@ namespace :ecolane do
 
           new_poi = Landmark.new hash
           new_poi.old = false
-          #All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          new_poi.agency_id = agency_id
+          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.name.blank? or new_poi.name.downcase == 'home'
+            if new_poi.city == nil || new_poi.city == ""
+              puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
+              puts hash.ai
+              poi_with_no_city += 1
+              next
+            end
             new_poi.name = [new_poi.street_number, new_poi.route, new_poi.city].join(" ")
           end
           new_poi.save
@@ -64,6 +74,8 @@ namespace :ecolane do
         messages << "Error loading POIs for #{system}. #{e.message}."
         global_error = true
         local_error = true
+        # Log if errors happen
+        puts messages.to_s
       end
 
       unless local_error
@@ -79,8 +91,31 @@ namespace :ecolane do
       Landmark.is_old.delete_all
       new_poi_count = Landmark.count
       messages << "Successfully loaded  #{new_poi_count} POIs"
+      messages << "count of pois with no city: #{poi_with_no_city}"
+      puts messages.to_s
     end
 
   end #update_pois
+
+  # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
+  desc "Update Waypoints with an incorrect township as the city to the correct city"
+  task fix_townships_city: :environment do
+    messages = []
+    Trip::CORRECTED_CITIES_HASHES.each do |tp|
+      puts "Updating waypoints for #{tp[:incorrect]}"
+      wps = Waypoint.where(city: tp[:incorrect])
+      incorrect_waypoints_length = wps.length
+      wps.update_all(city: tp[:correct])
+      messages << "Updated #{incorrect_waypoints_length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"
+
+      # Correct the Waypoint name if it includes the incorrect township.
+      Waypoint.where("name like ?", "%#{tp[:incorrect]}%").map do |wp|
+        puts "Updating waypoint name #{wp.name}"
+        wp.name.gsub!(tp[:incorrect], tp[:correct])
+        wp.save!
+      end
+    end
+    puts messages.to_s
+  end
 
 end #ecolane

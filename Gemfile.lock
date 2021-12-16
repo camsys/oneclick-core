@@ -117,6 +117,7 @@ GEM
     case_transform (0.2)
       activesupport
     chartkick (2.3.4)
+    chronic (0.10.2)
     coderay (1.1.2)
     coffee-rails (4.2.2)
       coffee-script (>= 2.2.0)
@@ -372,6 +373,14 @@ GEM
     listen (3.0.8)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+    lograge (0.11.2)
+      actionpack (>= 4)
+      activesupport (>= 4)
+      railties (>= 4)
+      request_store (~> 1.0)
+    lograge-sql (1.3.1)
+      activerecord (>= 4, < 7.0)
+      lograge (~> 0.4)
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -449,6 +458,8 @@ GEM
       nokogiri (~> 1.5)
       trollop (~> 2.1)
     remotipart (1.4.2)
+    request_store (1.5.0)
+      rack (>= 1.4)
     responders (2.4.0)
       actionpack (>= 4.2.0, < 5.3)
       railties (>= 4.2.0, < 5.3)
@@ -558,6 +569,8 @@ GEM
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
+    whenever (1.0.0)
+      chronic (>= 0.6.3)
     xml-simple (1.1.5)
 
 PLATFORMS
@@ -595,6 +608,8 @@ DEPENDENCIES
   leaflet-rails
   letter_opener
   listen (~> 3.0.5)
+  lograge
+  lograge-sql
   mini_magick
   oneclick_refernet!
   pg (~> 0.18)
@@ -625,6 +640,7 @@ DEPENDENCIES
   tzinfo-data
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
+  whenever
 
 BUNDLED WITH
-   1.17.3
+   2.2.11

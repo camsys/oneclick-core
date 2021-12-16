@@ -6,3 +6,14 @@ div.checkbox,
 div.radio {
   padding-left: 15px;
 }
+
+.nav.navbar-right.navbar-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline
+}
+
+// Fixes strange checkbox alignment in User Reports Download component
+.boolean-wrapper > .col-sm-9 > .input-group.col-sm-12 {
+  margin-left: 20px;
+}

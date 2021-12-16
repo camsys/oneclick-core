@@ -1,5 +1,6 @@
+- cannot_update_agency = cannot? :update, @agency
 =content_for :header do
-  Agency Info
+  ="#{(can? :update, @agency) ? "Editing" : "Viewing"} Agency"
   =render partial: "shared/published_badge", locals: {object: @agency}
 
 
@@ -7,17 +8,39 @@
   url: admin_agency_path, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
 
-  =f.input :name
-  =logo_upload_input(f, img_src: @agency.logo.thumb.url)
-  =f.input :url
-  =f.input :phone
-  =f.input :email
+  =f.input :name, readonly: cannot_update_agency
+  =logo_upload_input(f, img_src: @agency.logo.thumb.url, readonly: cannot_update_agency)
+  =f.input :url, readonly: cannot_update_agency
+  =f.input :phone, readonly: cannot_update_agency
+  =f.input :email, readonly: cannot_update_agency
   =render partial: "shared/description_fields", locals: { form: f, record: @agency }
 
   -# For type-specific fields
-  -case @agency.type
+  -case @agency.agency_type.name
   -when "TransportationAgency"
+    =simple_form_for :oversight do |foa|
+      -# Automatically assign the new agency to the current user's oversight agency
+        if they are an oversight agency admin
+      - if current_user.superuser?
+        = foa.input :oversight_agency_id,
+          required: true,
+          collection: OversightAgency.all.order(:name),
+          label_method: :name,
+          value_method: :id,
+          selected: @agency.agency_oversight_agency&.oversight_agency_id,
+          wrapper_html: {id: 'oversight_select'}
+      - if !current_user.superuser?
+        = foa.input :oversight_agency_id,
+          disabled: !current_user.superuser?,
+          collection: [@agency.agency_oversight_agency.oversight_agency],
+          label_method: :name,
+          value_method: :id,
+          include_blank: false,
+          readonly: true,
+          selected: @agency.agency_oversight_agency&.oversight_agency_id,
+          wrapper_html: {id: 'oversight_select'}
   -when "PartnerAgency"
+  -when "OversightAgency"
   -else
   
 :javascript

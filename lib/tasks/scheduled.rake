@@ -13,6 +13,21 @@ namespace :scheduled do
     Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(14)
   end
 
+  desc "Add notification preferences for users that don't have one already"
+  task add_notification_preferences: :environment do
+    hash = {
+      notification_preferences: {
+        fixed_route: [7,3,1]
+      }
+    }
+    # Fetch all registered travelers and build them a default booking profile
+    User.registered_travelers.each do |user|
+      unless !user.user_booking_profiles.where(service_id: nil).empty? && !user.registered_traveler?
+        user.user_booking_profiles.create({details: hash})
+      end
+    end
+  end
+
   desc "Sync all Ecolane Users back for 3 days"
   task sync_all_ecolane_users_3_days: :environment do
     Rake::Task["scheduled:sync_all_ecolane_users_X_days"].invoke(3,true)
@@ -38,7 +53,7 @@ namespace :scheduled do
     puts "Starting #{ndays} day #{verbose ? "": "non-"}verbose Sync for #{count} users at #{task_start}" 
     User.all.order(:id).each do |u|
       user_start = Time.now
-      begin 
+      begin
         u.sync(ndays)
         users_processed += 1
         if verbose
@@ -212,5 +227,82 @@ namespace :scheduled do
       user.destroy if user.trips.count == 0
     end
   end
+
+ desc "Send Fixed Trip Reminders"
+  task send_fixed_trip_reminders: :environment do
+    count = 0
+    console_str = Config::DEFAULT_NOTIFICATION_PREFS.join(", ")
+    puts "Emailing notifications for trips: #{console_str} days away"
+
+    # For each default notification day, look for trips within that range
+    # NOTE: below algorithm assumes that the order of the fixed route trip notifications
+    # ...matches the order that the reminders in Config::DEFAULT_NOTIFICATION_PREFS are in
+    Config::DEFAULT_NOTIFICATION_PREFS.each.with_index do |default_day, index|
+
+      # Select all transit trips that are in the next n days
+      # so i.e transit trips that are in the next 7 days, 3 days, and 1 days
+      trips = Trip.transit_trips.in_next_n_days(default_day).distinct
+      trips.each do |trip|
+        # get user email
+        email = trip.user.to_s
+
+        details = trip.details
+        fixed_route = details[:notification_preferences][:fixed_route]
+        reminder = fixed_route[index]
+        # If the trip reminder is enabled and
+        # ...the trip reminder day is the same as the Config Notification Day, send an email
+        if reminder[:enabled] == true && reminder[:day] == default_day
+          UserMailer.user_trip_reminder(email,trip,default_day)
+
+          # toggle enable state of the
+          fixed_route[index][:enabled] = false
+
+          trip.update(details: details)
+          count += 1
+        else
+          # continue on without doing anything
+          next
+        end
+      end
+    end
+    puts "Trip reminder task completed, #{count} emails sent"
+  end
+
+
+  desc "Incrementally delete orphaned Waypoints"
+  task clean_waypoints: :environment do
+    origin_id_set = Trip.pluck(:origin_id).to_set
+    dest_id_set = Trip.pluck(:destination_id).to_set
+
+    puts "Starting count: #{Waypoint.count}"
+    # Limit processing time
+    start = Time.now
+    limit = 2.hours
+
+    batch_size = 1000
+    last_id = 0
     
+    count = 0
+    deleted = 0
+    
+    Waypoint.uncached do
+      while (Time.now - start < limit)
+        ids = Waypoint.order(:id).where('id > ?', last_id).limit(batch_size).pluck(:id)
+        break if ids.count < 1
+        ids.each do |id|
+          count += 1
+          unless ((origin_id_set.include? id) || (dest_id_set.include? id))
+            Waypoint.delete(id)
+            deleted += 1
+          end
+        end
+        last_id = ids.last
+        print '.'
+      end
+    end
+    puts
+    puts "Processed: #{count}, deleted: #{deleted}, elapsed: #{Time.at(Time.now - start).utc.strftime('%H:%M:%S')}"
+    puts "Ending count: #{Waypoint.count}"
+  end
+      
 end

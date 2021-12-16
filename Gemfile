@@ -29,9 +29,18 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
+
+### PRODUCTION APP RELATED #################
+# Support for application.yml on AWS
+gem 'figaro'
+# Replacement for Heroku Scheduler on AWS
+gem 'whenever', require: false
 ############################################
 
-gem 'figaro'
+### LOGGING RELATED #######################
+gem 'lograge'
+gem 'lograge-sql'
+############################################
 
 ### VIEWS & FORMATTING #####################
 gem 'awesome_print'
