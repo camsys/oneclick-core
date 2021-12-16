@@ -147,11 +147,14 @@ class Admin::ServicesController < Admin::AdminController
   # Validates oversight and transportation agency choice
   def validate_agencies_choices(oversight_id, transportation_id)
     # If either are empty, or if the Service is a Taxi service, return false
-    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
-    is_empty = oversight_id&.empty? || transportation_id&.empty?
-    # if either oversight id or transportation id is empty, don't validate
+    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not perform service create/ update"
+    is_empty = transportation_id&.empty?
+    # if transportation id is empty, don't need to validate
     if is_empty
       return nil
+    elsif oversight_id.empty? && transportation_id.present?
+      @service.errors.add(:agency,"Oversight Agency empty for #{@service.name}, did not perform service create/ update")
+      return true # return true as validation fails if oversight agency is empty
     end
 
     oa = OversightAgency.find oversight_id
