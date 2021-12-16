@@ -145,6 +145,9 @@ class Admin::UsersController < Admin::AdminController
       # then assign the input role and agency to the user
       if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
+        if @user.oversight_user?
+          @user.current_agency = nil
+        end
         @user.remove_role(last_role.name,last_role.resource)
         @user.set_role(role, ag)
       else

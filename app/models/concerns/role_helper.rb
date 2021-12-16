@@ -146,6 +146,10 @@ module RoleHelper
     admin? && agencies.any? { |a| a.oversight? }
   end
 
+  def oversight_user?
+    oversight_admin? || oversight_staff?
+  end
+
   def unaffiliated_user?
     (admin? || staff?) && roles.length == 1 && roles.first.resource.nil?
   end
@@ -203,11 +207,11 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.oversight? || (self.staff_agency&.oversight? && self.current_agency == nil)
+    oversight_user? && self.current_agency&.oversight?
   end
 
   def currently_transportation?
-    self.current_agency&.transportation?
+    oversight_user? && self.current_agency&.transportation?
   end
 
 
