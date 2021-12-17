@@ -107,7 +107,7 @@ class Admin::ReportsController < Admin::AdminController
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
-    
+    @trips = @trips.order(:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
     end

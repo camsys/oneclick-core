@@ -12,7 +12,6 @@ if ENV['RAILS_LOG_TO_STDOUT']
     end
     rescue
       puts "Database logging failed"
-      return
     end
   end
 end
