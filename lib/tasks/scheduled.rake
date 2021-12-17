@@ -22,7 +22,9 @@ namespace :scheduled do
     }
     # Fetch all registered travelers and build them a default booking profile
     User.registered_travelers.each do |user|
-      unless !user.user_booking_profiles.where(service_id: nil).empty? && !user.registered_traveler?
+      # Unless user booking profiles where service_id is nil is present(i.e was already made),
+      # create a default user booking profiles with no service, and with default details
+      unless user.user_booking_profiles.where(service_id: nil).present?
         user.user_booking_profiles.create({details: hash})
       end
     end
