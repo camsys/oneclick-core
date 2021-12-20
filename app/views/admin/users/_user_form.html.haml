@@ -37,6 +37,12 @@
     selected: @user.valid? ? @user.roles.last.name.to_s : :staff,
     collection: RoleHelper::PERMISSIBLE_CREATES[current_user.roles.last.name.to_sym],
     disabled: @user.valid? && (@user == current_user || !readonly_field)
+  = f.input :roles,
+      as: :hidden,
+      label: "user Role",
+      input_html: {id: 'hidden_roles',
+        value: @user.valid? ? @user.roles.last.name.to_s : :staff },
+      disabled: !(@user == current_user || !readonly_field)
   - disable_agency_field = @user.id == current_user.id  || !(current_user.superuser? || (current_user.oversight_admin? && current_user.currently_oversight?))
   = f.input :staff_agency,
       as: :select,
