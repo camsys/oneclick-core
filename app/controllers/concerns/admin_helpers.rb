@@ -2,7 +2,12 @@ module AdminHelpers
 
   def get_admin_pages
     urls = Rails.application.routes.url_helpers
-
+    my_agency = ""
+    if current_user.currently_transportation?
+      my_agency = urls.admin_agency_path(current_user.current_agency.try(:id))
+    elsif current_user.staff_agency.present?
+      my_agency = urls.admin_agency_path(current_user.staff_agency.try(:id)) || ""
+    end
     @admin_pages = [
       { label: "Accommodations",  url: urls.admin_accommodations_path,  show: can?(:read, Accommodation) },
       { label: "Alerts",          url: urls.admin_alerts_path,          show: can?(:read, Alert) },
@@ -19,7 +24,7 @@ module AdminHelpers
       { label: "Translations",    url: simple_translation_engine.translations_path, show: can?(:read, Translation) },
       { label: "Travelers",       url: urls.travelers_admin_users_path, show: can?(:read, User) },
       { label: "My Agency",
-        url: current_user.staff_agency.present? ? urls.admin_agency_path(current_user.staff_agency.try(:id)) : "",
+        url: my_agency,
         show: current_user.staff_agency.present? }
     ].select {|page| page[:show] }
     .sort_by { |page| page[:label] }
