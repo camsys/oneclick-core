@@ -1,5 +1,6 @@
+- viewing_oversight_as_transit = current_user.currently_transportation? && @agency.type == 'OversightAgency'
 =content_for :title do
-  = "Editing #{@agency.name}"
+  = "#{(can? :update, @agency) && !viewing_oversight_as_transit ? "Editing" : "Viewing"} #{@agency.name}"
 
 =render partial: 'edit_agency', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @agency)}
 - if can? :update, @agency

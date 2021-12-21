@@ -1,6 +1,7 @@
 - cannot_update_agency = cannot? :update, @agency
+- viewing_oversight_as_transit = current_user.currently_transportation? && @agency.type == 'OversightAgency'
 =content_for :header do
-  ="#{(can? :update, @agency) ? "Editing" : "Viewing"} Agency"
+  ="#{(can? :update, @agency) && !viewing_oversight_as_transit ? "Editing" : "Viewing"} Agency"
   =render partial: "shared/published_badge", locals: {object: @agency}
 
 
@@ -8,12 +9,12 @@
   url: admin_agency_path, authenticity_token: true, data: {type: 'html'},
   html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
 
-  =f.input :name, readonly: cannot_update_agency
-  =logo_upload_input(f, img_src: @agency.logo.thumb.url, readonly: cannot_update_agency)
-  =f.input :url, readonly: cannot_update_agency
-  =f.input :phone, readonly: cannot_update_agency
-  =f.input :email, readonly: cannot_update_agency
-  =render partial: "shared/description_fields", locals: { form: f, record: @agency }
+  =f.input :name, readonly: cannot_update_agency || viewing_oversight_as_transit
+  =logo_upload_input(f, img_src: @agency.logo.thumb.url, readonly: cannot_update_agency || viewing_oversight_as_transit)
+  =f.input :url, readonly: cannot_update_agency || viewing_oversight_as_transit
+  =f.input :phone, readonly: cannot_update_agency || viewing_oversight_as_transit
+  =f.input :email, readonly: cannot_update_agency || viewing_oversight_as_transit
+  =render partial: "shared/description_fields", locals: { form: f, record: @agency, override_readonly: viewing_oversight_as_transit }
 
   -# For type-specific fields
   -case @agency.agency_type.name
