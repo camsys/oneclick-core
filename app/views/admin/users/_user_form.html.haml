@@ -46,6 +46,7 @@
   - disable_agency_field = @user.id == current_user.id  || !(current_user.superuser? || (current_user.oversight_admin? && current_user.currently_oversight?))
   = f.input :staff_agency,
       as: :select,
+      required: true,
       collection: current_user.showable_agencies.order(:name),
       label: "Staff for: ",
       selected: @user.staff_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id,
