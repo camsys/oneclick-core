@@ -29,6 +29,7 @@
           label_method: :name,
           value_method: :id,
           selected: @agency.agency_oversight_agency&.oversight_agency_id,
+          include_blank: 'Select an Oversight Agency',
           wrapper_html: {id: 'oversight_select'}
       - if !current_user.superuser?
         = foa.input :oversight_agency_id,
