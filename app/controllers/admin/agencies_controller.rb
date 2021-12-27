@@ -11,10 +11,10 @@ class Admin::AgenciesController < Admin::AdminController
       @agencies = Agency.querify([current_user.staff_agency].concat(tas))
     elsif current_user.currently_transportation?
       @agencies = Agency.querify([current_user.current_agency])
-    elsif current_user.currently_viewing_as_none?
-      @agencies = Agency.all
     elsif current_user.transportation_staff? || current_user.transportation_admin?
       @agencies = Agency.querify([current_user.staff_agency])
+    else
+      []
     end
   end
   

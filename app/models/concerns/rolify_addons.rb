@@ -21,12 +21,6 @@ module RolifyAddons
         resource_id: instance&.id
       })
     end
-    scope :with_roles_for_instance_or_none, -> (role_names, instance) do
-      joins(:roles).where(roles: {
-        name: role_names.map{|role| role.to_s},
-        resource_id: [instance&.id].concat([nil])
-      })
-    end
 
     scope :with_role_for_instances, -> (role_name, instances) do
       joins(:roles).where(roles: {
@@ -42,18 +36,5 @@ module RolifyAddons
       })
     end
 
-    scope :with_role_for_instances_or_none, -> (role_name, instances) do
-      joins(:roles).where(roles: {
-        name: role_name.to_s,
-        resource_id: instances&.pluck(:id).concat([nil])
-      })
-    end
-
-    scope :with_roles_for_instances_or_none, -> (role_names, instances) do
-      joins(:roles).where(roles: {
-        name: role_names.map{|role| role.to_s},
-        resource_id: instances&.pluck(:id).concat([nil])
-      })
-    end
   end
 end
