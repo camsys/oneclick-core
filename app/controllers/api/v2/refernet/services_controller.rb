@@ -4,7 +4,8 @@ module Api
       class ServicesController < ApiController
 
         include ActionView::Helpers::NumberHelper
-
+        # Endpoint is: /api/v2/oneclick_refernet/services
+        # - plus any query params attached to the request
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
           duration_hash = {}
@@ -24,7 +25,8 @@ module Api
             
             services = services.closest(lat, lng)
                                .within_x_meters(lat, lng, meters)
-                               .limit(limit)                  
+                               .limit(limit)
+            # This is where OTP is called to get trip duration by public transit and by vehicle
             duration_hash = build_duration_hash(params, services)
           else
             services = services.limit(limit)
