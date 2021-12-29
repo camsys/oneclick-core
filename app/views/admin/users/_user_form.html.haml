@@ -55,7 +55,7 @@
   -# HIDDEN STAFF AGENCY FIELD FOR DISABLED STAFF AGENCY SELECT WHEN APPLICABLE
   = f.input :staff_agency,
       as: :hidden,
-      label: "Staff for: ",
+      label: "Staff For:",
       input_html: {id: 'hidden_staff_agency',
         value: @user.staff_agency&.id || current_user.current_agency&.id || current_user.staff_agency&.id },
       disabled: !disable_agency_field
