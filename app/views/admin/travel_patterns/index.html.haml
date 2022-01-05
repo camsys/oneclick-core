@@ -1,2 +1,16 @@
-%h1 TravelPatterns#index
-%p Find me in app/views/travel_patterns/index.html.haml
+-# TODO: Setup proper link paths
+%h1 Travel Patterns
+.ctr-geographies.col-md-4
+  -# Geographies related links
+  = link_to 'View Standard Geographies', admin_geographies_path
+  = link_to 'Create Custom Geography', admin_geographies_path
+  -# POIs related links
+  = link_to 'View System POIs', admin_geographies_path
+  = link_to 'Create Sets of POIs', admin_geographies_path
+.ctr-service-links.col-md-4
+  = link_to 'Create Service Schedules', admin_services_path
+  = link_to 'Create O/D Zones', admin_services_path
+  = link_to 'View Trip Purposes', admin_purposes_path
+  = link_to 'View Funding Sources',  admin_services_path
+.ctr-travel-patterns.col-md-4
+  = link_to 'Create Travel Pattern', admin_travel_patterns_path
