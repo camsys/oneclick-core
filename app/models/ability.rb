@@ -62,6 +62,7 @@ class Ability
 
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
+        can [:read], TravelPattern
         can [:edit,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
             id: user.accessible_staff.pluck(:id).concat(user.travelers_for_current_agency.pluck(:id))
         can :show, Agency,
@@ -113,6 +114,7 @@ class Ability
 
       # Oversight Admin Permissions
       if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
+        can :manage, TravelPattern
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :create, Agency
