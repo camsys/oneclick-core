@@ -10,6 +10,7 @@ class Admin::ConfigsController < Admin::AdminController
 
   authorize_resource
   before_action :load_configs, only: [:index, :update]
+  helper_method :build_dashboard_mode_collection
 
   PERMITTED_CONFIGS = [
     :open_trip_planner,
@@ -81,4 +82,11 @@ class Admin::ConfigsController < Admin::AdminController
     end
   end
 
+  private
+
+  def build_dashboard_mode_collection
+    PERMITTED_DASHBOARD_MODES.map do |mode|
+      DashboardModeInputHelper.new(mode)
+    end
+  end
 end
