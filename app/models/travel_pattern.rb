@@ -1,0 +1,2 @@
+class TravelPattern < ApplicationRecord
+end
