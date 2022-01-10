@@ -6,7 +6,8 @@
 
 class Admin::ConfigsController < Admin::AdminController
   include RemoteFormResponder
-  
+  include ConfigHelpers
+
   authorize_resource
   before_action :load_configs, only: [:index, :update]
 
@@ -28,10 +29,12 @@ class Admin::ConfigsController < Admin::AdminController
     :ui_url,
     :require_user_confirmation,
     :max_walk_minutes,
+    :dashboard_mode,
     daily_scheduled_tasks: []
   ].freeze
 
   def index
+    @dashboard_mode_collection = build_dashboard_mode_collection
   end
   
   def update
@@ -43,9 +46,13 @@ class Admin::ConfigsController < Admin::AdminController
     @errors = Config.update(configs.keys, configs.values)
                     .map(&:errors)
                     .select(&:present?)
-    flash[:danger] = @errors.flat_map(&:full_messages)
-                            .to_sentence unless @errors.empty?
-    respond_with_partial    
+    if @errors.empty?
+      flash[:success] = 'Config updated sucessfully'
+    else
+      flash[:danger] = @errors.flat_map(&:full_messages)
+                              .to_sentence unless @errors.empty?
+    end
+    respond_with_partial
   end
   
   def configs_params
