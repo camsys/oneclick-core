@@ -10,13 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-
-ActiveRecord::Schema.define(version: 20210902200020) do
+ActiveRecord::Schema.define(version: 20220110143259) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",                     null: false
@@ -226,6 +225,7 @@ ActiveRecord::Schema.define(version: 20210902200020) do
     t.integer  "agency_id"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
+    t.index ["name"], name: "idx_landmarks_on_name", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -431,6 +431,11 @@ ActiveRecord::Schema.define(version: 20210902200020) do
     t.text     "value"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
+  end
+
+  create_table "travel_patterns", force: :cascade do |t|
+    t.string "name",        null: false
+    t.text   "description"
   end
 
   create_table "traveler_transit_agencies", force: :cascade do |t|
