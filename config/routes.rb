@@ -170,11 +170,8 @@ Rails.application.routes.draw do
       end
     end
     resources :travel_patterns, :only => [:index, :create] do
-
     end
-    # get 'travel_patterns/index'
-    #
-    # get 'travel_patterns/create'
+
 
 
     # Geographies
@@ -192,6 +189,11 @@ Rails.application.routes.draw do
         patch 'update_all'
       end
     end
+    # TODO: Make this a proper route
+    # TODO: Figure out route standards
+    #   if we went with the below, then we'd probably have to change a whole bunch of other routes
+    get 'landmarks/sets' => 'landmarks#index'
+    get 'landmarks/sets/create' => 'landmarks#index'
 
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
@@ -218,9 +220,14 @@ Rails.application.routes.draw do
       end
     end
 
+    # TODO: Make this a proper route
+    # TODO: Figure out route standards
+    #   if we went with the below, then we'd probably have to change a whole bunch of other routes
+    get 'services/schedule' => 'services#index'
+    get 'services/odzone' => 'services#index'
+
     # Services
     resources :services, :only => [:index, :destroy, :create, :show, :update]
-
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
       collection do

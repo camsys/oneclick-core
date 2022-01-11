@@ -6,11 +6,11 @@
     = link_to 'View Standard Geographies', admin_geographies_path, class: 'btn btn-default'
     = link_to 'Create Custom Geography', admin_geographies_path, class: 'btn btn-primary'
     -# POIs related links
-    = link_to 'View System POIs', admin_geographies_path, class: 'btn btn-default'
-    = link_to 'Create Sets of POIs', admin_geographies_path, class: 'btn btn-primary'
+    = link_to 'View System POIs', admin_landmarks_path, class: 'btn btn-default'
+    = link_to 'Create Sets of POIs', admin_landmarks_sets_path, class: 'btn btn-primary'
   .ctr-service-links.col-md-4
-    = link_to 'Create Service Schedules', admin_services_path, class: 'btn btn-primary'
-    = link_to 'Create O/D Zones', admin_services_path, class: 'btn btn-primary'
+    = link_to 'Create Service Schedules', admin_services_schedule_path, class: 'btn btn-primary'
+    = link_to 'Create O/D Zones', admin_services_odzone_path, class: 'btn btn-primary'
     = link_to 'View Trip Purposes', admin_purposes_path, class: 'btn btn-default'
     = link_to 'View Funding Sources',  admin_services_path, class: 'btn btn-default'
   .ctr-travel-patterns.col-md-4
