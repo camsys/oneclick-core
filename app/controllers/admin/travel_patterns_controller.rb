@@ -4,4 +4,5 @@ class Admin::TravelPatternsController < Admin::AdminController
 
   def create
   end
+
 end
