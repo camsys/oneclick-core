@@ -181,8 +181,10 @@ Rails.application.routes.draw do
     post 'counties' => 'geographies#upload_counties'
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
-    post 'custom_geographies' => 'geographies#upload_custom_geographies'
-    patch 'custom_geographies' => 'geographies#update_custom_geographies'
+    get 'custom_geographies' => 'geographies#index_custom_geographies'
+    get 'custom_geographies/new' => 'geographies#new_custom_geographies'
+    post 'custom_geographies/create' => 'geographies#upload_custom_geographies'
+    patch 'custom_geographies/update' => 'geographies#update_custom_geographies'
     get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
@@ -191,11 +193,10 @@ Rails.application.routes.draw do
         patch 'update_all'
       end
     end
-    # TODO: Make this a proper route
-    # TODO: Figure out route standards
-    #   if we went with the below, then we'd probably have to change a whole bunch of other routes
-    get 'landmarks/sets' => 'landmarks#index'
-    get 'landmarks/sets/create' => 'landmarks#index'
+
+    # Landmark Sets
+    resources :landmark_sets, :only => [:index,:create, :new]
+
 
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
@@ -222,14 +223,14 @@ Rails.application.routes.draw do
       end
     end
 
-    # TODO: Make this a proper route
-    # TODO: Figure out route standards
-    #   if we went with the below, then we'd probably have to change a whole bunch of other routes
-    get 'services/schedule' => 'services#index'
-    get 'services/odzone' => 'services#index'
-
     # Services
-    resources :services, :only => [:index, :destroy, :create, :show, :update]
+    resources :services, :only => [:index, :destroy, :create, :show, :update] do
+    end
+
+    resources :schedules, :only => [:index,:create,:new]
+
+    resources :odzones, :only => [:index,:create,:new]
+
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
       collection do
