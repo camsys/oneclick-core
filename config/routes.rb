@@ -169,9 +169,11 @@ Rails.application.routes.draw do
         get 'expired'
       end
     end
-    resources :travel_patterns, :only => [:index, :create] do
+    resources :travel_patterns, :only => [:index, :create,:new, :show] do
+      collection do
+        get 'required_records' => 'travel_patterns#root'
+      end
     end
-
 
 
     # Geographies
