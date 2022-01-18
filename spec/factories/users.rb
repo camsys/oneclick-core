@@ -48,6 +48,12 @@ FactoryBot.define do
       staff
     end
 
+    factory :oversight_staff do
+      sequence(:email) {|i| "staff_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
+      staff
+    end
+
     factory :password_typo_user do
       password_confirmation "welcome2"
     end

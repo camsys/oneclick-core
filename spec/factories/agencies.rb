@@ -11,7 +11,14 @@ FactoryBot.define do
     association :agency_type
     
     factory :transportation_agency, class: "TransportationAgency" do
+      name "Test Transportation Agency"
+      type "TransportationAgency"
       association :agency_type, factory: :transportation_type
+    end
+    factory :oversight_agency, class: "OversightAgency" do
+      name "Test Oversight Agency"
+      type "OversightAgency"
+      association :agency_type, factory: :oversight_type
     end
     
     factory :partner_agency, class: "PartnerAgency" do
