@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe TravelPatternsController, type: :controller do
+RSpec.describe Admin::TravelPatternsController, type: :controller do
 
   describe "GET #index" do
     it "returns http success" do
@@ -9,9 +9,9 @@ RSpec.describe TravelPatternsController, type: :controller do
     end
   end
 
-  describe "GET #create" do
+  describe "POST #create" do
     it "returns http success" do
-      get :create
+      post :create
       expect(response).to have_http_status(:success)
     end
   end
