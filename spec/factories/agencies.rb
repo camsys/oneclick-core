@@ -8,8 +8,10 @@ FactoryBot.define do
     type "TransportationAgency"    
     # description "Wow, what an agency this is! People just talk and talk about how great this agency is because it's the best agency in the world. I could go on and on about it but you're probably busy. Really though. What a cool agency!"
     published
+    association :agency_type
     
     factory :transportation_agency, class: "TransportationAgency" do
+      association :agency_type, factory: :transportation_type
     end
     
     factory :partner_agency, class: "PartnerAgency" do
@@ -19,6 +21,7 @@ FactoryBot.define do
       phone "(555)555-5555"
       url "http://www.test-partner-agency-url.gov"
       type "PartnerAgency"
+      association :agency_type, factory: :partner_type
     end
     
     trait :published do
