@@ -245,8 +245,8 @@ module RoleHelper
     if self.currently_oversight?
       ta_ids = self.staff_agency.agency_oversight_agency.map { |aoa| aoa.transportation_agency.id}
       travelers_for_agency(ta_ids)
-    else
-      travelers_for_agency(self.current_agency.id)
+    elsif self.oversight_admin? || self.oversight_staff?
+      travelers_for_agency(self.current_agency&.id || self.staff_agency&.id)
     end
   end
 
