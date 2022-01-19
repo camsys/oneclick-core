@@ -152,7 +152,7 @@ module RoleHelper
 
   # Check to see if the user is a traveler (i.e. has no roles)
   def traveler?
-    !admin_or_staff?
+    !admin_or_staff? && !superuser?
   end
 
 
