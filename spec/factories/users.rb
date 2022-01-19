@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :user, aliases: [:commenter, :traveler] do
     sequence(:email) {|i| "test_user_#{rand(1000).to_s.rjust(3, "0")}_#{i}@camsys.com" }
-    password "welcome1"
-    password_confirmation "welcome1"
+    password "camsysisgr8"
+    password_confirmation "camsysisgr8"
     first_name "Test"
     last_name "McUser"
     confirmed
