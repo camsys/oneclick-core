@@ -114,21 +114,39 @@ RSpec.describe User, type: :model do
       expect(traveler.authentication_token).not_to eq(old_auth_token)
     end
     
-    describe "admin users" do
+    describe "superusers" do
       
+      let(:superuser) { create(:superuser) }
+      subject(:ability) { Ability.new(superuser) }
+      
+      it "is a superuser, but not a staff, admin, traveler, or guest" do
+        expect(superuser.superuser?).to be true
+        expect(superuser.admin?).to be false
+        expect(superuser.staff?).to be false
+        expect(superuser.traveler?).to be false
+        expect(superuser.guest?).to be false
+      end
+      it{ should be_able_to(:manage, :all) }
+      
+    end
+
+    # Admin and staff user tests is going to be physical pain
+    describe "admins" do
+
       let(:admin) { create(:admin) }
       subject(:ability) { Ability.new(admin) }
-      
-      it "is an admin but not a staff, traveler, or guest" do
+
+      it "is an admin, but not a staff, superuser, traveler, or guest" do
         expect(admin.admin?).to be true
+        expect(admin.superuser?).to be false
         expect(admin.staff?).to be false
         expect(admin.traveler?).to be false
         expect(admin.guest?).to be false
       end
       it{ should be_able_to(:manage, :all) }
-      
+
     end
-    
+
     describe "staff users" do
       
       let(:agency) { create(:transportation_agency, :with_services)}
