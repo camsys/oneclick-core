@@ -2,18 +2,19 @@ require 'rails_helper'
 
 RSpec.describe Admin::GeographiesController, type: :controller do
 
-  
-  let(:admin) { create(:admin) }
+
+  let(:superuser) { create(:superuser) }
   let(:staff) { create(:staff_user) }
   let(:traveler) { create(:user) }
+  let(:agency) { create(:transportation_agency)}
   let(:counties_file) { fixture_file_upload('spec/files/test_counties.zip', 'application/zip') }
   let(:cities_file) { fixture_file_upload('spec/files/test_cities.zip', 'application/zip') }
   let(:zipcodes_file) { fixture_file_upload('spec/files/test_zipcodes.zip', 'application/zip') }
   let(:custom_geographies_file) { fixture_file_upload('spec/files/test_custom_geos.zip', 'application/zip') }
   
-  context "while signed in as an admin" do
+  context "while signed in as a superuser" do
     
-    before(:each) { sign_in admin }
+    before(:each) { sign_in superuser }
     
     it 'uploads counties' do
       County.destroy_all
@@ -48,7 +49,8 @@ RSpec.describe Admin::GeographiesController, type: :controller do
     it 'uploads custom geographies' do
       count = CustomGeography.count
 
-      params = {geographies: {file: custom_geographies_file}}
+      # Custom Geographies require agency to be filled(although probably should have some way to update it)
+      params = {geographies: {file: custom_geographies_file}, agency: {agency: agency}}
       post :upload_custom_geographies, params: params, format: :js
 
       expect(CustomGeography.count).to eq(count + 1)
