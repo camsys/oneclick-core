@@ -10,25 +10,39 @@ FactoryBot.define do
     transient do
       staff_agency nil
     end
+
+    trait :admin do
+      after(:create) do |u, params|
+        u.add_role(:admin, params.staff_agency)
+      end
+    end
+
+    trait :staff do
+      after(:create) do |u, params|
+        u.add_role(:staff, params.staff_agency)
+      end
+    end
+
     factory :superuser do
       sequence(:email) {|i| "superuser_#{i}@camsys.com" }
       after(:create) {|u| u.add_role("superuser")}
     end
 
-    factory :admin do
+    factory :transportation_admin do
       sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
-      after(:create) {|u| u.add_role("admin")}
+      staff_agency {create(:transportation_agency)}
+      admin
     end
 
     factory :another_admin do 
       email "another_admin_user@camsys.com"
       after(:create) {|u| u.add_role("admin")}
     end
-    
-    trait :staff do      
-      after(:create) do |u, params|
-        u.add_role(:staff, params.staff_agency)
-      end
+
+    factory :oversight_admin do
+      sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
+      admin
     end
     
     factory :staff_user do
