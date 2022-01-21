@@ -5,7 +5,7 @@ Warden::Manager.before_failure do |env, opts|
     # Adds logging for authentication failure
     # the notable event is when a user's account gets locked
     user_role = nil
-    email = env["action_dispatch.request.parameters"][:user][:email]
+    email = env["action_dispatch.request.parameters"]&.[](:user)&.[](:email)
     origin = env["HTTP_ORIGIN"]
     user = User.find_by(email: email)
     user_id = !user.nil? ? user.id : nil

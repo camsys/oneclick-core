@@ -255,10 +255,41 @@ namespace :db do
       ta.save
     end
 
+    desc "Sample Travel Pattern Schedules and Types"
+    task travel_pattern_schedules: :environment do
+      schedule_types = [
+          {name: "Weekly pattern"},
+          {name: "Selected calendar dates"}
+      ]
+
+      tp_service_schedules = [
+          {
+            service: Service.first,
+            travel_patterns_service_schedule_type: TravelPatternsServiceScheduleType.find_by(name: "Weekly pattern"),
+            name: "Weekly standard service"
+          },
+          {
+            service: Service.first,
+            travel_patterns_service_schedule_type: TravelPatternsServiceScheduleType.find_by(name: "Selected calendar dates"),
+            name: "2022 Holidays",
+            start_date: Date.new(2022, 01, 01),
+            end_date: Date.new(2022, 12, 31)
+          }
+      ]
+
+      schedule_types.each do |t|
+        TravelPatternsServiceScheduleType.create(t)
+      end
+
+      tp_service_schedules.each do |s|
+        TravelPatternsServiceSchedule.create(s)
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agency_types, :agencies,:agency_types]
+                :agency_types, :agencies, :agency_types, :travel_pattern_schedules]
 
   end
 end

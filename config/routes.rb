@@ -235,8 +235,10 @@ Rails.application.routes.draw do
           get "travelers"
           post "change_agency"
         end
-      end
+    end
 
+    # Travel patterns service schedules
+    resources :travel_patterns_service_schedules, :only => [:index, :create, :destroy, :show, :update]
   end #Admin
 
   mount SimpleTranslationEngine::Engine => "/admin/simple_translation_engine"

@@ -1,0 +1,13 @@
+%tr{style: "cursor: pointer", data: {url: admin_travel_patterns_service_schedule_path(service_schedule)}}
+  %td
+    =service_schedule.service.agency
+  %td
+    =service_schedule.name
+  %td
+    =service_schedule.travel_patterns_service_schedule_type.name
+  %td
+    =service_schedule.try(:start_date)
+  %td
+    =service_schedule.try(:end_date)
+  %td
+    -# actions
