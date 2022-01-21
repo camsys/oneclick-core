@@ -9,17 +9,17 @@
       -# POIs related links
       = link_to 'System POIs', admin_landmarks_path, class: 'btn btn-default'
       = link_to 'Sets of POIs', admin_landmark_sets_path, class: 'btn btn-primary'
-    .subcntr
-      %p
-        placeholder for arrows
+    .subcntr.arr
+      %img{ src:'/arrows_all-to-1.svg'}
+      -#%svg{ src:'/arrows_all-to-1.svg', height: 325}
   %section.cntr-secondary.col-md-4
     .subcntr
-      = link_to 'Service Schedules', admin_schedules_path, class: 'btn btn-primary'
       = link_to 'O/D Zones', admin_odzones_path, class: 'btn btn-primary'
+      = link_to 'Service Schedules', admin_schedules_path, class: 'btn btn-primary'
       = link_to 'Trip Purposes', admin_purposes_path, class: 'btn btn-default'
       = link_to 'Funding Sources',  admin_services_path, class: 'btn btn-default'
-    .subcntr
-      %p
-        placeholder for arrows
+    .subcntr.arr
+      %img{ src:'/arrows_all-to-2.svg'}
   %section.cntr-travelpattern.col-md-4
-    = link_to 'Travel Pattern', admin_travel_patterns_path, class: 'btn btn-primary'
+    .subcntr
+      = link_to 'Travel Patterns', admin_travel_patterns_path, class: 'btn btn-primary'

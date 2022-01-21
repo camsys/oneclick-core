@@ -1,29 +1,50 @@
 .cntr-root {
   display: flex;
+  height: 325px;
   justify-content: center;
   align-items: center;
 }
+
+.cntr-root > img {
+  height: auto;
+  max-width: 100%;
+}
 .cntr-secondary {
-  width: 100%;
   display: flex;
+  width: 300px;
+  height: 100%;
   align-items: center;
   justify-content: center;
 }
 
 .cntr-travelpattern {
   display: flex;
+  width: 200px;
+  height: 100%;
+  padding: 0;
   align-items: center;
   justify-content: flex-start;
 }
 
 .subcntr {
-  width :50%;
   display: flex;
+  height: 100%;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center
 }
 
-.subcntr > a {
-  margin-top: 16px;
+.cntr-travelpattern > .subcntr {
+  height: 138px;
+  justify-content: flex-start;
+}
+
+.subcntr.arr {
+  justify-content: space-around;
+}
+
+.subcntr > a, .cntr-travelpattern > a {
+  box-sizing: content-box;
+  width: 164px;
+  padding: 14px;
 }
