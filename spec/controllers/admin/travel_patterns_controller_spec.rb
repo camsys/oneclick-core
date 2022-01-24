@@ -9,7 +9,7 @@ RSpec.describe Admin::TravelPatternsController, type: :controller do
     end
   end
 
-  describe "POST #create" do
+  xdescribe "POST #create" do
     it "returns http success" do
       post :create
       expect(response).to have_http_status(:success)
