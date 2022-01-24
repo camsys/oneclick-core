@@ -1,5 +1,7 @@
 require 'rails_helper'
 
+# NOTE: Removed Uber and Lyft services from the "it skips or includes service filters when requested"
+# test as those get filtered out by TripPlanner now and might need to do some work to keep it synced
 RSpec.describe TripPlanner do  
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
@@ -162,11 +164,13 @@ RSpec.describe TripPlanner do
     # Plan the trip with the accommodations filter skipped
     skip_accom_filter_tp.trip = accommodating_trip
     skip_accom_filter_tp.plan
-
+    puts Service.all.map{|s| "#{s.id} #{s.name} #{s.type}"}
     # Except the services returned by the trip planner to include non-accommodating services
     expect(accommodating_trip.services.pluck(:id)).to match_array(
+      # Ignore transit, since doesn't have a belongs_to relationship with itineraries
+      # Ignore Uber and Lyft for now as they aren't included by the Trip Planner as of now(2022)
       Service.available_for(accommodating_trip, except_by: [:accommodation])
-             .by_trip_type(:paratransit, :taxi, :uber, :lyft) # Ignore transit, since doesn't have a belongs_to relationship with itineraries
+             .by_trip_type(:paratransit, :taxi)
              .pluck(:id)
     )
     

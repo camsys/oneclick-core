@@ -28,7 +28,7 @@ class Admin::ServicesController < Admin::AdminController
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
     # if oversight is empty/ a bad combo of oversight, then redirect
-    is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+    is_not_included = !Service::TAXI_SERVICES.include?(s_params[:type]) && validate_agencies_choices(oversight_agency_id,transportation_agency_id)
 
     if is_not_included == true
       present_error_messages(@service)

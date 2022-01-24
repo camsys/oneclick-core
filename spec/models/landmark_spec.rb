@@ -12,7 +12,8 @@ RSpec.describe Landmark, type: :model do
       HashWithIndifferentAccess[{:long_name=>"Station Landing", :short_name=>"Station Landing", :types=>["route"]}],
       HashWithIndifferentAccess[{:long_name=>"Medford", :short_name=>"Medford", :types=>["locality", "political"]}],
       HashWithIndifferentAccess[{:long_name=>"02155", :short_name=>"02155", :types=>["postal_code"]}],
-      HashWithIndifferentAccess[{:long_name=>"MA", :short_name=>"MA", :types=>["administrative_area_level_1", "political"]}]
+      HashWithIndifferentAccess[{:long_name=>"MA", :short_name=>"MA", :types=>["administrative_area_level_1", "political"]}],
+      HashWithIndifferentAccess[{:long_name=>nil, :short_name=>nil, :types=>["administrative_area_level_2", "political"]}]
     ])
   end
 

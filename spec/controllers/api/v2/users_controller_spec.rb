@@ -1,5 +1,9 @@
 require 'rails_helper'
 
+# NOTE: Slightly modified the password reset test as the application logging code adds several
+# calls to User.find_by and that causes User.find_by email to be called 4 times rather than once.
+# This causes the test to fail and there's not an easy/ fast way to decouple the application logging
+# from the controller test
 RSpec.describe Api::V2::UsersController, type: :controller do
 
   let(:traveler) { create :user }
@@ -464,15 +468,13 @@ RSpec.describe Api::V2::UsersController, type: :controller do
     end
 
   end
-  
-  
+
   describe "password reset" do
     
     it "resets a user's password and sends them an email" do
-    
       old_pw_enc = traveler.encrypted_password
-    
-      expect(User).to receive(:find_by).and_return(traveler)
+
+      expect(User).to receive(:find_by).at_least(:once).and_return(traveler)
       expect(UserMailer).to receive(:api_v2_reset_password_instructions)
                         .and_return(UserMailer.api_v2_reset_password_instructions(traveler, "New_#password1"))
     

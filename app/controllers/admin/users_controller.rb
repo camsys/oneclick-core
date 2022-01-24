@@ -71,20 +71,17 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def update
+    puts "calling update action"
     success_redirect_path = (@user.admin_or_staff? || @user.superuser?) ? staff_admin_users_path : travelers_admin_users_path
     error_redirect_path = edit_admin_user_path(@user)
 
     #We need to pull out the password and password_confirmation and handle them separately
     update_params = user_params
+    puts update_params
     password = update_params.delete(:password)
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
     password_confirmation = update_params.delete(:password_confirmation)
-    if roles != '' && staff_agency != ''
-      # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
-      # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
-      replace_user_role(roles,staff_agency)
-    end
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end

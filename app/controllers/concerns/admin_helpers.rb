@@ -23,9 +23,9 @@ module AdminHelpers
 
   def return_pages_by_mode
     urls = Rails.application.routes.url_helpers
-    mode = Config.find_by(key: :dashboard_mode).try(:value).try(:to_sym)
+    mode = Config.find_by(key: :dashboard_mode).try(:value)&.to_sym || :default
     mode == :travel_patterns ? [
-      { label: "Travel Patterns", url: urls.admin_travel_patterns_path, show: can?(:read, TravelPattern) }
+      { label: "Travel Patterns", url: urls.required_records_admin_travel_patterns_path, show: can?(:read, TravelPattern) }
     ] :
       [
         { label: "Accommodations",  url: urls.admin_accommodations_path,  show: can?(:read, Accommodation) },
