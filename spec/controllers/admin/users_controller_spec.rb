@@ -61,14 +61,14 @@ RSpec.describe Admin::UsersController, type: :controller do
     before(:each) { sign_in staff }
     
     it 'gets a list of all the staff for the same agency' do
-      get :index
+      get :staff
       expect(response).to be_success
       expect(assigns(:staff).count).to eq(staff.fellow_staff.count)
     end
     
     it 'cannot change staff agency or manage admin privileges' do
       new_agency = create(:transportation_agency)
-      post :update, params: { id: fellow_staff.id, user: { staff_agency: new_agency.id, admin: true } }
+      post :update, params: { id: fellow_staff.id, user: { staff_agency: new_agency.id, role: 'admin' } }
       fellow_staff.reload
       expect(fellow_staff.staff_agency.id).not_to eq(new_agency.id)
       expect(fellow_staff.admin?).to be false
@@ -81,7 +81,7 @@ RSpec.describe Admin::UsersController, type: :controller do
     before(:each) { sign_in traveler }
     
     it 'prevents travelers from viewing staff list' do
-      get :index
+      get :staff
       expect(response).to have_http_status(:unauthorized)
     end
     

@@ -29,18 +29,17 @@ module RoleHelper
     base.scope :staff_for_none, -> { base.with_role_for_instance(:staff, nil) }
     base.scope :staff, -> { base.querify(base.with_role_for_instances_or_none(:staff, Agency.all)) }
     base.scope :staff_for, -> (agency) { base.with_role_for_instance(:staff, agency) }
-    base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances_or_none(:staff, agencies) }
+    base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances(:staff, agencies) }
 
     # SCOPES FOR LOOKING UP ADMINS
     base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
     base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
     base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
-    base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances_or_none(:admin, agencies) }
+    base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances(:admin, agencies) }
 
     # SCOPES FOR LOOKING UP BOTH STAFF AND ADMIN
     base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances([:staff, :admin], agencies) }
-    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }
-    base.scope :any_staff_admin_for_none, -> { base.with_roles_for_instance_or_none([:staff,:admin],nil) }
+    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }\
 
     # GENERAL USER ROLE SCOPES
     base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
@@ -192,7 +191,7 @@ module RoleHelper
 
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
-    User.staff_for_any(agencies)
+    User.any_staff_admin_for_agencies(agencies)
   end
 
   # Returns a list of the staff that the user has permissions to access
