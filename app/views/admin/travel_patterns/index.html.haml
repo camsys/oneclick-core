@@ -1,17 +1,3 @@
--# TODO: Setup proper link paths
-%section
-  %h1.text-center Travel Patterns
-  .ctr-geographies.col-md-4
-    -# Geographies related links
-    = link_to 'Standard Geographies', admin_geographies_path, class: 'btn btn-default'
-    = link_to 'Custom Geography', admin_geographies_path, class: 'btn btn-primary'
-    -# POIs related links
-    = link_to 'System POIs', admin_landmarks_path, class: 'btn btn-default'
-    = link_to 'Sets of POIs', admin_landmarks_sets_path, class: 'btn btn-primary'
-  .ctr-service-links.col-md-4
-    = link_to 'Service Schedules', admin_travel_patterns_service_schedules_path, class: 'btn btn-primary'
-    = link_to 'O/D Zones', admin_services_odzone_path, class: 'btn btn-primary'
-    = link_to 'Trip Purposes', admin_purposes_path, class: 'btn btn-default'
-    = link_to 'Funding Sources',  admin_services_path, class: 'btn btn-default'
-  .ctr-travel-patterns.col-md-4
-    = link_to 'Travel Pattern', admin_travel_patterns_path, class: 'btn btn-primary'
+%h1
+  Travel Patterns
+=link_to 'Create New Travel Patterns', new_admin_travel_pattern_path
