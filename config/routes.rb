@@ -169,11 +169,6 @@ Rails.application.routes.draw do
         get 'expired'
       end
     end
-    resources :travel_patterns, :only => [:index, :create,:new, :show] do
-      collection do
-        get 'required_records' => 'travel_patterns#root'
-      end
-    end
 
 
     # Geographies
@@ -195,8 +190,9 @@ Rails.application.routes.draw do
     end
 
     # Landmark Sets
-    resources :landmark_sets, :only => [:index,:create, :new]
+    resources :landmark_sets, :only => [:index, :create, :new]
 
+    resources :od_zones, :only => [:index, :create, :new]
 
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
@@ -227,9 +223,15 @@ Rails.application.routes.draw do
     resources :services, :only => [:index, :destroy, :create, :show, :update] do
     end
 
-    resources :schedules, :only => [:index,:create,:new]
 
-    resources :odzones, :only => [:index,:create,:new]
+    resources :service_schedules, :only => [:index, :create, :new]
+
+    resources :travel_patterns, :only => [:index, :create, :new] do
+      collection do
+        get 'root' => 'travel_patterns#root'
+      end
+    end
+
 
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
