@@ -1,9 +1,10 @@
 -record = local_assigns[:record] || nil
 -form = local_assigns[:form] || nil
+-override_readonly = local_assigns[:override_readonly]
 
 -if record
   -I18n.available_locales.each do |locale|
     = form.input "#{locale}_description",
     label:"Description (#{locale})",
       :as => :text,
-      readonly: (cannot? :update, local_assigns[:record])
+      readonly: (cannot? :update, local_assigns[:record]) || override_readonly
