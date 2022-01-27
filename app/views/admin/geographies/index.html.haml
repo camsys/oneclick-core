@@ -1,50 +1,48 @@
 =content_for :title do
-  Geography
+  Standard Geographies:
+=content_for :header_form do
+  -# NOTE: the below form is for handling redirects based on the selected geography type
+  %div.wrapper-header-form
+    =simple_form_for :type,
+    url: admin_geographies_path,
+    html: {class: 'form-horizontal', id:'geography_type_form', multipart: true, method: :get },
+    authenticity_token: true do |f|
+      = f.input :type,
+        collection:  @geography_types,
+        include_blank: false,
+        label: false,
+        selected: params[:type]&.gsub('_',' ')&.titleize
+%section.container--two-col
+  %table.table.table-hover.datatable#geographies
+    %thead.thead-default
+      %tr
+        %th Name
+    %tbody
+      -@geographies.each do |geography|
+        %tr
+          %td
+            = geography&.name
+  %div.map_placeholder
 
--# Upload Forms
--# If the user can create geography records, render the upload forms
-- if can? :create, GeographyRecord
-  .row
-    .col-md-6
-      =simple_form_for :geographies,
-        url: admin_counties_path,
-        html: {class: 'form-horizontal', multipart: true, method: :post },
-        authenticity_token: true do |f|
-        =render partial: 'upload_counties', layout: '/layouts/new_record_panel', locals: {f: f}
-    .col-md-6
-      =simple_form_for :geographies,
-        url: admin_cities_path,
-        html: {class: 'form-horizontal', multipart: true, method: :post },
-        authenticity_token: true do |f|
-        =render partial: 'upload_cities', layout: '/layouts/new_record_panel', locals: {f: f}
-    .col-md-6
-      =simple_form_for :geographies,
-        url: admin_zipcodes_path,
-        html: {class: 'form-horizontal', multipart: true, method: :post },
-        authenticity_token: true do |f|
-        =render partial: 'upload_zipcodes', layout: '/layouts/new_record_panel', locals: {f: f}
-    .col-md-6
-      =simple_form_for :geographies,
-        url: admin_custom_geographies_path,
-        html: {class: 'form-horizontal', multipart: true, method: :post },
-        authenticity_token: true do |f|
-        =render partial: 'upload_custom_geographies', layout: '/layouts/new_record_panel', locals: {f: f}
+:javascript
+    $(document).ready(function() {
 
--# Tables
-.row
-  .col-md-3
-    %h2 Counties
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @counties, class: "table-sm"}
-  .col-md-3
-    %h2 Cities
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @cities, class: "table-sm"}
-  .col-md-3
-    %h2 Zipcodes
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name], records: @zipcodes, class: "table-sm"}
-  .col-md-3
-    %h2 Custom
-    =render partial: '/admin/geographies/custom_geographies_table',
-      locals: {columns: [:name], records: @custom_geographies, class: "table-sm"}
+    // Link to appropriate feedback detail on row click
+    $('#geographies tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+
+    /*
+      NOTE: the below onChange event listener redirects to geographies page but appends the geography type
+      as a query param(cleaned up a bit if there's spaces)
+    */
+    $('#type_type').change(function() {
+      const input = $(this).val()
+      window.location.assign('#{admin_geographies_path}' + '?type='+input.toLowerCase().replace(' ','_'))
+
+    })
+
+    // $.fn.DataTable.ext.pager.numbers_length = 5
+    $('.datatable').DataTable({});
+
+  });
