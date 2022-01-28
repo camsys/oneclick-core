@@ -1,15 +1,21 @@
 =content_for :title do
   Custom Geographies
 %section.container--two-col
-  %table.table.table-hover.datatable#geographies{data: {turbolinks: false}}
+  %table.table.table-hover.datatable#geographies
     %thead.thead-default
       %tr
         %th Name
+        %th{aria:{label: 'Actions available'}}
     %tbody
       -@geographies.each do |geography|
         %tr
           %td
             = geography&.name
+          %td.text-right{aria:{label: "Download/ Delete #{geography&.name} record(NOT AVAILABLE)"}}
+            %button.btn.btn--no-bg{type: 'button',disabled:true}
+              %span.glyphicon.glyphicon-download-alt{aria:{hidden:true}}
+            %button.btn.btn--no-bg.text-danger{type: 'button',disabled:true}
+              %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
   %div.map_placeholder
 %footer.footer__links
   =link_to 'New Custom Geography', new_admin_custom_geography_path, class: 'btn btn-primary'
@@ -19,6 +25,12 @@
 :javascript
     $(document).ready(function() {
 
-    $('.datatable#geographies').DataTable({});
+    // Configure DataTable so that the button thing can't be sorted
+    $('.datatable#geographies').DataTable({
+      columns: [
+        {orderable: true},
+        {orderable: false}
+    ]});
+
 
   });
