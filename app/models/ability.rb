@@ -108,6 +108,7 @@ class Ability
 
       # Transportation Admin Permissions
       if user.transportation_admin?
+        can [:read], TravelPattern
         can :manage, Service,
             id: user.staff_agency.services.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with the users transportation agency
       end

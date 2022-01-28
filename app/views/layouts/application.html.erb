@@ -82,16 +82,21 @@
 
     <!-- PAGE BODY -->
     <div class="container-fluid">
-      <div class="row">
+      <header class="row <%= content_for?(:title) && content_for?(:header_form) ? 'header--two-col' : ''%>" >
         <div class="col-sm-12">
-          <h1 class="text-center">
+          <% if content_for?(:title) %>
+          <h1 class="text-center header__title">
             <%= yield(:title)%>
           </h1>
+          <% end %>
+          <% if content_for?(:last_updated) %>
           <p class="text-center">
             <%= yield(:last_updated)%>
           </p>
+          <% end %>
         </div>
-      </div>
+        <%= yield(:header_form) %>
+      </header>
       <div class="row">
         <%= render :partial => 'shared/flash' %>
         <div class="col-md-1"></div>
@@ -110,4 +115,7 @@
       <%= "OneclickCore " + OneclickCore::Application.config.version.to_s %>
     </div>
   </footer>
+  <script defer>
+    $.fn.DataTable.ext.pager.numbers_length=5
+  </script>
 </html>

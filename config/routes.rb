@@ -170,17 +170,17 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :custom_geographies, :only => [:index, :create, :new ,:destroy]
 
     # Geographies
     get 'geographies' => 'geographies#index'
     post 'counties' => 'geographies#upload_counties'
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
-    get 'custom_geographies' => 'geographies#index_custom_geographies'
-    get 'custom_geographies/new' => 'geographies#new_custom_geographies'
     post 'custom_geographies/create' => 'geographies#upload_custom_geographies'
     patch 'custom_geographies/update' => 'geographies#update_custom_geographies'
     get 'autocomplete' => 'geographies#autocomplete'
+
 
     # Landmarks
     resources :landmarks, :only => [:index, :edit, :create, :update, :destroy] do
