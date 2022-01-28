@@ -23,10 +23,6 @@ class Admin::GeographiesController < Admin::AdminController
     check_for_missing_geometries(@geographies)
   end
 
-  def index_custom_geographies
-    @geographies = get_geographies_for_user
-  end
-
   def upload_counties
     uploader = ShapefileUploader.new(params[:geographies][:file], geo_type: :county)
     uploader.load
@@ -72,30 +68,6 @@ class Admin::GeographiesController < Admin::AdminController
         json_response = @counties + @zipcodes + @cities + @custom_geographies
         render json: json_response
       end
-    end
-  end
-
-  private
-
-  def custom_geography_params
-    params.require(:custom_geography).permit(
-    :agency,
-    :id
-    )
-  end
-
-  def get_geographies_for_user
-    if current_user.superuser?
-      CustomGeography.all.order(:name)
-    elsif current_user.transportation_staff? || current_user.transportation_admin?
-      CustomGeography.where(agency_id: current_user.staff_agency.id).order(:name)
-    elsif current_user.currently_oversight?
-      tas = current_user.staff_agency.agency_oversight_agency.map {|aoa| aoa.transportation_agency.id}
-      CustomGeography.where(agency_id: tas).order(:name)
-    elsif current_user.currently_transportation?
-      CustomGeography.where(agency_id: current_user.current_agency.id).order(:name)
-    elsif current_user.staff_agency.oversight? && current_user.current_agency.nil?
-      CustomGeography.where(agency_id: nil).order(:name)
     end
   end
 

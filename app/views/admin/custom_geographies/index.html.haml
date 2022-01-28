@@ -1,7 +1,7 @@
 =content_for :title do
   Custom Geographies
 %section.container--two-col
-  %table.table.table-hover.datatable#geographies
+  %table.table.table-hover.datatable#geographies{data: {turbolinks: false}}
     %thead.thead-default
       %tr
         %th Name
@@ -11,14 +11,14 @@
           %td
             = geography&.name
   %div.map_placeholder
-footer.footer__links
-  =link_to 'New Custom Geography', admin_custom_geographies_new_path, class: 'btn btn-primary'
+%footer.footer__links
+  =link_to 'New Custom Geography', new_admin_custom_geography_path, class: 'btn btn-primary'
   =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
   =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
 
 :javascript
     $(document).ready(function() {
 
-    $('.datatable').DataTable({});
+    $('.datatable#geographies').DataTable({});
 
   });
