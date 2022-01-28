@@ -2,7 +2,7 @@
   Standard Geographies:
 =content_for :header_form do
   -# NOTE: the below form is for handling redirects based on the selected geography type
-  %div.wrapper-header-form
+  .wrapper__header-form
     =simple_form_for :type,
     url: admin_geographies_path,
     html: {class: 'form-horizontal', id:'geography_type_form', multipart: true, method: :get },
@@ -23,6 +23,9 @@
           %td
             = geography&.name
   %div.map_placeholder
+.footer__links
+  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
 
 :javascript
     $(document).ready(function() {

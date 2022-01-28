@@ -1,4 +1,8 @@
-#geography_type_form {
+header.header--two-col > .wrapper__header-form {
+  min-width: 250px;
+}
+
+form#geography_type_form {
   > .form-group {
     margin-bottom: 0;
   }
@@ -7,6 +11,13 @@
   }
 }
 
-.map-placeholder {
-  background-color: lightgreen;
+.footer__links {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 36px;
+
+  & a:first-child {
+    margin-right: 16px;
+  }
 }
