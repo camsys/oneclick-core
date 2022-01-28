@@ -43,3 +43,13 @@ header.header--two-col {
     height: 100%;
   }
 }
+footer.footer__links {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 36px;
+
+  & a:not(:last-child) {
+    margin-right: 16px;
+  }
+}

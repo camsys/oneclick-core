@@ -11,7 +11,8 @@
           %td
             = geography&.name
   %div.map_placeholder
-.footer__links
+footer.footer__links
+  =link_to 'New Custom Geography', admin_custom_geographies_new_path, class: 'btn btn-primary'
   =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
   =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
 
