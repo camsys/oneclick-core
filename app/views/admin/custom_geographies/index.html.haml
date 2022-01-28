@@ -1,7 +1,7 @@
 =content_for :title do
   Custom Geographies
 %section.container--two-col
-  %table.table.table-hover.datatable#geographies
+  %table.table.table-hover.datatable#geographies-table
     %thead.thead-default
       %tr
         %th Name
@@ -25,8 +25,13 @@
 :javascript
     $(document).ready(function() {
 
+
+    // NOTE: this is for the eventual click handler for toggling geographies
+    // $('geographies-table tbody tr').click(function() {
+    // });
+
     // Configure DataTable so that the button thing can't be sorted
-    $('.datatable#geographies').DataTable({
+    $('.datatable#geographies-table').DataTable({
       columns: [
         {orderable: true},
         {orderable: false}
