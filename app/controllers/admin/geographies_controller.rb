@@ -23,6 +23,10 @@ class Admin::GeographiesController < Admin::AdminController
     check_for_missing_geometries(@geographies)
   end
 
+  def index_custom_geographies
+    @geographies = get_geographies_for_user
+  end
+
   def upload_counties
     uploader = ShapefileUploader.new(params[:geographies][:file], geo_type: :county)
     uploader.load

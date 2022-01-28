@@ -1,5 +1,23 @@
-%h1
+=content_for :title do
   Custom Geographies
-%p
-  todo: add content
-=link_to 'Create New Custom Geography', admin_custom_geographies_create_path
+%section.container--two-col
+  %table.table.table-hover.datatable#geographies
+    %thead.thead-default
+      %tr
+        %th Name
+    %tbody
+      -@geographies.each do |geography|
+        %tr
+          %td
+            = geography&.name
+  %div.map_placeholder
+.footer__links
+  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+
+:javascript
+    $(document).ready(function() {
+
+    $('.datatable').DataTable({});
+
+  });
