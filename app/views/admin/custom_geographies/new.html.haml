@@ -5,7 +5,7 @@
   html: {multipart: true, method: :post, class:'form-horizontal'},
   authenticity_token: true do |f|
   = f.input :shapefile, required:true, label: "Upload Shapefile", :as => :file
-  = f.input :kmlfile, required:true, label: "Upload KML file", :as => :file, disabled: true
+  = f.input :kmlfile, required:true, label: "Upload KML file", :as => :file
   = f.input :name, required: true, label: "Geography Name"
   = f.input :description, required: false, label: "Description"
   = f.input :agency,
@@ -25,3 +25,31 @@
       value:@agencies&.length == 1 ? @agencies&.first.id : nil}
   =link_to 'Cancel', admin_custom_geographies_path, class: 'btn btn-danger'
   =f.submit 'Upload', class: 'btn btn-primary'
+  %button#button-reset.btn.btn-secondary{type:'button'} Reset Form
+
+:javascript
+  $(document).ready(function() {
+    const shapefileInput = $('#geographies_shapefile')
+    const kmlfileInput = $('#geographies_kmlfile')
+
+    // conditionally disable inputs if a file is already cached
+    if (shapefileInput.val()) {
+      kmlfileInput.prop('disabled',true)
+    } else if (kmlfileInput.val()) {
+      shapefileInput.prop('disabled',true)
+    }
+
+    // on reset button click
+    $('button#button-reset').click(function() {
+      shapefileInput.val('').prop('disabled',false)
+      kmlfileInput.val('').prop('disabled',false)
+    })
+
+    // on upload listeners
+    shapefileInput.change(function() {
+      kmlfileInput.prop('disabled',true)
+    })
+    kmlfileInput.change(function() {
+      shapefileInput.prop('disabled',true)
+    })
+  })
