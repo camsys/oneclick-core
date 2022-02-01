@@ -177,8 +177,6 @@ Rails.application.routes.draw do
     post 'counties' => 'geographies#upload_counties'
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
-    post 'custom_geographies/create' => 'geographies#upload_custom_geographies'
-    patch 'custom_geographies/update' => 'geographies#update_custom_geographies'
     get 'autocomplete' => 'geographies#autocomplete'
 
 
