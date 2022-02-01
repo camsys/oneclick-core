@@ -6,19 +6,16 @@ class Admin::CustomGeographiesController < Admin::AdminController
   end
 
   def create
-    # agency = Agency.find_by(id: params[:geographies][:agency])
-    # NOTE: THE BELOW IS TEMPORARY AND SHOULD BE REMOVED ONCE WE FULLY IMPLEMENT
-    # AGENCY SELECTION/ PERMISSIONS AND TRAVEL PATTERNS
-    agency = TransportationAgency.first.id
-
     # TODO: ADD KML FILE UPLOAD HANDLING
     uploader = ShapefileUploader.new(params[:geographies][:shapefile],
                                      name: params[:geographies][:name]&.titleize,
+                                     agency: params[:geographies][:agency],
                                      geo_type: :custom_geography,
                                      column_mappings: {name: 'NAME'})
     uploader.load
     present_error_messages(uploader)
-    redirect_to admin_custom_geographies_path
+    # redirect with query params if uploader errors is empty custom geography created
+    redirect_to admin_custom_geographies_path(uploader.errors.empty? ? { selected: uploader.custom_geo } : {})
   end
 
   private

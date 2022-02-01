@@ -7,23 +7,22 @@
     authenticity_token: true do |f|
     = f.input :shapefile, required:true, label: "Upload Shapefile:", :as => :file
     = f.input :kmlfile, required:true, label: "Upload KML File:", :as => :file
+    - rabbit = TransportationAgency.find_by name: 'Rabbit'
     = f.input :agency,
-      collection: @agencies || [],
+      collection: TransportationAgency.all,
       label: 'Agency:',
-      selected: @agencies&.length == 1 ? @agencies&.first.id : nil,
+      selected: rabbit.id,
       disabled: true,
       include_blank: "Select a Transportation Agency"
-    -# NOTE: temporary, should be replaced
-    - rabbit = TransportationAgency.find_by name: 'Rabbit'
     = f.input :agency,
       as: :hidden,
       collection: TransportationAgency.all,
       label: 'Agency:',
-      selected: rabbit&.id,
-      disabled: true,
+      selected: rabbit.id,
+      disabled: false,
       include_blank: "Select a Transportation Agency",
       input_html: { id: 'hidden_agency',
-        value:@agencies&.length == 1 ? @agencies&.first.id : nil}
+        value:rabbit.id}
     = f.input :name, required: true, label: "Geography Name:"
     = f.input :description, as: :text, required: false, label: "Description:"
     %footer.footer__links

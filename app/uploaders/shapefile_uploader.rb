@@ -3,7 +3,7 @@
 class ShapefileUploader
   require 'zip'
 
-  attr_reader :errors
+  attr_reader :errors, :custom_geo
 
   # Initialize with a path to a zipfile containing shapefiles
   def initialize(file, opts={})
@@ -11,10 +11,12 @@ class ShapefileUploader
     @path = opts[:path] || @file.tempfile.path
     # NOTE: the name field is specific to Travel Patterns
     @name = opts[:name]
+    @agency = Agency.find opts[:agency]
     @filetype = opts[:content_type] || @file.content_type
     @model = opts[:geo_type].to_s.classify.constantize
     @column_mappings = opts[:column_mappings] || {name: 'NAME', state: 'STATEFP'}
     @errors = []
+    @custom_geo = nil
   end
 
   # Call load to process the uploaded filepath into geometric database records
@@ -35,9 +37,6 @@ class ShapefileUploader
     @errors.empty?
   end
 
-  def update_model_agency(agency)
-    @model.update(agency: agency) unless (agency.nil?)
-  end
   private
 
   def extract_shapefiles(zip_file, &block)
@@ -81,12 +80,14 @@ class ShapefileUploader
         # instead of doing a weird thing with active record logger
         record = ActiveRecord::Base.logger.silence do
           if @model.name == CustomGeography.name
-            a = @model.create({ name: @name })
-            a.update_attributes(geom:geom)
+            @custom_geo = @model.create({ name: @name, agency: @agency })
+            @custom_geo.update_attributes(geom:geom)
             # generally, the only error we're going to get are either the shapefile is invalid
             # or the name was taken already
-            if a.errors.present?
-              @errors << "#{a.errors.full_messages.to_sentence} for #{a.name}."
+            if @custom_geo.errors.present?
+              @errors << "#{@custom_geo.errors.full_messages.to_sentence} for #{@custom_geo.name}."
+            else
+              @custom_geo
             end
           else
             @model.find_or_create_by(attrs)
