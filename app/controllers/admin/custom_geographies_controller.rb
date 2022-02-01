@@ -10,6 +10,8 @@ class Admin::CustomGeographiesController < Admin::AdminController
     # NOTE: THE BELOW IS TEMPORARY AND SHOULD BE REMOVED ONCE WE FULLY IMPLEMENT
     # AGENCY SELECTION/ PERMISSIONS AND TRAVEL PATTERNS
     agency = TransportationAgency.first.id
+
+    # TODO: ADD KML FILE UPLOAD HANDLING
     uploader = ShapefileUploader.new(params[:geographies][:shapefile],
                                      name: params[:geographies][:name]&.titleize,
                                      geo_type: :custom_geography,
