@@ -4,8 +4,22 @@ class Admin::CustomGeographiesController < Admin::AdminController
   def index
     @geographies = get_geographies_for_user
   end
-  private
 
+  def create
+    # agency = Agency.find_by(id: params[:geographies][:agency])
+    # NOTE: THE BELOW IS TEMPORARY AND SHOULD BE REMOVED ONCE WE FULLY IMPLEMENT
+    # AGENCY SELECTION/ PERMISSIONS AND TRAVEL PATTERNS
+    agency = TransportationAgency.first.id
+    uploader = ShapefileUploader.new(params[:geographies][:shapefile],
+                                     name: params[:geographies][:name]&.titleize,
+                                     geo_type: :custom_geography,
+                                     column_mappings: {name: 'NAME'})
+    uploader.load
+    present_error_messages(uploader)
+    redirect_to admin_custom_geographies_path
+  end
+
+  private
   def custom_geography_params
     params.require(:custom_geography).permit(
       :agency,
