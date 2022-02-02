@@ -11,7 +11,7 @@ class ShapefileUploader
     @path = opts[:path] || @file.tempfile.path
     # NOTE: the name field is specific to Travel Patterns
     @name = opts[:name]
-    @agency = Agency.find opts[:agency]
+    @agency = opts[:agency].present? ? Agency.find(opts[:agency]) : nil
     @filetype = opts[:content_type] || @file.content_type
     @model = opts[:geo_type].to_s.classify.constantize
     @column_mappings = opts[:column_mappings] || {name: 'NAME', state: 'STATEFP'}
@@ -79,7 +79,7 @@ class ShapefileUploader
         # if the record fails to create, then we can just check for record errors and push those in
         # instead of doing a weird thing with active record logger
         record = ActiveRecord::Base.logger.silence do
-          if @model.name == CustomGeography.name
+          if @model.name == CustomGeography.name && Config.dashboard_mode == 'travel_patterns'
             @custom_geo = @model.create({ name: @name, agency: @agency })
             @custom_geo.update_attributes(geom:geom)
             # generally, the only error we're going to get are either the shapefile is invalid

@@ -178,7 +178,7 @@ Rails.application.routes.draw do
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
     get 'autocomplete' => 'geographies#autocomplete'
-
+    post 'legacy/custom_geographies/create' => 'geographies#upload_custom_geographies'
 
     # Landmarks
     resources :landmarks, :only => [:index, :edit, :create, :update, :destroy] do

@@ -400,4 +400,19 @@ module RoleHelper
            .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency&.id, tas)
   end
 
+  def get_geographies_for_user
+    if self.superuser?
+      CustomGeography.all.order(:name)
+    elsif self.transportation_staff? || self.transportation_admin?
+      CustomGeography.where(agency_id: self.staff_agency.id).order(:name)
+    elsif self.currently_oversight?
+      tas = self.staff_agency.agency_oversight_agency.map {|aoa| aoa.transportation_agency.id}
+      CustomGeography.where(agency_id: tas).order(:name)
+    elsif self.currently_transportation?
+      CustomGeography.where(agency_id: self.current_agency.id).order(:name)
+    elsif self.staff_agency.oversight? && self.current_agency.nil?
+      CustomGeography.where(agency_id: nil).order(:name)
+    end
+  end
+
 end
