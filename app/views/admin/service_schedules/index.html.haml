@@ -1,3 +1,39 @@
-%h1
+:css
+  .center-buttons {
+    text-align: center;
+  }
+
+=content_for :title do
   Service Schedules
-= link_to 'Create New Service Schedule', new_admin_service_schedule_path
+
+%table.table.table-hover.datatable#service-schedules-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th Type
+      %th Start Date
+      %th Ends Date
+      %th Actions
+  =render partial: 'service_schedule', collection: @service_schedules
+
+.center-buttons
+  = link_to 'New Service Schedule', new_admin_service_schedule_path, class: 'btn btn-primary'
+  = link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  = link_to 'Return to Dashboard', root_path, class: 'btn btn-default'
+
+-#-if can? :create, Service
+-#  = simple_form_for :service, url: admin_services_path, html: {class: 'form-horizontal', multipart: true, method: :post }, authenticity_token: true do |f|
+-#    =render partial: 'new_service', layout: '/layouts/new_record_panel', locals: {f: f}
+
+:javascript
+
+  $(document).ready(function() {
+    // Link to appropriate feedback detail on row click
+    $('#service-schedules-table tbody tr').click(function() {
+      window.location = $(this).data("url");
+    });
+
+    $('.datatable').DataTable({});
+
+  });

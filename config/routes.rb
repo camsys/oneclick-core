@@ -224,7 +224,7 @@ Rails.application.routes.draw do
     end
 
 
-    resources :service_schedules, :only => [:index, :create, :new]
+    resources :service_schedules, :only => [:index, :create, :new, :destroy, :show, :edit, :update]
 
     resources :travel_patterns, :only => [:index, :create, :new] do
       collection do
@@ -242,8 +242,6 @@ Rails.application.routes.draw do
         end
     end
 
-    # Travel patterns service schedules
-    resources :travel_patterns_service_schedules, :only => [:index, :create, :destroy, :show, :update]
   end #Admin
 
   mount SimpleTranslationEngine::Engine => "/admin/simple_translation_engine"
