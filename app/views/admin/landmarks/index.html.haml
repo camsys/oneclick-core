@@ -1,5 +1,6 @@
+- dash_mode = Config.dashboard_mode
 =content_for :title do
-  Landmarks
+  = dash_mode == 'travel_patterns' ? 'System POIs' : 'Landmarks'
 
 %table.table.table-hover.datatable#landmark-table
   %thead.thead-default
@@ -32,7 +33,7 @@
       %td
         =landmark.lng
 
--if can? :create, Landmark
+-if can?(:create, Landmark) && dash_mode != 'travel_patterns'
   = simple_form_for @landmark,
       url: admin_landmarks_path,
       html: {method: :post, class: "form-horizontal" },
@@ -41,6 +42,11 @@
 
   =simple_form_for :landmarks, url: update_all_admin_landmarks_path, html: {class: 'form-horizontal', multipart: true, method: :patch }, authenticity_token: true do |f|
     =render partial: 'update_landmarks', layout: '/layouts/new_record_panel', locals: {f: f}
+- if dash_mode == 'travel_patterns'
+  %footer.footer__links
+    =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+    =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+
 
 
 :javascript
