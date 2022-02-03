@@ -11,10 +11,15 @@
         %tr
           %td
             = geography&.name
-          %td.text-right{aria:{label: "Download/ Delete #{geography&.name} record(NOT AVAILABLE)"}}
-            %button.btn.btn--no-bg{type: 'button',disabled:true}
+          %td.text-right
+            %button.btn.btn--no-bg{type: 'button',
+              disabled:true,
+              data:{id: geography.id, purpose: 'download'}}
               %span.glyphicon.glyphicon-download-alt{aria:{hidden:true}}
-            %button.btn.btn--no-bg.text-danger{type: 'button',disabled:true}
+            =link_to admin_custom_geography_path(geography.id),
+              method: :delete,
+              class: "btn text-danger btn--no-bg",
+              data: {confirm: "Are you sure?  This action cannot be undone!"} do
               %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
   %div.map_placeholder
 %footer.footer__links
@@ -25,10 +30,9 @@
 :javascript
     $(document).ready(function() {
 
-
-    // NOTE: this is for the eventual click handler for toggling geographies
-    // $('geographies-table tbody tr').click(function() {
-    // });
+    // NOTE: if the user clicks the download/ delete button, we'll need to stop
+    // event bubbling so that the map doesn't try to change along with the redirect
+    // Might be overkill but it'd result in a bit of a cleaner experience
 
     // Configure DataTable so that the button thing can't be sorted
     $('.datatable#geographies-table').DataTable({

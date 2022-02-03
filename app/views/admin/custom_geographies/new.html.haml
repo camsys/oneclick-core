@@ -1,2 +1,58 @@
-%h1
-  Create New Custom Geography
+=content_for :title do
+  ="New Custom Geography"
+%section.centered-form
+  = simple_form_for :geographies,
+    url: admin_custom_geographies_path,
+    html: {id:'geographies',multipart: true, method: :post, class:'form-horizontal'},
+    authenticity_token: true do |f|
+    = f.input :shapefile, required:true, label: "Upload Shapefile:", :as => :file
+    = f.input :kmlfile, required:true, label: "Upload KML File:", :as => :file
+    - rabbit = TransportationAgency.find_by name: 'Rabbit'
+    = f.input :agency,
+      collection: TransportationAgency.all,
+      label: 'Agency:',
+      selected: rabbit.id,
+      disabled: true,
+      include_blank: "Select a Transportation Agency"
+    = f.input :agency,
+      as: :hidden,
+      collection: TransportationAgency.all,
+      label: 'Agency:',
+      selected: rabbit.id,
+      disabled: false,
+      include_blank: "Select a Transportation Agency",
+      input_html: { id: 'hidden_agency',
+        value:rabbit.id}
+    = f.input :name, required: true, label: "Geography Name:"
+    = f.input :description, as: :text, required: false, label: "Description:"
+    %footer.footer__links
+      =link_to 'Cancel', admin_custom_geographies_path, class: 'btn btn-danger'
+      =f.submit 'Upload', class: 'btn btn-primary'
+    -#%button#button-reset.btn.btn-secondary{type:'button'} Reset Form
+
+:javascript
+  $(document).ready(function() {
+    const shapefileInput = $('#geographies_shapefile')
+    const kmlfileInput = $('#geographies_kmlfile')
+
+    // conditionally disable inputs if a file is already cached
+    if (shapefileInput.val()) {
+      kmlfileInput.prop('disabled',true)
+    } else if (kmlfileInput.val()) {
+      shapefileInput.prop('disabled',true)
+    }
+
+    // on reset button click
+    // $('button#button-reset').click(function() {
+    //   shapefileInput.val('').prop('disabled',false)
+    //   kmlfileInput.val('').prop('disabled',false)
+    // })
+
+    // on upload listeners
+    shapefileInput.change(function() {
+      kmlfileInput.prop('disabled',true)
+    })
+    kmlfileInput.change(function() {
+      shapefileInput.prop('disabled',true)
+    })
+  })

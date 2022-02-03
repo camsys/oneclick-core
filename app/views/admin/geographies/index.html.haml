@@ -1,50 +1,6 @@
-=content_for :title do
-  Standard Geographies:
-=content_for :header_form do
-  -# NOTE: the below form is for handling redirects based on the selected geography type
-  .wrapper__header-form
-    =simple_form_for :type,
-    url: admin_geographies_path,
-    html: {class: 'form-horizontal', id:'geography_type_form', multipart: true, method: :get },
-    authenticity_token: true do |f|
-      = f.input :type,
-        collection:  @geography_types,
-        include_blank: false,
-        label: false,
-        selected: params[:type]&.gsub('_',' ')&.titleize
-%section.container--two-col
-  %table.table.table-hover.datatable#geographies
-    %thead.thead-default
-      %tr
-        %th Name
-    %tbody
-      -@geographies.each do |geography|
-        %tr
-          %td
-            = geography&.name
-  %div.map_placeholder
-%footer.footer__links
-  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
-  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+-if Config.dashboard_mode == 'travel_patterns'
+  =render partial: 'admin/geographies/travel_patterns_index'
+-if Config.dashboard_mode =='default'
+  =render partial: 'admin/geographies/default_index'
 
-:javascript
-    $(document).ready(function() {
 
-    // NOTE: this is for the eventual click handler for toggling geographies
-    // $('#geographies-table tbody tr').click(function() {
-    // });
-
-    /*
-      NOTE: the below onChange event listener redirects to geographies page but appends the geography type
-      as a query param(cleaned up a bit if there's spaces)
-    */
-    $('#type_type').change(function() {
-      const input = $(this).val()
-      window.location.assign('#{admin_geographies_path}' + '?type='+input.toLowerCase().replace(' ','_'))
-
-    })
-
-    // $.fn.DataTable.ext.pager.numbers_length = 5
-    $('.datatable').DataTable({});
-
-  });

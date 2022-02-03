@@ -9,4 +9,22 @@ form#geography_type_form {
   select#type_type {
     height: 40px;
   }
+
+  label {
+    text-align: left;
+  }
+}
+
+form#geographies {
+  label {
+    text-align: left;
+  }
+  & textarea {
+    resize: vertical;
+  }
+}
+
+.centered-form {
+  margin: 0 auto;
+  max-width: 640px;
 }
