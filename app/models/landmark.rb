@@ -72,8 +72,5 @@ class Landmark < Place
 
   end #Update
 
-  def long_name
-    "#{self.name} #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
-  end
 
 end #Landmark
