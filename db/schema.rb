@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220131210334) do
+ActiveRecord::Schema.define(version: 20220204145941) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -137,10 +137,11 @@ ActiveRecord::Schema.define(version: 20220131210334) do
 
   create_table "custom_geographies", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at",                                          null: false
-    t.datetime "updated_at",                                          null: false
-    t.geometry "geom",       limit: {:srid=>4326, :type=>"geometry"}
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
+    t.geometry "geom",        limit: {:srid=>4326, :type=>"geometry"}
     t.integer  "agency_id"
+    t.text     "description"
     t.index ["agency_id"], name: "index_custom_geographies_on_agency_id", using: :btree
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
   end
