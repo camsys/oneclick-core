@@ -11,6 +11,7 @@ class Place < ApplicationRecord
   #### Scopes ######
   scope :has_name, -> { where("name <> ''") }
 
+  #### Methods #####
   # Search over all classes that inherit from place by query string
   def self.get_by_query_str(query_str)
     rel = self.arel_table[:name].lower().matches(query_str)
@@ -80,6 +81,9 @@ class Place < ApplicationRecord
   def short_formatted_address
     [self.street_number, self.route].select(&:present?).join(' ')
   end
-    
+
+  def long_name
+    "#{self.name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
+  end
 
 end

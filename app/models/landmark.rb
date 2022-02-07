@@ -1,4 +1,6 @@
 class Landmark < Place
+  ### Associations ###
+  belongs_to :agency
 
   ### Validations ####
   validates :name, uniqueness: true
@@ -69,5 +71,6 @@ class Landmark < Place
     end
 
   end #Update
+
 
 end #Landmark
