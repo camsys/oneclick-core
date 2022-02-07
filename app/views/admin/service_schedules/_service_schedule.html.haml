@@ -1,0 +1,17 @@
+%tr{style: "cursor: pointer", data: {url: admin_service_schedule_path(service_schedule)}}
+  %td
+    =service_schedule.service.agency
+  %td
+    =service_schedule.name
+  %td
+    =service_schedule.service_schedule_type.name
+  %td
+    =service_schedule.try(:start_date)
+  %td
+    =service_schedule.try(:end_date)
+  %td
+    %div
+      =link_to edit_admin_service_schedule_path(id: service_schedule.id), class: "edit_service_schedule_action_button", title: "Edit Service Schedule" do
+        %span.glyphicon.glyphicon-pencil
+      =link_to admin_service_schedule_path(id: service_schedule.id), method: :delete, class: "delete_service_schedule_action_button", title: "Delete Service Schedule" do
+        %span.glyphicon.glyphicon-trash
