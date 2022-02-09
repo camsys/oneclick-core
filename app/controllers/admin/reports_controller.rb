@@ -101,6 +101,12 @@ class Admin::ReportsController < Admin::AdminController
     # Get trips for the current user's agency and role
     @trips = current_user.get_trips_for_staff_user
 
+    if @trip_only_created_in_1click
+      # aa = @trips.includes([:selected_itinerary,:booking])
+      #            .references([:selected_itinerary,:booking])
+      #            .where("bookings.created_in_1click=true OR itineraries.trip_type!='paratransit'")
+      puts "ye"
+    end
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
@@ -182,7 +188,7 @@ class Admin::ReportsController < Admin::AdminController
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
     @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
-    
+    @trip_only_created_in_1click = parse_bool(params[:trip_only_created_in_1click])
     # USER FILTERS
     @include_guests = parse_bool(params[:include_guests])
     @accommodations = parse_id_list(params[:accommodations])
@@ -220,6 +226,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_time_from_date, 
       :trip_time_to_date,
       :trip_origin_recipe,
+      :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
       :partner_agency,

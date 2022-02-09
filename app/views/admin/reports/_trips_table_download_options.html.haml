@@ -5,6 +5,11 @@
 =f.input :trip_time_to_date, required: false,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "To Date"
+
+-# FILTER OUT TRIPS NOT CREATED IN ONE CLICK
+=f.input :trip_only_created_in_1click, required: false,
+  as: :boolean,
+  label: 'Only Return Trips Created In One Click:'
   
 -# TRIP PURPOSES
 = f.input :purposes, required: false,
