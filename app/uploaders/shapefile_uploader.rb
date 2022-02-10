@@ -90,7 +90,7 @@ class ShapefileUploader
               @custom_geo
             end
           else
-            @model.find_or_create_by(attrs)
+            @model.find_or_create_by(attrs).update_attributes(geom:geom)
           end
         end
         if record
