@@ -180,7 +180,6 @@ module Api
 
           # Update Trip Disposition Status to ecolane succeeded
           itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
-          itin.booking.created_in_1click = true
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
@@ -227,6 +226,7 @@ module Api
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
           trip_type= itin.trip_type
+          created_in_1click = itin.booking.created_in_1click
           response = booking_response_base(itin).merge({success: false})
 
           next response unless itin
