@@ -334,8 +334,6 @@ module RoleHelper
       oversight_users + transportation_users
     elsif self.currently_transportation?
       self.any_users_for_current_agency
-    elsif self.current_agency.nil?
-      User.any_staff_admin_for_none
     else
       []
     end

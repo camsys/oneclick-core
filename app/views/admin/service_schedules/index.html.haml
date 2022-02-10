@@ -18,7 +18,8 @@
   =render partial: 'service_schedule', collection: @service_schedules
 
 .center-buttons
-  = link_to 'New Service Schedule', new_admin_service_schedule_path, class: 'btn btn-primary'
+  - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
+    = link_to 'New Service Schedule', new_admin_service_schedule_path, class: 'btn btn-primary'
   = link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
   = link_to 'Return to Dashboard', root_path, class: 'btn btn-default'
 

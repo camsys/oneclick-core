@@ -32,12 +32,6 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   private
 
   def get_service_schedules_for_current_user
-    if current_user.superuser?
-      ServiceSchedule.for_all_agencies.ordered
-    elsif current_user.currently_oversight?
-      ServiceSchedule.for_oversight_agency.ordered
-    elsif current_user.currently_transportation?
-      ServiceSchedule.for_transport_agency.order("name desc")
-    end
+    ServiceSchedule.for_user(current_user)
   end
 end
