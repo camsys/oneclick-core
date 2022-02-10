@@ -35,8 +35,8 @@ class Admin::AdminController < ApplicationController
     return nil unless params[:controller] == 'admin/admin'
     # If current user, then get trips for staff, otherwise fall back to all trips this week
     trips = current_user.get_trips_for_staff_user&.where(trip_time: DateTime.this_week) || Trip.where(trip_time: DateTime.this_week)
-    relevant_auth_emails = current_user.get_travelers_for_staff_user.pluck(:email)
-                                       .concat(current_user.get_admin_staff_for_staff_user.pluck(:email))
+    relevant_auth_emails = current_user.get_travelers_for_staff_user&.pluck(:email)
+                                       &.concat(current_user.get_admin_staff_for_staff_user&.pluck(:email))
     # Add some prebuilt reports for displaying on the homepage
     DashboardReport.prebuilt_reports.merge!({
                                               planned_trips_this_week: [
