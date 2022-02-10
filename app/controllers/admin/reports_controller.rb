@@ -105,7 +105,7 @@ class Admin::ReportsController < Admin::AdminController
       # aa = @trips.includes([:selected_itinerary,:booking])
       #            .references([:selected_itinerary,:booking])
       #            .where("bookings.created_in_1click=true OR itineraries.trip_type!='paratransit'")
-      puts "ye"
+      sample_db_query
     end
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
@@ -276,4 +276,30 @@ class Admin::ReportsController < Admin::AdminController
     bool_param.try(:to_bool) || (bool_param.try(:to_i) == 1)
   end
 
+  # NOTE: CURRENT PROGRESS ON FOR OCC-717
+  def sample_db_query
+#begin
+# First example query
+# This returns duplicates
+select t.id,t.selected_itinerary_id,t.user_id,t.disposition_status,i.trip_type, b.status, b.created_in_1click,t.created_at from trips as t
+  left join itineraries as i on i.trip_id=t.id
+  left join bookings as b on i.id=b.itinerary_id
+  where b.created_in_1click=true
+union
+select t.id,t.selected_itinerary_id,t.user_id,t.disposition_status,i.trip_type, b.status, b.created_in_1click,t.created_at from trips as t
+  left join itineraries as i on t.selected_itinerary_id=i.id
+  left join bookings as b on b.itinerary_id=i.id
+  where i.trip_type != 'paratransit' or t.selected_itinerary_id is null
+order by created_at desc limit 300
+#end
+#begin
+# second example query
+# query doesn't select cancelled paratransit trips
+select t.created_at as c_a,t.id,t.selected_itinerary_id as itin_id,t.user_id,t.disposition_status as dispo_status,i.trip_type, b.status, b.created_in_1click from trips as t
+  left join itineraries as i on t.selected_itinerary_id=i.id
+  left join bookings as b on b.itinerary_id=i.id
+where b.created_in_1click = true or t.selected_itinerary_id is null or i.trip_type != 'paratransit'
+order by c_a desc limit 300
+#end
+  end
 end
