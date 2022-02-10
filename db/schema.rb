@@ -371,14 +371,14 @@ ActiveRecord::Schema.define(version: 20220204145941) do
     t.index ["service_id"], name: "index_service_oversight_agencies_on_service_id", using: :btree
   end
 
-  create_table "service_schedule_types", id: :integer, default: -> { "nextval('service_schedule_types_id_seq'::regclass)" }, force: :cascade do |t|
+  create_table "service_schedule_types", force: :cascade do |t|
     t.string   "name"
     t.string   "description"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
   end
 
-  create_table "service_schedules", id: :integer, default: -> { "nextval('service_schedules_id_seq'::regclass)" }, force: :cascade do |t|
+  create_table "service_schedules", force: :cascade do |t|
     t.integer  "service_id"
     t.integer  "service_schedule_type_id"
     t.string   "name"
@@ -391,7 +391,7 @@ ActiveRecord::Schema.define(version: 20220204145941) do
     t.index ["service_schedule_type_id"], name: "idx_service_schedules_to_service_schedule_types", using: :btree
   end
 
-  create_table "service_sub_schedules", id: :integer, default: -> { "nextval('service_sub_schedules_id_seq'::regclass)" }, force: :cascade do |t|
+  create_table "service_sub_schedules", force: :cascade do |t|
     t.integer  "service_schedule_id"
     t.integer  "day"
     t.integer  "start_time"
