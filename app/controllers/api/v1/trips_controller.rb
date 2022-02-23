@@ -225,7 +225,8 @@ module Api
          
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
-
+          trip_type= itin.trip_type
+          created_in_1click = itin.booking.created_in_1click
           response = booking_response_base(itin).merge({success: false})
 
           next response unless itin
@@ -239,12 +240,14 @@ module Api
           if cancellation_result
             # Handle the case when the trip is the return trip.
             trip = itin.trip
-            trip.previous_trip = nil 
+            trip.previous_trip = nil
+            trip.details[:trip_type]=trip_type
             trip.save 
 
             # Handle the case when the trip is the outbound trip.
             next_trip = itin.trip.next_trip
-            if next_trip 
+            if next_trip
+              next_trip.details[:trip_type]=trip_type
               next_trip.previous_trip = nil
               next_trip.save
             end
