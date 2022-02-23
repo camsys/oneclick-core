@@ -286,10 +286,18 @@ namespace :db do
       end
     end
 
+    desc "Sample Landmark Sets"
+    task landmark_sets: :environment do
+      fake_sets = ['Tuber Sets', 'Vegetable Sets', 'Fruit Sets', 'Grain Sets']
+      fake_sets.each do |set|
+        LandmarkSet.create(name: set, agency_id: Agency.find_or_create_by(name: 'Rabbit').id)
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agency_types, :agencies, :agency_types, :service_schedules]
+                :agency_types, :agencies, :agency_types, :service_schedules, :landmark_sets]
 
   end
 end
