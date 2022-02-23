@@ -1,0 +1,49 @@
+-# For use in building new schedule forms
+-sub_schedules = @service_schedule.service_sub_schedules.build
+-schedules_json = @service_schedule.service_sub_schedules.for_display.to_json.html_safe
+-mode = local_assigns[:mode]
+-f = local_assigns[:f]
+-form_id = local_assigns[:form_id]
+
+.form-inline.schedule-week-container
+  -# Build a schedule row for each weekday
+  -(0..6).each do |d|
+    -day_scheds = @service_schedule.service_sub_schedules.by_day(d).for_display
+    .panel.schedule-row-wrapper{class: day_scheds.empty? ? 'panel-default' : 'panel-info-bold'}
+      .row.panel-body
+        %label.col-sm-2.schedule-row-label
+          %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
+            =Date::DAYNAMES[d]
+        .col-sm-10
+          %span.schedule-day-container{data: {day: d}}
+            -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
+          %button.btn.add-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+            %span.text-muted add schedule
+            %span.text-muted.glyphicon.glyphicon-plus
+
+-# Script nested under form so it can reference it in ScheduleHelper call
+:javascript
+  $(document).ready(function() {
+
+    var fh = new FormHandler($('#{form_id}'));
+    var sch = new ScheduleHelper(
+      '#{schedules_json}',
+      $('.schedule-week-container'),
+      '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+    );
+
+    // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
+    fh.watch($('.form-container'));
+
+    // Reset the schedule divs on form reset
+    fh.onReset(function() {
+      sch.reset();
+    });
+
+    // Click handler for adding new schedules
+    $('.add-schedule').click(function() {
+      var day = $(this).siblings('.schedule-day-container').data().day;
+      sch.addSchedule(day).trigger('change');
+    });
+
+  });

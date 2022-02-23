@@ -1,4 +1,37 @@
+:css
+  h1 {
+    text-align: center;
+  }
+
+  .service_schedule_description label {
+    width: 8.3333333333%;
+  }
+
+  .service_schedule_description .col-sm-9 {
+    width: 91.6666666667%;
+  }
+
+- mode = local_assigns[:mode]
+- agency = local_assigns[:agency]
+
 %h1
-  Service Schedule
-%p
-  todo: add page content
+  = "#{mode.capitalize} Service Schedule"
+  - form_url = mode == "new" ? admin_service_schedules_path : admin_service_schedule_path
+= simple_form_for @service_schedule,
+  wrapper: :inline_input_group,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+
+  .col-sm-4
+    = f.input :agency, readonly: true, input_html: {value: agency}
+  .col-sm-4
+    = f.input :name, readonly: mode == "view"
+  .col-sm-4
+    = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, include_blank: false, disabled: mode == "view"
+  .col-sm-12
+    = f.input :description, readonly: mode == "view"
+    %hr
+
+  = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id}, layout: '/layouts/panel'

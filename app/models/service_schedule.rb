@@ -8,6 +8,9 @@ class ServiceSchedule < ApplicationRecord
   belongs_to :service_schedule_type
   has_many :service_sub_schedules, dependent: :destroy
 
+  attr_accessor :agency
+  accepts_nested_attributes_for :service_sub_schedules
+
   validates :name, presence: true, uniqueness: true
 
   def self.for_user(user)
