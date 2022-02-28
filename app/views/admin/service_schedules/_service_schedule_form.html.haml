@@ -18,7 +18,6 @@
   = "#{mode.capitalize} Service Schedule"
   - form_url = mode == "new" ? admin_service_schedules_path : admin_service_schedule_path
 = simple_form_for @service_schedule,
-  wrapper: :inline_input_group,
   url: form_url,
   authenticity_token: true,
   data: {type: 'html'},
@@ -34,4 +33,4 @@
     = f.input :description, readonly: mode == "view"
     %hr
 
-  = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id}, layout: '/layouts/panel'
+  = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url}, layout: '/layouts/panel'
