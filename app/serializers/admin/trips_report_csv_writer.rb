@@ -49,7 +49,7 @@ module Admin
     end
     
     def selected_trip_type
-      @record.selected_itinerary&.trip_type || "N/A"
+      @record.selected_itinerary&.trip_type || (@record.details && @record.details[:trip_type]) || "N/A"
     end
 
     def disposition_status
