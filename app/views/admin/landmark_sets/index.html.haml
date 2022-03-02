@@ -1,5 +1,31 @@
-%h1
-  Sets of POIs
-%p
-  todo: add content
-= link_to 'create sets of pois', new_admin_landmark_set_path
+=content_for :title do
+  Sets of POIS
+
+%table.table.table-hover.datatable#landmark-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th.td-buttons{'aria-label':'Buttons'}
+  -@landmark_sets.each do |sets|
+    %tr{style: "cursor: pointer", data: {url: admin_landmark_sets_path}}
+      %td
+        =sets.agency&.name
+      %td
+        =sets.name
+      %td.td-buttons
+        -if can?(:show, LandmarkSet) && cannot?(:edit, LandmarkSet)
+          =link_to admin_landmark_sets_path,
+              class: "btn btn--no-bg" do
+            %span.glyphicon.glyphicon-eye-open
+        -if can?(:show, LandmarkSet) && can?(:edit, LandmarkSet)
+          =link_to admin_landmark_sets_path,
+              class: "btn btn--no-bg" do
+            %span.glyphicon.glyphicon-pencil{aria:{hidden:true}}
+        =link_to admin_landmark_sets_path,
+            class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
+          %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
+%footer.footer__links
+  =link_to 'New Sets of POIs', new_admin_landmark_set_path, class: 'btn btn-primary'
+  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'

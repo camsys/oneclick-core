@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220204145941) do
+ActiveRecord::Schema.define(version: 20220211142644) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -207,6 +207,12 @@ ActiveRecord::Schema.define(version: 20220204145941) do
     t.integer  "wait_time"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
+  end
+
+  create_table "landmark_sets", force: :cascade do |t|
+    t.string  "name",      null: false
+    t.integer "agency_id"
+    t.index ["agency_id"], name: "index_landmark_sets_on_agency_id", using: :btree
   end
 
   create_table "landmarks", force: :cascade do |t|
@@ -636,6 +642,7 @@ ActiveRecord::Schema.define(version: 20220204145941) do
   add_foreign_key "custom_geographies", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "landmark_sets", "agencies"
   add_foreign_key "landmarks", "agencies"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_services", column: "service_id"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_sub_sub_categories", column: "sub_sub_category_id"
