@@ -6,11 +6,13 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   def show
     @service_schedule = ServiceSchedule.find(params[:id])
     @agency = @service_schedule.service.agency
+    @schedule_type = @service_schedule.service_schedule_type
   end
 
   def new
     @service_schedule = ServiceSchedule.new
     @agency = current_user.current_agency
+    @schedule_type = nil
   end
 
   def create
@@ -48,6 +50,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   def edit
     @service_schedule = ServiceSchedule.find(params[:id])
     @agency = @service_schedule.service.agency
+    @schedule_type = @service_schedule.service_schedule_type
   end
 
   def update

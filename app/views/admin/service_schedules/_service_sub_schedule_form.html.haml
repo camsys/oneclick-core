@@ -4,6 +4,7 @@
 -mode = local_assigns[:mode]
 -form_id = local_assigns[:form_id]
 -f = local_assigns[:f]
+-schedule_type = local_assigns[:schedule_type]
 
 .form-inline.schedule-week-container
   -# Build a schedule row for each weekday
@@ -15,35 +16,89 @@
           %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
             =Date::DAYNAMES[d]
         .col-sm-10
-          %span.schedule-day-container{data: {day: d}}
+          %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-          %button.btn.add-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+          %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
             %span.text-muted add schedule
             %span.text-muted.glyphicon.glyphicon-plus
+
+
+-calendar_scheds = @service_schedule.service_sub_schedules.for_display
+.form-inline.schedule-calendar-dates-container
+  -# Build a schedule row for calendar dates
+  %label.col-sm-2.schedule-row-label
+    %span{class: 'text-default'}
+      Calendar Dates
+  .panel.schedule-row-wrapper{class: 'panel-default'}
+    .row.panel-body
+      .col-sm-10
+        %span.sub-schedule-container
+        %button.btn.add-calendar-date-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+          %span.text-muted Add a date
+          %span.text-muted.glyphicon.glyphicon-plus
+%hr
+.form-inline.schedule-calendar-times-container
+  -# Build a schedule row for times
+  %label.col-sm-2.schedule-row-label
+    %span{class: 'text-default'}
+      Service Hours
+  .panel.schedule-row-wrapper{class: 'panel-default'}
+    .row.panel-body
+      .col-sm-10
+        %span.sub-schedule-container
+        %button.btn.add-calendar-time-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+          %span.text-muted Add schedule
+          %span.text-muted.glyphicon.glyphicon-plus
 
 -# Script nested under form so it can reference it in ScheduleHelper call
 :javascript
   $(document).ready(function() {
 
-    var fh = new FormHandler($('#{form_id}'));
-    var sch = new ScheduleHelper(
-      '#{schedules_json}',
-      $('.schedule-week-container'),
-      '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
-    );
+      var fh = new FormHandler($('#{form_id}'));
+      var weeklySch = new ScheduleHelper(
+        '#{schedules_json}',
+        $('.schedule-week-container'),
+        '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+      );
+      var calendarDateSch = new ScheduleHelper(
+        '#{schedules_json}',
+        $('.schedule-calendar-dates-container'),
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_dates_service_sub_schedule", locals: {f: f, service_sub_schedules: sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+      );
+      var calendarTimeSch = new ScheduleHelper(
+        '#{schedules_json}',
+        $('.schedule-calendar-times-container'),
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_times_service_sub_schedule", locals: {f: f, service_sub_schedules: sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+      );
 
-    // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
-    fh.watch($('.form-container'));
+      // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
+      fh.watch($('.form-container'));
 
-    // Reset the schedule divs on form reset
-    fh.onReset(function() {
-      sch.reset();
-    });
+      // Reset the schedule divs on form reset
+      fh.onReset(function() {
+        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.find_by(name: "Weekly pattern").id}') {
+          weeklySch.reset();
+        }
+        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.find_by(name: "Selected calendar dates").id}') {
+          calendarDateSch.reset();
+          calendarTimeSch.reset();
+        }
+        else {
+          weeklySch.reset();
+          calendarDateSch.reset();
+          calendarTimeSch.reset();
+        }
+      });
 
-    // Click handler for adding new schedules
-    $('.add-schedule').click(function() {
-      var day = $(this).siblings('.schedule-day-container').data().day;
-      sch.addSchedule(day).trigger('change');
-    });
-
+      // Click handler for adding new schedules
+      $('.add-day-schedule').click(function() {
+        var day = $(this).siblings('.sub-schedule-container').data().day;
+        weeklySch.addSchedule(day).trigger('change');
+      });
+      $('.add-calendar-date-schedule').click(function() {
+        calendarDateSch.addSchedule(null).trigger('change');
+      });
+      $('.add-calendar-time-schedule').click(function() {
+        calendarTimeSch.addSchedule(null).trigger('change');
+      });
   });

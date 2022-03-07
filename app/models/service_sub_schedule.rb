@@ -18,7 +18,7 @@ class ServiceSubSchedule < ApplicationRecord
   ### SCOPES ###
   scope :by_day, -> (day_of_week=(SUN..SAT).to_a) { where(day: day_of_week) }
   scope :midnight_shims, -> { where(start_time: 0, end_time: 0) }
-  scope :for_display, -> { where.not(id: midnight_shims.pluck(:id)).order(:day, :start_time) }
+  scope :for_display, -> { where.not(id: midnight_shims.pluck(:id)).order(:calendar_date, :day, :start_time) }
   scope :overlapping_with, -> (sched) do
     by_day(sched.day).where(start_time: sched.to_range).where.not(id: sched.id)
   end
