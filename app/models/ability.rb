@@ -3,7 +3,9 @@ class Ability
 
   # See the wiki for details:
   # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
-
+  # FIXME: Should refactor and standardize routes to match how Rails sets up standard routes
+  # - i.e index, show, new for templates, create, update?, delete for rails controller actions
+  # - Also should sort this out a bit more coherently, it's a bit of a mess at the moment
   def initialize(user)
     
     ### TRAVELER PERMISSIONS ###
@@ -65,13 +67,19 @@ class Ability
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
         can [:read], TravelPattern
-        can [:edit,:staff,:travelers], User,                # Can read users that are staff for the same agency and travelers for that agency
+
+        # Can read users that are staff for the same agency and travelers for that agency
+        can [:edit,:staff,:travelers], User,
             id: user.accessible_staff.pluck(:id).concat(user.travelers_for_current_agency.pluck(:id))
+
+        # Can show own oversight agency and overseen transportation agencies
         can :show, Agency,
             id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
+
+        # Can access services associated with own oversight agency, and those with no oversight agency(i.e taxi services)
         can :read, Service,
-            id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
+            id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id))
         can :change_agency, User,
             id: user.id
       end
@@ -96,9 +104,13 @@ class Ability
       can :manage, Landmark
       can [:show, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
-      can :manage, User,                # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
+
+      # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
+      can :manage, User,
           id: user.accessible_staff.pluck(:id).concat(User.staff_for_none.pluck(:id),User.admin_for_none.pluck(:id),user.get_travelers_for_staff_user&.pluck(:id))
-      can :manage, Service,             # Can CRUD services with no agency
+
+      # Can CRUD services with no agency
+      can :manage, Service,
           id: Service.no_agency.pluck(:id)
       can :create, Service              # Can create new services
       can :manage, Alert
@@ -113,6 +125,8 @@ class Ability
         can [:read,:edit], LandmarkSet
 
         can [:read], TravelPattern
+
+        # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Service,
             id: user.staff_agency.services.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with the users transportation agency
       end

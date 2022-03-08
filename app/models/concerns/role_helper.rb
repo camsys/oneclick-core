@@ -229,7 +229,7 @@ module RoleHelper
   def travelers_for_agency(agencies)
     # Search for travelers not associated with the input agencies ids
     agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
-    # Return travelers associated with the input agency and also with no agency
+    # Return travelers associated with the input agency and also with no agency like FMR guests
     uu = User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
 
     uu.joins(:traveler_transit_agency).where('traveler_transit_agencies.transportation_agency_id':agencies).distinct
@@ -242,8 +242,11 @@ module RoleHelper
 
   def travelers_for_current_agency
     if self.currently_oversight?
+      # if oversight, then grab all transportation agencies associated with the oversight agency and return the travelers
+      # for those agencies
       ta_ids = self.staff_agency.agency_oversight_agency.map { |aoa| aoa.transportation_agency.id}
       travelers_for_agency(ta_ids)
+      # otherwise, they're probably emulating as a transportation agency and so just grab the travelers for a transportation agency
     elsif self.oversight_admin? || self.oversight_staff?
       travelers_for_agency(self.current_agency&.id || self.staff_agency&.id)
     end
@@ -270,6 +273,7 @@ module RoleHelper
     if !agency && !role
       raise "Expecting values for role and agency"
     end
+    # Add role with an agency if applicable
     if role == "superuser"
       self.add_role(role)
     elsif agency == ""|| agency.nil?

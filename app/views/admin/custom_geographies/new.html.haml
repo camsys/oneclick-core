@@ -27,13 +27,14 @@
     = f.input :description, as: :text, required: false, label: "Description:"
     %footer.footer__links
       =link_to 'Cancel', admin_custom_geographies_path, class: 'btn btn-danger'
-      =f.submit 'Upload', class: 'btn btn-primary'
+      =f.submit 'Upload', class: 'btn btn-primary',disabled:true, id: 'custom-geo-submit'
     -#%button#button-reset.btn.btn-secondary{type:'button'} Reset Form
-
+-# TODO: add disable for submit button
 :javascript
   $(document).ready(function() {
     const shapefileInput = $('#geographies_shapefile')
     const kmlfileInput = $('#geographies_kmlfile')
+    const submitBtn = $('input#custom-geo-submit')
 
     // conditionally disable inputs if a file is already cached
     if (shapefileInput.val()) {
@@ -51,8 +52,10 @@
     // on upload listeners
     shapefileInput.change(function() {
       kmlfileInput.prop('disabled',true)
+      submitBtn.removeAttr('disabled')
     })
     kmlfileInput.change(function() {
       shapefileInput.prop('disabled',true)
+      submitBtn.removeAttr('disabled')
     })
   })

@@ -16,6 +16,12 @@
               disabled:true,
               data:{id: geography.id, purpose: 'download'}}
               %span.glyphicon.glyphicon-download-alt{aria:{hidden:true}}
+              %span SHP
+            %button.btn.btn--no-bg{type: 'button',
+              disabled:true,
+              data:{id: geography.id, purpose: 'download'}}
+              %span.glyphicon.glyphicon-download-alt{aria:{hidden:true}}
+              %span KML
             =link_to admin_custom_geography_path(geography.id),
               method: :delete,
               class: "btn text-danger btn--no-bg",

@@ -35,7 +35,7 @@ class ApiRequestLogger
         # The controller and action are included and not excluded, create a
         # RequestLog object for the request.
         if should_log?(payload) && @log_to_db == true
-          # Log to database
+          # Log to database with deidentified params
           deidentified_params = LoggingHelper::deidentify_params_phi(payload[:params])
           RequestLog.create({
                               controller: payload[:controller],
