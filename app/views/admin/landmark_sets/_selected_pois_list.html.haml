@@ -1,0 +1,23 @@
+%section
+  %h2 Selected POIs
+  %table.table.table-hover.datatable{id: table_id}
+    %thead.thead-default.hidden
+      %tr
+        %th Name
+        %th.td-buttons{'aria-label':'Buttons'}
+    -landmark_sets.each do |sets|
+      %tr
+        %td
+          =sets.name
+        %td.td-buttons
+          -if can?(:show, LandmarkSet) && cannot?(:edit, LandmarkSet)
+            =link_to admin_landmark_sets_path,
+                class: "btn btn--no-bg" do
+              %span.glyphicon.glyphicon-eye-open
+          -if can?(:show, LandmarkSet) && can?(:edit, LandmarkSet)
+            =link_to admin_landmark_sets_path,
+                class: "btn btn--no-bg" do
+              %span.glyphicon.glyphicon-pencil{aria:{hidden:true}}
+          =link_to admin_landmark_sets_path,
+              class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
+            %span.glyphicon.glyphicon-trash{aria:{hidden:true}}

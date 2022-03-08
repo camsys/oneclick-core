@@ -26,8 +26,8 @@
     = f.input :name, required: true, label: "Geography Name:"
     = f.input :description, as: :text, required: false, label: "Description:"
     %footer.footer__links
+      =f.submit 'Upload', class: 'btn btn-primary'
       =link_to 'Cancel', admin_custom_geographies_path, class: 'btn btn-danger'
-      =f.submit 'Upload', class: 'btn btn-primary',disabled:true, id: 'custom-geo-submit'
     -#%button#button-reset.btn.btn-secondary{type:'button'} Reset Form
 -# TODO: add disable for submit button
 :javascript

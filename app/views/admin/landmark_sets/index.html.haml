@@ -29,3 +29,8 @@
   =link_to 'New Sets of POIs', new_admin_landmark_set_path, class: 'btn btn-primary'
   =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
   =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+
+:javascript
+  $(document).ready(function() {
+    $('.datatable').DataTable({});
+  })
