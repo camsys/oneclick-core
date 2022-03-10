@@ -7,14 +7,16 @@
       disabled:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :start_time), class: 'schedule-input start-time'}
+      input_html: {name: input_name(f, :service_sub_schedules, :start_time), class: 'schedule-input start-time'},
+      label: false
     %span to
     =sub_schedule_fields.input :end_time,
       readonly:can_update == false,
       disabled:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :end_time), class: 'schedule-input end-time'}
+      input_html: {name: input_name(f, :service_sub_schedules, :end_time), class: 'schedule-input end-time'},
+      label: false
     =sub_schedule_fields.input :id,
       wrapper_html: {class: 'hidden'},
       input_html: {name: input_name(f, :service_sub_schedules, :id), class: 'id'}

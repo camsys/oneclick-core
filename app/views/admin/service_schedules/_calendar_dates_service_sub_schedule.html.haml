@@ -6,8 +6,8 @@
       readonly:can_update == false,
       disabled:can_update == false,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :calendar_date), class: 'schedule-input calendar-date'}
-    %span to
+      input_html: {name: input_name(f, :service_sub_schedules, :calendar_date), class: 'schedule-input calendar-date'},
+      label: false
     =sub_schedule_fields.input :id,
       wrapper_html: {class: 'hidden'},
       input_html: {name: input_name(f, :service_sub_schedules, :id), class: 'id'}

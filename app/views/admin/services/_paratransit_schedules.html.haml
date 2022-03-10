@@ -21,10 +21,10 @@
           %span{ class: day_scheds.empty? ? 'text-muted' : 'text-default' }
             =Date::DAYNAMES[d]
         .col-sm-10
-          %span.schedule-day-container{data: {day: d}}
+          %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-          %button.btn.add-schedule{type:"button",disabled: (cannot? :update, @service)}
-            %span.text-muted add schedule
+          %button.btn.add-day-schedule{type:"button",disabled: (cannot? :update, @service)}
+            %span.text-muted Add schedule
             %span.text-muted.glyphicon.glyphicon-plus
 
   -# Script nested under form so it can reference it in ScheduleHelper call
@@ -47,8 +47,8 @@
       });
 
       // Click handler for adding new schedules
-      $('.add-schedule').click(function() {
-        var day = $(this).siblings('.schedule-day-container').data().day;
+      $('.add-day-schedule').click(function() {
+        var day = $(this).siblings('.sub-schedule-container').data().day;
         sch.addSchedule(day).trigger('change');
       });
 

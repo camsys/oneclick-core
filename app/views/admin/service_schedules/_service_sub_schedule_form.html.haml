@@ -1,3 +1,8 @@
+:css
+  .schedule-week-container .col-sm-9, .schedule-calendar-dates-container .col-sm-9, .schedule-calendar-times-container .col-sm-9 {
+    width: 100%;
+  }
+
 -# For use in building new schedule forms
 -sub_schedules = @service_schedule.service_sub_schedules.build
 -schedules_json = @service_schedule.service_sub_schedules.for_display.to_json.html_safe
@@ -19,7 +24,7 @@
           %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
           %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
-            %span.text-muted add schedule
+            %span.text-muted Add schedule
             %span.text-muted.glyphicon.glyphicon-plus
 
 
