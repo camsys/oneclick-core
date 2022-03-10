@@ -17,7 +17,9 @@ div.radio {
 .boolean-wrapper > .col-sm-9 > .input-group.col-sm-12 {
   margin-left: 20px;
 }
-
+header.app-header__title {
+  margin-bottom: 16px;
+}
 // NOTE: The two column header isn't responsive so the admin console will not reflow
 // well on any screens smaller than a tablet in landscape mode
 header.header--two-col {
@@ -49,7 +51,7 @@ footer.footer__links {
   width: 100%;
   margin-top: 36px;
 
-  & a:not(:last-child) {
+  & *:not(:last-child) {
     margin-right: 16px;
   }
 }
@@ -57,4 +59,18 @@ footer.footer__links {
 .btn.btn--no-bg {
   border: none;
   background:transparent;
+}
+
+.flex-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.input-wrapper--no-padding {
+  padding: 0;
+  & div, & label:not(:last-child) {
+    padding-right: 0;
+    padding-left: 8px;
+  }
 }

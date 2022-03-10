@@ -2,6 +2,7 @@ module LoggingHelper
   # NOTE: THIS SHOULD MATCH WHAT'S IN THE:
   # ...1 CLICK HIPAA COMPLIANCE/ PHI ACCESS AND MODIFICATION IN OCC
   # ... CONFLUENCE DOC
+  # NOTE: See config/initializers/lograge.rb for where Logging Helper is generally being used
   # TODO: Add API V2 routes that access PHI!
   ACTIONS_ACCESSING_PHI ||= {
     'Devise::SessionsController': '*',
@@ -70,7 +71,7 @@ module LoggingHelper
     end
   end
 
-  # Takes in an Integer arg which is a HTTP status number
+  # Takes in an Integer arg which is a HTTP status number and turns it into a general human friendly status message
   def self.return_log_level(status)
     if !status.is_a?(Integer)
       'UNKNOWN'
@@ -100,6 +101,7 @@ module LoggingHelper
   end
 
   # Takes in event.payload[:params] from a 'process_action.action_controller' ActiveSupport::Notifications:Event
+  # if it has data that qualifies as PHI, then it deidentifies it/ replaces it with "[FILTERED]"
   def self.deidentify_params_phi(payload_params)
     begin
       user = payload_params[:user]

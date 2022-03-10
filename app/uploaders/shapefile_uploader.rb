@@ -3,7 +3,7 @@
 class ShapefileUploader
   require 'zip'
 
-  attr_reader :errors, :custom_geo
+  attr_reader :errors, :custom_geo, :warnings
 
   # Initialize with a path to a zipfile containing shapefiles
   def initialize(file, opts={})
@@ -17,6 +17,7 @@ class ShapefileUploader
     @column_mappings = opts[:column_mappings] || {name: 'NAME', state: 'STATEFP'}
     @errors = []
     @custom_geo = nil
+    @warnings = []
   end
 
   # Call load to process the uploaded filepath into geometric database records
@@ -62,24 +63,34 @@ class ShapefileUploader
     end
   end
 
+  # NOTE: Several things:
+  # - shapefile loader doesn't handle bulk errors well
+  #   so if all of the shapes in a shapefile don't conform to the expected attributes,
+  #   the error message just says "N number of records failed to load" rather than something like:
+  #   "at least one shape is missing xyz attribute" and did not create
+  # - shapefiles do not include the coordinate reference system(CRS) in the metadata according to it's spec
+  #   so there's no way to determine what CRS the shape is using until you check the postGIS geometry in pgAdmin or in
+  #   GIS software
   def load_shapefile(shp_name)
     Rails.logger.info "Reading Shapes into #{@model.to_s} Table..."
-    RGeo::Shapefile::Reader.open(shp_name, 
-        assume_inner_follows_outer: true, 
-        factory: RGeo::ActiveRecord::SpatialFactoryStore.instance.default) do |shapefile|
-      fail_count = 0
-      shapefile.each do |shape|
-        attrs = {}
-        attrs[:name] = shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
-        attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
-        geom = shape.geometry
-        Rails.logger.info "Loading #{attrs.values.join(",")}..."
+    # Execute read Shapefile
+    begin
+      RGeo::Shapefile::Reader.open(shp_name,
+          assume_inner_follows_outer: true,
+          factory: RGeo::ActiveRecord::SpatialFactoryStore.instance.default) do |shapefile|
 
-        # NOTE: the below probably needs an update since it's pretty old
-        # if the record fails to create, then we can just check for record errors and push those in
-        # instead of doing a weird thing with active record logger
-        record = ActiveRecord::Base.logger.silence do
-          if @model.name == CustomGeography.name && Config.dashboard_mode == 'travel_patterns'
+        fail_count = 0
+        if @model.name == CustomGeography.name && Config.dashboard_mode == 'travel_patterns'
+          attrs = {}
+          if shapefile.num_records > 1
+            @warnings << 'Found multiple shapes while creating a custom geography. Uploader only expects one shape; only used the first shape.'
+          end
+          first_shape = shapefile.get(0)
+          attrs[:name] = first_shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
+          attrs[:state] = StateCodeDictionary.code(first_shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
+          geom = first_shape.geometry
+          Rails.logger.info "Loading #{attrs.values.join(",")}..."
+          record = ActiveRecord::Base.logger.silence do
             @custom_geo = @model.create({ name: @name, agency: @agency })
             @custom_geo.update_attributes(geom:geom)
             # generally, the only error we're going to get are either the shapefile is invalid
@@ -89,18 +100,42 @@ class ShapefileUploader
             else
               @custom_geo
             end
+          end
+          if record
+            Rails.logger.info " SUCCESS!"
           else
-            @model.find_or_create_by(attrs).update_attributes(geom:geom)
+            Rails.logger.info " FAILED."
+            fail_count += 1
+          end
+        else
+          shapefile.each do |shape|
+            attrs = {}
+            attrs[:name] = shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
+            attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
+            geom = shape.geometry
+            Rails.logger.info "Loading #{attrs.values.join(",")}..."
+
+            # NOTE: the below probably needs an update since it's pretty old
+            # if the record fails to create, then we can just check for record errors and push those in
+            # instead of doing a weird thing with active record logger
+            record = ActiveRecord::Base.logger.silence do
+              # The below is overly verbose for debugging purposes
+              geo = @model.find_or_create_by(attrs)
+              geo.update_attributes(geom:geom)
+              geo
+            end
+            if record
+              Rails.logger.info " SUCCESS!"
+            else
+              Rails.logger.info " FAILED."
+              fail_count += 1
+            end
           end
         end
-        if record
-          Rails.logger.info " SUCCESS!"
-        else
-          Rails.logger.info " FAILED."
-          fail_count += 1
-        end
+        @errors << "#{fail_count} records failed to load." if fail_count > 0
       end
-      @errors << "#{fail_count} records failed to load." if fail_count > 0
+    rescue StandardError
+      @errors << "An error occured while unpacking the uploaded Shapefile. Please double check your shapefile and try again"
     end
   end
 

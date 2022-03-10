@@ -82,7 +82,7 @@
 
     <!-- PAGE BODY -->
     <div class="container-fluid">
-      <header class="row <%= content_for?(:title) && content_for?(:header_form) ? 'header--two-col' : ''%>" >
+      <header class="row app-header__title <%= content_for?(:title) && content_for?(:header_form) ? 'header--two-col' : ''%>" >
         <div class="col-sm-12">
           <% if content_for?(:title) %>
           <h1 class="text-center header__title">
