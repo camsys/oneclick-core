@@ -26,6 +26,8 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+  has_one :service_oversight_agency, dependent: :destroy
+
   # has_many :feedbacks, as: :feedbackable
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
@@ -57,6 +59,28 @@ class Service < ApplicationRecord
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
 
+  scope :no_agency, -> do
+    where(agency_id: nil)
+  end
+
+  scope :no_oversight_agency, -> do
+    left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null')
+  end
+
+  # Find Services with no Oversight Agency and no Transportation Agency
+  scope :no_agencies_assigned, -> do
+    left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null and services.agency_id is null')
+  end
+
+  scope :with_any_oversight_agency, -> do
+    joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is not null')
+  end
+
+  # pass in the whole agency record
+  scope :with_oversight_agency, -> (agency) do
+    joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': agency.id)
+  end
+
   # Filter by age
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
@@ -64,6 +88,8 @@ class Service < ApplicationRecord
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
   ]
+
+  TAXI_SERVICES = %w[ Taxi Uber Lyft ]
 
   ### MASTER AVAILABILITY SCOPE ###
   # Returns all services available for the given trip.

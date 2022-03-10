@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       end
       get 'trips/past_trips' => 'trips#past_trips'
       get 'trips/future_trips' => 'trips#future_trips'
+      put 'itineraries/update_trip_details' => 'trips#update_trip_details'
       # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
@@ -175,6 +176,7 @@ Rails.application.routes.draw do
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
     post 'custom_geographies' => 'geographies#upload_custom_geographies'
+    patch 'custom_geographies' => 'geographies#update_custom_geographies'
     get 'autocomplete' => 'geographies#autocomplete'
 
     # Landmarks
@@ -217,6 +219,7 @@ Rails.application.routes.draw do
       collection do
           get "staff"
           get "travelers"
+          post "change_agency"
         end
       end
 

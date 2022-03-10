@@ -15,18 +15,28 @@ class Agency < ApplicationRecord
   ### SCOPES, CONSTANTS, & VALIDATIONS ###
   
   validates :name, presence: true
-  validates :type, presence: true
+  validates :agency_type_id, presence: true
   contact_fields email: :email, phone: :phone, url: :url
     
   scope :transportation_agencies, -> { where(type: "TransportationAgency") }
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
-  
+  scope :oversight_agencies, -> { where(type: "OversightAgency") }
+
   has_many :services, foreign_key: "agency_id", dependent: :nullify
-    
+  # this is to help access the Agency index page, although it's a bit redundant
+  has_one :agency_oversight_agency,foreign_key:"transportation_agency_id", dependent: :destroy
+  belongs_to :agency_type
+
+  AGENCY_TYPE_MAP = {
+    transportation: 'TransportationAgency',
+    partner: 'PartnerAgency',
+    oversight: 'OversightAgency'
+  }
   AGENCY_TYPES = [
   # [ label, value(class name) ],
     ["Transportation", "TransportationAgency"],
-    ["Partner", "PartnerAgency"]
+    ["Partner", "PartnerAgency"],
+    ["Oversight", "OversightAgency"]
   ]
   
   
@@ -38,7 +48,8 @@ class Agency < ApplicationRecord
   
   def self.with_role(role, user)
     TransportationAgency.with_role(role, user) +
-    PartnerAgency.with_role(role, user)
+    PartnerAgency.with_role(role, user) +
+    OversightAgency.with_role(role, user)
   end
   
   
@@ -53,15 +64,25 @@ class Agency < ApplicationRecord
   def add_staff(user)
     user.add_role(:staff, self)
   end
+
+  # Add an admin user to this agency
+  def add_admin(user)
+    user.add_role(:admin, self)
+  end
   
   # Checks if is a TransportationAgency
   def transportation?
-    self.type == "TransportationAgency"
+    self.type == AGENCY_TYPE_MAP[:transportation] || agency_type.name == AGENCY_TYPE_MAP[:transportation]
   end
 
   # Checks if is a PartnerAgency
   def partner?
-    self.type == "PartnerAgency"
+    self.type == AGENCY_TYPE_MAP[:partner] || agency_type.name == AGENCY_TYPE_MAP[:partner]
+  end
+
+  # Checks if is an OversightAgency
+  def oversight?
+    self.type == AGENCY_TYPE_MAP[:oversight] || agency_type.name == AGENCY_TYPE_MAP[:oversight]
   end
   
   def to_s

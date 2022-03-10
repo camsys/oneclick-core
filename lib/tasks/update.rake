@@ -36,6 +36,38 @@ namespace :update do
     else
       raise "Unexpected value for :update_to, please check release docs or the update.rake file for acceptable inputs for :update_to"
     end
+    Rake::Task['update:reversibly_update_role_agency_type'].invoke(args[:update_to])
   end
+
+  desc "reversibly update resource type in roles"
+  task :reversibly_update_role_type,[:update_to] => :environment do |t,args|
+    if args[:update_to] == "partner"
+      roles = Role.where(resource_type: 'OversightAgency')
+      roles.update_all(resource_type:'PartnerAgency')
+    elsif args[:update_to] == "oversight"
+      roles = Role.where(resource_type: 'PartnerAgency')
+      roles.update_all(resource_type:'OversightAgency')
+    else
+      raise "Unexpected value for :update_to, please check release docs or the update.rake file for acceptable inputs for :update_to"
+    end
+  end
+
+  desc "reversibly update the default user's role"
+  task :reversibly_update_default_user_role,[:update_to] => :environment do |t,args|
+    default_user = User.find_by email: "1-click@camsys.com"
+    if args[:update_to] == "admin"
+      default_user.remove_role(:superuser)
+      default_user.add_role(:admin)
+      puts "updated default user to admin"
+    elsif args[:update_to] == "superuser"
+      default_user.remove_role(:admin)
+      default_user.add_role(:superuser)
+      puts "updated default user to superuser"
+    else
+      raise "Unexpected value for :update_to, please check release docs or the update.rake file for acceptable inputs for :update_to"
+    end
+  end
+
+
   
 end

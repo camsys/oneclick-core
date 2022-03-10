@@ -41,16 +41,19 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def planned_trips_dashboard
-    @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = current_user.get_trips_for_staff_user
+    @trips = @trips.from_date(@from_date).to_date(@to_date)
     @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
   end
 
-  def unique_users_dashboard 
-    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+  def unique_users_dashboard
+    travelers_emails = current_user.get_travelers_for_staff_user.pluck(:email)
+    @user_requests = RequestLog.where(auth_email:travelers_emails).from_date(@from_date).to_date(@to_date)
   end
   
   def popular_destinations_dashboard
-    @trips = Trip.from_date(@from_date).to_date(@to_date)
+    @trips = current_user.get_trips_for_staff_user
+    @trips = @trips.from_date(@from_date).to_date(@to_date)
   end
   
   ### / graphical dashboards
@@ -73,7 +76,16 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def users_table
-    @users = User.all
+    if current_user.superuser?
+      @users = User.all
+    elsif current_user.transportation_admin? ||current_user.transportation_staff?
+      @users = User.querify(current_user.any_users_for_staff_agency + current_user.travelers_for_staff_agency)
+    elsif current_user.currently_oversight? || current_user.currently_transportation?
+      @users = User.querify(current_user.any_users_for_current_agency + current_user.travelers_for_current_agency)
+      # Fallback just in case an edge case is missed
+    else
+      @users = current_user.travelers_for_none
+    end
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
@@ -85,14 +97,23 @@ class Admin::ReportsController < Admin::AdminController
     end
   end
   
-  def trips_table    
-    @trips = Trip.all
+  def trips_table
+    # Get trips for the current user's agency and role
+    @trips = current_user.get_trips_for_staff_user
+
+    if @trip_only_created_in_1click
+      non_1click_trips = @trips.joins(itineraries: :booking)
+                     .where(itineraries:{trip_type: 'paratransit'})
+                     .where(bookings:{created_in_1click: false}).select(:id)
+      @trips = @trips.where.not(id:non_1click_trips)
+    end
+    # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
-    
+    @trips = @trips.order(:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
     end
@@ -114,7 +135,22 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def services_table
-    @services = Service.all
+    always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
+    if current_user.superuser?
+      @services = Service.all
+    elsif current_user.transportation_admin? ||current_user.transportation_staff?
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
+    elsif current_user.currently_oversight?
+      sids = ServiceOversightAgency.where(oversight_agency_id: current_user.staff_agency.id).pluck(:service_id)
+      @services = Service.where(id: sids).or(always_unaffiliated_services)
+    elsif current_user.currently_transportation?
+      @services = Service.where(agency_id: current_user.current_agency.id).or(always_unaffiliated_services)
+      # Fallback just in case an edge case is missed
+    elsif current_user.current_agency.nil?
+      @services = Service.where(agency_id: nil).or(always_unaffiliated_services)
+    else
+      @services = Service.where(agency_id: current_user.staff_agency.id).or(always_unaffiliated_services)
+    end
     @services = @services.where(type: @service_type) unless @service_type.blank?
     @services = @services.with_accommodations(@accommodations) unless @accommodations.empty?
     @services = @services.with_eligibilities(@eligibilities) unless @eligibilities.empty?
@@ -152,7 +188,7 @@ class Admin::ReportsController < Admin::AdminController
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
     @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
-    
+    @trip_only_created_in_1click = parse_bool(params[:trip_only_created_in_1click])
     # USER FILTERS
     @include_guests = parse_bool(params[:include_guests])
     @accommodations = parse_id_list(params[:accommodations])
@@ -190,6 +226,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_time_from_date, 
       :trip_time_to_date,
       :trip_origin_recipe,
+      :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
       :partner_agency,

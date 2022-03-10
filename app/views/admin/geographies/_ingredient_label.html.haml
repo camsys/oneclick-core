@@ -1,4 +1,4 @@
 .btn.ingredient-container
   %label
-  .btn.btn-link.delete-geography
+  %button.btn.btn-link.delete-geography{type:"button", disabled: local_assigns[:can_update] == false}
     %span.glyphicon.glyphicon-remove

@@ -23,7 +23,7 @@
         .col-sm-10
           %span.schedule-day-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-          .btn.add-schedule
+          %button.btn.add-schedule{type:"button",disabled: (cannot? :update, @service)}
             %span.text-muted add schedule
             %span.text-muted.glyphicon.glyphicon-plus
 
@@ -35,7 +35,7 @@
       var sch = new ScheduleHelper(
         '#{schedules_json}',
         $('.schedule-week-container'),
-        '#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched}}'
+        '#{escape_javascript render partial: "admin/services/schedule_form", locals: {f: f, schedules: new_sched, can_update: (can? :update, @service)}}'
       );
 
       // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule

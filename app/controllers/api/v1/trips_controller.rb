@@ -38,6 +38,7 @@ module Api
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
+            details = trip[:details] || Trip::DEFAULT_TRIP_DETAILS
             trip_params(ActionController::Parameters.new({
               trip: {
                 origin_attributes: start_location,
@@ -46,7 +47,8 @@ module Api
                 arrive_by: (trip[:departure_type] == "arrive"),
                 user_id: @traveler && @traveler.id,
                 purpose_id: purpose ? purpose.id : nil,
-                external_purpose: external_purpose
+                external_purpose: external_purpose,
+                details: details
               }
             }))
           end
@@ -83,10 +85,13 @@ module Api
           trip.relevant_eligibilities = trip_planner.relevant_eligibilities
           trip.relevant_accommodations = trip_planner.relevant_accommodations
         end
-
+        puts @trips.length
         #Link up the trips
         previous_trip = nil
         @trips.sort_by{ |t| t.trip_time}.each do |trip|
+          if trip.no_valid_services == true
+            trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_denied])
+          end
           if previous_trip
             previous_trip.next_trip = trip 
             previous_trip.save
@@ -108,8 +113,10 @@ module Api
         select_itineraries.each do |itin|
           itinerary = Itinerary.find_by(id: itin[:itinerary_id].to_i)
           if itinerary && @traveler.owns?(itinerary)
+            # attach itinerary to the trip
             itinerary.select
             results[itinerary.id] = true
+            Trip.find(itin["trip_id"]).update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_saved])
           else
             results[itin[:itinerary_id]] = false
           end
@@ -150,8 +157,7 @@ module Api
           end
         end.flatten.compact # flatten into an array of booking requests
         .map do |booking_request|
-
-          # Pull the itinerary out of the booking_request hash and set up a 
+          # Pull the itinerary out of the booking_request hash and set up a
           # default (failure) booking response
           itin = booking_request.delete(:itinerary) 
           itins << itin       
@@ -171,7 +177,9 @@ module Api
             next response 
           end
           #next response unless booking.is_a?(Booking) # Return failure response unless book was successful
-          
+
+          # Update Trip Disposition Status to ecolane succeeded
+          itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
@@ -181,12 +189,32 @@ module Api
           responses = []
           itins.each do |itin|
             itin.booked? ? itin.cancel : itin.unselect
+
+            # Update Trip Disposition Status with ecolane denied if it failed
+            itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
             responses << booking_response_base(itin).merge({booked: false})
           end
+          render status: 500, json: {booking_results: responses}
+        else
+          render status: 200, json: {booking_results: responses}
         end
 
-        render status: 200, json: {booking_results: responses}
-      
+      end
+
+      # Method does batch updates to round trips
+      # - trip details are merged with the current details
+      def update_trip_details
+        params.permit({details: details_attributes}, :trip)
+        params.require(:trip)
+        @trips = Trip.where(["id = :trip_id or previous_trip_id = :trip_id", { trip_id: params[:trip] } ])
+        if !@trips.empty?
+          @trips.each do |trip|
+            trip.update(details: trip.details.merge(params[:details]))
+          end
+          render status:200, json:{trip: @trips}
+        else
+          render status:404, json: nil
+        end
       end
 
       # POST trips/cancel, itineraries/cancel
@@ -197,7 +225,8 @@ module Api
          
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
-
+          trip_type= itin.trip_type
+          created_in_1click = itin.booking.created_in_1click
           response = booking_response_base(itin).merge({success: false})
 
           next response unless itin
@@ -211,12 +240,14 @@ module Api
           if cancellation_result
             # Handle the case when the trip is the return trip.
             trip = itin.trip
-            trip.previous_trip = nil 
+            trip.previous_trip = nil
+            trip.details[:trip_type]=trip_type
             trip.save 
 
             # Handle the case when the trip is the outbound trip.
             next_trip = itin.trip.next_trip
-            if next_trip 
+            if next_trip
+              next_trip.details[:trip_type]=trip_type
               next_trip.previous_trip = nil
               next_trip.save
             end
@@ -293,12 +324,17 @@ module Api
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
           {destination_attributes: place_attributes},
+          {details: details_attributes},
           :trip_time,
           :arrive_by,
           :user_id,
           :purpose_id,
           :external_purpose
         )
+      end
+
+      def details_attributes
+        [:notification_preferences]
       end
 
       def place_attributes
@@ -334,6 +370,7 @@ module Api
         # Trip attributes
         trip_hash = {
           trip_id: trip.id,
+          details: trip.details,
           origin: WaypointSerializer.new(trip.origin).to_hash,
           destination: WaypointSerializer.new(trip.destination).to_hash
         }

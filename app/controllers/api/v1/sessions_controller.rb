@@ -25,6 +25,7 @@ module Api
           @user = ecolane_ambassador.user
           if @user
             #Last Trip
+            @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
             #If this is a round trip, return the first part instead of the last part
             if last_trip and last_trip.previous_trip 

@@ -89,6 +89,7 @@ module ApplicationHelper
   def logo_upload_input(f, options={})
     img_src = options[:img_src] || f.object.logo.thumb.url
     field_name = options[:field_name] || :logo
+    readonly = options[:readonly]
     
     html =  "<div class='form-group file optional'>"
     html <<   "<div class='col-sm-1'>"
@@ -97,7 +98,7 @@ module ApplicationHelper
     html <<   f.label(field_name, class: "control-label col-sm-2")
     html <<   "<div class='col-sm-9'>"
     html <<     "<div class='input-group col-xs-12'>"
-    html <<     f.input_field(field_name, class: "form-control file optional", type: "file")
+    html <<     f.input_field(field_name, class: "form-control file optional", type: "file", readonly: readonly)
     html <<     "</div>"
     html <<   "</div>"
     html << "</div>"

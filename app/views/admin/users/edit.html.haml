@@ -1,12 +1,13 @@
 =content_for :title do
   = "#{@user.first_name} #{@user.last_name}".strip
+  -# Add local var, disable submit, make it run off of can? :update, User
+=render partial: 'edit_user', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @user)}
 
-=render partial: 'edit_user', layout: '/layouts/panel'
-
--unless @user == current_user
+-# If the user is not the current user and can manage the selected user
+-if @user != current_user && can?(:manage, Role)
   =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
 
-- if @user.admin_or_staff?
+- if @user.admin_or_staff? || @user.superuser? && can?(:read, User)
   =back_link staff_admin_users_path, label: "All Staff"
-- else
+- elsif can?(:read,User)
   =back_link travelers_admin_users_path, label: "All Travelers"

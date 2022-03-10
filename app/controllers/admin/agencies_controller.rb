@@ -1,16 +1,42 @@
 class Admin::AgenciesController < Admin::AdminController
   
   load_and_authorize_resource # Loads and authorizes @agency/@agencies instance variable
-
+  before_action :get_all_agency_types
   def index
-    @agencies = @agencies.order(:name)
+    if current_user.superuser?
+      @agencies = @agencies.order(:name)
+    elsif current_user.currently_oversight?
+      tas_id = AgencyOversightAgency.where(oversight_agency_id:current_user.current_agency.id).pluck(:transportation_agency_id)
+      tas = TransportationAgency.where(id:tas_id)
+      @agencies = Agency.querify([current_user.staff_agency].concat(tas))
+    elsif current_user.currently_transportation?
+      @agencies = Agency.querify([current_user.current_agency])
+    elsif current_user.transportation_staff? || current_user.transportation_admin?
+      @agencies = Agency.querify([current_user.staff_agency])
+    else
+      []
+    end
   end
   
   def show
   end
-  
+
   def create
-    if @agency.update_attributes(agency_params)
+    oversight_agency_id = oversight_params
+    # Check for oversight agency if we're making a TransportationAgency
+    if oversight_agency_id.blank? && AgencyType.find_by(name: "TransportationAgency").id.to_s == agency_params[:agency_type_id]
+      @agency.errors.add(:transportation_agency_id,"create failed! Oversight Agency cannot be empty!")
+    end
+
+    # If no record errors and agency updated alright, continue with agency create
+    if @agency.errors.empty? && @agency.update_attributes(agency_params)
+      @agency.type = @agency.agency_type.name
+      @agency.save
+
+      # Create association between new agency and oversight agency
+      # ...UNLESS we're creating a new oversight agency
+      AgencyOversightAgency.create(transportation_agency_id:@agency.id,
+                                           oversight_agency_id: oversight_agency_id) unless @agency.type == 'OversightAgency'
       flash[:success] = "Agency Created Successfully"
       redirect_to admin_agency_path(@agency)
     else
@@ -20,7 +46,18 @@ class Admin::AgenciesController < Admin::AdminController
   end
   
   def update
-    if @agency.update_attributes(agency_params)
+    oversight_agency_id = oversight_params
+    if oversight_agency_id&.empty?
+      @agency.errors.add(:transportation_agency, "update failed! Oversight Agency cannot be empty!")
+    end
+
+    if @agency.errors.empty? && @agency.update_attributes(agency_params)
+      if oversight_agency_id.present? && @agency.agency_oversight_agency
+        @agency.agency_oversight_agency.update(oversight_agency_id: oversight_agency_id)
+      elsif oversight_agency_id.present?
+        AgencyOversightAgency.create(transportation_agency_id:@agency.id,oversight_agency_id: oversight_agency_id)
+      end
+
       flash[:success] = "Agency Updated Successfully"
     else
       present_error_messages(@agency)
@@ -38,22 +75,41 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   private
-  
+  def get_all_agency_types
+    if current_user.superuser?
+      @agency_types = AgencyType.all
+    else
+      @agency_types = AgencyType.querify([AgencyType.find_by(name: 'TransportationAgency')])
+    end
+  end
+
+  def oversight_params
+    oversight = params&.delete(:oversight)
+    oversight.try(:[],"oversight_agency_id")
+  end
+
   def agency_params
     if params.has_key?(:transportation_agency)
       params[:agency] = params.delete(:transportation_agency)
     elsif params.has_key?(:partner_agency)
       params[:agency] = params.delete(:partner_agency)
+    elsif params.has_key?(:oversight_agency)
+      params[:agency] = params.delete(:oversight_agency)
     end
-    
+    #
+    # if params[:agency][:type] == 'OversightAgency'
+    #   params[:oversight].delete(:oversight_agency_id)
+    # end
+
     params.require(:agency).permit(
       base_agency_params + description_params
     )
+    # params.require(:oversight).permit(:oversight_agency_id)
   end
-  
+
   def base_agency_params
     [
-      :type,
+      :agency_type_id,
       :name,
       :url,
       :phone,
