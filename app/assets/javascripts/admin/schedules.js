@@ -40,7 +40,7 @@ ScheduleHelper.prototype = {
     scheduleDiv.find('input.id').val(schedule.id);
     scheduleDiv.find('select.start-time').val(schedule.start_time);
     scheduleDiv.find('select.end-time').val(schedule.end_time);
-    scheduleDiv.find('select.calendar-date').val(schedule.calendar_date);
+    scheduleDiv.find('input.calendar-date').val(schedule.calendar_date);
 
     // Set it up with click handlers
     scheduleDiv.find('.delete-schedule').click(this.deleteSchedule);

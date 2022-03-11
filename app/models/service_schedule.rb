@@ -9,6 +9,8 @@ class ServiceSchedule < ApplicationRecord
   has_many :service_sub_schedules, dependent: :destroy
 
   attr_accessor :agency
+  attr_accessor :sub_schedule_calendar_dates
+  attr_accessor :sub_schedule_calendar_times
   accepts_nested_attributes_for :service_sub_schedules
 
   validates :name, presence: true, uniqueness: true

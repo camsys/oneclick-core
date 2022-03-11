@@ -4,6 +4,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   def show
+    # TODO: Pass date/time params correctly
     @service_schedule = ServiceSchedule.find(params[:id])
     @agency = @service_schedule.service.agency
     @schedule_type = @service_schedule.service_schedule_type
@@ -16,6 +17,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   def create
+    # TODO: Parse date/time params
     service_schedule_params = params.require(:service_schedule).except(:service_sub_schedules_attributes).permit!
     sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
     schedule_created = false
@@ -48,15 +50,25 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   def edit
+    # TODO: Pass date/time params correctly
     @service_schedule = ServiceSchedule.find(params[:id])
     @agency = @service_schedule.service.agency
     @schedule_type = @service_schedule.service_schedule_type
   end
 
   def update
+    # TODO: Parse date/time params
     @service_schedule = ServiceSchedule.find(params[:id])
     service_schedule_params = params.require(:service_schedule).except(:service_sub_schedules_attributes).permit!
-    sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
+    if params[:service_schedule][:service_sub_schedules_attributes]
+      sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
+    end
+    if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
+      calendar_date_params = params.require(:service_schedule).require(:sub_schedule_calendar_dates_attributes)
+    end
+    if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
+      calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
+    end
     schedule_updated = false
     ServiceSchedule.transaction do
       begin

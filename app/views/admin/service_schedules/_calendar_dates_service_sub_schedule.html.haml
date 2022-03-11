@@ -1,18 +1,23 @@
 - can_update = local_assigns[:can_update]
 
-=f.simple_fields_for :service_sub_schedules, service_sub_schedules, include_id: false do |sub_schedule_fields|
+=f.simple_fields_for :sub_schedule_calendar_dates, calendar_dates, include_id: false do |sub_schedule_fields|
   .schedule-body
     =sub_schedule_fields.input :calendar_date,
       readonly:can_update == false,
       disabled:can_update == false,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :calendar_date), class: 'schedule-input calendar-date'},
+      as: :string,
+      input_html: {name: input_name(f, :sub_schedule_calendar_dates, :calendar_date), class: 'schedule-input calendar-date datepicker'},
       label: false
+    %span.glyphicon.glyphicon-calendar
     =sub_schedule_fields.input :id,
       wrapper_html: {class: 'hidden'},
-      input_html: {name: input_name(f, :service_sub_schedules, :id), class: 'id'}
+      input_html: {name: input_name(f, :sub_schedule_calendar_dates, :id), class: 'id'}
     =sub_schedule_fields.input :_destroy,
       wrapper_html: {class: 'hidden'},
-      input_html: {class: 'destroy', name: input_name(f, :service_sub_schedules, :_destroy), value: false}
+      input_html: {class: 'destroy', name: input_name(f, :sub_schedule_calendar_dates, :_destroy), value: false}
     %button.btn.btn-link.delete-schedule{type:"button", disabled: can_update == false}
       %span.glyphicon.glyphicon-remove
+
+:javascript
+  $('.datepicker').datepicker({format: 'yyyy-mm-dd'});

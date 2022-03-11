@@ -1,13 +1,13 @@
 - can_update = local_assigns[:can_update]
 
-=f.simple_fields_for :service_sub_schedules, service_sub_schedules, include_id: false do |sub_schedule_fields|
+=f.simple_fields_for :sub_schedule_calendar_times, calendar_times, include_id: false do |sub_schedule_fields|
   .schedule-body
     =sub_schedule_fields.input :start_time,
       readonly:can_update == false,
       disabled:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :start_time), class: 'schedule-input start-time'},
+      input_html: {name: input_name(f, :sub_schedule_calendar_times, :start_time), class: 'schedule-input start-time'},
       label: false
     %span to
     =sub_schedule_fields.input :end_time,
@@ -15,13 +15,13 @@
       disabled:can_update == false,
       collection: ScheduleHelper::TIMES_OF_DAY,
       wrapper_html: {class: 'schedule-form-group'},
-      input_html: {name: input_name(f, :service_sub_schedules, :end_time), class: 'schedule-input end-time'},
+      input_html: {name: input_name(f, :sub_schedule_calendar_times, :end_time), class: 'schedule-input end-time'},
       label: false
     =sub_schedule_fields.input :id,
       wrapper_html: {class: 'hidden'},
-      input_html: {name: input_name(f, :service_sub_schedules, :id), class: 'id'}
+      input_html: {name: input_name(f, :sub_schedule_calendar_times, :id), class: 'id'}
     =sub_schedule_fields.input :_destroy,
       wrapper_html: {class: 'hidden'},
-      input_html: {class: 'destroy', name: input_name(f, :service_sub_schedules, :_destroy), value: false}
+      input_html: {class: 'destroy', name: input_name(f, :sub_schedule_calendar_times, :_destroy), value: false}
     %button.btn.btn-link.delete-schedule{type:"button", disabled: can_update == false}
       %span.glyphicon.glyphicon-remove
