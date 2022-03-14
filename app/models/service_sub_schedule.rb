@@ -3,7 +3,7 @@ class ServiceSubSchedule < ApplicationRecord
   include ScheduleHelper
 
   ### VALIDATIONS ###
-  validates_inclusion_of :day, in: SUN..SAT # 0 = Sunday .. 6 = Saturday
+  validates_inclusion_of :day, in: SUN..SAT, if: -> {service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Weekly schedule")} # 0 = Sunday .. 6 = Saturday
   validates_inclusion_of :start_time, in: 0..DAY_LENGTH # seconds since midnight
   validates_inclusion_of :end_time, in: 0..DAY_LENGTH  # seconds since midnight
   validate :start_time_must_be_before_end_time
