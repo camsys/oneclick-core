@@ -29,16 +29,10 @@
   .col-sm-4
     = f.input :name, readonly: mode == "view"
   .col-sm-4
-    = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, include_blank: false, disabled: mode == "view", value: schedule_type
+    = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, required: true, include_blank: true, disabled: mode == "view", value: schedule_type
   .col-sm-12
     = f.input :description, readonly: mode == "view"
     %hr
 
   .col-sm-12
     = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, schedule_type: schedule_type}, layout: '/layouts/panel'
-
-  // TODO: Toggle bottom form based on schedule type (should try frontend approach)
-  :javascript
-    $("#service_schedule_service_schedule_type_id").on("change", function() {
-
-    });

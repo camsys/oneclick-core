@@ -16,7 +16,7 @@
 -calendar_time_sub_schedules = @service_schedule.service_sub_schedules.for_calendar_type.select('distinct on (start_time, end_time) *').build
 -calendar_time_schedules_json = @service_schedule.service_sub_schedules.for_calendar_type.select('distinct on (start_time, end_time) *').for_calendar_time_display.to_json.html_safe
 
-.form-inline.schedule-week-container
+.form-inline.schedule-week-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Weekly pattern").id}}
   -# Build a schedule row for each weekday
   -(0..6).each do |d|
     -day_scheds = @service_schedule.service_sub_schedules.by_day(d).for_display
@@ -32,7 +32,7 @@
             %span.text-muted Add schedule
             %span.text-muted.glyphicon.glyphicon-plus
 
-.form-inline.schedule-calendar-dates-container
+.form-inline.schedule-calendar-dates-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates").id}}
   -# Build a schedule row for calendar dates
   %label.col-sm-2.schedule-row-label
     %span{class: 'text-default'}
@@ -45,7 +45,7 @@
           %span.text-muted Add a date
           %span.text-muted.glyphicon.glyphicon-plus
 %hr
-.form-inline.schedule-calendar-times-container
+.form-inline.schedule-calendar-times-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates").id}}
   -# Build a schedule row for times
   %label.col-sm-2.schedule-row-label
     %span{class: 'text-default'}
@@ -88,11 +88,15 @@
           weeklySch.reset();
           calendarDateSch._clear();
           calendarTimeSch._clear();
+          $(".form-inline[data-schedule-type != '#{schedule_type&.id}']").hide();
+          $(".form-inline[data-schedule-type = '#{schedule_type&.id}']").show();
         }
         if ('#{schedule_type&.id}' == '#{ServiceScheduleType.find_by(name: "Selected calendar dates").id}') {
           calendarDateSch.reset();
           calendarTimeSch.reset();
           weeklySch._clear();
+          $(".form-inline[data-schedule-type != '#{schedule_type&.id}']").hide();
+          $(".form-inline[data-schedule-type = '#{schedule_type&.id}']").show();
         }
         else {
           weeklySch.reset();
@@ -112,4 +116,16 @@
       $('.add-calendar-time-schedule').click(function() {
         calendarTimeSch.addSchedule(null).trigger('change');
       });
+
+      $("#service_schedule_service_schedule_type_id").on("change", function() {
+        schedule_type = $(this).val();
+        weeklySch._clear();
+        calendarDateSch._clear();
+        calendarTimeSch._clear();
+        $(".form-inline[data-schedule-type != '" + schedule_type + "']").hide();
+        $(".form-inline[data-schedule-type = '" + schedule_type + "']").show();
+      });
+
+      $(".form-inline[data-schedule-type = '" + $("#service_schedule_service_schedule_type_id").val() + "']").show();
+      $(".form-inline[data-schedule-type != '" + $("#service_schedule_service_schedule_type_id").val() + "']").hide();
   });
