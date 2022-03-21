@@ -29,7 +29,10 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     schedule_created = false
     ServiceSchedule.transaction do
       begin
-        if @service_schedule = ServiceSchedule.create(service_schedule_params)
+        @service_schedule = ServiceSchedule.new(service_schedule_params)
+        # default to the first service of the current agency, until the model changes to belongs_to :agency, rather than :service
+        @service_schedule.service = current_user.current_agency.services&.first
+        if @service_schedule.save
           if sub_schedule_params
             sub_schedule_params.each do |s|
               unless s[:_destroy] == "true"
