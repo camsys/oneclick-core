@@ -25,7 +25,8 @@
   html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
 
   .col-sm-4
-    = f.input :agency, readonly: true, input_html: {value: agency}
+    = f.association :agency, selected: agency.id, disabled: true
+    = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
   .col-sm-4
     = f.input :name, readonly: mode == "view"
   .col-sm-4

@@ -5,7 +5,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
   def show
     @service_schedule = ServiceSchedule.find(params[:id])
-    @agency = @service_schedule.service.agency
+    @agency = @service_schedule.agency
     @schedule_type = @service_schedule.service_schedule_type
   end
 
@@ -30,8 +30,6 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     ServiceSchedule.transaction do
       begin
         @service_schedule = ServiceSchedule.new(service_schedule_params)
-        # default to the first service of the current agency, until the model changes to belongs_to :agency, rather than :service
-        @service_schedule.service = current_user.current_agency.services&.first
         if @service_schedule.save
           if sub_schedule_params
             sub_schedule_params.each do |s|
@@ -82,7 +80,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
   def edit
     @service_schedule = ServiceSchedule.find(params[:id])
-    @agency = @service_schedule.service.agency
+    @agency = @service_schedule.agency
     @schedule_type = @service_schedule.service_schedule_type
   end
 
