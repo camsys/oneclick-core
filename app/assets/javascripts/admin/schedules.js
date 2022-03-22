@@ -23,7 +23,7 @@ ScheduleHelper.prototype = {
 
   // Clears all schedules
   _clear: function() {
-    this.container.find('.schedule-day-container').empty();
+    this.container.find('.sub-schedule-container').empty();
   },
 
   // Renders a schedule object in its appropriate container.
@@ -40,6 +40,7 @@ ScheduleHelper.prototype = {
     scheduleDiv.find('input.id').val(schedule.id);
     scheduleDiv.find('select.start-time').val(schedule.start_time);
     scheduleDiv.find('select.end-time').val(schedule.end_time);
+    scheduleDiv.find('input.calendar-date').val(schedule.calendar_date);
 
     // Set it up with click handlers
     scheduleDiv.find('.delete-schedule').click(this.deleteSchedule);
@@ -51,7 +52,12 @@ ScheduleHelper.prototype = {
 
   // Returns the container for a given schedule day.
   _dayContainer: function(day) {
-    return this.container.find('.schedule-day-container[data-day=' + day + ']')
+    if (day !== null) {
+      return this.container.find('.sub-schedule-container[data-day=' + day + ']');
+    }
+    else {
+      return this.container.find('.sub-schedule-container');
+    }
   },
 
   // Delete schedule method for click handlers.
@@ -68,7 +74,8 @@ ScheduleHelper.prototype = {
     return this._render({
       day: day,
       start_time: sch.defaultStartTime,
-      end_time: sch.defaultEndTime
+      end_time: sch.defaultEndTime,
+      calendar_date: null
     });
   },
 

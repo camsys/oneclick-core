@@ -13,7 +13,7 @@
       %th Name
       %th Type
       %th Start Date
-      %th Ends Date
+      %th End Date
       %th Actions
   =render partial: 'service_schedule', collection: @service_schedules
 
@@ -31,8 +31,13 @@
 
   $(document).ready(function() {
     // Link to appropriate feedback detail on row click
-    $('#service-schedules-table tbody tr').click(function() {
-      window.location = $(this).data("url");
+    $('#service-schedules-table tbody tr td').click(function(e) {
+      if (e.target !== this) {
+        return;
+      }
+      else {
+        window.location = $(this).closest("tr").data("url");
+      }
     });
 
     var dataTable = $('.datatable').DataTable({});
