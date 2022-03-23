@@ -4,9 +4,15 @@ class ServiceSchedule < ApplicationRecord
   scope :for_oversight_user, -> (user) {where(service: user.current_agency.service_oversight_agency.pluck(:service_id))}
   scope :for_transport_user, -> (user) {where(service: user.current_agency.services)}
 
+  # TODO: Change to belongs_to :agency rather than :service
   belongs_to :service
   belongs_to :service_schedule_type
   has_many :service_sub_schedules, dependent: :destroy
+
+  attr_accessor :agency
+  attr_accessor :sub_schedule_calendar_dates
+  attr_accessor :sub_schedule_calendar_times
+  accepts_nested_attributes_for :service_sub_schedules
 
   validates :name, presence: true, uniqueness: true
 

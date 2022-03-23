@@ -31,7 +31,7 @@
   }
 }
 
-.add-schedule {
+.add-day-schedule, .add-calendar-date-schedule, .add-calendar-time-schedule {
   @include dashed-unit-box($gray-paler);
 
   padding: 12px;
@@ -39,4 +39,8 @@
   span + span {
     margin-left: 10px;
   }
+}
+
+.glyphicon-calendar {
+  color: #31739c;
 }
