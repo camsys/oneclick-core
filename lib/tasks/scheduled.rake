@@ -254,7 +254,7 @@ namespace :scheduled do
         # If the trip reminder is enabled and
         # ...the trip reminder day is the same as the Config Notification Day, send an email
         if reminder[:enabled] == true && reminder[:day] == default_day
-          UserMailer.user_trip_reminder(email,trip,default_day)
+          UserMailer.user_trip_reminder(email,trip,default_day).deliver
 
           # toggle enable state of the
           fixed_route[index][:enabled] = false

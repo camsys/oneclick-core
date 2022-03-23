@@ -13,11 +13,11 @@ namespace :agency_restriction do
     puts "Updating default admin user to superuser"
     Role.where(name: "superuser").first_or_create
     default = User.find_by(email: "1-click@camsys.com")
-    if default.admin?
+    if default&.admin?
       default.add_role("superuser")
       default.remove_role("admin")
       puts "Default admin user updated to superuser"
-    elsif default.superuser?
+    elsif default&.superuser?
       puts "Default admin user is already a superuser"
     end
   end

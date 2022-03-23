@@ -21,6 +21,13 @@ class Admin::ServicesController < Admin::AdminController
     redirect_to admin_services_path
   end
 
+  # Service create fail conditions:
+  # - missing service name
+  # - missing service type
+  # - missing service oversight agency
+  # - bad combination of service agency and oversight agency
+  #   - e.g if Rabbit is overseen by Penn DOT but I pick UTA as the oversight,
+  #   ...then service create will fail as that's an invalid combination of agencies
   def create
     # If the user is a transit agency admin then automatically assign its oversight agency
     os_params = oversight_params
@@ -30,15 +37,9 @@ class Admin::ServicesController < Admin::AdminController
     # if oversight is empty/ a bad combo of oversight, then redirect
     is_not_included = !Service::TAXI_SERVICES.include?(s_params[:type]) && validate_agencies_choices(oversight_agency_id,transportation_agency_id)
 
-    if is_not_included == true
-      present_error_messages(@service)
-      redirect_to admin_services_path
-      return
-    end
 
-    # else proceed
-  	if @service.update_attributes(service_params)
-        ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
+  	if @service.errors.empty? && @service.update_attributes(service_params)
+      ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id, service_id: @service.id)
       redirect_to admin_service_path(@service)
     else
       present_error_messages(@service)
@@ -58,46 +59,50 @@ class Admin::ServicesController < Admin::AdminController
     @transportation_agencies = Agency.querify(accessible_transportation_agencies.concat([@service&.agency])).order(:name)
   end
 
+  # NOTE: the service view/ update page consists of several micro-forms that a user updates and submits
+  # - when you submit a micro form, service#update is called
+  # ...and on successful update, OCC responds with the updated micro-form,
+  # ...and Turbolinks handles updating that specific form on the frontend
   def update
     os_params = oversight_params
     s_params = service_params
+    # If occ gets a request to update the service's agencies, then perform the below:
     if os_params.present?
       oversight_agency_id = os_params[:oversight_agency_id]
       transportation_agency_id = s_params[:agency_id]
-      is_not_included = validate_agencies_choices(oversight_agency_id,transportation_agency_id)
-      # If agency combination is bad, then redirect with an error message
-      if is_not_included == true
-        respond_with_partial_or do
-          redirect_to admin_service_path(@service)
-        end
-        return
-        # Else if is_not_included is false/ valid combination of oversight agency and transportation agency
-        # ... update the service_oversight_agency with the new oversight_agency
-      elsif is_not_included == false || is_not_included.nil?
+      validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+
+      # If the requested oversight and transit agencies are valid/ don't add an error to the
+      # service record, then continue trying to update the service
+      if @service.errors.empty?
         # update the existing service_oversight_agency if it's valid and exists
         if @service.service_oversight_agency.present?
           @service.service_oversight_agency.update(oversight_agency_id: oversight_agency_id)
         else
           ServiceOversightAgency.create(oversight_agency_id: oversight_agency_id,service_id: @service.id)
         end
+        # Finally update service's assigned transportation agency
+        # We update that last as oversight agency has higher precedence over
+        # ...transit agency
+        @service.update_attributes(agency_id: transportation_agency_id)
       end
-      # Finally update service attributes(in this case agency_id)
-      @service.update_attributes(s_params)
-    # if no oversight_params then just update service attributes as normal
+    # else if no oversight_params then just update service attributes as normal
     else
       @service.update_attributes(s_params)
     end
 
-    #Force the updated attribute to update, even if only child objects were changeg (e.g., Schedules, Accomodtations, etc.)
-    @service.update_attributes({updated_at: Time.now}) 
-    present_error_messages(@service)
-    flash[:success] = "#{@service.name} updated successfully."
+    # Code to handle server response on update fail/ success including redirects
+    # - present_error_messages needs to run before update_attributes otherwise the
+    #   ...record errors gets cleared on update
+    if @service.errors.empty?
+      flash[:success] = "#{@service.name} updated successfully."
+    else
+      present_error_messages(@service)
+    end
+    #Force the updated attribute to update, even if only child objects were changed (e.g., Schedules, Accomodtations, etc.)
+    @service.update_attributes({updated_at: Time.now})
 
-    # If a partial_path parameter is set, serve back that partial
-    flash[:success] = "#{@service.name} updated successfully."
-
-    # flash[:danger] = err_message unless err_message.nil?
-    # What does respond_with_partial_or do that just extracting the block contents and using that doesn't?
+    # Respond with the micro-form
     respond_with_partial_or do
       redirect_to admin_service_path(@service)
     end    
@@ -144,13 +149,17 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   # Validates oversight and transportation agency choice
+  # - returns NULL, adds an error the the Service record if inputs are found
+  #   ...to be an invalid combination
   def validate_agencies_choices(oversight_id, transportation_id)
     # If either are empty, or if the Service is a Taxi service, return false
-    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not associate service to selected Oversight Agency"
-    is_empty = oversight_id&.empty? || transportation_id&.empty?
-    # if either oversight id or transportation id is empty, don't validate
+    err_message = "Bad combination of Oversight Agency and Transportation Agency for #{@service.name}, did not perform service create/ update"
+    is_empty = transportation_id&.empty?
+    # if transportation id is empty, don't need to validate
     if is_empty
       return nil
+    elsif oversight_id.empty? && transportation_id.present?
+      @service.errors.add(:agency,"Oversight Agency empty for #{@service.name}, did not perform service create/ update")
     end
 
     oa = OversightAgency.find oversight_id
@@ -162,8 +171,6 @@ class Admin::ServicesController < Admin::AdminController
     unless is_included
       @service.errors.add(:agency,err_message)
     end
-
-    !is_included
   end
 
   def service_params

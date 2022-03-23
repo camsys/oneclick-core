@@ -17,6 +17,15 @@ module RoleHelper
     # ... and does not work the way it should work
     # see: https://github.com/RolifyCommunity/rolify/issues/362 and the v6.0 release notes
 
+    # GENERAL USER ROLE SCOPES
+    base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
+    base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
+    base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
+    base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
+    base.scope :registered_travelers, -> { base.travelers.registered }
+    base.scope :except_user, -> (user) { where.not(id: user.id) }
+    base.scope :transportation_staff, -> { base.staff_for_any(Agency.transportation_agencies) }
+
     # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
     base.scope :any_role, -> do
       base.querify(base.with_any_role(
@@ -26,30 +35,19 @@ module RoleHelper
       ))
     end
     # SCOPES FOR LOOKING UP STAFF
-    base.scope :staff_for_none, -> { base.with_role_for_instance(:staff, nil) }
-    base.scope :staff, -> { base.querify(base.with_role_for_instances_or_none(:staff, Agency.all)) }
+    base.scope :staff, -> { base.querify(base.with_role_for_instances(:staff, Agency.all)) }
     base.scope :staff_for, -> (agency) { base.with_role_for_instance(:staff, agency) }
     base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances(:staff, agencies) }
 
     # SCOPES FOR LOOKING UP ADMINS
-    base.scope :admin_for_none, -> { base.with_role(:admin, nil) }
     base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
     base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
     base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances(:admin, agencies) }
 
     # SCOPES FOR LOOKING UP BOTH STAFF AND ADMIN
     base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances([:staff, :admin], agencies) }
-    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }\
+    base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }
 
-    # GENERAL USER ROLE SCOPES
-    base.scope :superuser, -> { base.querify(base.with_role(:superuser, :any)) }
-    base.scope :travelers, -> { base.where.not(id: base.any_role.pluck(:id)) }
-    base.scope :guests, -> { base.travelers.where(GuestUserHelper.new.query_str) }
-    base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
-    base.scope :registered_travelers, -> { base.travelers.registered }
-    base.scope :except_user, -> (user) { where.not(id: user.id) }
-    base.scope :partner_staff, -> { base.staff_for_any(Agency.partner_agencies) }
-    base.scope :transportation_staff, -> { base.staff_for_any(Agency.transportation_agencies) }
 
 
     # ASSOCIATIONS
@@ -145,6 +143,10 @@ module RoleHelper
     admin? && agencies.any? { |a| a.oversight? }
   end
 
+  def oversight_user?
+    oversight_admin? || oversight_staff?
+  end
+
   def unaffiliated_user?
     (admin? || staff?) && roles.length == 1 && roles.first.resource.nil?
   end
@@ -202,16 +204,11 @@ module RoleHelper
   end
 
   def currently_oversight?
-    self.current_agency&.oversight?
+    oversight_user? && self.current_agency&.oversight?
   end
 
   def currently_transportation?
-    self.current_agency&.transportation?
-  end
-
-
-  def currently_viewing_as_none?
-    self.current_agency&.nil? && self.staff_agency.oversight?
+    oversight_user? && self.current_agency&.transportation?
   end
 
   def any_users_for_staff_agency
@@ -222,22 +219,16 @@ module RoleHelper
     User.any_staff_admin_for_agency(self.current_agency)
   end
 
-  def travelers_for_none
-    User.querify(User.travelers.select{|u| u.traveler_transit_agency&.transportation_agency.nil? || u.booking_profiles.length == 0})
-  end
 
   def travelers_for_agency(agencies)
-    # Search for travelers not associated with the input agencies ids
-    agency_travelers_id = TravelerTransitAgency.where.not(transportation_agency_id: agencies)
-    # Return travelers associated with the input agency and also with no agency like FMR guests
-    uu = User.travelers.where.not(id: agency_travelers_id.pluck(:user_id))
-
-    uu.joins(:traveler_transit_agency).where('traveler_transit_agencies.transportation_agency_id':agencies).distinct
+    # Search for travelers associated with the input agencies ids
+    agency_travelers_id = TravelerTransitAgency.where(transportation_agency_id: agencies).pluck(:user_id)
+    # Return travelers associated with the input agency and guest users
+    User.guests + User.where(id:agency_travelers_id)
   end
 
   def travelers_for_staff_agency
-    ta = TransportationAgency.find(self.staff_agency.id)
-    travelers_for_agency(ta)
+    travelers_for_agency(self.staff_agency.id)
   end
 
   def travelers_for_current_agency
