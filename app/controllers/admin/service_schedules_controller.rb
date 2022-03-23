@@ -23,13 +23,17 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
       calendar_date_params = params.require(:service_schedule).require(:sub_schedule_calendar_dates_attributes)
     end
-    if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
+    if params[:service_schedule][:sub_schedule_calendar_times_attributes]
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
     schedule_created = false
     ServiceSchedule.transaction do
       begin
         @service_schedule = ServiceSchedule.new(service_schedule_params)
+        if service_schedule_params[:start_date] && service_schedule_params[:end_date]
+          @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
+          @service_schedule.end_date = service_schedule_params[:end_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
+        end
         if @service_schedule.save
           if sub_schedule_params
             sub_schedule_params.each do |s|
@@ -62,7 +66,10 @@ class Admin::ServiceSchedulesController < Admin::AdminController
             end
           else
             schedule_created = false
+            raise ActiveRecord::Rollback
           end
+        else
+          raise ActiveRecord::Rollback
         end
       rescue => e
         raise ActiveRecord::Rollback
@@ -97,13 +104,20 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
       calendar_date_params = params.require(:service_schedule).require(:sub_schedule_calendar_dates_attributes)
     end
-    if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
+    if params[:service_schedule][:sub_schedule_calendar_times_attributes]
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
     schedule_updated = false
     ServiceSchedule.transaction do
       begin
         # Update main service schedule params
+        if service_schedule_params[:start_date] && service_schedule_params[:end_date]
+          @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
+          @service_schedule.end_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
+          unless @service_schedule.save
+            raise ActiveRecord::Rollback
+          end
+        end
         if @service_schedule.update(service_schedule_params)
           unless @service_schedule.service_schedule_type == old_type
             unless @service_schedule.service_sub_schedules.destroy_all
@@ -234,6 +248,13 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           else
             schedule_updated = false
           end
+        else
+          raise ActiveRecord::Rollback
+        end
+
+        if @service_schedule.service_sub_schedules.count == 0
+          schedule_updated = false
+          raise ActiveRecord::Rollback
         end
       rescue => e
         raise ActiveRecord::Rollback

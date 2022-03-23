@@ -1,5 +1,5 @@
 class ServiceSchedule < ApplicationRecord
-  scope :ordered, -> {joins(:agency).order("agencies.name")}
+  scope :ordered, -> {joins(:agency).order("agencies.name, service_schedules.name")}
   scope :for_superuser, -> {all}
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id))}
   scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
@@ -12,7 +12,7 @@ class ServiceSchedule < ApplicationRecord
   attr_accessor :sub_schedule_calendar_times
   accepts_nested_attributes_for :service_sub_schedules
 
-  validates :name, presence: true, uniqueness: true
+  validates :name, presence: true, uniqueness: {scope: :agency_id}
 
   def self.for_user(user)
     if user.superuser?
