@@ -11,28 +11,32 @@ class Admin::AgenciesController < Admin::AdminController
       @agencies = Agency.querify([current_user.staff_agency].concat(tas))
     elsif current_user.currently_transportation?
       @agencies = Agency.querify([current_user.current_agency])
-    elsif current_user.currently_viewing_as_none?
-      @agencies = Agency.all
     elsif current_user.transportation_staff? || current_user.transportation_admin?
       @agencies = Agency.querify([current_user.staff_agency])
+    else
+      []
     end
   end
   
   def show
   end
-  
+
   def create
     oversight_agency_id = oversight_params
-    if oversight_agency_id == '' && AgencyType.find_by(name: "TransportationAgency").id.to_s == agency_params[:agency_type_id]
-      flash[:danger] = "Agency creation failed! Oversight Agency cannot be empty!"
-      redirect_to admin_agencies_path
-      return
+    # Check for oversight agency if we're making a TransportationAgency
+    if oversight_agency_id.blank? && AgencyType.find_by(name: "TransportationAgency").id.to_s == agency_params[:agency_type_id]
+      @agency.errors.add(:transportation_agency_id,"create failed! Oversight Agency cannot be empty!")
     end
-    if @agency.update_attributes(agency_params)
+
+    # If no record errors and agency updated alright, continue with agency create
+    if @agency.errors.empty? && @agency.update_attributes(agency_params)
       @agency.type = @agency.agency_type.name
       @agency.save
+
+      # Create association between new agency and oversight agency
+      # ...UNLESS we're creating a new oversight agency
       AgencyOversightAgency.create(transportation_agency_id:@agency.id,
-                                           oversight_agency_id: oversight_agency_id)
+                                           oversight_agency_id: oversight_agency_id) unless @agency.type == 'OversightAgency'
       flash[:success] = "Agency Created Successfully"
       redirect_to admin_agency_path(@agency)
     else
@@ -43,15 +47,14 @@ class Admin::AgenciesController < Admin::AdminController
   
   def update
     oversight_agency_id = oversight_params
-    if oversight_agency_id == ''
-      flash[:danger] = "Agency update failed! Oversight Agency cannot be empty!"
-      redirect_to admin_agencies_path
-      return
+    if oversight_agency_id&.empty?
+      @agency.errors.add(:transportation_agency, "update failed! Oversight Agency cannot be empty!")
     end
-    if @agency.update_attributes(agency_params)
-      if oversight_agency_id && @agency.agency_oversight_agency
+
+    if @agency.errors.empty? && @agency.update_attributes(agency_params)
+      if oversight_agency_id.present? && @agency.agency_oversight_agency
         @agency.agency_oversight_agency.update(oversight_agency_id: oversight_agency_id)
-      elsif oversight_agency_id
+      elsif oversight_agency_id.present?
         AgencyOversightAgency.create(transportation_agency_id:@agency.id,oversight_agency_id: oversight_agency_id)
       end
 
@@ -81,8 +84,8 @@ class Admin::AgenciesController < Admin::AdminController
   end
 
   def oversight_params
-    oversight = params.delete(:oversight)
-    oversight["oversight_agency_id"]
+    oversight = params&.delete(:oversight)
+    oversight.try(:[],"oversight_agency_id")
   end
 
   def agency_params

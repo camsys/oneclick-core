@@ -6,11 +6,10 @@ class Admin::UsersController < Admin::AdminController
 
   def index
   end
-
+  #
   def create
     redirect_path = params[:is_traveler].nil? ? staff_admin_users_path : travelers_admin_users_path
     create_params = user_params
-    create_params.delete(:admin)
     role = create_params.delete(:roles)
     staff_agency = create_params.delete(:staff_agency)
     @user.assign_attributes(create_params)
@@ -79,27 +78,35 @@ class Admin::UsersController < Admin::AdminController
     update_params = user_params
     puts update_params
     password = update_params.delete(:password)
+    password_confirmation = update_params.delete(:password_confirmation)
+    # Pulling out roles params separately
     roles = update_params.delete(:roles)
     staff_agency = update_params.delete(:staff_agency)
-    password_confirmation = update_params.delete(:password_confirmation)
+
+
+    # Update password attributes if they're included in request params
     unless password.blank?
       @user.update_attributes(password: password, password_confirmation: password_confirmation)
     end
 
+    # Update other attributes
     @user.update_attributes(update_params)
 
-    # Update user roles last otherwise the record error gets cleared
-    if roles != 'superuser' && staff_agency == ''
+    # If selected role isn't superuser and staff agency is empty, then add an error
+    if roles.present? && roles != 'superuser' && staff_agency.blank?
       @user.errors.add(:agency, 'cannot be empty for non-superuser level users. Please choose an agency to assign to this user.')
-    else
+    # Else update user roles if roles is present AND staff agency is present OR if role is superuser
+    elsif (roles.present? && staff_agency.present?) || roles == 'superuser'
       # NOTE: THIS REMOVES THE LAST USER ROLE, THEN ADDS THE NEW ROLE
       # - IF USERS ARE ABLE TO HAVE MULTIPLE ROLES AT SOME POINT, THIS WILL NEED UPDATING
       replace_user_role(roles,staff_agency)
     end
 
+    # If there are no user errors, return success
     if @user.errors.empty?
       flash[:success] = "#{@user.first_name} #{@user.last_name} Updated"
       redirect_path = success_redirect_path
+    # Else present errors and redirect back
     else
       present_error_messages(@user)
       redirect_path = error_redirect_path
@@ -142,6 +149,13 @@ class Admin::UsersController < Admin::AdminController
       # then assign the input role and agency to the user
       if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
+        # If @user is an oversight user, then reset the current_agency_id field to null
+        # This prevents strange interactions due to a potentially stale value in comparison to
+        # the new non-oversight role
+        if @user.oversight_user?
+          @user.current_agency = nil
+        end
+
         @user.remove_role(last_role.name,last_role.resource)
         @user.set_role(role, ag)
       else
@@ -151,7 +165,7 @@ class Admin::UsersController < Admin::AdminController
     end
   end
 
-    # NOTE: Is the below dead code with the new agency restrictions/ role handling??
+  # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
   def set_superuser_role(admin_param)
     return false if admin_param.nil?

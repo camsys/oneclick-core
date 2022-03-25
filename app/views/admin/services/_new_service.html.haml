@@ -26,6 +26,7 @@
       collection: @oversight_agencies,
       disabled: !current_user.superuser?,
       required:true,
+      label: "Oversight Agency",
       include_blank: 'Select an Oversight Agency for the new Service',
       label_method: :name,
       value_method: :id,

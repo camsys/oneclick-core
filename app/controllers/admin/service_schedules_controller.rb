@@ -5,6 +5,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
   def show
     @service_schedule = ServiceSchedule.find(params[:id])
+
     @agency = @service_schedule.agency
     @schedule_type = @service_schedule.service_schedule_type
   end
@@ -23,6 +24,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
       calendar_date_params = params.require(:service_schedule).require(:sub_schedule_calendar_dates_attributes)
     end
+
     if params[:service_schedule][:sub_schedule_calendar_times_attributes]
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
@@ -38,10 +40,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
           @service_schedule.end_date = service_schedule_params[:end_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
         end
+
         if @service_schedule.save
           if sub_schedule_params
             sub_schedule_params.each do |s|
               unless s[:_destroy] == "true"
+
                 unless sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
                   error_message = sub_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
@@ -121,6 +125,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     if params[:service_schedule][:sub_schedule_calendar_dates_attributes]
       calendar_date_params = params.require(:service_schedule).require(:sub_schedule_calendar_dates_attributes)
     end
+
     if params[:service_schedule][:sub_schedule_calendar_times_attributes]
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
