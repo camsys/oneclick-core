@@ -27,9 +27,13 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
     schedule_created = false
+    error_message = nil
     ServiceSchedule.transaction do
       begin
-        @service_schedule = ServiceSchedule.new(service_schedule_params)
+        unless @service_schedule = ServiceSchedule.new(service_schedule_params)
+          error_message = @service_schedule.errors.full_messages.join("\n")
+          raise ActiveRecord::Rollback
+        end
         if service_schedule_params[:start_date] && service_schedule_params[:end_date]
           @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
           @service_schedule.end_date = service_schedule_params[:end_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
@@ -38,10 +42,14 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           if sub_schedule_params
             sub_schedule_params.each do |s|
               unless s[:_destroy] == "true"
-                sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
+                unless sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
+                  error_message = sub_schedule.errors.full_messages.join("\n")
+                  raise ActiveRecord::Rollback
+                end
                 sub_schedule.service_schedule = @service_schedule
                 unless sub_schedule.save!
                   schedule_created = false
+                  error_message = sub_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
                 end
                 schedule_created = true
@@ -57,6 +65,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                     end_time = t[:end_time]
                     unless sub_schedule = ServiceSubSchedule.create(service_schedule: @service_schedule, calendar_date: Date.parse(date, "%Y/%m/%d"), start_time: start_time, end_time: end_time)
                       schedule_created = false
+                      error_message = sub_schedule.errors.full_messages.join("\n")
+                      raise ActiveRecord::Rollback
+                    end
+                    unless sub_schedule.valid?
+                      schedule_created = false
+                      error_message = sub_schedule.errors.full_messages.join("\n")
                       raise ActiveRecord::Rollback
                     end
                     schedule_created = true
@@ -65,13 +79,16 @@ class Admin::ServiceSchedulesController < Admin::AdminController
               end
             end
           else
+            error_message = "Service schedule must have at least one date and/or time defined"
             schedule_created = false
             raise ActiveRecord::Rollback
           end
         else
+          error_message = @service_schedule.errors.full_messages.join("\n")
           raise ActiveRecord::Rollback
         end
       rescue => e
+        error_message ||= e.message
         raise ActiveRecord::Rollback
       end
     end
@@ -80,7 +97,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       flash[:success] = "New Service Schedule successfully created."
       redirect_to admin_service_schedules_path
     else
-      flash[:danger] = "There was an issue creating the Service Schedule."
+      flash[:danger] = error_message
       redirect_to new_admin_service_schedule_path
     end
   end
@@ -108,6 +125,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       calendar_time_params = params.require(:service_schedule).require(:sub_schedule_calendar_times_attributes)
     end
     schedule_updated = false
+    error_message = nil
     ServiceSchedule.transaction do
       begin
         # Update main service schedule params
@@ -115,12 +133,14 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
           @service_schedule.end_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
           unless @service_schedule.save
+            error_message = @service_schedule.errors.full_messages.join("\n")
             raise ActiveRecord::Rollback
           end
         end
         if @service_schedule.update(service_schedule_params)
           unless @service_schedule.service_schedule_type == old_type
-            unless @service_schedule.service_sub_schedules.destroy_all
+            unless deleted_schedules = @service_schedule.service_sub_schedules.destroy_all
+              error_message = deleted_schedules.errors.full_messages.join("\n")
               raise ActiveRecord::Rollback
             end
           end
@@ -130,7 +150,8 @@ class Admin::ServiceSchedulesController < Admin::AdminController
             sub_schedule_params.each do |s|
               if s[:_destroy] == "true"
                 unless s[:id].blank?
-                  unless ServiceSubSchedule.find_by(id: s[:id]).destroy
+                  unless deleted_schedule = ServiceSubSchedule.find_by(id: s[:id]).destroy
+                    error_message = deleted_schedule.errors.full_messages.join("\n")
                     schedule_updated = false
                     raise ActiveRecord::Rollback
                   end
@@ -142,12 +163,14 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                   sub_schedule.service_schedule = @service_schedule
                   unless sub_schedule.save!
                     schedule_updated = false
+                    error_message = sub_schedule.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                   schedule_updated = true
                 else
-                  unless ServiceSubSchedule.find_by(id: s[:id]).update(s.except(:_destroy).permit!)
+                  unless updated_schedule = ServiceSubSchedule.find_by(id: s[:id]).update(s.except(:_destroy).permit!)
                     schedule_updated = false
+                    error_message = updated_schedule.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                   schedule_updated = true
@@ -164,8 +187,9 @@ class Admin::ServiceSchedulesController < Admin::AdminController
               if d[:_destroy] == "true"
                 unless d[:id].blank?
                   deleted = ServiceSubSchedule.where(service_schedule: @service_schedule, calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date)&.pluck(:calendar_date, :start_time, :end_time)
-                  unless ServiceSubSchedule.where(service_schedule: @service_schedule, calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date).destroy_all
+                  unless deleted_schedules = ServiceSubSchedule.where(service_schedule: @service_schedule, calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date).destroy_all
                     schedule_updated = false
+                    error_message = deleted_schedules.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                   deleted.each do |d|
@@ -179,8 +203,14 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                   unless ServiceSubSchedule.find_by(service_schedule: @service_schedule, calendar_date: Date.parse(date, "%Y/%m/%d"))
                     calendar_time_params.each do |t|
                       unless t[:_destroy] == "true"
-                        unless ServiceSubSchedule.create(service_schedule: @service_schedule, calendar_date: Date.parse(date, "%Y/%m/%d"), start_time: t[:start_time], end_time: t[:end_time])
+                        unless new_schedule = ServiceSubSchedule.create(service_schedule: @service_schedule, calendar_date: Date.parse(date, "%Y/%m/%d"), start_time: t[:start_time], end_time: t[:end_time])
                           schedule_updated = false
+                          error_message = new_schedule.errors.full_messages.join("\n")
+                          raise ActiveRecord::Rollback
+                        end
+                        unless new_schedule.valid?
+                          schedule_updated = false
+                          error_message = new_schedule.errors.full_messages.join("\n")
                           raise ActiveRecord::Rollback
                         end
                         puts "created #{date}, #{t[:start_time]}, #{t[:end_time]}"
@@ -191,9 +221,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                 # Update all existing sub-schedules with the previous object's date to the edited input value
                 else
                   updated = ServiceSubSchedule.where(calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date)&.pluck(:calendar_date, :start_time, :end_time)
-                  unless ServiceSubSchedule.where(calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date).update_all(calendar_date: Date.parse(date, "%Y/%m/%d"))
-                    schedule_updated = false
-                    raise ActiveRecord::Rollback
+                  ServiceSubSchedule.where(service_schedule: @service_schedule, calendar_date: ServiceSubSchedule.find_by(id: d[:id])&.calendar_date).each do |s|
+                    unless s.update(calendar_date: Date.parse(date, "%Y/%m/%d"))
+                      schedule_updated = false
+                      error_message = s.errors.full_messages.join("\n")
+                      raise ActiveRecord::Rollback
+                    end
                   end
                   updated.each do |u|
                     puts "updated #{u} -> #{date}"
@@ -209,8 +242,9 @@ class Admin::ServiceSchedulesController < Admin::AdminController
               if t[:_destroy] == "true"
                 unless t[:id].blank?
                   deleted = ServiceSubSchedule.where(service_schedule: @service_schedule, start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time)&.pluck(:calendar_date, :start_time, :end_time)
-                  unless ServiceSubSchedule.where(service_schedule: @service_schedule, start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time).destroy_all
+                  unless deleted_schedules = ServiceSubSchedule.where(service_schedule: @service_schedule, start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time).destroy_all
                     schedule_updated = false
+                    error_message = deleted_schedules.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                   deleted.each do |d|
@@ -223,8 +257,14 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                 if t[:id].blank?
                   calendar_date_params.each do |d|
                     unless d[:_destroy] == "true"
-                      unless ServiceSubSchedule.find_or_create_by(service_schedule: @service_schedule, calendar_date: Date.parse(d[:calendar_date], "%Y/%m/%d"), start_time: t[:start_time], end_time: t[:end_time])
+                      unless new_schedule = ServiceSubSchedule.find_or_create_by(service_schedule: @service_schedule, calendar_date: Date.parse(d[:calendar_date], "%Y/%m/%d"), start_time: t[:start_time], end_time: t[:end_time])
                         schedule_updated = false
+                        error_message = new_schedule.errors.full_messages.join("\n")
+                        raise ActiveRecord::Rollback
+                      end
+                      unless new_schedule.valid?
+                        schedule_updated = false
+                        error_message = new_schedule.errors.full_messages.join("\n")
                         raise ActiveRecord::Rollback
                       end
                       puts "created #{d[:calendar_date]}, #{t[:start_time]}, #{t[:end_time]}"
@@ -234,9 +274,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                 else
                   # Update all existing sub-schedules with the previous object's start and end times to the edited input values
                   updated = ServiceSubSchedule.where(start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time)&.pluck(:calendar_date, :start_time, :end_time)
-                  unless ServiceSubSchedule.where(start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time).update_all(start_time: t[:start_time], end_time: t[:end_time])
-                    schedule_updated = false
-                    raise ActiveRecord::Rollback
+                  ServiceSubSchedule.where(service_schedule: @service_schedule, start_time: ServiceSubSchedule.find_by(id: t[:id])&.start_time, end_time: ServiceSubSchedule.find_by(id: t[:id])&.end_time).each do |s|
+                    unless s.update(start_time: t[:start_time], end_time: t[:end_time])
+                      schedule_updated = false
+                      error_message = s.errors.full_messages.join("\n")
+                      raise ActiveRecord::Rollback
+                    end
                   end
                   updated.each do |u|
                     puts "updated #{u} -> #{t[:start_time]}, #{t[:end_time]}"
@@ -249,14 +292,17 @@ class Admin::ServiceSchedulesController < Admin::AdminController
             schedule_updated = false
           end
         else
+          error_message = @service_schedule.errors.full_messages.join("\n")
           raise ActiveRecord::Rollback
         end
 
         if @service_schedule.service_sub_schedules.count == 0
+          error_message = "Service schedule must have at least one date and/or time defined"
           schedule_updated = false
           raise ActiveRecord::Rollback
         end
       rescue => e
+        error_message ||= e.message
         raise ActiveRecord::Rollback
       end
     end
@@ -265,7 +311,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       flash[:success] = "Service Schedule successfully updated."
       redirect_to admin_service_schedules_path
     else
-      flash[:danger] = "There was an issue updating the Service Schedule."
+      flash[:danger] = error_message
       redirect_to edit_admin_service_schedule_path(id: @service_schedule.id)
     end
   end

@@ -13,6 +13,7 @@ class ServiceSchedule < ApplicationRecord
   accepts_nested_attributes_for :service_sub_schedules
 
   validates :name, presence: true, uniqueness: {scope: :agency_id}
+  validate :end_date_after_start_date
 
   def self.for_user(user)
     if user.superuser?
@@ -23,6 +24,14 @@ class ServiceSchedule < ApplicationRecord
       for_transport_user(user).order("name desc")
     else
       nil
+    end
+  end
+
+  def end_date_after_start_date
+    unless end_date.blank? || start_date.blank?
+      if end_date < start_date
+        errors.add :end_date, "must be after start date"
+      end
     end
   end
 end

@@ -18,3 +18,6 @@
       input_html: {class: 'destroy', name: input_name(f, :sub_schedule_calendar_dates, :_destroy), value: false}
     %button.btn.btn-link.delete-schedule{type:"button", disabled: can_update == false}
       %span.glyphicon.glyphicon-remove
+
+:javascript
+  $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
