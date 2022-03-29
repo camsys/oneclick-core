@@ -3,6 +3,18 @@
     width: 100%;
   }
 
+  .optional-dates {
+    padding: 0;
+  }
+
+  .date-input-div {
+    padding: 0;
+  }
+
+  .date-label {
+    text-align: right;
+  }
+
 -# For use in building new schedule forms
 -mode = local_assigns[:mode]
 -form_id = local_assigns[:form_id]
@@ -31,6 +43,30 @@
           %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
             %span.text-muted Add schedule
             %span.text-muted.glyphicon.glyphicon-plus
+  .panel.schedule-row-wrapper{class: 'panel-default'}
+    .row.panel-body
+      .col-sm-6.optional-dates
+        %label.col-sm-5.date-label
+          Optional Start Date
+        .col-sm-7.date-input-div
+          = f.input :start_date,
+            label: false,
+            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
+            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
+            as: :string,
+            input_html: {class: 'schedule-input calendar-date datepicker'}
+          %span.glyphicon.glyphicon-calendar
+      .col-sm-6.optional-dates
+        %label.col-sm-5.date-label
+          Optional End Date
+        .col-sm-6.date-input-div
+          = f.input :end_date,
+            label: false,
+            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
+            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
+            as: :string,
+            input_html: {class: 'schedule-input calendar-date datepicker'}
+          %span.glyphicon.glyphicon-calendar
 
 .form-inline.schedule-calendar-dates-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates").id}}
   -# Build a schedule row for calendar dates
@@ -122,6 +158,7 @@
         weeklySch._clear();
         calendarDateSch._clear();
         calendarTimeSch._clear();
+        $("#service_schedule_start_date, #service_schedule_end_date").val("");
         $(".form-inline[data-schedule-type != '" + schedule_type + "']").hide();
         $(".form-inline[data-schedule-type = '" + schedule_type + "']").show();
       });
@@ -129,3 +166,6 @@
       $(".form-inline[data-schedule-type = '" + $("#service_schedule_service_schedule_type_id").val() + "']").show();
       $(".form-inline[data-schedule-type != '" + $("#service_schedule_service_schedule_type_id").val() + "']").hide();
   });
+
+:javascript
+  $('.datepicker').datepicker({format: 'yyyy-mm-dd'});

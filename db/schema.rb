@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220224194500) do
+ActiveRecord::Schema.define(version: 20220322170000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -378,6 +378,37 @@ ActiveRecord::Schema.define(version: 20220224194500) do
     t.index ["service_id"], name: "index_service_oversight_agencies_on_service_id", using: :btree
   end
 
+  create_table "service_schedule_types", force: :cascade do |t|
+    t.string   "name"
+    t.string   "description"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+  end
+
+  create_table "service_schedules", force: :cascade do |t|
+    t.integer  "service_schedule_type_id"
+    t.string   "name"
+    t.string   "description"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_service_schedules_on_agency_id", using: :btree
+    t.index ["service_schedule_type_id"], name: "idx_service_schedules_to_service_schedule_types", using: :btree
+  end
+
+  create_table "service_sub_schedules", force: :cascade do |t|
+    t.integer  "service_schedule_id"
+    t.integer  "day"
+    t.integer  "start_time"
+    t.integer  "end_time"
+    t.date     "calendar_date"
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
+    t.index ["service_schedule_id"], name: "idx_service_sub_schedules_to_service_schedules", using: :btree
+  end
+
   create_table "services", force: :cascade do |t|
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
@@ -444,37 +475,6 @@ ActiveRecord::Schema.define(version: 20220224194500) do
   create_table "travel_patterns", force: :cascade do |t|
     t.string "name",        null: false
     t.text   "description"
-  end
-
-  create_table "travel_patterns_schedules", force: :cascade do |t|
-    t.integer  "travel_patterns_service_schedule_id"
-    t.integer  "day"
-    t.integer  "start_time"
-    t.integer  "end_time"
-    t.date     "calendar_date"
-    t.datetime "created_at",                          null: false
-    t.datetime "updated_at",                          null: false
-    t.index ["travel_patterns_service_schedule_id"], name: "idx_tp_schedules_to_tp_service_schedules", using: :btree
-  end
-
-  create_table "travel_patterns_service_schedule_types", force: :cascade do |t|
-    t.string   "name"
-    t.string   "description"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
-  end
-
-  create_table "travel_patterns_service_schedules", force: :cascade do |t|
-    t.integer  "service_id"
-    t.integer  "travel_patterns_service_schedule_type_id"
-    t.string   "name"
-    t.string   "description"
-    t.date     "start_date"
-    t.date     "end_date"
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
-    t.index ["service_id"], name: "index_travel_patterns_service_schedules_on_service_id", using: :btree
-    t.index ["travel_patterns_service_schedule_type_id"], name: "idx_tp_service_schedules_to_tp_service_schedule_types", using: :btree
   end
 
   create_table "traveler_transit_agencies", force: :cascade do |t|

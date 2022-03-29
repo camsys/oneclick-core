@@ -25,14 +25,23 @@
   html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
 
   .col-sm-4
-    = f.input :agency, readonly: true, input_html: {value: agency}
+    = f.association :agency, selected: agency.id, disabled: true
+    = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
   .col-sm-4
-    = f.input :name, readonly: mode == "view"
+    = f.input :name, readonly: mode == "view", placeholder: "Enter schedule name"
   .col-sm-4
-    = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, required: true, include_blank: true, disabled: mode == "view", value: schedule_type
+    = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, required: true, include_blank: "Select schedule type", disabled: mode == "view", value: schedule_type
   .col-sm-12
     = f.input :description, readonly: mode == "view"
     %hr
 
   .col-sm-12
     = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, schedule_type: schedule_type}, layout: '/layouts/panel'
+
+:javascript
+  $(document).ready(function() {
+    if (#{mode == "view"}) {
+      $(".panel-footer center .btn").hide();
+      $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_service_schedules_path, class: "btn btn-primary"}')
+    }
+  });
