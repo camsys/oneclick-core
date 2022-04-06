@@ -1,0 +1,49 @@
+:css
+  h1 {
+    text-align: center;
+  }
+
+  #travel_pattern_description {
+    resize: none;
+  }
+
+  .travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label {
+    width: 10%;
+    text-align: left; !important;
+  }
+
+  .travel_pattern_description .col-sm-9, .travel_pattern_agency .col-sm-9, .travel_pattern_name .col-sm-9 {
+    width: 90%;
+  }
+
+- mode = local_assigns[:mode]
+- agency = local_assigns[:agency]
+
+%h1
+  = "#{mode.capitalize} Travel Pattern"
+  - form_url = mode == "new" ? admin_travel_patterns_path : admin_travel_pattern_path
+= simple_form_for @travel_pattern,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+
+  .col-sm-6
+    = f.association :agency, selected: agency.id, disabled: true
+    = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+  .col-sm-6
+    = f.input :name, readonly: mode == "view", placeholder: "Enter name of travel pattern"
+  .col-sm-12
+    = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern"
+    %hr
+
+  .col-sm-12
+    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url}, layout: '/layouts/panel'
+
+:javascript
+  $(document).ready(function() {
+    if (#{mode == "view"}) {
+      $(".panel-footer center .btn").hide();
+      $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"}')
+    }
+  });

@@ -1,3 +1,44 @@
-%h1
+:css
+  .center-buttons {
+    text-align: center;
+  }
+
+=content_for :title do
   Travel Patterns
-=link_to 'Create New Travel Patterns', new_admin_travel_pattern_path
+
+%table.table.table-hover.datatable#travel-patterns-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th Actions
+  =render partial: 'travel_pattern', collection: @travel_patterns
+
+.center-buttons
+  - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
+    = link_to 'New Travel Pattern', new_admin_travel_pattern_path, class: 'btn btn-primary'
+  = link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  = link_to 'Return to Dashboard', root_path, class: 'btn btn-default'
+
+:javascript
+
+  $(document).ready(function() {
+    // Link to appropriate feedback detail on row click
+    $('#travel-patterns-table tbody tr td').click(function(e) {
+      if (e.target !== this) {
+        return;
+      }
+      else {
+        window.location = $(this).closest("tr").data("url");
+      }
+    });
+
+    var dataTable = $('.datatable').DataTable({});
+
+    document.addEventListener("turbolinks:before-cache", function() {
+      if (dataTable !== null) {
+       dataTable.destroy();
+       dataTable = null;
+      }
+    });
+  });

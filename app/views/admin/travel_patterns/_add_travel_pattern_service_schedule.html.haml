@@ -1,0 +1,13 @@
+- can_update = local_assigns[:can_update]
+-wrapper_id = local_assigns[:wrapper_id] || ""
+-wrapper_class = local_assigns[:wrapper_class] || ""
+-label_text = local_assigns[:label_text] || ""
+
+.add-schedule
+  .schedule-input
+    .input-group
+      -if can_update
+        .delete-schedule.pull-right.btn.btn-link.schedule-container
+          %span.glyphicon.glyphicon-remove
+      =s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update, label: false
+    .dropdown.schedule-results{style: 'position:absolute; z-index:500'}

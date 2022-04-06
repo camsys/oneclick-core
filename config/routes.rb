@@ -224,7 +224,7 @@ Rails.application.routes.draw do
 
     resources :service_schedules, :only => [:index, :create, :new, :destroy, :show, :edit, :update]
 
-    resources :travel_patterns, :only => [:index, :create, :new] do
+    resources :travel_patterns, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
       collection do
         get 'root' => 'travel_patterns#root'
       end

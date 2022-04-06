@@ -1,3 +1,7 @@
+@import 'mixins';
+@import 'variables';
+@import 'bootstrap_extensions';
+
 .cntr-root {
   display: flex;
   height: 325px;
@@ -47,4 +51,46 @@
   box-sizing: content-box;
   width: 164px;
   padding: 14px;
+}
+
+.btn.schedule-container {
+
+  @include unit-box($brand-primary-pastel);
+
+  .delete-schedule {
+    @include custom-btn-link($brand-primary);
+  }
+
+  label {
+    margin-left: 8px;
+  }
+
+}
+
+.well.schedule-container {
+  padding-bottom: 0;
+}
+
+.add-schedule {
+  @include dashed-unit-box($gray-paler);
+
+  height: 48px;
+  padding: 6px;
+
+  span + span {
+    margin-left: 10px;
+  }
+
+  .schedule-input {
+    padding: 0;
+
+    input {
+      height: 34px;
+      @include subtle-input
+    }
+  }
+}
+
+.schedule-label-container {
+  margin-bottom: 5px;
 }

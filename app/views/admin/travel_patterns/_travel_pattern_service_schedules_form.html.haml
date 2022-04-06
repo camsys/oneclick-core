@@ -1,0 +1,39 @@
+-# For use in building new schedule forms
+-mode = local_assigns[:mode]
+-form_id = local_assigns[:form_id]
+-f = local_assigns[:f]
+-can_update = (mode == 'view' ? false : (can? :update, @travel_pattern))
+
+.service-schedules-container
+  .form-group.string.optional.schedule-label-container
+    .col-sm-12
+      %label.control-label.text.optional
+        Service Schedules (Prioritized Order):
+  .well.well-sm.schedule-container
+    =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern.travel_pattern_service_schedules.build do |s|
+      .add-schedule
+        .schedule-input
+          .input-group
+            -if can_update
+              .delete-schedule.pull-right.btn.btn-link.schedule-container
+                %span.glyphicon.glyphicon-remove
+            =s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update, label: false
+          .dropdown.schedule-results{style: 'position:absolute; z-index:500'}
+
+      :javascript
+        function add_schedule_input(input) {
+          input.attr("readonly", true);
+          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update}}');
+          schedule_input_listener();
+        }
+
+        function schedule_input_listener() {
+          $(".add-schedule input").off("change");
+          $(".add-schedule input").on("change", function() {
+            add_schedule_input($(this));
+          });
+        }
+
+        $(document).ready(function() {
+          schedule_input_listener();
+        });

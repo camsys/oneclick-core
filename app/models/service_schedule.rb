@@ -7,6 +7,8 @@ class ServiceSchedule < ApplicationRecord
   belongs_to :agency
   belongs_to :service_schedule_type
   has_many :service_sub_schedules, dependent: :destroy
+  has_many :travel_pattern_service_schedules
+  has_many :travel_patterns, through: :travel_pattern_service_schedules
 
   attr_accessor :sub_schedule_calendar_dates
   attr_accessor :sub_schedule_calendar_times
