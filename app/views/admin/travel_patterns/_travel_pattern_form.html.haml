@@ -7,13 +7,21 @@
     resize: none;
   }
 
-  .travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label {
-    width: 10%;
+  .travel_pattern_agency label, .travel_pattern_name label {
+    width: 17%;
     text-align: left; !important;
   }
 
-  .travel_pattern_description .col-sm-9, .travel_pattern_agency .col-sm-9, .travel_pattern_name .col-sm-9 {
-    width: 90%;
+  .travel_pattern_agency .col-sm-9, .travel_pattern_name .col-sm-9 {
+    width: 83%;
+  }
+
+  .travel_pattern_description label {
+    width: 8.5%;
+  }
+
+  .travel_pattern_description .col-sm-9 {
+    width: 91.5%;
   }
 
 - mode = local_assigns[:mode]
@@ -32,7 +40,7 @@
     = f.association :agency, selected: agency.id, disabled: true
     = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
   .col-sm-6
-    = f.input :name, readonly: mode == "view", placeholder: "Enter name of travel pattern"
+    = f.input :name, readonly: mode == "view", placeholder: "Enter name of travel pattern", required: true
   .col-sm-12
     = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern"
     %hr
@@ -46,4 +54,6 @@
       $(".panel-footer center .btn").hide();
       $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"}')
     }
+
+    $(".travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label").css("text-align", "left");
   });

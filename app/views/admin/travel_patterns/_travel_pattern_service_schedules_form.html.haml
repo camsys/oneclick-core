@@ -1,3 +1,7 @@
+-#:css
+
+
+
 -# For use in building new schedule forms
 -mode = local_assigns[:mode]
 -form_id = local_assigns[:form_id]
@@ -11,19 +15,18 @@
         Service Schedules (Prioritized Order):
   .well.well-sm.schedule-container
     =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern.travel_pattern_service_schedules.build do |s|
-      .add-schedule
-        .schedule-input
-          .input-group
-            -if can_update
-              .delete-schedule.pull-right.btn.btn-link.schedule-container
-                %span.glyphicon.glyphicon-remove
-            =s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update, label: false
-          .dropdown.schedule-results{style: 'position:absolute; z-index:500'}
+      - @travel_pattern.travel_pattern_service_schedules.each do |ss|
+        = render partial: "add_travel_pattern_service_schedule", locals: {s: s, ss: ss, can_update: can_update}
 
       :javascript
         function add_schedule_input(input) {
-          input.attr("readonly", true);
+          make_input_readonly(input);
+
           $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update}}');
+
+          var input_index = parseInt(input.attr("id").match(/\d+/)) + 1;
+          increment_input_index($(".add-schedule input").last(), input_index);
+
           schedule_input_listener();
         }
 
@@ -34,6 +37,37 @@
           });
         }
 
+        function make_input_readonly(input) {
+          input.attr("readonly", true);
+          $(input).closest(".schedule-group").prepend('<div class="delete-schedule pull-right btn btn-link schedule-container"><span class="glyphicon glyphicon-remove"></span></div>');
+        }
+
+        function increment_input_index(input, new_index) {
+          $(input).attr("id", $(input).attr("id").replace(/0/g, new_index));
+          $(input).attr("name", $(input).attr("name").replace(/0/g, new_index));
+        }
+
         $(document).ready(function() {
           schedule_input_listener();
+          var input_index = 0;
+          $(".add-schedule input").each(function() {
+            if ($(this).val()) {
+              make_input_readonly($(this));
+            }
+            increment_input_index($(this), input_index);
+            input_index++;
+          });
         });
+
+:javascript
+  $(document).ready(function() {
+    var fh = new FormHandler($('#{form_id}'));
+
+    // Have the FormHandler watch the form for changes, plus trigger change events
+    fh.watch($('.form-container'));
+
+    // Reset the schedule divs on form reset
+    // fh.onReset(function() {
+    //
+    // });
+  });

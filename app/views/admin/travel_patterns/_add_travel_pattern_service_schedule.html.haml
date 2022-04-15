@@ -1,3 +1,5 @@
+- s = local_assigns[:s]
+- ss = local_assigns[:ss]
 - can_update = local_assigns[:can_update]
 -wrapper_id = local_assigns[:wrapper_id] || ""
 -wrapper_class = local_assigns[:wrapper_class] || ""
@@ -5,9 +7,7 @@
 
 .add-schedule
   .schedule-input
-    .input-group
-      -if can_update
-        .delete-schedule.pull-right.btn.btn-link.schedule-container
-          %span.glyphicon.glyphicon-remove
-      =s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update, label: false
+    .schedule-group.input-group
+      = s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update || ss&.service_schedule, label: false, input_html: {value: ss&.service_schedule&.name}
+      -#= s.association :service_schedule, selected: ss.service_schedule_id
     .dropdown.schedule-results{style: 'position:absolute; z-index:500'}
