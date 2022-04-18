@@ -10,7 +10,7 @@ class TravelPattern < ApplicationRecord
   has_many :travel_pattern_service_schedules, dependent: :destroy
   has_many :service_schedules, through: :travel_pattern_service_schedules
 
-  accepts_nested_attributes_for :travel_pattern_service_schedules
+  accepts_nested_attributes_for :travel_pattern_service_schedules, allow_destroy: true
 
   validates :name, presence: true, uniqueness: {scope: :agency_id}
 

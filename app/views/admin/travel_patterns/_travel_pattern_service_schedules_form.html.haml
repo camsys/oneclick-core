@@ -1,5 +1,7 @@
--#:css
-
+:css
+  .ui-helper-hidden-accessible {
+    display: none;
+  }
 
 
 -# For use in building new schedule forms
@@ -7,6 +9,7 @@
 -form_id = local_assigns[:form_id]
 -f = local_assigns[:f]
 -can_update = (mode == 'view' ? false : (can? :update, @travel_pattern))
+-agency = local_assigns[:agency]
 
 .service-schedules-container
   .form-group.string.optional.schedule-label-container
@@ -22,37 +25,74 @@
         function add_schedule_input(input) {
           make_input_readonly(input);
 
-          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update}}');
+          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update}}').closes;
+          $(".add-schedule input[type='text']").last().closest(".col-sm-9").css("width", "100%");
 
           var input_index = parseInt(input.attr("id").match(/\d+/)) + 1;
-          increment_input_index($(".add-schedule input").last(), input_index);
+          increment_input_index($(".add-schedule input[type='text']").last(), input_index);
 
+          add_autocomplete($(".add-schedule input[type='text']").last());
           schedule_input_listener();
         }
 
         function schedule_input_listener() {
-          $(".add-schedule input").off("change");
-          $(".add-schedule input").on("change", function() {
+          $(".add-schedule input[type='text']").off("autocompleteselect");
+          $(".add-schedule input[type='text']").on("autocompleteselect", function(event, ui) {
+            $(this).val(ui.item["label"]);
+            $("#" + $(this).attr("id").replace("service_schedule", "destroy")).val("true");
+            $("#" + $(this).attr("id") + "_id").val(ui.item["value"]);
             add_schedule_input($(this));
+            return false;
           });
+        }
+
+        function add_autocomplete(input) {
+          $(input).autocomplete(
+            {
+              source: JSON.parse('#{agency.service_schedules.map{|s| {label: s.name, value: s.id}}.to_json.html_safe}'),
+              minLength: 0,
+              appendTo: $(input).closest(".schedule-input").find(".schedule-results"),
+              messages: {
+                noResults: '',
+                results: function() {}
+              }
+            }
+          );
+          $(".schedule-results ul").addClass("dropdown-menu");
         }
 
         function make_input_readonly(input) {
           input.attr("readonly", true);
+          $(input).closest(".col-sm-9").css("width", "75%");
           $(input).closest(".schedule-group").prepend('<div class="delete-schedule pull-right btn btn-link schedule-container"><span class="glyphicon glyphicon-remove"></span></div>');
+          $(input).closest(".schedule-group").find(".delete-schedule").on("click", function() {
+            $(input).closest(".schedule-group").find("input[type='hidden']").last().val("true");
+            $(input).closest(".add-schedule").hide();
+          });
         }
 
         function increment_input_index(input, new_index) {
+          var id_field = $(input).closest(".schedule-group").find("input[type='hidden']").first();
+          var destroy_field = $(input).closest(".schedule-group").find("input[type='hidden']").last();
+
           $(input).attr("id", $(input).attr("id").replace(/0/g, new_index));
           $(input).attr("name", $(input).attr("name").replace(/0/g, new_index));
+          $(id_field).attr("id", $(id_field).attr("id").replace(/0/g, new_index));
+          $(id_field).attr("name", $(id_field).attr("name").replace(/0/g, new_index));
+          $(destroy_field).attr("id", $(destroy_field).attr("id").replace(/0/g, new_index));
+          $(destroy_field).attr("name", $(destroy_field).attr("name").replace(/0/g, new_index));
         }
 
         $(document).ready(function() {
+          add_autocomplete($(".add-schedule input[type='text']").last());
           schedule_input_listener();
           var input_index = 0;
-          $(".add-schedule input").each(function() {
+          $(".add-schedule input[type='text']").each(function() {
             if ($(this).val()) {
               make_input_readonly($(this));
+            }
+            else {
+              $(this).closest(".col-sm-9").css("width", "100%");
             }
             increment_input_index($(this), input_index);
             input_index++;

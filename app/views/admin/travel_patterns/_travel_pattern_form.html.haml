@@ -46,7 +46,7 @@
     %hr
 
   .col-sm-12
-    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url}, layout: '/layouts/panel'
+    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}, layout: '/layouts/panel'
 
 :javascript
   $(document).ready(function() {

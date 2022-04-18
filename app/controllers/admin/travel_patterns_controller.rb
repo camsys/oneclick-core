@@ -27,8 +27,8 @@ class Admin::TravelPatternsController < Admin::AdminController
         if @travel_pattern = TravelPattern.create(travel_pattern_params)
           if service_schedule_params
             service_schedule_params.values.each_with_index do |sched, i|
-              unless sched[:_destroy] == "true"
-                unless new_schedule = TravelPatternServiceSchedule.find_or_create_by(travel_pattern: @travel_pattern, service_schedule: sched[:service_schedule_id], priority: i + 1)
+              unless sched[:_destroy] == "true" || sched[:service_schedule].blank?
+                unless new_schedule = TravelPatternServiceSchedule.find_or_create_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id], priority: i + 1)
                   error_message = new_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
                 end
@@ -78,27 +78,30 @@ class Admin::TravelPatternsController < Admin::AdminController
           if service_schedule_params
             service_schedule_params.values.each_with_index do |sched, i|
               if sched[:_destroy] == "true"
-                if deleted_pattern = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule: sched[:service_schedule_id])
+                if deleted_pattern = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id])
                   unless deleted_pattern.destroy
                     error_message = deleted_pattern.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                 end
               else
-                if existing_schedule = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule: sched[:service_schedule_id])
+                if existing_schedule = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id])
                   unless existing_schedule.update(priority: i + 1)
                     error_message = existing_schedule.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                 else
-                  unless new_schedule = TravelPatternServiceSchedule.create(travel_pattern: @travel_pattern, service_schedule: sched[:service_schedule_id], priority: i + 1)
-                    error_message = new_schedule.errors.full_messages.join("\n")
-                    raise ActiveRecord::Rollback
+                  unless sched[:service_schedule].blank?
+                    unless new_schedule = TravelPatternServiceSchedule.create(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id], priority: i + 1)
+                      error_message = new_schedule.errors.full_messages.join("\n")
+                      raise ActiveRecord::Rollback
+                    end
                   end
                 end
               end
             end
           end
+          travel_pattern_updated = true
         else
           error_message = @travel_pattern.errors.full_messages.join("\n")
           raise ActiveRecord::Rollback

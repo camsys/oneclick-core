@@ -9,5 +9,7 @@
   .schedule-input
     .schedule-group.input-group
       = s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update || ss&.service_schedule, label: false, input_html: {value: ss&.service_schedule&.name}
-      -#= s.association :service_schedule, selected: ss.service_schedule_id
+      = s.input :service_schedule_id, as: :hidden, input_html: {value: ss&.service_schedule_id}
+      = s.input :_destroy, as: :hidden
+
     .dropdown.schedule-results{style: 'position:absolute; z-index:500'}
