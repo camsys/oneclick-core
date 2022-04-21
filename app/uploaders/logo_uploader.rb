@@ -9,7 +9,7 @@ class LogoUploader < CarrierWave::Uploader::Base
   # Choose what kind of storage to use for this uploader:
   case ENV["RAILS_ENV"]
   when 'production', 'qa', 'integration'
-    storage :fog
+    storage :aws
   when 'development'
     storage :file # Use file for local development
   else
