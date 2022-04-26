@@ -4,11 +4,12 @@
 -wrapper_id = local_assigns[:wrapper_id] || ""
 -wrapper_class = local_assigns[:wrapper_class] || ""
 -label_text = local_assigns[:label_text] || ""
+-original = local_assigns[:original] || ""
 
 .add-schedule
   .schedule-input
     .schedule-group.input-group
-      = s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update || ss&.service_schedule, label: false, input_html: {value: ss&.service_schedule&.name}
+      = s.input :service_schedule, class: "form-control string optional schedule-input", type: 'text', placeholder: 'Enter a service schedule', readonly: !can_update || ss&.service_schedule, label: false, input_html: {value: ss&.service_schedule&.name, data: {original: original}}
       = s.input :service_schedule_id, as: :hidden, input_html: {value: ss&.service_schedule_id}
       = s.input :_destroy, as: :hidden
 

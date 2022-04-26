@@ -19,13 +19,13 @@
   .well.well-sm.schedule-container
     =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern.travel_pattern_service_schedules.build do |s|
       - @travel_pattern.travel_pattern_service_schedules.each do |ss|
-        = render partial: "add_travel_pattern_service_schedule", locals: {s: s, ss: ss, can_update: can_update}
+        = render partial: "add_travel_pattern_service_schedule", locals: {s: s, ss: ss, can_update: can_update, original: true}
 
       :javascript
         function add_schedule_input(input) {
           make_input_readonly(input);
 
-          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update}}').closes;
+          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update, original: false}}').closes;
           $(".add-schedule input[type='text']").last().closest(".col-sm-9").css("width", "100%");
 
           var input_index = parseInt(input.attr("id").match(/\d+/)) + 1;
@@ -65,10 +65,12 @@
           input.attr("readonly", true);
           $(input).closest(".col-sm-9").css("width", "75%");
           $(input).closest(".schedule-group").prepend('<div class="delete-schedule pull-right btn btn-link schedule-container"><span class="glyphicon glyphicon-remove"></span></div>');
-          $(input).closest(".schedule-group").find(".delete-schedule").on("click", function() {
-            $(input).closest(".schedule-group").find("input[type='hidden']").last().val("true");
-            $(input).closest(".add-schedule").hide();
-          });
+          if ('#{mode}' !== "view") {
+            $(input).closest(".schedule-group").find(".delete-schedule").on("click", function() {
+              $(input).closest(".schedule-group").find("input[type='hidden']").last().val("true");
+              $(input).closest(".add-schedule").hide();
+            });
+          }
         }
 
         function increment_input_index(input, new_index) {
@@ -106,8 +108,26 @@
     // Have the FormHandler watch the form for changes, plus trigger change events
     fh.watch($('.form-container'));
 
+    // Set form to dirty if a schedule is deleted
+    $(".delete-schedule").on("click", function() {
+      fh.dirty();
+    });
+
     // Reset the schedule divs on form reset
-    // fh.onReset(function() {
-    //
-    // });
+    fh.onReset(function() {
+      var numInputs = $("input[data-original=''], input[data-original='true']").length;
+
+      $("input[data-original=''], input[data-original='true']").each(function(i) {
+        if (i !== numInputs - 1) {
+          if ($(this).data("original") == '' || !$(this).val()) {
+            $(this).closest(".schedule-group").find("input[type='hidden']").last().val("true");
+            $(this).closest(".add-schedule").hide();
+          }
+          else if ($(this).data("original") == true) {
+            $(this).closest(".schedule-group").find("input[type='hidden']").last().val("false");
+            $(this).closest(".add-schedule").show();
+          }
+        }
+      });
+    });
   });
