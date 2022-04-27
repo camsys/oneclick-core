@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: c23b22e0e55306ae31746dda764e868d4149ba40
+  revision: fe3ce75490c569fbfa50fce81b31fbd6c72b6804
   branch: derek_azure
   specs:
     oneclick_refernet (0.5.9)
