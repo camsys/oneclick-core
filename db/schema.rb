@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220322170000) do
+ActiveRecord::Schema.define(version: 20220424222311) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",                     null: false
@@ -319,9 +319,13 @@ ActiveRecord::Schema.define(version: 20220322170000) do
   end
 
   create_table "purposes", force: :cascade do |t|
-    t.string   "code",       null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string   "code"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.string   "name",        null: false
+    t.string   "description"
+    t.integer  "agency_id"
+    t.index ["agency_id"], name: "index_purposes_on_agency_id", using: :btree
   end
 
   create_table "purposes_services", id: false, force: :cascade do |t|
@@ -472,9 +476,21 @@ ActiveRecord::Schema.define(version: 20220322170000) do
     t.datetime "updated_at",         null: false
   end
 
+  create_table "travel_pattern_service_schedules", force: :cascade do |t|
+    t.integer  "travel_pattern_id"
+    t.integer  "service_schedule_id"
+    t.integer  "priority"
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
+    t.index ["service_schedule_id"], name: "index_travel_pattern_service_schedules_on_service_schedule_id", using: :btree
+    t.index ["travel_pattern_id"], name: "index_travel_pattern_service_schedules_on_travel_pattern_id", using: :btree
+  end
+
   create_table "travel_patterns", force: :cascade do |t|
-    t.string "name",        null: false
-    t.text   "description"
+    t.string  "name",        null: false
+    t.text    "description"
+    t.integer "agency_id"
+    t.index ["agency_id"], name: "index_travel_patterns_on_agency_id", using: :btree
   end
 
   create_table "traveler_transit_agencies", force: :cascade do |t|
@@ -649,6 +665,7 @@ ActiveRecord::Schema.define(version: 20220322170000) do
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_sub_sub_categories", column: "sub_sub_category_id"
   add_foreign_key "oneclick_refernet_sub_categories", "oneclick_refernet_categories", column: "category_id"
   add_foreign_key "oneclick_refernet_sub_sub_categories", "oneclick_refernet_sub_categories", column: "sub_category_id"
+  add_foreign_key "purposes", "agencies"
   add_foreign_key "schedules", "services"
   add_foreign_key "service_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "service_oversight_agencies", "services", on_delete: :cascade

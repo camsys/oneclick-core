@@ -1,0 +1,4 @@
+%h1.text-center
+  Create New Trip Purpose
+
+=render partial: 'form', locals: { purpose: @purpose, form_url: admin_trip_purposes_path(agency_id: @purpose.agency_id), mode: 'new' }

@@ -147,7 +147,8 @@ Rails.application.routes.draw do
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
 
     # Agencies
-    resources :agencies, only: [:index, :destroy, :create, :show, :update]
+    resources :agencies, only: [:index, :destroy, :create, :show, :update], shallow: true do
+    end
 
     # Configs
     resources :configs, only: [:index]
@@ -194,6 +195,7 @@ Rails.application.routes.draw do
 
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
+    resources :trip_purposes, controller: :purposes_travel_patterns
 
     # Reports
     resources :reports, only: [:index] do
