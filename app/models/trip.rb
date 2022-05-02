@@ -111,8 +111,8 @@ class Trip < ApplicationRecord
   scope :in_next_n_days, ->(n_days) {
                             where({
                                   trip_time: (
-                                    (DateTime.now.midnight.in_time_zone.to_time + n_days * 60 * 24).to_datetime.midnight..
-                                      (DateTime.now.midnight.in_time_zone.to_time + (n_days + 1) * 60 * 60 * 24).to_datetime.midnight),
+                                    (DateTime.now.in_time_zone.midnight.to_time + n_days * 60 * 24).to_datetime.midnight..
+                                      (DateTime.now.in_time_zone.midnight.to_time + (n_days + 1) * 60 * 60 * 24).to_datetime.midnight),
                                 })}
   
   # Scopes based on trip linkages
