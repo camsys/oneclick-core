@@ -1,0 +1,4 @@
+%h1.text-center
+  Create New Funding Source
+
+=render partial: 'form', locals: { funding_source: @funding_source, form_url: admin_funding_sources_path(agency_id: @funding_source.agency_id), mode: 'new' }

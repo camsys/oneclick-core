@@ -42,6 +42,8 @@ class Ability
       can :read, :report         # Can read reports
       can [:read,:edit], Eligibility
       can [:read,:edit], Accommodation
+      can [:read, :edit], FundingSource,
+        agency_id: user.staff_agency.try(:id)
       can [:read,:edit], Purpose
       can :read, GeographyRecord
       can [:read, :edit], Landmark
@@ -77,6 +79,9 @@ class Ability
             id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
 
+        can [:show], FundingSource,
+            agency_id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
+
         # Can access services associated with own oversight agency, and those with no oversight agency(i.e taxi services)
         can :read, Service,
             id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id))
@@ -104,6 +109,8 @@ class Ability
       can :manage, Landmark
       can [:show, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
+      can [:show, :update], FundingSource,
+          agency_id: user.staff_agency.try(:id)
 
       # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
       can :manage, User,
@@ -137,6 +144,8 @@ class Ability
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :create, Agency
+        can :manage, FundingSource,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Service,
           id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Role               # Can manage Roles

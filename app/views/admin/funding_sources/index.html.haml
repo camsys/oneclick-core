@@ -1,0 +1,39 @@
+=content_for :title do
+  Funding Sources
+
+%table.table.table-hover.datatable#funding-sources-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th
+      
+  -@funding_sources.each do |funding_source|
+    %tr
+      %td
+        =funding_source.agency.name
+      %td
+        =funding_source.name
+      %td.text-right
+        - if can? :update, FundingSource
+          =link_to edit_admin_funding_source_path(funding_source) do
+            %span.glyphicon.glyphicon-edit
+        - else
+          =link_to admin_funding_source_path(funding_source) do
+            %span.glyphicon.glyphicon-eye-open
+        - if can? :delete, FundingSource
+          =link_to admin_funding_source_path(funding_source), method: :delete, data: {confirm: 'Warning: This will delete the funding source and it will be removed from any travel patterns in which it is currently being used. Press "OK" to confirm.'} do
+            %span.glyphicon.glyphicon-trash{ style:'color:red' }
+
+%div.text-center
+  - modalID = 'new-funding-source'
+  - if can? :create, FundingSource
+    - if @agencies.length == 1
+      =link_to 'New Funding Source', new_admin_funding_source_path(agency_id: @agencies.first.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New Funding Source', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', admin_travel_patterns_path, class: 'btn btn--no-bg'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn--no-bg'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Funding Source', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_funding_source_path, agency_list: @agencies.collect { |agency| [agency.name, agency.id] } }
