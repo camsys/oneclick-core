@@ -1,5 +1,7 @@
 $(document).ready(function() {
-  $('#purpose-travel-patterns-table').DataTable({
+  const tableSelectors = '#purpose-travel-patterns-table, #funding-sources-table';
+
+  $(tableSelectors).DataTable({
     "columnDefs": [ {
       "targets": 2,
       "orderable": false

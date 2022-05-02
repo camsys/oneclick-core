@@ -25,6 +25,7 @@ class Agency < ApplicationRecord
   has_many :services, foreign_key: "agency_id", dependent: :nullify
   has_many :service_schedules
   has_many :purposes, dependent: :destroy
+  has_many :funding_sources, dependent: :destroy
   # this is to help access the Agency index page, although it's a bit redundant
   has_one :agency_oversight_agency,foreign_key:"transportation_agency_id", dependent: :destroy
   belongs_to :agency_type

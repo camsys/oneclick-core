@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220424222311) do
+ActiveRecord::Schema.define(version: 20220502154926) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -189,6 +189,15 @@ ActiveRecord::Schema.define(version: 20220424222311) do
     t.string   "phone"
     t.index ["feedbackable_type", "feedbackable_id"], name: "index_feedbacks_on_feedbackable_type_and_feedbackable_id", using: :btree
     t.index ["user_id"], name: "index_feedbacks_on_user_id", using: :btree
+  end
+
+  create_table "funding_sources", force: :cascade do |t|
+    t.string   "name",        null: false
+    t.string   "description", null: false
+    t.integer  "agency_id",   null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.index ["agency_id"], name: "index_funding_sources_on_agency_id", using: :btree
   end
 
   create_table "itineraries", force: :cascade do |t|
@@ -657,6 +666,7 @@ ActiveRecord::Schema.define(version: 20220424222311) do
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "custom_geographies", "agencies"
+  add_foreign_key "funding_sources", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
   add_foreign_key "landmark_sets", "agencies"

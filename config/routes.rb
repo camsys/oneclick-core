@@ -164,6 +164,9 @@ Rails.application.routes.draw do
       end
     end
 
+    # Funding Sources
+    resources :funding_sources
+
     # Alerts
     resources :alerts, :only => [:index, :destroy, :create, :edit, :update] do
       collection do
