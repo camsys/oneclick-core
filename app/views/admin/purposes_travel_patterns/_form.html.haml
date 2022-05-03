@@ -2,26 +2,18 @@
   url: form_url,
   authenticity_token: true,
   data: {type: 'html'},
-  html: {class: 'form-horizontal form-container', id: 'form_id_from_path', multipart: true, method: mode == "new" ? :post : :put} do |form|
+  html: {class: 'flex-outer', id: 'form_id_from_path', multipart: true, method: mode == "new" ? :post : :put} do |form|
 
-  .form-group.row
-    =form.label :agency_id, 'Agency: ', class: 'col-sm-1 control-label'
-    .col-sm-5
-      =form.select :agency_id, [[purpose.agency.name, purpose.agency.id]], {}, { class: 'form-control', disabled: true }
+  .form-group
+    =form.input :agency, collection: [[purpose.agency.name, purpose.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
     =form.hidden_field :agency_id
+    =form.input :name, placeholder: 'Enter name of trip purpose', disabled: mode == 'view', input_html: { value: purpose[:name] }, wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :description, placeholder: 'Enter description of trip purpose', disabled: mode == 'view', wrapper: :travel_patterns_input_group
 
-    =form.label :name, 'Name: ', class: 'col-sm-1 control-label'
-    .col-sm-5
-      =form.text_field :name, { placeholder: 'Enter name of trip purpose', value: purpose[:name], class: 'form-control', disabled: mode == 'view' }
-
-  .form-group.row
-    =form.label :description, 'Description: ', class: 'col-sm-2 control-label'
-    .col-sm-10
-      =form.text_field :description, { placeholder: 'Enter description of trip purpose', class: 'form-control', disabled: mode == 'view' }
-
-  .form-group.text-center
+  .text-center
     - if mode == 'view'
-      =link_to 'Done', admin_trip_purposes_path, class: 'btn btn-danger'
+      =link_to 'Done', admin_purposes_path, class: 'btn btn-danger'
     -else
-      =link_to 'Cancel', admin_trip_purposes_path, class: 'btn btn-danger'
+      =link_to 'Cancel', admin_purposes_path, class: 'btn btn-danger'
       =form.submit class: 'btn btn-primary'
