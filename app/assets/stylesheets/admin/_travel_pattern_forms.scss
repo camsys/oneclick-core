@@ -1,0 +1,26 @@
+// Flex Forms
+.flex-outer .form-group, .flex-inner {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.flex-inner > label {
+  text-align: right;
+  min-width: 88px;
+  padding-right: 10px;
+  padding-top: 5px;
+}
+ 
+.flex-inner {
+  flex: 1 0 auto;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+
+.grow-1 {
+  flex-grow: 1;
+}
+
+.grow-1 .input-group {
+  width: 100%;
+}
