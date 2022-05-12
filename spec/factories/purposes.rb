@@ -1,13 +1,15 @@
 FactoryBot.define do
   factory :purpose do
 
+    name 'Medical'
     code 'medical'
 
     factory :metallica_concert do
+      name 'Metallica!'
       code "metallica_concert"
     end
 
-    initialize_with { Purpose.find_or_create_by(code: code) }
+    initialize_with { Purpose.find_or_create_by(name: name, code: code) }
     
     # Create translations for the purpose
     trait :with_translations do
