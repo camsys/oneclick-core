@@ -42,7 +42,7 @@ RSpec.describe Admin::UsersController, type: :controller do
     
     it 'can manage admin privileges' do
       expect(other_staff.admin?).to be false
-      post :update, params: { id: other_staff.id, user: { roles:'admin'} }
+      post :update, params: { id: other_staff.id, user: { roles:'admin', staff_agency: agency } }
       other_staff.reload
       expect(other_staff.admin?).to be true
     end

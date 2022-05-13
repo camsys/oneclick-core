@@ -24,6 +24,7 @@ module RoleHelper
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
     base.scope :registered_travelers, -> { base.travelers.registered }
     base.scope :except_user, -> (user) { where.not(id: user.id) }
+    base.scope :partner_staff, -> { base.staff_for_any(Agency.partner_agencies) }
     base.scope :transportation_staff, -> { base.staff_for_any(Agency.transportation_agencies) }
 
     # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
@@ -40,7 +41,7 @@ module RoleHelper
     base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances(:staff, agencies) }
 
     # SCOPES FOR LOOKING UP ADMINS
-    base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
+    base.scope :admins, -> { base.querify(base.with_role_for_instances(:admin, Agency.all)) }
     base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
     base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances(:admin, agencies) }
 
