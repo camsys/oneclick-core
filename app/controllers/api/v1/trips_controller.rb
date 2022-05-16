@@ -226,7 +226,6 @@ module Api
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
           trip_type= itin.trip_type
-          created_in_1click = itin.booking.created_in_1click
           response = booking_response_base(itin).merge({success: false})
 
           next response unless itin
