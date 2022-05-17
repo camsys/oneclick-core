@@ -112,7 +112,7 @@
   </body>
   <footer>
     <div class="text-muted">
-      <%= "OneclickCore " + OneclickCore::Application.config.version.to_s %>
+      <%= "OneclickCore " + OneclickCore::Application.config.version.to_s + (ENV['AWS_BUCKET'] == 'occ-pa-dev' ? " (#{`git rev-parse --short HEAD`.chomp})" : '') %>
     </div>
   </footer>
   <script defer>
