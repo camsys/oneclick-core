@@ -30,7 +30,7 @@ script:
 - bundle exec /usr/bin/env RAILS_ENV=test rake db:schema:load
 - bundle exec /usr/bin/env RAILS_ENV=test rake db:migrate
 - bundle exec /usr/bin/env RAILS_ENV=test rake db:seed
-#- bundle exec rspec spec
+- bundle exec rspec spec
 
 notifications:
   slack:
