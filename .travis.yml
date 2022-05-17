@@ -12,6 +12,7 @@ addons:
       - postgresql-10-postgis-2.4
 
 before_install:
+- curl ifconfig.co #print IP address
 - openssl aes-256-cbc -K $encrypted_ee5f58ad4bd6_key -iv $encrypted_ee5f58ad4bd6_iv -in cpta_aws.pem.enc -out cpta_aws.pem -d
 - chmod 600 cpta_aws.pem
 
