@@ -9,6 +9,10 @@ module Admin
             :dest_addr, :dest_lat, :dest_lng
     associations :origin, :destination, :user, :selected_itinerary
 
+    def trip_time
+      @record.trip_time&.in_time_zone("UTC").strftime("%-m/%-d/%y %k:%M")
+    end
+
     def traveler
       @record.user&.email
     end
