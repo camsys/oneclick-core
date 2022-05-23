@@ -1,40 +1,26 @@
 class Admin::TravelPatternsController < Admin::AdminController
+  load_resource only: [:show, :new, :edit, :update, :destroy]
+  before_action :load_child_resources, only: [:show, :edit]
+
   def index
     @travel_patterns = get_travel_patterns_for_current_user
   end
 
   def show
-    @travel_pattern = TravelPattern.find(params[:id])
     @agency = @travel_pattern.agency
   end
 
   def new
-    @travel_pattern = TravelPattern.new
     @agency = current_user.current_agency
   end
 
   def create
-    travel_pattern_params = params.require(:travel_pattern).except(:travel_pattern_service_schedules_attributes).permit!
-    if params[:travel_pattern][:travel_pattern_service_schedules_attributes]
-      service_schedule_params = params.require(:travel_pattern).require(:travel_pattern_service_schedules_attributes)
-    end
-
     travel_pattern_created = false
     error_message = nil
 
     TravelPattern.transaction do
       begin
-        if @travel_pattern = TravelPattern.create(travel_pattern_params)
-          if service_schedule_params
-            service_schedule_params.values.each_with_index do |sched, i|
-              unless sched[:_destroy] == "true" || sched[:service_schedule].blank?
-                unless new_schedule = TravelPatternServiceSchedule.find_or_create_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id], priority: i + 1)
-                  error_message = new_schedule.errors.full_messages.join("\n")
-                  raise ActiveRecord::Rollback
-                end
-              end
-            end
-          end
+        if TravelPattern.create(travel_pattern_params)
           travel_pattern_created = true
         else
           error_message = @travel_pattern.errors.full_messages.join("\n")
@@ -56,51 +42,16 @@ class Admin::TravelPatternsController < Admin::AdminController
   end
 
   def edit
-    @travel_pattern = TravelPattern.find(params[:id])
     @agency = @travel_pattern.agency
   end
 
   def update
-    @travel_pattern = TravelPattern.find(params[:id])
-
-    travel_pattern_params = params.require(:travel_pattern).except(:travel_pattern_service_schedules_attributes).permit!
-
-    if params[:travel_pattern][:travel_pattern_service_schedules_attributes]
-      service_schedule_params = params.require(:travel_pattern).require(:travel_pattern_service_schedules_attributes)
-    end
-
     travel_pattern_updated = false
     error_message = nil
 
     TravelPattern.transaction do
       begin
         if @travel_pattern.update(travel_pattern_params)
-          if service_schedule_params
-            service_schedule_params.values.each_with_index do |sched, i|
-              if sched[:_destroy] == "true"
-                if deleted_pattern = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id])
-                  unless deleted_pattern.destroy
-                    error_message = deleted_pattern.errors.full_messages.join("\n")
-                    raise ActiveRecord::Rollback
-                  end
-                end
-              else
-                if existing_schedule = TravelPatternServiceSchedule.find_by(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id])
-                  unless existing_schedule.update(priority: i + 1)
-                    error_message = existing_schedule.errors.full_messages.join("\n")
-                    raise ActiveRecord::Rollback
-                  end
-                else
-                  unless sched[:service_schedule].blank?
-                    unless new_schedule = TravelPatternServiceSchedule.create(travel_pattern: @travel_pattern, service_schedule_id: sched[:service_schedule_id], priority: i + 1)
-                      error_message = new_schedule.errors.full_messages.join("\n")
-                      raise ActiveRecord::Rollback
-                    end
-                  end
-                end
-              end
-            end
-          end
           travel_pattern_updated = true
         else
           error_message = @travel_pattern.errors.full_messages.join("\n")
@@ -122,8 +73,7 @@ class Admin::TravelPatternsController < Admin::AdminController
   end
 
   def destroy
-    travel_pattern = TravelPattern.find(params[:id])
-    if travel_pattern.destroy
+    if @travel_pattern.destroy
       redirect_to admin_travel_patterns_path
     end
   end
@@ -132,5 +82,42 @@ class Admin::TravelPatternsController < Admin::AdminController
 
   def get_travel_patterns_for_current_user
     TravelPattern.for_user(current_user)
+  end
+
+  def travel_pattern_params
+    permitted_params = params.require(:travel_pattern).permit(
+      :agency_id, 
+      :name,
+      :description, 
+      travel_pattern_service_schedules_attributes: [ :id, :service_schedule_id, :_destroy ],
+      travel_pattern_purposes_attributes: [ :id, :purpose_id, :_destroy ],
+      travel_pattern_funding_sources_attributes: [ :id, :funding_source_id, :_destroy ],
+    )
+
+    permitted_params[:travel_pattern_service_schedules_attributes].values.each_with_index do |schedule, index|
+      schedule[:priority] = index + 1 unless schedule[:service_schedule_id].blank?;
+    end
+
+    permitted_params
+  end
+
+  def load_child_resources
+    @travel_pattern_service_schedules = @travel_pattern.travel_pattern_service_schedules
+                                                       .includes(:service_schedule)
+                                                       .joins(:service_schedule)
+                                                       .merge(ServiceSchedule.order(:name))
+    @travel_pattern_service_schedules += [@travel_pattern_service_schedules.build]
+
+    @travel_pattern_purposes = @travel_pattern.travel_pattern_purposes
+                                              .includes(:purpose)
+                                              .joins(:purpose)
+                                              .merge(Purpose.order(:name))
+    @travel_pattern_purposes += [@travel_pattern_purposes.build]
+
+    @travel_pattern_funding_sources = @travel_pattern.travel_pattern_funding_sources
+                                                     .includes(:funding_source)
+                                                     .joins(:funding_source)
+                                                     .merge(FundingSource.order(:name))
+    @travel_pattern_funding_sources += [@travel_pattern_funding_sources.build]
   end
 end

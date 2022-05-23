@@ -1,133 +1,20 @@
-:css
-  .ui-helper-hidden-accessible {
-    display: none;
-  }
+-# For use in building new service schedule forms
+-can_update = (mode != 'view' && (can? :update, @travel_pattern))
 
-
--# For use in building new schedule forms
--mode = local_assigns[:mode]
--form_id = local_assigns[:form_id]
--f = local_assigns[:f]
--can_update = (mode == 'view' ? false : (can? :update, @travel_pattern))
--agency = local_assigns[:agency]
-
-.service-schedules-container
-  .form-group.string.optional.schedule-label-container
-    .col-sm-12
-      %label.control-label.text.optional
-        Service Schedules (Prioritized Order):
-  .well.well-sm.schedule-container
-    =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern.travel_pattern_service_schedules.build do |s|
-      - @travel_pattern.travel_pattern_service_schedules.each do |ss|
-        = render partial: "add_travel_pattern_service_schedule", locals: {s: s, ss: ss, can_update: can_update, original: true}
-
-      :javascript
-        function add_schedule_input(input) {
-          make_input_readonly(input);
-
-          $(".well.schedule-container").append('#{escape_javascript render partial: "add_travel_pattern_service_schedule", locals: {s: s, can_update: can_update, original: false}}').closes;
-          $(".add-schedule input[type='text']").last().closest(".col-sm-9").css("width", "100%");
-
-          var input_index = parseInt(input.attr("id").match(/\d+/)) + 1;
-          increment_input_index($(".add-schedule input[type='text']").last(), input_index);
-
-          add_autocomplete($(".add-schedule input[type='text']").last());
-          schedule_input_listener();
-        }
-
-        function schedule_input_listener() {
-          $(".add-schedule input[type='text']").off("autocompleteselect");
-          $(".add-schedule input[type='text']").on("autocompleteselect", function(event, ui) {
-            $(this).val(ui.item["label"]);
-            $("#" + $(this).attr("id").replace("service_schedule", "destroy")).val("true");
-            $("#" + $(this).attr("id") + "_id").val(ui.item["value"]);
-            add_schedule_input($(this));
-            return false;
-          });
-        }
-
-        function add_autocomplete(input) {
-          $(input).autocomplete(
-            {
-              source: JSON.parse('#{agency.service_schedules.map{|s| {label: s.name, value: s.id}}.to_json.html_safe}'),
-              minLength: 0,
-              appendTo: $(input).closest(".schedule-input").find(".schedule-results"),
-              messages: {
-                noResults: '',
-                results: function() {}
-              }
-            }
-          );
-          $(".schedule-results ul").addClass("dropdown-menu");
-        }
-
-        function make_input_readonly(input) {
-          input.attr("readonly", true);
-          $(input).closest(".col-sm-9").css("width", "75%");
-          $(input).closest(".schedule-group").prepend('<div class="delete-schedule pull-right btn btn-link schedule-container"><span class="glyphicon glyphicon-remove"></span></div>');
-          if ('#{mode}' !== "view") {
-            $(input).closest(".schedule-group").find(".delete-schedule").on("click", function() {
-              $(input).closest(".schedule-group").find("input[type='hidden']").last().val("true");
-              $(input).closest(".add-schedule").hide();
-            });
-          }
-        }
-
-        function increment_input_index(input, new_index) {
-          var id_field = $(input).closest(".schedule-group").find("input[type='hidden']").first();
-          var destroy_field = $(input).closest(".schedule-group").find("input[type='hidden']").last();
-
-          $(input).attr("id", $(input).attr("id").replace(/0/g, new_index));
-          $(input).attr("name", $(input).attr("name").replace(/0/g, new_index));
-          $(id_field).attr("id", $(id_field).attr("id").replace(/0/g, new_index));
-          $(id_field).attr("name", $(id_field).attr("name").replace(/0/g, new_index));
-          $(destroy_field).attr("id", $(destroy_field).attr("id").replace(/0/g, new_index));
-          $(destroy_field).attr("name", $(destroy_field).attr("name").replace(/0/g, new_index));
-        }
-
-        $(document).ready(function() {
-          add_autocomplete($(".add-schedule input[type='text']").last());
-          schedule_input_listener();
-          var input_index = 0;
-          $(".add-schedule input[type='text']").each(function() {
-            if ($(this).val()) {
-              make_input_readonly($(this));
-            }
-            else {
-              $(this).closest(".col-sm-9").css("width", "100%");
-            }
-            increment_input_index($(this), input_index);
-            input_index++;
-          });
-        });
+.form-group.string.optional.label-container
+  .col-sm-12
+    %label.control-label.text.optional
+      Service Schedules (Prioritized Order):
+.well.well-sm.autocomplete-tag-index
+  =f.simple_fields_for :travel_pattern_service_schedules,@travel_pattern_service_schedules do |tpss_form|
+    -object = tpss_form.object
+    =render partial: "autocomplete_tag", locals: { form: tpss_form, tag_label: object&.service_schedule&.name, object: object, unique_key: :service_schedule_id, object_fields: [:id, :service_schedule_id, :_destroy], can_update: can_update }
+  .autocomplete-tag-new
+    .input-group
+      %input.autocomplete-field.form-control{ placeholder: 'Enter a service schedule', data: { source: "travelPatternServiceSchedulesSource" } }
+    .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
 
 :javascript
-  $(document).ready(function() {
-    var fh = new FormHandler($('#{form_id}'));
-
-    // Have the FormHandler watch the form for changes, plus trigger change events
-    fh.watch($('.form-container'));
-
-    // Set form to dirty if a schedule is deleted
-    $(".delete-schedule").on("click", function() {
-      fh.dirty();
-    });
-
-    // Reset the schedule divs on form reset
-    fh.onReset(function() {
-      var numInputs = $("input[data-original=''], input[data-original='true']").length;
-
-      $("input[data-original=''], input[data-original='true']").each(function(i) {
-        if (i !== numInputs - 1) {
-          if ($(this).data("original") == '' || !$(this).val()) {
-            $(this).closest(".schedule-group").find("input[type='hidden']").last().val("true");
-            $(this).closest(".add-schedule").hide();
-          }
-          else if ($(this).data("original") == true) {
-            $(this).closest(".schedule-group").find("input[type='hidden']").last().val("false");
-            $(this).closest(".add-schedule").show();
-          }
-        }
-      });
-    });
-  });
+  function travelPatternServiceSchedulesSource () {
+    return JSON.parse('#{@agency.service_schedules.order(:name).map{ |service_schedule| {label: service_schedule[:name], "unique-key" => service_schedule.id}}.to_json.html_safe}');
+  }

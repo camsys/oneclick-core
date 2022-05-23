@@ -24,6 +24,10 @@
     width: 91.5%;
   }
 
+  .ui-helper-hidden-accessible {
+    display: none;
+  }
+
 - mode = local_assigns[:mode]
 - agency = local_assigns[:agency]
 
@@ -40,20 +44,27 @@
     = f.association :agency, selected: agency.id, disabled: true
     = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
   .col-sm-6
-    = f.input :name, readonly: mode == "view", placeholder: "Enter name of travel pattern", required: true
+    = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", required: true
   .col-sm-12
     = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern"
     %hr
 
   .col-sm-12
-    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}, layout: '/layouts/panel'
+    = render layout: '/layouts/panel' do
+      = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}
+      = render partial: 'travel_pattern_purposes_form', locals: {mode: mode, f: f, agency: agency}
+      = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
 
 :javascript
-  $(document).ready(function() {
+  $(document).on("turbolinks:load", function() {
     if (#{mode == "view"}) {
       $(".panel-footer center .btn").hide();
       $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"}')
     }
 
     $(".travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label").css("text-align", "left");
+    $(".form-submit").on("click", (e) => {
+      $(e.target).parents().closest('form').submit();
+    })
+
   });
