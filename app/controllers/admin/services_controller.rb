@@ -7,6 +7,8 @@ class Admin::ServicesController < Admin::AdminController
   attr_accessor :test_var
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
+  before_action :load_travel_patterns, only: [:show]
+
   def index
     @services = get_services_for_current_user
     @oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
@@ -193,6 +195,7 @@ class Admin::ServicesController < Admin::AdminController
     permitted_params += taxi_params if service_type == "Taxi"
     permitted_params += uber_params if service_type == "Uber"
     permitted_params += lyft_params if service_type == "Lyft"
+    permitted_params += travel_pattern_services_params if Config.dashboard_mode == "travel_patterns"
 
     # Permit the allowed parameters
   	params.require(:service).permit(permitted_params)
@@ -254,5 +257,16 @@ class Admin::ServicesController < Admin::AdminController
     I18n.available_locales.map { |l| "#{l}_description".to_sym }
   end
 
+  def travel_pattern_services_params
+    [travel_pattern_services_attributes: [ :id, :travel_pattern_id, :_destroy ]]
+  end
+
+  def load_travel_patterns
+    @travel_pattern_services = @service.travel_pattern_services
+                                   .includes(:travel_pattern)
+                                   .joins(:travel_pattern)
+                                   .merge(TravelPattern.order(:name))
+    @travel_pattern_services += [@travel_pattern_services.build]
+  end
 
 end

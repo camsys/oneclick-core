@@ -26,6 +26,8 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+  has_many :travel_pattern_services, dependent: :destroy
+  has_many :travel_patterns, through: :travel_pattern_services
   has_one :service_oversight_agency, dependent: :destroy
 
   # has_many :feedbacks, as: :feedbackable
@@ -35,6 +37,8 @@ class Service < ApplicationRecord
   belongs_to :agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
+
+  accepts_nested_attributes_for :travel_pattern_services, allow_destroy: true, reject_if: :all_blank
 
   ### VALIDATIONS & CALLBACKS ###
   validates_presence_of :name, :type

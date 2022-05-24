@@ -6,7 +6,8 @@ class TravelPattern < ApplicationRecord
 
   belongs_to :agency
 
-  has_many :services
+  has_many :travel_pattern_services
+  has_many :services, through: :travel_pattern_services
   has_many :travel_pattern_service_schedules, dependent: :destroy
   has_many :service_schedules, through: :travel_pattern_service_schedules
   has_many :travel_pattern_purposes, dependent: :destroy

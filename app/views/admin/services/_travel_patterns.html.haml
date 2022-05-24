@@ -1,0 +1,31 @@
+- can_update = (can? :update, @service)
+
+=content_for :header do
+  Travel Patterns
+
+.form-group.string.optional.label-container
+  .col-sm-12
+    %label.control-label.text.optional
+      Travel Patterns:
+.well.well-sm.autocomplete-tag-index.travel_patterns
+  = simple_form_for @service,
+    url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
+    html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
+
+    =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial  do |f|
+    =f.simple_fields_for :travel_pattern_services, @travel_pattern_services do |tps_form|
+      -object = tps_form.object
+      =render partial: "autocomplete_tag", locals: { form: tps_form, tag_label: object.travel_pattern&.send(:[], :name), object: object, unique_key: :travel_pattern_id, object_fields: [:id, :travel_pattern_id, :_destroy], can_update: can_update }
+    .autocomplete-tag-new
+      .input-group
+        %input.autocomplete-field.form-control{ placeholder: 'Enter a travel pattern', data: { source: "travelPatternServicesSource" } }
+      .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
+
+:javascript
+  function travelPatternServicesSource () {
+    return JSON.parse('#{@service.agency.travel_patterns.order(:name).map{ |travel_pattern| {label: travel_pattern[:name], "unique-key" => travel_pattern.id}}.to_json.html_safe}');
+  }
+
+  $(document).ready(function() {
+    new FormHandler($('#{form_selector_from_id}'));
+  });
