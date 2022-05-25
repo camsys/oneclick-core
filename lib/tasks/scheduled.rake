@@ -249,11 +249,11 @@ namespace :scheduled do
         email = trip.user.to_s
 
         details = trip.details
-        fixed_route = details[:notification_preferences][:fixed_route]
-        reminder = fixed_route[index]
+        fixed_route = details[:notification_preferences]&.[](:fixed_route)
+        reminder = fixed_route&.[](index)
         # If the trip reminder is enabled and
         # ...the trip reminder day is the same as the Config Notification Day, send an email
-        if reminder[:enabled] == true && reminder[:day] == default_day
+        if reminder && reminder[:enabled] == true && reminder[:day] == default_day
           UserMailer.user_trip_reminder(email,trip,default_day).deliver
 
           # toggle enable state of the
