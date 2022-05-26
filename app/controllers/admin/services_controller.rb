@@ -90,7 +90,12 @@ class Admin::ServicesController < Admin::AdminController
       end
     # else if no oversight_params then just update service attributes as normal
     else
-      @service.update_attributes(s_params)
+      # ensure at least one travel pattern is assigned to the service before publishing (if in travel patterns config)
+      if Config.dashboard_mode == "travel_patterns" && s_params[:published] == "true" && @service.travel_pattern_services.count == 0
+        @service.errors.add(:base, "Service must have at least one travel pattern assigned before being published.")
+      else
+        @service.update_attributes(s_params)
+      end
     end
 
     # Code to handle server response on update fail/ success including redirects
