@@ -4,9 +4,8 @@
   Travel Patterns
 
 .form-group.string.optional.label-container
-  .col-sm-12
-    %label.control-label.text.optional
-      Travel Patterns:
+  %label.control-label.text.optional
+    Travel Patterns:
 .well.well-sm.autocomplete-tag-index.travel_patterns
   = simple_form_for @service,
     url: admin_service_path, remote: true, authenticity_token: true, data: {type: 'html'},
