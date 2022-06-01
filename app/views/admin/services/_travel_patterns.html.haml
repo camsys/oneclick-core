@@ -12,6 +12,7 @@
     html: {class: 'form-horizontal', id: form_id_from_path, multipart: true, method: :put } do |f|
 
     =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial  do |f|
+    - @travel_pattern_services += [@travel_pattern_services.build]
     =f.simple_fields_for :travel_pattern_services, @travel_pattern_services do |tps_form|
       -object = tps_form.object
       =render partial: "autocomplete_tag", locals: { form: tps_form, tag_label: object.travel_pattern&.send(:[], :name), object: object, unique_key: :travel_pattern_id, object_fields: [:id, :travel_pattern_id, :_destroy], can_update: can_update }
@@ -26,5 +27,16 @@
   }
 
   $(document).ready(function() {
-    new FormHandler($('#{form_selector_from_id}'));
+    let formHandler = new FormHandler($('#{form_selector_from_id}'));
+
+    formHandler.now((fh) => {
+      fh.form.on('autocompleteselect', () => fh.dirty());
+      fh.form.on("click", ".autocomplete-tag-delete", () => fh.dirty());
+    });
+
+    formHandler.onAjaxSuccess((fh) => {
+      formHandler = fh;
+      fh.form.find("input.autocomplete-field").each(makeInputAutocomplete);
+      fh.form.on("click", ".autocomplete-tag-delete", onAutocompleteDelete);
+    });
   });
