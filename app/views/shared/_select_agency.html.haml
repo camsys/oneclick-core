@@ -1,7 +1,7 @@
 =form_tag form_url, method: :get do
   .text-center
-    =label :query, :agency_id, 'Agency: ' 
-    =select :query, :agency_id, agency_list, class: 'form-control'
+    =label :agency_id, 'Agency: ' 
+    =select_tag :agency_id, options_for_select(@agency_map), class: 'form-control'
 
   .modal-footer
     .text-center

@@ -1,0 +1,23 @@
+#selected-pois.form-container.pull-right
+  %h2 Selected POIs
+  ="Showing #{@selected_pagy.count} results out of #{@selected_poi_count} selected POIs"
+  =render partial: "poi_search_form", locals: { prefix: "selected", query: @selected_query, pagy: @selected_pagy, form_url: search_url(action_name, agency_id: @landmark_set.agency_id, partial_path: "admin/landmark_sets/_selected_pois") }
+
+  #remove-all-pois.hidden
+    -@remove_all_pois&.each do |poi|
+      %span{data: { id: poi.id, landmark_id: poi.landmark_id }}
+
+  %table.table.table-hover
+    %thead.thead-default
+      %tr
+        %th
+        %th.td-buttons{'aria-label':'Buttons'}
+    %tbody
+      -if @selected_pois.length > 0
+        -@selected_pois.each do |poi|
+          =selected_poi_table_row(poi, @removed_pois)
+      -else
+        %h3{style: "text-align: center"} No POIs Found 
+
+  =pagy_bootstrap_nav(@selected_pagy).html_safe
+

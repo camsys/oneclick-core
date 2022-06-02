@@ -1,7 +1,12 @@
 // Flex Forms
+.flex-outer .form-group {
+  margin-left: -5px;
+}
+
 .flex-outer .form-group, .flex-inner {
   display: flex;
   flex-wrap: wrap;
+  row-gap: 15px;
 }
 
 .flex-inner > label {
@@ -13,8 +18,7 @@
  
 .flex-inner {
   flex: 1 0 auto;
-  margin-right: 5px;
-  margin-top: 10px;
+  margin-left: 5px;
 }
 
 .grow-1 {

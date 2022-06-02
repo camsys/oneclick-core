@@ -1,0 +1,93 @@
+#poi-ui {
+  display: inline-block;
+  width: 100%;
+
+  .flex-inner {
+    margin-left: -5px;
+
+    > * {
+      margin-left: 5px;
+    }
+  }
+}
+
+#system-pois {
+  padding-right: 5px;
+}
+
+#selected-pois {
+  padding-left: 5px;
+}
+
+#system-pois, #selected-pois {
+  width: 50%;
+
+  > * {
+    width: 100%;
+  }
+
+  select {
+    padding: 0 0 0 2px;
+  }
+
+  tr {
+    td {
+      display: table-cell;
+    }
+
+    td:last-child {
+      text-align: right;
+      vertical-align: middle;
+      padding: 0;
+
+      i.glyphicon {
+        top: 0;
+        padding: 6px 9px 6px 9px;
+      }
+    }
+  }
+}
+
+#system-pois {
+  tr[data-is-added="true"] {
+    background-color: lightgreen;
+
+    i.glyphicon-poi-toggle {
+      -ms-transform: scaleX(-1);
+      transform: scaleX(-1);
+    }
+
+    i.glyphicon-poi-toggle::before {
+      content: "\e030";
+    }
+  }
+
+  tr[data-is-added="false"] {
+    i.glyphicon-poi-toggle::before {
+      content: "\002b";
+      color: green;
+    }
+  }
+}
+
+#selected-pois {
+  tr[data-is-removed="true"] {
+    background-color: lightcoral;
+
+    i.glyphicon-poi-toggle {
+      -ms-transform: scaleX(-1);
+      transform: scaleX(-1);
+    }
+
+    i.glyphicon-poi-toggle::before {
+      content: "\e030";
+    }
+  }
+
+  tr[data-is-removed="false"] {
+    i.glyphicon-poi-toggle::before {
+      content: "\2212";
+      color: red;
+    }
+  }
+}

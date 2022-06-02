@@ -1,5 +1,5 @@
 =content_for :title do
-  Sets of POIS
+  Sets of POIs
 
 %table.table.table-hover.datatable#landmark-table
   %thead.thead-default
@@ -19,16 +19,25 @@
               class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-eye-open
         -if can?(:show, LandmarkSet) && can?(:edit, LandmarkSet)
-          =link_to admin_landmark_sets_path,
+          =link_to edit_admin_landmark_set_path(id: sets.id),
               class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-pencil{aria:{hidden:true}}
-        =link_to admin_landmark_sets_path,
+        =link_to admin_landmark_set_path(id: sets.id), method: :delete,
             class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
           %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
+
 %footer.footer__links
-  =link_to 'New Sets of POIs', new_admin_landmark_set_path, class: 'btn btn-primary'
-  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
-  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+  - modalID = 'new-landmark-set'
+  - if can? :create, LandmarkSet
+    - if @agency_map.length == 1
+      =link_to 'New Sets of POIs', new_admin_landmark_set_path(agency_id: @agency_map.first.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New Sets of POIs', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Set of POIs', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_landmark_set_path }
 
 :javascript
   $(document).ready(function() {

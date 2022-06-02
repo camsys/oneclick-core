@@ -150,6 +150,9 @@ Rails.application.routes.draw do
     resources :agencies, only: [:index, :destroy, :create, :show, :update], shallow: true do
     end
 
+    # Booking Windows
+    resources :booking_windows
+
     # Configs
     resources :configs, only: [:index]
     patch 'configs' => 'configs#update'
@@ -192,7 +195,9 @@ Rails.application.routes.draw do
     end
 
     # Landmark Sets
-    resources :landmark_sets, :only => [:index, :create, :new]
+    put 'landmark_sets/new' => 'landmark_sets#new'
+    put 'landmark_sets/:id/edit' => 'landmark_sets#edit'
+    resources :landmark_sets
 
     resources :od_zones, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
       collection do

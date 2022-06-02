@@ -1,7 +1,6 @@
 class Admin::PurposesTravelPatternsController < Admin::AdminController
 
   def index
-    @agencies = Agency.accessible_by(current_ability)
     @purposes = Purpose.accessible_by(current_ability)
                        .joins(:agency)
                        .merge(Agency.order(:name))
@@ -23,8 +22,7 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
   end
 
   def new
-    query = params.fetch(:query)
-    agency = Agency.find(query[:agency_id])
+    agency = Agency.find(params[:agency_id])
     @purpose = Purpose.new(agency: agency)
     authorize! :create, @purpose
   end

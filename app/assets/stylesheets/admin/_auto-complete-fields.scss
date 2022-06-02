@@ -4,7 +4,8 @@
 
 .btn.autocomplete-tag-show {
   @include unit-box($brand-primary-pastel);
-  margin-right: 5px;
+  margin-left: 5px;
+  margin-right: 0px;
   margin-bottom: 0px;
   padding: 5px 0px 5px 5px;
   line-height: 2.2;
@@ -21,8 +22,9 @@
 
   height: 48px;
   padding: 6px;
-  margin-bottom: 2px;
-  margin-top: 2px;
+  margin-left: 5px;
+  margin-right: 0px;
+  margin-bottom: 0px;
 
   input.autocomplete-field {
     height: 34px;
@@ -44,4 +46,11 @@
   :hover {
     background-color: lightblue;
   }
+}
+
+.well.autocomplete-tag-index {
+  padding-left: 4px;
+  row-gap: 5px;
+  display: flex;
+  flex-wrap: wrap;
 }

@@ -1,51 +1,5 @@
 =content_for :title do
   ="Create New Set of POIs"
-%section.centered-form.extra-wide
-  = simple_form_for :landmark_set,
-    url: admin_landmark_sets_path,
-    html: {id:'sets_of_pois',multipart: true, method: :post, class:'form-horizontal'},
-    authenticity_token: true do |f|
-    - rabbit = TransportationAgency.find_by name: 'Rabbit'
-    .flex-row
-      = f.input :agency_id,
-        collection: TransportationAgency.all,
-        label: 'Agency:',
-        selected: rabbit.id,
-        disabled: true,
-        include_blank: "Select a Transportation Agency",
-        wrapper_html: {class: 'input-wrapper--no-padding'}
-      = f.input :agency_id,
-        as: :hidden,
-        collection: TransportationAgency.all,
-        label: 'Agency:',
-        selected: rabbit.id,
-        disabled: false,
-        include_blank: "Select a Transportation Agency",
-        input_html: { id: 'hidden_agency',
-          value:rabbit.id}
-      = f.input :name, required: true, label: "POI Set Name:",
-        wrapper_html: {class: 'col-lg-7 input-wrapper--no-padding'}
-    = f.input :description, as: :text, required: false, label: "Description:"
-    -# Below partials render the multi select tables
-       split out into separate files to save room.
-       NOTE: TABLE ID IS A LOCAL HERE SO THAT YOU CAN PASS YOUR OWN ID
-       ...VALUE FOR EACH TABLE HERE(and then have the javascript located here instead of inside the table partials)
-    %section.container--two-col
-      = render partial: 'system_pois_list', locals: {table_id: 'system_pois',landmark_sets: LandmarkSet.all}
-      = render partial: 'selected_pois_list', locals: {table_id: 'selected_pois', landmark_sets: []}
-    %footer.footer__links
-      =f.submit 'Save', class: 'btn btn-primary'
-      =link_to 'Cancel', admin_landmark_sets_path, class: 'btn btn-danger'
-    -#%button#button-reset.btn.btn-secondary{type:'button'} Reset Form
 
-:javascript
-  $(document).ready(function() {
-    // NOTE: THE BELOW CONFIGURATION FOR THE DATA TABLES SHOULD NOT BE TREATED AS FINAL.
-    $('.datatable#system_pois').DataTable({
-      searching: false,
-      lengthChange: false
-      });
-    // NOTE: SELECTED POIS TABLE MAY NEED A TOTALLY CUSTOM SEARCH/ PAGE LENGTH COMPONENT
-    $('.datatable#selected_pois').DataTable({
-    });
-  })
+-form_id = "new_landmark_set"
+=render partial: 'form', locals: { landmark_set: @landmark_set, form_id: form_id, form_url: admin_landmark_sets_path(agency_id: @landmark_set.agency_id), mode: "new" }

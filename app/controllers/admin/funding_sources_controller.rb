@@ -6,7 +6,6 @@ class Admin::FundingSourcesController < Admin::AdminController
                                     .joins(:agency)
                                     .merge(Agency.order(:name))
                                     .includes(:agency)
-    @agencies = Agency.accessible_by(current_ability)
     authorize! :read, @funding_sources
   end
 
@@ -15,8 +14,7 @@ class Admin::FundingSourcesController < Admin::AdminController
   end
 
   def new
-    query = params.fetch(:query)
-    @funding_source.agency = Agency.find(query[:agency_id])
+    @funding_source.agency = Agency.find(params[:agency_id])
   end
 
   def edit

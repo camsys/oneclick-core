@@ -11,7 +11,8 @@ class Admin::TravelPatternsController < Admin::AdminController
   end
 
   def new
-    @agency = current_user.current_agency
+    @travel_pattern.agency = Agency.find(params[:agency_id])
+    @agency = @travel_pattern.agency
   end
 
   def create
@@ -92,6 +93,7 @@ class Admin::TravelPatternsController < Admin::AdminController
       :origin_zone_id,
       :destination_zone_id,
       :allow_reverse_sequence_trips,
+      :booking_window_id,
       travel_pattern_service_schedules_attributes: [ :id, :service_schedule_id, :_destroy ],
       travel_pattern_purposes_attributes: [ :id, :purpose_id, :_destroy ],
       travel_pattern_funding_sources_attributes: [ :id, :funding_source_id, :_destroy ],
