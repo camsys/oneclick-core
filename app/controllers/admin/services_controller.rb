@@ -7,7 +7,7 @@ class Admin::ServicesController < Admin::AdminController
   attr_accessor :test_var
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
-  before_action :load_travel_patterns, only: [:show]
+  before_action :load_travel_patterns, only: [:show, :update]
 
   def index
     @services = get_services_for_current_user
@@ -109,7 +109,7 @@ class Admin::ServicesController < Admin::AdminController
       present_error_messages(@service)
     end
     #Force the updated attribute to update, even if only child objects were changed (e.g., Schedules, Accomodtations, etc.)
-    @service.update_attributes({updated_at: Time.now})
+    @service.update_attributes({updated_at: Time.now})   
 
     # Respond with the micro-form
     respond_with_partial_or do
@@ -273,7 +273,6 @@ class Admin::ServicesController < Admin::AdminController
                                    .includes(:travel_pattern)
                                    .joins(:travel_pattern)
                                    .merge(TravelPattern.order(:name))
-    @travel_pattern_services += [@travel_pattern_services.build]
   end
 
 end

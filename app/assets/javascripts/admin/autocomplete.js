@@ -1,30 +1,9 @@
 $(document).on("turbolinks:load", () => {
   // Set up a listener to detect when a user tries to delete a tag
-  $(".autocomplete-tag-index").on("click", ".autocomplete-tag-delete", (e) => {
-    const oldTag = $(e.target).parents().closest(".autocomplete-tag-show");
-    if (oldTag.data("persisted")) {
-      oldTag.find("input[type=hidden][data-type=_destroy]").val(true);
-      oldTag.hide()
-    } else {
-      oldTag.remove();
-    }
-  });
+  $(".autocomplete-tag-index").on("click", ".autocomplete-tag-delete", onAutocompleteDelete);
 
   // Implement autocomplete behavior on the desired fields
-  $("input.autocomplete-field").each((index, input) => {
-    input = $(input);
-
-    input.autocomplete({
-      source: window[input.data("source")](),
-      minLength: 0,
-      appendTo: $(input).closest(".autocomplete-tag-new").find(".autocomplete-results"),
-      select: autocompleteSelect
-    }).focus(function () {
-      $(this).autocomplete("search", "");
-    });
-
-    $(".autocomplete-results ul").addClass("dropdown-menu");
-  });
+  $("input.autocomplete-field").each(makeInputAutocomplete);
 
   // Buttons for adding all tags to field
   $(".autocomplete-add-all").click((e) => {
@@ -36,6 +15,32 @@ $(document).on("turbolinks:load", () => {
     }
   });
 });
+
+
+function makeInputAutocomplete(index, input) {
+  input = $(input);
+
+  input.autocomplete({
+    source: window[input.data("source")](),
+    minLength: 0,
+    appendTo: $(input).closest(".autocomplete-tag-new").find(".autocomplete-results"),
+    select: autocompleteSelect
+  }).focus(function () {
+    $(this).autocomplete("search", "");
+  });
+
+  $(".autocomplete-results ul").addClass("dropdown-menu");
+}
+
+function onAutocompleteDelete(event) {
+  const oldTag = $(event.target).parents().closest(".autocomplete-tag-show");
+  if (oldTag.data("persisted")) {
+    oldTag.find("input[type=hidden][data-type=_destroy]").val(true);
+    oldTag.hide();
+  } else {
+    oldTag.remove();
+  }
+}
 
 // When the user selects an item from the dropdown, we want to add the selected item to the page.
 function autocompleteSelect (event, ui) {
