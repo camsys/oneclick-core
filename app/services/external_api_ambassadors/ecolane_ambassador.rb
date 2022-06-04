@@ -506,7 +506,8 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     arrive_by = (not destination_requested.nil?)
-    trip_time = origin_negotiated.to_time
+    # Save the trip_time in the database as UTC time for UTC data type.
+    trip_time = origin_negotiated
     {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
   end
 
@@ -883,7 +884,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
       
       # Group trips on same day.
-      trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone('UTC').to_date}
+      trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
       trips_by_date.each do |trip_date, same_day_trips|
         # Reset links on existing trips, unless trip has been created directly in 1click.
         same_day_trips.each do |trip|
@@ -905,9 +906,7 @@ class EcolaneAmbassador < BookingAmbassador
           end
 
           # Are these trips on the same day?
-          # The trip_time is saved in the database as Eastern time in a UTC data type.
-          # Therefore we need to specify time zone to return as UTC in order to get trip_time back as Eastern time.
-          unless trip.trip_time.in_time_zone('UTC').to_date == next_trip.trip_time.in_time_zone('UTC').to_date
+          unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
             next
           end
 
