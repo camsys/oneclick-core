@@ -119,7 +119,7 @@ GEM
       carrierwave (>= 0.7, < 2.1)
     case_transform (0.2)
       activesupport
-    chartkick (2.3.4)
+    chartkick (3.4.0)
     chronic (0.10.2)
     coderay (1.1.2)
     coffee-rails (4.2.2)
