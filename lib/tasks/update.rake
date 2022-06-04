@@ -36,7 +36,7 @@ namespace :update do
     else
       raise "Unexpected value for :update_to, please check release docs or the update.rake file for acceptable inputs for :update_to"
     end
-    Rake::Task['update:reversibly_update_role_agency_type'].invoke(args[:update_to])
+    Rake::Task['update:reversibly_update_role_type'].invoke(args[:update_to])
   end
 
   desc "reversibly update resource type in roles"

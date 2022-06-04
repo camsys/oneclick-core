@@ -74,6 +74,23 @@ module Api
         if @traveler
           @traveler.update_profile(options[:user_profile])
         end
+        
+        # Check if there is an existing trip for this user at same time and location.
+        existing_trips = Trip.where(trip_time: trips_params[0][:trip_time],
+                                    arrive_by: trips_params[0][:arrive_by],
+                                    user_id: trips_params[0][:user_id])
+                             .order(updated_at: :desc)
+        origin_place = Place.attrs_from_google_place(trips_params[0][:origin_attributes][:google_place_attributes])
+        destination_place = Place.attrs_from_google_place(trips_params[0][:destination_attributes][:google_place_attributes])
+        first_existing_trip = existing_trips.first
+        if existing_trips.any? &&
+          first_existing_trip.origin.lat.to_f.round(6) == origin_place[:lat].to_f.round(6) &&
+          first_existing_trip.origin.lng.to_f.round(6) == origin_place[:lng].to_f.round(6) &&
+          first_existing_trip.destination.lat.to_f.round(6) == destination_place[:lat].to_f.round(6) &&
+          first_existing_trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
+          # This trip has already been created. Don't create it again.
+          render status: 200, json: first_existing_trip, include: ['*.*'] and return
+        end
 
         # Create one or more trips based on requests sent.
         @trips = Trip.create(trips_params)
@@ -165,6 +182,10 @@ module Api
           response = booking_response_base(itin).merge({booked: false})
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
+          if itin.booked?
+            # This itinerary has already been booked. Don't book it again.
+            next response.merge(booking_response_hash(itin.booking))
+          end
           booking = itin.try(:book, booking_options: booking_request)
           unless booking.is_a?(Booking)
             failed = true
@@ -226,7 +247,6 @@ module Api
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
           trip_type= itin.trip_type
-          created_in_1click = itin.booking.created_in_1click
           response = booking_response_base(itin).merge({success: false})
 
           next response unless itin

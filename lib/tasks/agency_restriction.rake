@@ -323,7 +323,7 @@ namespace :agency_restriction do
         :associate_travelers_to_tables,
         :associate_service_to_penn_dot, :associate_transit_staff,:assign_camsys_to_admin]
   desc "Do all but update partner agencies for production"
-  task all_prod: [:add_admin, :update_default_admin,
+  task all_prod: [:add_admin, :update_default_admin, :add_agency_type,
         :create_and_assign_to_penn_dot,:associate_travelers_to_county,:associate_agency_type,
         :associate_travelers_to_tables,
         :associate_transit_staff, :assign_camsys_to_admin]
