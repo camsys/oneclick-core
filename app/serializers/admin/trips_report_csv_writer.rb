@@ -10,7 +10,7 @@ module Admin
     associations :origin, :destination, :user, :selected_itinerary
 
     def trip_time
-      @record.trip_time&.in_time_zone("UTC").strftime("%-m/%-d/%y %k:%M")
+      @record.trip_time&.in_time_zone
     end
 
     def traveler
