@@ -1,0 +1,12 @@
+-# For use in building new od zones forms
+-can_update = (mode != 'view' && (can? :update, @travel_pattern))
+
+.form-group.string.optional.label-container
+  .col-sm-12
+    = f.input :origin_zone_id, :collection => @agency.od_zones, :label_method => :name, :value_method => :id, :label => "Origin Zone:", :include_blank => false
+  .col-sm-12
+    = f.input :destination_zone_id, :collection => @agency.od_zones, :label_method => :name, :value_method => :id, :label => "Destination Zone:", :include_blank => false
+  .col-sm-12
+    %label.control-label.text.optional
+      = f.check_box :allow_reverse_sequence_trips
+      Allow reverse sequence trips for outbound leg (always allowed for return leg)

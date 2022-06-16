@@ -13,19 +13,23 @@
         label: false,
         selected: params[:type]&.gsub('_',' ')&.titleize
 %section.container--two-col
-  %table.table.table-hover.datatable#geographies
+  %table.table.table-hover.datatable#geographies-table
     %thead.thead-default
       %tr
         %th Name
+        %th State
     %tbody
       -@geographies.each do |geography|
-        %tr
+        %tr{style: "cursor: pointer", data: {geom: geography.geom_to_array}}
           %td
             = geography&.name
-  %div.map_placeholder
+          %td
+            PA
+            -#= geography&.state
+  %div#geographies-map{style: "height: 420px; margin-left: 10px"}
 %footer.footer__links
   =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
-  =link_to 'Return To Dashboards', admin_path, class: 'btn btn-default'
+  =link_to 'Return To Dashboard', admin_path, class: 'btn btn-default'
 
 :javascript
     $(document).ready(function() {
@@ -47,4 +51,21 @@
     // $.fn.DataTable.ext.pager.numbers_length = 5
     $('.datatable').DataTable({});
 
+    var opts = {
+      viewCenter: [40.0024133,-75.2584558] // Philadelphia, PA
+    };
+    var map = M.setupMap('geographies-map', opts);
+
+    // Update map on row click
+    $("#geographies-table").on("click", "tbody tr", function() {
+      var geography_geom = $(this).data("geom");
+      M.drawMaps(map, [
+        geography_geom
+      ]);
+      // Highlight clicked row.
+      var selected = $(this).hasClass("highlight");
+      $("#geographies-table tr").removeClass("highlight");
+      if(!selected)
+        $(this).addClass("highlight");
+    });
   });

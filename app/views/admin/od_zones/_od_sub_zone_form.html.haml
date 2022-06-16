@@ -1,0 +1,34 @@
+.form-group.string.optional.label-container
+  .col-sm-6
+    =render partial: 'admin/od_zones/od_zone_builder',
+      locals: { wrapper_id: 'region', label_text: ""}
+    =f.simple_fields_for :region do |r|
+      =r.input :recipe, as: :hidden,
+        input_html: { value: @od_zone.region.recipe.to_json.html_safe }
+
+  -# div for holding the service area map
+  .col-sm-6
+    #map
+
+:javascript
+  $(document).ready(function() {
+    var map = M.setupMap('map');
+
+    var fh = new FormHandler($('#{form_selector_from_id}'));
+
+    M.drawMaps(map, [
+      #{@od_zone.region && @od_zone.region.geom_to_array}
+    ]);
+
+    var startOrEndAreaRecipe = new M.Recipe({
+      container: $('#region'),
+      recipeInput: $('#od_zone_region_recipe'),
+      searchPath: '#{autocomplete_admin_od_zones_path}',
+      ingredientLabelTag: '#{escape_javascript( render partial: "admin/od_zones/ingredient_label", locals: {can_update: true})}'
+    });
+
+    fh.onReset(function() {
+      startOrEndAreaRecipe.reset();
+    });
+
+  });

@@ -194,7 +194,11 @@ Rails.application.routes.draw do
     # Landmark Sets
     resources :landmark_sets, :only => [:index, :create, :new]
 
-    resources :od_zones, :only => [:index, :create, :new]
+    resources :od_zones, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
+      collection do
+        get 'autocomplete' => 'od_zones#autocomplete'
+      end
+    end
 
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]

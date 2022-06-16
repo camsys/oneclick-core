@@ -72,5 +72,8 @@ class Landmark < Place
 
   end #Update
 
+  def self.search(term)
+    where('LOWER(name) LIKE :term', term: "%#{term.downcase}%")
+  end
 
 end #Landmark

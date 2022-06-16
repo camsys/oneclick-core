@@ -51,6 +51,7 @@
 
   .col-sm-12
     = render layout: '/layouts/panel' do
+      = render partial: 'travel_pattern_od_zones_form', locals: {mode: mode, f: f, agency: agency}
       = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}
       = render partial: 'travel_pattern_purposes_form', locals: {mode: mode, f: f, agency: agency}
       = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}

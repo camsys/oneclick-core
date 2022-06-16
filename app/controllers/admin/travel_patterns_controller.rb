@@ -88,13 +88,16 @@ class Admin::TravelPatternsController < Admin::AdminController
     permitted_params = params.require(:travel_pattern).permit(
       :agency_id, 
       :name,
-      :description, 
+      :description,
+      :origin_zone_id,
+      :destination_zone_id,
+      :allow_reverse_sequence_trips,
       travel_pattern_service_schedules_attributes: [ :id, :service_schedule_id, :_destroy ],
       travel_pattern_purposes_attributes: [ :id, :purpose_id, :_destroy ],
       travel_pattern_funding_sources_attributes: [ :id, :funding_source_id, :_destroy ],
     )
 
-    permitted_params[:travel_pattern_service_schedules_attributes].values.each_with_index do |schedule, index|
+    permitted_params[:travel_pattern_service_schedules_attributes]&.values&.each_with_index do |schedule, index|
       schedule[:priority] = index + 1 unless schedule[:service_schedule_id].blank?;
     end
 

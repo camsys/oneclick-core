@@ -44,6 +44,10 @@ header.header--two-col {
     min-width: 55%;
     height: 100%;
   }
+  > *:last-child {
+    min-width: 45%;
+    height: 100%;
+  }
 }
 footer.footer__links {
   display: flex;

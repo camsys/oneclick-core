@@ -22,6 +22,7 @@ class Agency < ApplicationRecord
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
   scope :oversight_agencies, -> { where(type: "OversightAgency") }
 
+  has_many :od_zones, dependent: :destroy
   has_many :services, foreign_key: "agency_id", dependent: :nullify
   has_many :service_schedules
   has_many :purposes, dependent: :destroy

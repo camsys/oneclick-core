@@ -1,0 +1,16 @@
+.btn.ingredient-container{style: 'height: 42px;' }
+  .col-sm-5
+    %label
+  .col-sm-1
+    %button.btn.btn-link.delete-geography{type:"button", disabled: local_assigns[:can_update] == false}
+      %span.glyphicon.glyphicon-remove
+  .col-sm-2
+    .form-check
+      %input#check1.form-check-input{:checked => "checked", :name => "option1", :type => "checkbox", :value => "something"}
+      Buffer:
+  .col-sm-3
+    %input.form-control.numeric{ type: 'number',
+          value: 500,
+          name: 'zone_buffer', style: 'vertical-align: middle;' }
+  .col-sm-1
+    ft.

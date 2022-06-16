@@ -98,6 +98,7 @@ gem 'rgeo'
 gem "rgeo-proj4"
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
+gem 'geospatial-kml'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps

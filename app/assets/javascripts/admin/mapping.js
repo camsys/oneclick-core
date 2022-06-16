@@ -2,7 +2,7 @@
 var M = {
   
   tileLayerUrls: {
-    osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     watercolor: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
     toner: 'http://tile.stamen.com/toner/{z}/{x}/{y}.png',
     cartocdn: 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'

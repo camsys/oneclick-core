@@ -83,22 +83,24 @@ class ShapefileUploader
         if @model.name == CustomGeography.name && Config.dashboard_mode == 'travel_patterns'
           attrs = {}
           if shapefile.num_records > 1
-            @warnings << 'Found multiple shapes while creating a custom geography. Uploader only expects one shape; only used the first shape.'
-          end
-          first_shape = shapefile.get(0)
-          attrs[:name] = first_shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
-          attrs[:state] = StateCodeDictionary.code(first_shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
-          geom = first_shape.geometry
-          Rails.logger.info "Loading #{attrs.values.join(",")}..."
-          record = ActiveRecord::Base.logger.silence do
-            @custom_geo = @model.create({ name: @name, agency: @agency })
-            @custom_geo.update_attributes(geom:geom)
-            # generally, the only error we're going to get are either the shapefile is invalid
-            # or the name was taken already
-            if @custom_geo.errors.present?
-              @errors << "#{@custom_geo.errors.full_messages.to_sentence} for #{@custom_geo.name}."
-            else
-              @custom_geo
+            @errors << 'Found multiple features while creating a custom geography. Uploader only accepts one feature'
+          else
+            first_shape = shapefile.get(0)
+            attrs[:name] = first_shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
+            attrs[:state] = StateCodeDictionary.code(42) if @column_mappings[:state]
+            #attrs[:state] = StateCodeDictionary.code(first_shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
+            geom = first_shape.geometry
+            Rails.logger.info "Loading #{attrs.values.join(",")}..."
+            record = ActiveRecord::Base.logger.silence do
+              @custom_geo = @model.create({ name: @name, agency: @agency })
+              @custom_geo.update_attributes(geom:geom)
+              # generally, the only error we're going to get are either the shapefile is invalid
+              # or the name was taken already
+              if @custom_geo.errors.present?
+                @errors << "#{@custom_geo.errors.full_messages.to_sentence} for #{@custom_geo.name}."
+              else
+                @custom_geo
+              end
             end
           end
           if record
@@ -111,7 +113,8 @@ class ShapefileUploader
           shapefile.each do |shape|
             attrs = {}
             attrs[:name] = shape.attributes[@column_mappings[:name]] if @column_mappings[:name]
-            attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
+            attrs[:state] = StateCodeDictionary.code(42) if @column_mappings[:state]
+            #attrs[:state] = StateCodeDictionary.code(shape.attributes[@column_mappings[:state]]) if @column_mappings[:state]
             geom = shape.geometry
             Rails.logger.info "Loading #{attrs.values.join(",")}..."
 
@@ -120,8 +123,8 @@ class ShapefileUploader
             # instead of doing a weird thing with active record logger
             record = ActiveRecord::Base.logger.silence do
               # The below is overly verbose for debugging purposes
-              geo = @model.find_or_create_by(attrs)
-              geo.update_attributes(geom:geom)
+              geo = @model.find_or_create_by!(attrs)
+              geo.update_attributes!(geom:geom)
               geo
             end
             if record
@@ -132,10 +135,10 @@ class ShapefileUploader
             end
           end
         end
-        @errors << "#{fail_count} records failed to load." if fail_count > 0
+        @errors << "#{fail_count} record(s) failed to load." if fail_count > 0
       end
     rescue StandardError
-      @errors << "An error occured while unpacking the uploaded Shapefile. Please double check your shapefile and try again"
+      @errors << "An error occurred while unpacking the uploaded Shapefile. Please double check your shapefile and try again"
     end
   end
 
