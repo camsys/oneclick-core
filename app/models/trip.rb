@@ -19,7 +19,7 @@ class Trip < ApplicationRecord
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
-  has_many :partner_agencies, through: :user 
+  has_many :oversight_agencies, through: :user
 
   has_many :trip_accommodations
   has_many :relevant_accommodations, class_name: "Accommodation", through: :trip_accommodations, source: :accommodation
@@ -129,8 +129,8 @@ class Trip < ApplicationRecord
   end
 
   # Scopes based on user
-  scope :partner_agency_in, -> (partner_agency) do
-    where(user_id: partner_agency.staff.pluck(:id))
+  scope :oversight_agency_in, -> (oversight_agency) do
+    where(user_id: oversight_agency.staff.pluck(:id))
   end
 
   # Scopes based on user

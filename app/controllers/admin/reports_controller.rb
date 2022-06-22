@@ -116,7 +116,7 @@ class Admin::ReportsController < Admin::AdminController
     @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-    @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
+    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
     @trips = @trips.order(:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
@@ -191,7 +191,7 @@ class Admin::ReportsController < Admin::AdminController
     @purposes = parse_id_list(params[:purposes])
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
-    @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
+    @oversight_agency = params[:oversight_agency].blank? ? nil : OversightAgency.find(params[:oversight_agency])
     @trip_only_created_in_1click = parse_bool(params[:trip_only_created_in_1click])
     # USER FILTERS
     @include_guests = parse_bool(params[:include_guests])
@@ -233,7 +233,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
-      :partner_agency,
+      :oversight_agency,
       
       # USER FILTERS
       :include_guests,
