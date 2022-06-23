@@ -1,0 +1,26 @@
+= simple_form_for booking_window,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'flex-outer', id: form_id_from_path, multipart: true, method: mode == 'new' ? :post : :put} do |form|
+
+  -max_notice = Config.maximun_booking_notice
+  .form-group
+    =form.association :agency, selected: @booking_window.agency.id, disabled: true, wrapper: :travel_patterns_input_group
+    =form.hidden_field :agency_id
+    =form.input :name, placeholder: 'Enter name of booking window', disabled: mode == 'view', wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :description, placeholder: 'Enter description of booking window', disabled: mode == 'view', wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :minimum_days_notice, label: 'Minimum Booking Days Notice', placeholder: 'Enter minimum days of lead time', input_html: {min: 1, max: max_notice, step: 1}, disabled: mode == 'view', wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :maximum_days_notice, label: 'Maximum Booking Days Notice', placeholder: 'Enter maximum days of lead time', input_html: {min: 1, max: max_notice, step: 1}, disabled: mode == 'view', wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :minimum_notice_cutoff_hour, label: 'Cutoff Time for Minimum Notice', collection: hours_for_select, include_blank: false, disabled: mode == 'view', wrapper: :travel_patterns_input_group
+
+  .text-center
+    -if mode == 'view'
+      =link_to 'Done', admin_booking_windows_path, class: 'btn btn-danger'
+    -else
+      =link_to 'Cancel', admin_booking_windows_path, class: 'btn btn-danger'
+      =form.submit 'Save', class: 'btn btn-primary'

@@ -1,0 +1,19 @@
+=form_tag(form_url, id: "#{prefix}-pois-search", method: :put, remote: true) do
+  .flex-inner
+    .input-group
+      .input-group-addon{style: "padding-left: 4px; padding-right: 4px; padding-top: 4px; padding-bottom: 0;"}
+        %label.control-label Show
+      =select_tag "#{prefix}_per_page", options_for_select([10, 15, 20, 25], pagy.items), class: "form-control"
+    .grow-1
+      .input-group
+        .input-group-addon{style: "padding-left: 4px; padding-right: 4px;"}
+          %i.glyphicon.glyphicon-search
+        %input{type: :text, id: "#{prefix}-query", name: "#{prefix}_query", class:"form-control", value: query, placeholder: "Search for #{prefix} POIs", style: "border-right: none"}
+        .input-group-btn
+          %button.btn.btn-default{type: "submit", style: "border-radius: 0; border-left: none; border-right: none; padding-left: 4px; padding-right: 4px;"}
+            %i.glyphicon.glyphicon-circle-arrow-right
+        .input-group-btn
+          %button.btn.btn-default{type: "submit", onclick: "$('##{prefix}-query').val('')", style: "border-left: none; padding-left: 4px; padding-right: 4px;"}
+            %i.glyphicon.glyphicon-remove-sign
+
+    =collective_action_button(prefix)

@@ -38,18 +38,20 @@
   url: form_url,
   authenticity_token: true,
   data: {type: 'html'},
-  html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+  html: {class: 'flex-outer form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
 
-  .col-sm-6
-    = f.association :agency, selected: agency.id, disabled: true
-    = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
-  .col-sm-6
-    = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", required: true
-  .col-sm-12
-    = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern"
+  .form-group
+    = f.association :agency, selected: agency.id, disabled: true, wrapper: :travel_patterns_input_group
+    = f.hidden_field :agency_id
+    = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", wrapper: :travel_patterns_input_group
+  .form-group
+    = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern", wrapper: :travel_patterns_input_group
+    %hr
+  .form-group
+    = f.association :booking_window, collection: options_for_booking_window(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group
     %hr
 
-  .col-sm-12
+  .form-group
     = render layout: '/layouts/panel' do
       = render partial: 'travel_pattern_od_zones_form', locals: {mode: mode, f: f, agency: agency}
       = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}

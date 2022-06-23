@@ -39,6 +39,11 @@
     input_html: {value: (Config.find_by(key: :max_walk_minutes).try(:value) || "45")},
     as: :integer
 
+  = f.input :maximun_booking_notice, require: true,
+    label: "Maximum Booking Notice (Days)",
+    input_html: {value: (Config.find_by(key: :maximun_booking_notice).try(:value) || "30")},
+    as: :integer
+
 
 :javascript
   $(document).ready(function() {    

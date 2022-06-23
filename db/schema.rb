@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220524184804) do
+ActiveRecord::Schema.define(version: 20220606232820) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -78,6 +78,20 @@ ActiveRecord::Schema.define(version: 20220524184804) do
     t.text     "audience_details"
     t.datetime "created_at",                            null: false
     t.datetime "updated_at",                            null: false
+  end
+
+  create_table "booking_windows", force: :cascade do |t|
+    t.integer  "agency_id",                  null: false
+    t.integer  "travel_pattern_id"
+    t.string   "name"
+    t.string   "description"
+    t.integer  "minimum_days_notice"
+    t.integer  "maximum_days_notice"
+    t.integer  "minimum_notice_cutoff_hour"
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+    t.index ["agency_id"], name: "index_booking_windows_on_agency_id", using: :btree
+    t.index ["travel_pattern_id"], name: "index_booking_windows_on_travel_pattern_id", using: :btree
   end
 
   create_table "bookings", force: :cascade do |t|
@@ -218,6 +232,15 @@ ActiveRecord::Schema.define(version: 20220524184804) do
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
   end
 
+  create_table "landmark_set_landmarks", force: :cascade do |t|
+    t.integer  "landmark_set_id", null: false
+    t.integer  "landmark_id",     null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.index ["landmark_id"], name: "index_landmark_set_landmarks_on_landmark_id", using: :btree
+    t.index ["landmark_set_id"], name: "index_landmark_set_landmarks_on_landmark_set_id", using: :btree
+  end
+
   create_table "landmark_sets", force: :cascade do |t|
     t.string  "name",        null: false
     t.integer "agency_id"
@@ -257,6 +280,17 @@ ActiveRecord::Schema.define(version: 20220524184804) do
     t.datetime "created_at",     null: false
     t.datetime "updated_at",     null: false
     t.index ["itinerary_id"], name: "index_lyft_extensions_on_itinerary_id", using: :btree
+  end
+
+  create_table "od_zones", force: :cascade do |t|
+    t.string   "name",        null: false
+    t.string   "description"
+    t.integer  "agency_id",   null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.integer  "region_id"
+    t.index ["agency_id"], name: "index_od_zones_on_agency_id", using: :btree
+    t.index ["region_id"], name: "index_od_zones_on_region_id", using: :btree
   end
 
   create_table "oneclick_refernet_categories", force: :cascade do |t|
@@ -523,10 +557,17 @@ ActiveRecord::Schema.define(version: 20220524184804) do
   end
 
   create_table "travel_patterns", force: :cascade do |t|
-    t.string  "name",        null: false
+    t.string  "name",                                        null: false
     t.text    "description"
     t.integer "agency_id"
+    t.integer "booking_window_id"
+    t.integer "origin_zone_id"
+    t.integer "destination_zone_id"
+    t.boolean "allow_reverse_sequence_trips", default: true, null: false
     t.index ["agency_id"], name: "index_travel_patterns_on_agency_id", using: :btree
+    t.index ["booking_window_id"], name: "index_travel_patterns_on_booking_window_id", using: :btree
+    t.index ["destination_zone_id"], name: "index_travel_patterns_on_destination_zone_id", using: :btree
+    t.index ["origin_zone_id"], name: "index_travel_patterns_on_origin_zone_id", using: :btree
   end
 
   create_table "traveler_transit_agencies", force: :cascade do |t|
@@ -690,14 +731,20 @@ ActiveRecord::Schema.define(version: 20220524184804) do
   add_foreign_key "agencies", "agency_types"
   add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
+  add_foreign_key "booking_windows", "agencies"
+  add_foreign_key "booking_windows", "travel_patterns"
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "custom_geographies", "agencies"
   add_foreign_key "funding_sources", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
+  add_foreign_key "landmark_set_landmarks", "landmark_sets"
+  add_foreign_key "landmark_set_landmarks", "landmarks"
   add_foreign_key "landmark_sets", "agencies"
   add_foreign_key "landmarks", "agencies"
+  add_foreign_key "od_zones", "agencies"
+  add_foreign_key "od_zones", "regions"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_services", column: "service_id"
   add_foreign_key "oneclick_refernet_services_sub_sub_categories", "oneclick_refernet_sub_sub_categories", column: "sub_sub_category_id"
   add_foreign_key "oneclick_refernet_sub_categories", "oneclick_refernet_categories", column: "category_id"
@@ -716,6 +763,9 @@ ActiveRecord::Schema.define(version: 20220524184804) do
   add_foreign_key "travel_pattern_purposes", "travel_patterns"
   add_foreign_key "travel_pattern_services", "services"
   add_foreign_key "travel_pattern_services", "travel_patterns"
+  add_foreign_key "travel_patterns", "booking_windows"
+  add_foreign_key "travel_patterns", "od_zones", column: "destination_zone_id"
+  add_foreign_key "travel_patterns", "od_zones", column: "origin_zone_id"
   add_foreign_key "traveler_transit_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
   add_foreign_key "traveler_transit_agencies", "users", on_delete: :cascade
   add_foreign_key "trips", "itineraries", column: "selected_itinerary_id"

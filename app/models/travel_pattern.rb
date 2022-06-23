@@ -5,8 +5,9 @@ class TravelPattern < ApplicationRecord
   scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
 
   belongs_to :agency
+  belongs_to :booking_window
 
-  has_many :travel_pattern_services
+  has_many :travel_pattern_services, dependent: :destroy
   has_many :services, through: :travel_pattern_services
   has_many :travel_pattern_service_schedules, dependent: :destroy
   has_many :service_schedules, through: :travel_pattern_service_schedules
@@ -19,7 +20,8 @@ class TravelPattern < ApplicationRecord
   accepts_nested_attributes_for :travel_pattern_purposes, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :travel_pattern_funding_sources, allow_destroy: true, reject_if: :all_blank
 
-  validates :name, presence: true, uniqueness: {scope: :agency_id}
+  validates :name, uniqueness: {scope: :agency_id}
+  validates_presence_of :name, :booking_window, :agency
 
   def self.for_user(user)
     if user.superuser?

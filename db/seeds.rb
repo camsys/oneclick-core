@@ -25,3 +25,8 @@ guest_user_email_domain.update_attributes(value: "example.com") unless guest_use
 
 ## Add Translations
 Rake::Task['simple_translation_engine:update'].invoke
+
+# Initialize maximum booking notice config
+Config.find_or_create_by(key: "maximun_booking_notice") do |config|
+  config.value = 30
+end
