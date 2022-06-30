@@ -5,6 +5,12 @@ class ServiceSchedule < ApplicationRecord
   scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :weekly_schedules, -> { joins(:service_schedule_type).merge(ServiceScheduleType.weekly_schedule_type) }
   scope :calendar_date_schedules, -> { joins(:service_schedule_type).merge(ServiceScheduleType.calendar_date_schedule_type) }
+  scope :for_date, -> (date) do
+    joins(:service_sub_schedules)
+      .where(arel_table[:start_date].lteq(date).or(arel_table[:start_date].eq(nil)))
+      .where(arel_table[:end_date].gteq(date).or(arel_table[:end_date].eq(nil)))
+      .merge(ServiceSubSchedule.for_date(date))
+  end
 
   belongs_to :agency
   belongs_to :service_schedule_type

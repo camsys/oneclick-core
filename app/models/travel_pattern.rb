@@ -3,6 +3,11 @@ class TravelPattern < ApplicationRecord
   scope :for_superuser, -> {all}
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id))}
   scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_date, -> (date) do
+    joins(:service_schedules, :booking_window)
+      .merge(ServiceSchedule.for_date(date))
+      .merge(BookingWindow.for_date(date))
+  end
 
   belongs_to :agency
   belongs_to :booking_window
@@ -22,6 +27,43 @@ class TravelPattern < ApplicationRecord
 
   validates :name, uniqueness: {scope: :agency_id}
   validates_presence_of :name, :booking_window, :agency
+
+  def to_api_response
+    agency_opts = { 
+      only: [:id, :name, :type] 
+    }
+
+    booking_window_opts = {
+      except: [:created_at, :updated_at]
+    }
+
+    service_schedule_type_opts = {
+      except: [:created_at, :updated_at]
+    }
+
+    service_sub_schedule_opts = {
+      except: [:created_at, :updated_at, :service_schedule_id]
+    }
+
+    service_schedule_opts = { 
+      except: [:created_at, :updated_at, :agency_id, :service_schedule_type_id],
+      include: {
+        service_schedule_type: service_schedule_type_opts,
+        service_sub_schedules: service_sub_schedule_opts
+      }
+    }
+
+    travel_pattern_opts = { 
+      only: [:id, :name, :description],
+      include: {
+        agency: agency_opts,
+        booking_window: booking_window_opts,
+        service_schedules: service_schedule_opts
+      }
+    }
+
+    self.as_json(travel_pattern_opts)
+  end
 
   def self.for_user(user)
     if user.superuser?
