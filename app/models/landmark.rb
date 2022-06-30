@@ -1,7 +1,7 @@
 class Landmark < Place
   ### Associations ###
   belongs_to :agency
-  has_many :landmark_set_landmarks, inverse_of: :landmark
+  has_many :landmark_set_landmarks, inverse_of: :landmark, dependent: :destroy
   has_many :landmark_sets, through: :landmark_set_landmarks
 
   ### Validations ####

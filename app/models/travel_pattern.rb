@@ -77,7 +77,7 @@ class TravelPattern < ApplicationRecord
     end
   end
 
-  def schedules_by_type
+  def schedules_by_type(schedules_loaded = false)
     # Prepping the return value
     schedules_by_type = {
       weekly_schedules: [],
@@ -86,7 +86,9 @@ class TravelPattern < ApplicationRecord
     }
 
     # Get all associated schedules (in reverse alphabetical order)
-    service_schedules = self.travel_pattern_service_schedules
+    service_schedules = schedules_loaded ? 
+                          self.travel_pattern_service_schedules.to_a :
+                          self.travel_pattern_service_schedules
                             .eager_load(service_schedule: :service_schedule_type)
                             .joins(:service_schedule)
                             .merge(ServiceSchedule.order(name: :desc))

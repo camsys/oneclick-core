@@ -73,12 +73,13 @@ namespace :qa do
 
     desc "Setup Sample Purposes"
     task purposes: :environment do
-      purps = [{code: "grocery"}, {code: "medical"}, {code: 'shopping'}]
+      # CONFIRM
+      purps = [{name: "grocery"}, {name: "medical"}, {name: 'shopping'}]
       purps.each do |purp|
-        Purpose.where(code: purp[:code]).first_or_create!(purp)
-        tk = TranslationKey.where(name: 'purpose_' + purp[:code] + '_name').first_or_create 
+        Purpose.where(code: purp[:name]).first_or_create!(purp)
+        tk = TranslationKey.where(name: 'purpose_' + purp[:name] + '_name').first_or_create 
         locale = Locale.find_by(name: "en")
-        Translation.where(locale: locale, translation_key: tk, value: purp[:code].titleize).first_or_create
+        Translation.where(locale: locale, translation_key: tk, value: purp[:name].titleize).first_or_create
       end
     end
 

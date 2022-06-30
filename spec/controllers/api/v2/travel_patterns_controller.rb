@@ -49,15 +49,15 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
         expect(agency_ids).to all(eq user_agency.id)
       end
 
-      it "filters based on purpose_id" do
-        get :index, params: {travel_pattern: {purpose_id: purpose.id}}
+      it "filters based on purpose" do
+        get :index, params: {purpose: purpose[:name]}
         travel_patterns = JSON.parse(response.body)["data"]
 
         expect(travel_patterns.map { |t| t["id"] }).to eq([weekly_pattern, calendar_pattern].map(&:id))
       end
 
       it "selects travel patterns with weekly pattern schedules" do
-        get :index, params: {travel_pattern: {date: weekly_date}}
+        get :index, params: {date: weekly_date}
         weekly_travel_patterns = JSON.parse(response.body)["data"]
 
         expect(weekly_travel_patterns.map { |t| t["id"] }).to include(weekly_pattern.id)
@@ -65,7 +65,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
       end
 
       it "selects travel patterns with calendar date schedules" do
-        get :index, params: {travel_pattern: {date: calendar_date}}
+        get :index, params: {date: calendar_date}
         calendar_travel_patterns = JSON.parse(response.body)["data"]
 
         expect(calendar_travel_patterns.map { |t| t["id"] }).to include(calendar_pattern.id)
@@ -73,7 +73,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
       end
 
       it "filters based on both purpose_id and date at once" do
-        get :index, params: {travel_pattern: {purpose_id: purpose.id, date: weekly_date}}
+        get :index, params: {purpose: purpose[:name], date: weekly_date}
         travel_patterns = JSON.parse(response.body)["data"]
 
         expect(travel_patterns.map { |t| t["id"] }).to eq([weekly_pattern].map(&:id))
@@ -83,7 +83,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
         time = 6.hours
         duration = 1.hours
 
-        get :index, params: {travel_pattern: {start_time: time, duration: duration}}
+        get :index, params: {start_time: time, end_time: time + duration}
         expect(response).to have_http_status(:not_found)
       end
 
@@ -91,7 +91,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
         time = 10.hours
         duration = 1.hours
 
-        get :index, params: {travel_pattern: {start_time: time, duration: duration}}
+        get :index, params: {start_time: time, end_time: time + duration}
         expect(response).to be_success
       end
 
@@ -103,7 +103,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
         new_schedule.service_sub_schedules.first.update(calendar_date: Date.strptime(weekly_date, '%Y-%m-%d'), start_time: 9.hours, end_time: 11.hours)
         create(:travel_pattern_service_schedule, travel_pattern: weekly_pattern, service_schedule: new_schedule)
 
-        get :index, params: {travel_pattern: {purpose_id: purpose.id, date: weekly_date, start_time: time, duration: duration}}
+        get :index, params: {purpose: purpose[:name], date: weekly_date, start_time: time, end_time: time + duration}
         expect(response).to have_http_status(:not_found)
       end
 
@@ -115,7 +115,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
         new_schedule.service_sub_schedules.first.update(calendar_date: weekly_date, start_time: 9.hours, end_time: 15.hours)
         create(:travel_pattern_service_schedule, travel_pattern: weekly_pattern, service_schedule: new_schedule)
 
-        get :index, params: {travel_pattern: {purpose_id: purpose.id, date: weekly_date, start_time: time, duration: duration}}
+        get :index, params: {purpose_id: purpose.id, date: weekly_date, start_time: time, end_time: time + duration}
         expect(response).to be_success
       end
     end
