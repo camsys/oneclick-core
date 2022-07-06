@@ -130,12 +130,12 @@ class Trip < ApplicationRecord
 
   # Scopes based on user
   scope :oversight_agency_in, -> (oversight_agency) do
-    where(user_id: oversight_agency.staff.pluck(:id))
+    where(user_id: oversight_agency.staff_and_admins.pluck(:id))
   end
 
   # Scopes based on user
   scope :partner_agency_in, -> (partner_agency) do
-    where(user_id: partner_agency.staff.pluck(:id))
+    where(user_id: partner_agency.staff_and_admins.pluck(:id))
   end
   
   ### CLASS METHODS ###
