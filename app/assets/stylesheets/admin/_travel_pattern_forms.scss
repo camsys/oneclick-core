@@ -1,24 +1,29 @@
 // Flex Forms
 .flex-outer .form-group {
-  margin-left: -5px;
+  margin-left: -10px;
+  flex-basis: min-content;
+  flex-wrap: wrap;
 }
 
 .flex-outer .form-group, .flex-inner {
   display: flex;
-  flex-wrap: wrap;
   row-gap: 15px;
 }
 
 .flex-inner > label {
   text-align: right;
-  min-width: 88px;
   padding-right: 10px;
   padding-top: 5px;
+  min-width: 87px;
 }
  
 .flex-inner {
-  flex: 1 0 auto;
-  margin-left: 5px;
+  flex: 1 0 max-content;
+  margin-left: 10px;
+}
+
+.flex-inner .pull-right {
+  margin-left: auto;
 }
 
 .grow-1 {

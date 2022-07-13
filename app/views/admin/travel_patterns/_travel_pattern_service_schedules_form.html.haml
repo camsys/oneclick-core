@@ -1,20 +1,51 @@
 -# For use in building new service schedule forms
 -can_update = (mode != 'view' && (can? :update, @travel_pattern))
+-travel_pattern_service_schedule_fields = [:id, :service_schedule_id, :overides_other_schedules, :_destroy]
 
 .form-group.string.optional.label-container
-  .col-sm-12
+  .flex-inner
     %label.control-label.text.optional
-      Service Schedules (Prioritized Order):
+      Weekly Service Schedules
 .well.well-sm.autocomplete-tag-index
-  =f.simple_fields_for :travel_pattern_service_schedules,@travel_pattern_service_schedules do |tpss_form|
+  =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern_service_schedules[:weekly_schedules] do |tpss_form|
     -object = tpss_form.object
-    =render partial: "autocomplete_tag", locals: { form: tpss_form, tag_label: object&.service_schedule&.name, object: object, unique_key: :service_schedule_id, object_fields: [:id, :service_schedule_id, :_destroy], can_update: can_update }
+    =render partial: "autocomplete_tag", locals: { form: tpss_form, tag_label: object&.service_schedule&.name, object: object, unique_key: :service_schedule_id, object_fields: travel_pattern_service_schedule_fields, can_update: can_update }
   .autocomplete-tag-new
     .input-group
-      %input.autocomplete-field.form-control{ placeholder: 'Enter a service schedule', data: { source: "travelPatternServiceSchedulesSource" } }
+      %input.autocomplete-field.form-control{ placeholder: 'Add a weekly pattern schedule', data: { source: "travelPatternWeeklySchedulesSource" } }
+    .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
+
+.form-group.string.optional.label-container
+  .flex-inner
+    %label.control-label.text.optional
+      Reduced Service Schedules (e.g. Holidays) that Override Standard Weekly Service
+.well.well-sm.autocomplete-tag-index
+  =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern_service_schedules[:reduced_service_schedules] do |tpss_form|
+    -object = tpss_form.object
+    =render partial: "autocomplete_tag", locals: { form: tpss_form, tag_label: object&.service_schedule&.name, object: object, unique_key: :service_schedule_id, object_fields: travel_pattern_service_schedule_fields, can_update: can_update }
+  .autocomplete-tag-new
+    .input-group
+      %input.autocomplete-field.form-control{ placeholder: 'Add a calendar dates schedule', data: { source: "travelPatternCalendarDateSchedulesSource" } }
+    .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
+
+.form-group.string.optional.label-container
+  .flex-inner
+    %label.control-label.text.optional
+      Extra Service Schedules that Are Added to Standard Weekly Service
+.well.well-sm.autocomplete-tag-index
+  =f.simple_fields_for :travel_pattern_service_schedules, @travel_pattern_service_schedules[:extra_service_schedules] do |tpss_form|
+    -object = tpss_form.object
+    =render partial: "autocomplete_tag", locals: { form: tpss_form, tag_label: object&.service_schedule&.name, object: object, unique_key: :service_schedule_id, object_fields: travel_pattern_service_schedule_fields, can_update: can_update }
+  .autocomplete-tag-new
+    .input-group
+      %input.autocomplete-field.form-control{ placeholder: 'Add a calendar dates schedule', data: { source: "travelPatternCalendarDateSchedulesSource" } }
     .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
 
 :javascript
-  function travelPatternServiceSchedulesSource () {
-    return JSON.parse('#{@agency.service_schedules.order(:name).map{ |service_schedule| {label: service_schedule[:name], "unique-key" => service_schedule.id}}.to_json.html_safe}');
+  function travelPatternWeeklySchedulesSource () {
+    return JSON.parse('#{@agency.service_schedules.weekly_schedules.order(:name).map{ |service_schedule| {label: service_schedule[:name], "unique-key" => service_schedule.id}}.to_json.html_safe}');
+  }
+
+  function travelPatternCalendarDateSchedulesSource () {
+    return JSON.parse('#{@agency.service_schedules.calendar_date_schedules.order(:name).map{ |service_schedule| {label: service_schedule[:name], "unique-key" => service_schedule.id}}.to_json.html_safe}');
   }

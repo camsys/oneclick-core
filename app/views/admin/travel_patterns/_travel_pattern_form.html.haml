@@ -3,29 +3,26 @@
     text-align: center;
   }
 
-  #travel_pattern_description {
-    resize: none;
-  }
-
-  .travel_pattern_agency label, .travel_pattern_name label {
-    width: 17%;
-    text-align: left; !important;
-  }
-
-  .travel_pattern_agency .col-sm-9, .travel_pattern_name .col-sm-9 {
-    width: 83%;
-  }
-
-  .travel_pattern_description label {
-    width: 8.5%;
-  }
-
-  .travel_pattern_description .col-sm-9 {
-    width: 91.5%;
-  }
-
   .ui-helper-hidden-accessible {
     display: none;
+  }
+
+  .form-container.panel { 
+    width: 100%;
+  }
+
+  input[type="checkbox"] {
+    margin-left: 5px;
+  }
+
+  .form-group .col-sm-12 {
+    padding: 0 0 0 5px;
+    width: 100%;
+  }
+
+  .form-group .col-sm-9 {
+    padding: 0;
+    flex-grow: 1;
   }
 
 - mode = local_assigns[:mode]
@@ -40,23 +37,24 @@
   data: {type: 'html'},
   html: {class: 'flex-outer form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
 
-  .form-group
-    = f.association :agency, selected: agency.id, disabled: true, wrapper: :travel_patterns_input_group
-    = f.hidden_field :agency_id
-    = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", wrapper: :travel_patterns_input_group
-  .form-group
-    = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern", wrapper: :travel_patterns_input_group
+  = render layout: '/layouts/panel' do
+    .form-group
+      = f.association :agency, selected: agency.id, disabled: true, wrapper: :travel_patterns_input_group
+      = f.hidden_field :agency_id
+      = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", wrapper: :travel_patterns_input_group
+    .form-group
+      = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern", wrapper: :travel_patterns_input_group
     %hr
-  .form-group
-    = f.association :booking_window, collection: options_for_booking_window(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group
+    .form-group
+      = f.association :booking_window, collection: options_for_booking_window(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group
     %hr
-
-  .form-group
-    = render layout: '/layouts/panel' do
-      = render partial: 'travel_pattern_od_zones_form', locals: {mode: mode, f: f, agency: agency}
-      = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}
-      = render partial: 'travel_pattern_purposes_form', locals: {mode: mode, f: f, agency: agency}
-      = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
+    = render partial: 'travel_pattern_od_zones_form', locals: {mode: mode, f: f, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_purposes_form', locals: {mode: mode, f: f, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
 
 :javascript
   $(document).on("turbolinks:load", function() {

@@ -1,5 +1,6 @@
 class Admin::FundingSourcesController < Admin::AdminController
   load_and_authorize_resource except: :index
+  before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
     @funding_sources = FundingSource.accessible_by(current_ability)
@@ -14,7 +15,7 @@ class Admin::FundingSourcesController < Admin::AdminController
   end
 
   def new
-    @funding_source.agency = Agency.find(params[:agency_id])
+    @funding_source.agency = @agency
   end
 
   def edit

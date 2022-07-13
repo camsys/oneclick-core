@@ -3,6 +3,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
   include RemoteFormResponder
 
   load_and_authorize_resource
+  before_action :load_agency_from_params_or_user, only: [:new, :create]
   before_action :load_agency, only: [:new, :create]
   before_action :load_queries, only: [:new, :edit]
   before_action :load_pois, only: [:new, :edit]
@@ -70,7 +71,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def load_agency
-    @landmark_set.agency ||= Agency.find(params[:agency_id])
+    @landmark_set.agency ||= @agency
   end
 
   def load_queries

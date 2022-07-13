@@ -1,6 +1,9 @@
 class Admin::TravelPatternsController < Admin::AdminController
   load_resource only: [:show, :new, :edit, :update, :destroy]
+  before_action :load_agency_from_params_or_user, only: [:new]
   before_action :load_child_resources, only: [:show, :edit]
+  before_action :ensure_child_resources, only: [:new]
+  before_action :build_blank_child_resources, only: [:new, :show, :edit]
 
   def index
     @travel_patterns = get_travel_patterns_for_current_user
@@ -11,8 +14,7 @@ class Admin::TravelPatternsController < Admin::AdminController
   end
 
   def new
-    @travel_pattern.agency = Agency.find(params[:agency_id])
-    @agency = @travel_pattern.agency
+    @travel_pattern.agency = @agency
   end
 
   def create
@@ -94,7 +96,7 @@ class Admin::TravelPatternsController < Admin::AdminController
       :destination_zone_id,
       :allow_reverse_sequence_trips,
       :booking_window_id,
-      travel_pattern_service_schedules_attributes: [ :id, :service_schedule_id, :_destroy ],
+      travel_pattern_service_schedules_attributes: [ :id, :service_schedule_id, :overides_other_schedules, :_destroy ],
       travel_pattern_purposes_attributes: [ :id, :purpose_id, :_destroy ],
       travel_pattern_funding_sources_attributes: [ :id, :funding_source_id, :_destroy ],
     )
@@ -107,22 +109,39 @@ class Admin::TravelPatternsController < Admin::AdminController
   end
 
   def load_child_resources
-    @travel_pattern_service_schedules = @travel_pattern.travel_pattern_service_schedules
-                                                       .includes(:service_schedule)
-                                                       .joins(:service_schedule)
-                                                       .merge(ServiceSchedule.order(:name))
-    @travel_pattern_service_schedules += [@travel_pattern_service_schedules.build]
+    @travel_pattern_service_schedules = @travel_pattern.schedules_by_type
 
     @travel_pattern_purposes = @travel_pattern.travel_pattern_purposes
                                               .includes(:purpose)
                                               .joins(:purpose)
                                               .merge(Purpose.order(:name))
-    @travel_pattern_purposes += [@travel_pattern_purposes.build]
 
     @travel_pattern_funding_sources = @travel_pattern.travel_pattern_funding_sources
                                                      .includes(:funding_source)
                                                      .joins(:funding_source)
                                                      .merge(FundingSource.order(:name))
-    @travel_pattern_funding_sources += [@travel_pattern_funding_sources.build]
+  end
+
+  def ensure_child_resources
+    @travel_pattern_service_schedules ||= {
+      weekly_schedules: [],
+      extra_service_schedules: [],
+      reduced_service_schedules: [],
+    }
+
+    @travel_pattern_purposes ||= []
+
+    @travel_pattern_funding_sources ||= []
+  end
+
+  # The autocomplete fields use a blank association as a template when adding tags.
+  def build_blank_child_resources
+    @travel_pattern_service_schedules[:weekly_schedules] << @travel_pattern.travel_pattern_service_schedules.build(overides_other_schedules: false)
+    @travel_pattern_service_schedules[:extra_service_schedules] << @travel_pattern.travel_pattern_service_schedules.build(overides_other_schedules: false)
+    @travel_pattern_service_schedules[:reduced_service_schedules] << @travel_pattern.travel_pattern_service_schedules.build(overides_other_schedules: true)
+
+    @travel_pattern_purposes += [@travel_pattern.travel_pattern_purposes.build]
+
+    @travel_pattern_funding_sources += [@travel_pattern.travel_pattern_funding_sources.build]
   end
 end

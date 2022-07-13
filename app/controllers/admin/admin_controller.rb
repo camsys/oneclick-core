@@ -56,5 +56,10 @@ class Admin::AdminController < ApplicationController
                                               ]
                                             })
   end
+
+  def load_agency_from_params_or_user
+    @agency = current_user.current_agency
+    @agency ||= Agency.find(params[:agency_id]) if params[:agency_id]
+  end
     
 end
