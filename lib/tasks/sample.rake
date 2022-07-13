@@ -258,8 +258,8 @@ namespace :db do
     desc "Sample Service Schedules and Types"
     task service_schedules: :environment do
       schedule_types = [
-          {name: "Weekly pattern"},
-          {name: "Selected calendar dates"}
+          {name: ServiceScheduleType::WEEKLY_SCHEDULE },
+          {name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE }
       ]
 
       schedule_types.each do |t|
@@ -269,12 +269,12 @@ namespace :db do
       service_schedules = [
           {
             service: Service.first,
-            service_schedule_type: ServiceScheduleType.find_by(name: "Weekly pattern"),
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::WEEKLY_SCHEDULE),
             name: "Weekly standard service"
           },
           {
             service: Service.first,
-            service_schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates"),
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE),
             name: "2022 Holidays",
             start_date: Date.new(2022, 01, 01),
             end_date: Date.new(2022, 12, 31)

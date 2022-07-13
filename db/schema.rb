@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220606232820) do
+ActiveRecord::Schema.define(version: 20220713133533) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -541,8 +541,9 @@ ActiveRecord::Schema.define(version: 20220606232820) do
     t.integer  "travel_pattern_id"
     t.integer  "service_schedule_id"
     t.integer  "priority"
-    t.datetime "created_at",          null: false
-    t.datetime "updated_at",          null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+    t.boolean  "overides_other_schedules", default: false
     t.index ["service_schedule_id"], name: "index_travel_pattern_service_schedules_on_service_schedule_id", using: :btree
     t.index ["travel_pattern_id"], name: "index_travel_pattern_service_schedules_on_travel_pattern_id", using: :btree
   end

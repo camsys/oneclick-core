@@ -2,7 +2,7 @@
 -can_update = (mode != 'view' && (can? :update, @travel_pattern))
 
 .form-group.string.optional.label-container
-  .col-sm-12
+  .flex-inner
     %label.control-label.text.optional
       Eligible Funding Sources:
     .btn.btn-primary.pull-right.autocomplete-add-all{ data: { selector: ".funding_sources", source: "travelPatternFundingSourcesSource" } }

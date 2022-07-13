@@ -1,4 +1,5 @@
 class Admin::PurposesTravelPatternsController < Admin::AdminController
+  before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
     @purposes = Purpose.accessible_by(current_ability)
@@ -22,8 +23,7 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
   end
 
   def new
-    agency = Agency.find(params[:agency_id])
-    @purpose = Purpose.new(agency: agency)
+    @purpose = Purpose.new(agency: @agency)
     authorize! :create, @purpose
   end
 

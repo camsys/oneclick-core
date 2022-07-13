@@ -28,7 +28,7 @@
 -calendar_time_sub_schedules = @service_schedule.service_sub_schedules.for_calendar_type.select('distinct on (start_time, end_time) *').build
 -calendar_time_schedules_json = @service_schedule.service_sub_schedules.for_calendar_type.select('distinct on (start_time, end_time) *').for_calendar_time_display.to_json.html_safe
 
-.form-inline.schedule-week-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Weekly pattern").id}}
+.form-inline.schedule-week-container{:data => {schedule_type: ServiceScheduleType.weekly_schedule.id}}
   -# Build a schedule row for each weekday
   -(0..6).each do |d|
     -day_scheds = @service_schedule.service_sub_schedules.by_day(d).for_display
@@ -68,7 +68,7 @@
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
 
-.form-inline.schedule-calendar-dates-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates").id}}
+.form-inline.schedule-calendar-dates-container{:data => {schedule_type: ServiceScheduleType.calendar_date_schedule.id}}
   -# Build a schedule row for calendar dates
   %label.col-sm-2.schedule-row-label
     %span{class: 'text-default'}
@@ -80,8 +80,8 @@
         %button.btn.add-calendar-date-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
           %span.text-muted Add a date
           %span.text-muted.glyphicon.glyphicon-plus
-%hr
-.form-inline.schedule-calendar-times-container{:data => {schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates").id}}
+
+.form-inline.schedule-calendar-times-container{:data => {schedule_type: ServiceScheduleType.calendar_date_schedule.id}}
   -# Build a schedule row for times
   %label.col-sm-2.schedule-row-label
     %span{class: 'text-default'}
@@ -120,14 +120,14 @@
 
       // Reset the schedule divs on form reset
       fh.onReset(function() {
-        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.find_by(name: "Weekly pattern").id}') {
+        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.weekly_schedule.id}') {
           weeklySch.reset();
           calendarDateSch._clear();
           calendarTimeSch._clear();
           $(".form-inline[data-schedule-type != '#{schedule_type&.id}']").hide();
           $(".form-inline[data-schedule-type = '#{schedule_type&.id}']").show();
         }
-        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.find_by(name: "Selected calendar dates").id}') {
+        if ('#{schedule_type&.id}' == '#{ServiceScheduleType.calendar_date_schedule.id}') {
           calendarDateSch.reset();
           calendarTimeSch.reset();
           weeklySch._clear();

@@ -1,4 +1,7 @@
 class Admin::ServiceSchedulesController < Admin::AdminController
+  authorize_resource except: :index
+  before_action :load_agency_from_params_or_user, only: [:new]
+
   def index
     @service_schedules = get_service_schedules_for_current_user
   end
@@ -12,11 +15,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
   def new
     @service_schedule = ServiceSchedule.new
-    @agency = current_user.current_agency
     @schedule_type = nil
   end
 
   def create
+    debugger
+
     service_schedule_params = params.require(:service_schedule).except(:service_sub_schedules_attributes, :sub_schedule_calendar_dates_attributes, :sub_schedule_calendar_times_attributes).permit!
     if params[:service_schedule][:service_sub_schedules_attributes]
       sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
@@ -102,7 +106,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       redirect_to admin_service_schedules_path
     else
       flash[:danger] = error_message
-      redirect_to new_admin_service_schedule_path
+      redirect_to new_admin_service_schedule_path(agency_id: @service_schedule.agency_id)
     end
   end
 
@@ -151,7 +155,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           end
 
           # Editing Weekly pattern schedule type
-          if @service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Weekly pattern") && sub_schedule_params
+          if @service_schedule.is_a_weekly_schedule? && sub_schedule_params
             sub_schedule_params.each do |s|
               if s[:_destroy] == "true"
                 unless s[:id].blank?
@@ -184,7 +188,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
             end
 
           # Editing Selected calendar dates schedule type
-          elsif @service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Selected calendar dates") && calendar_date_params && calendar_time_params
+          elsif @service_schedule.is_a_calendar_date_schedule? && calendar_date_params && calendar_time_params
             # Parse calendar date inputs
             calendar_date_params.each do |d|
               date = d[:calendar_date]

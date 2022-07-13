@@ -3,7 +3,7 @@ class ServiceSubSchedule < ApplicationRecord
   include ScheduleHelper
 
   ### VALIDATIONS ###
-  validates_inclusion_of :day, in: SUN..SAT, if: -> {service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Weekly pattern")} # 0 = Sunday .. 6 = Saturday
+  validates_inclusion_of :day, in: SUN..SAT, if: -> {service_schedule.is_a_weekly_schedule?} # 0 = Sunday .. 6 = Saturday
   validates_inclusion_of :start_time, in: 0..DAY_LENGTH # seconds since midnight
   validates_inclusion_of :end_time, in: 0..DAY_LENGTH  # seconds since midnight
   validate :start_time_must_be_before_end_time
@@ -23,8 +23,8 @@ class ServiceSubSchedule < ApplicationRecord
   scope :overlapping_with, -> (sched) do
     by_day(sched.day).where(start_time: sched.to_range).where.not(id: sched.id)
   end
-  scope :for_weekly_type, -> {where(service_schedule: ServiceSchedule.where(service_schedule_type: ServiceScheduleType.find_by(name: "Weekly pattern")))}
-  scope :for_calendar_type, -> {where(service_schedule: ServiceSchedule.where(service_schedule_type: ServiceScheduleType.find_by(name: "Selected calendar dates")))}
+  scope :for_weekly_type, -> {where(service_schedule: ServiceSchedule.weekly_schedules)}
+  scope :for_calendar_type, -> {where(service_schedule: ServiceSchedule.calendar_date_schedules)}
 
 
   ### CLASS METHODS ###

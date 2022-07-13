@@ -1,12 +1,13 @@
 class Admin::BookingWindowsController < Admin::AdminController
   load_and_authorize_resource
+  before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
     @booking_windows = @booking_windows.order(:name)
   end
 
   def new
-    @booking_window.agency = Agency.find(params[:agency_id])
+    @booking_window.agency = @agency
   end
 
   def create
