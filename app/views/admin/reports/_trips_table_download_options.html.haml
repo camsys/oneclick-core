@@ -13,9 +13,8 @@
   
 -# TRIP PURPOSES
 = f.input :purposes, required: false,
-    collection: Purpose.all, 
-    as: :check_boxes, 
-    value_method: :id,
+    collection: Purpose.all.map{|p| [p[:name], p[:id]]},
+    as: :check_boxes,
     label: "Trip Purpose"
 
 -# Oversight Agency

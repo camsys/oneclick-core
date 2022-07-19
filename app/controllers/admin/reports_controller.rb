@@ -188,7 +188,7 @@ class Admin::ReportsController < Admin::AdminController
     # TRIP FILTERS
     @trip_time_from_date = parse_date_param(params[:trip_time_from_date])
     @trip_time_to_date = parse_date_param(params[:trip_time_to_date])
-    @purposes = parse_id_list(params[:purposes])
+    @purposes = Purpose.where(id: parse_id_list(params[:purposes])).pluck(:name)
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
     @oversight_agency = params[:oversight_agency].blank? ? nil : OversightAgency.find(params[:oversight_agency])

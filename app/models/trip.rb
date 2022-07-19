@@ -97,8 +97,8 @@ class Trip < ApplicationRecord
   end
   
   # Returns trip that have any of the given purposes
-  scope :with_purpose, -> (purpose_ids) do
-    where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
+  scope :with_purpose, -> (purposes) do
+    where(id: where(external_purpose: purposes).pluck(:id))
   end
 
   # Return trips that are transit trips
