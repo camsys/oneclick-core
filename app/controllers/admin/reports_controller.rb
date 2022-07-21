@@ -113,7 +113,7 @@ class Admin::ReportsController < Admin::AdminController
     end
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
+    @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
@@ -188,7 +188,7 @@ class Admin::ReportsController < Admin::AdminController
     # TRIP FILTERS
     @trip_time_from_date = parse_date_param(params[:trip_time_from_date])
     @trip_time_to_date = parse_date_param(params[:trip_time_to_date])
-    @purposes = Purpose.where(id: parse_id_list(params[:purposes])).pluck(:name)
+    @purposes = parse_id_list(params[:purposes])
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
     @oversight_agency = params[:oversight_agency].blank? ? nil : OversightAgency.find(params[:oversight_agency])
