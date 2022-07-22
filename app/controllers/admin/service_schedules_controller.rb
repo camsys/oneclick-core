@@ -19,8 +19,6 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   def create
-    debugger
-
     service_schedule_params = params.require(:service_schedule).except(:service_sub_schedules_attributes, :sub_schedule_calendar_dates_attributes, :sub_schedule_calendar_times_attributes).permit!
     if params[:service_schedule][:service_sub_schedules_attributes]
       sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
