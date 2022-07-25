@@ -8,9 +8,8 @@ module Api
         travel_pattern_query = TravelPattern.where(agency: agency)
         Rails.logger.info("Filtering through Travel Patterns with agency_id: #{agency.id}")
 
-        # TODO
-        # travel_pattern_query = filter_by_origin(travel_pattern_query, query_params[:origin])
-        # travel_pattern_query = filter_by_destination(travel_pattern_query, query_params[:destination])
+        travel_pattern_query = filter_by_origin(travel_pattern_query, query_params[:origin])
+        travel_pattern_query = filter_by_destination(travel_pattern_query, query_params[:destination])
         travel_pattern_query = filter_by_purpose(travel_pattern_query, query_params[:purpose_id])
         travel_pattern_query = filter_by_date(travel_pattern_query, query_params[:date])
         travel_patterns = filter_by_time(travel_pattern_query, query_params[:start_time], query_params[:duration])
@@ -31,46 +30,44 @@ module Api
 
       def query_params
         @query ||= params.fetch(:travel_pattern, {}).permit(
-          :origin,
-          :destination,
           :purpose_id,
           :date,
           :start_time,
-          :duration
+          :duration,
+          :origin => [:lat, :lng],
+          :destination => [:lat, :lng]
         )
       end
 
-      # TODO
-      # def filter_by_origin(travel_pattern_query, origin)
-      #   return travel_pattern_query unless origin.present?
+      def filter_by_origin(travel_pattern_query, origin)
+         return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?
 
-      #   travel_patterns = TravelPattern.arel_table
-      #   origin_zone_ids = OdZone.joins(:region).merge(Region.containing(origin)).pluck(:id)
+         travel_patterns = TravelPattern.arel_table
+         origin_zone_ids = OdZone.joins(:region).merge(Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
 
-      #   travel_pattern_query.where(
-      #     travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
-      #       travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
-      #         travel_patterns[:allow_reverse_sequence_trips].eq(true)
-      #       )
-      #     )
-      #   )
-      # end
+         travel_pattern_query.where(
+           travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
+             travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
+               travel_patterns[:allow_reverse_sequence_trips].eq(true)
+             )
+           )
+         )
+      end
 
-      # TODO
-      # def filter_by_destination(travel_pattern_query, destination)
-      #   return travel_pattern_query unless destination.present?
+      def filter_by_destination(travel_pattern_query, destination)
+         return travel_pattern_query unless destination.present? && destination[:lat].present? && destination[:lng].present?
 
-      #   travel_patterns = TravelPattern.arel_table
-      #   destination_zone_ids = OdZone.joins(:region).merge(Region.containing(destination)).pluck(:id)
+         travel_patterns = TravelPattern.arel_table
+         destination_zone_ids = OdZone.joins(:region).merge(Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
 
-      #   travel_pattern_query.where(
-      #     travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
-      #       travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
-      #         travel_patterns[:allow_reverse_sequence_trips].eq(true)
-      #       )
-      #     )
-      #   )
-      # end
+         travel_pattern_query.where(
+           travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
+             travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
+               travel_patterns[:allow_reverse_sequence_trips].eq(true)
+             )
+           )
+         )
+      end
 
       def filter_by_purpose(travel_pattern_query, purpose_id)
         return travel_pattern_query unless purpose_id.present?
