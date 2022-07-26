@@ -4,6 +4,8 @@ FactoryBot.define do
 
     association :agency, factory: :transportation_agency
     booking_window { association :booking_window, agency: agency }
+    origin_zone { association :origin_zone, agency: agency }
+    destination_zone { association :destination_zone, agency: agency }
 
     trait :with_empty_service_schedule do
       after(:create) do |travel_pattern|

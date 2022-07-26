@@ -17,6 +17,17 @@ class BookingWindow < ApplicationRecord
     )
   end
 
+  def earliest_booking
+    present = DateTime.now
+    additional_notice = minimum_notice_cutoff_hour <= present.hour ? 1 : 0
+    (present + (minimum_days_notice + additional_notice).days).beginning_of_day
+  end
+
+  def latest_booking
+    present = DateTime.now
+    (present + maximum_days_notice.days).end_of_day
+  end
+
   private
 
   def valid_booking_notice

@@ -43,7 +43,7 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
       it "includes only travel patterns from the traveler's agency" do
         get :index, params: {}
         travel_patterns = JSON.parse(response.body)["data"]
-        agency_ids = travel_patterns.map { |t| t["agency"]["id"] }
+        agency_ids = travel_patterns.map { |t| t["agency_id"] }
 
         expect(travel_patterns.length).to eq(TravelPattern.where(agency: user_agency).count)
         expect(agency_ids).to all(eq user_agency.id)

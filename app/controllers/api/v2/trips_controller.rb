@@ -38,7 +38,7 @@ module Api
         trip_date = trip_time.to_date
 
         matching_travel_patterns = TravelPattern.joins(
-          :travel_pattern_purposes, 
+          :travel_pattern_purposes,
           :agency
         ).where(
           agency: agency

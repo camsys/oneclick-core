@@ -40,18 +40,18 @@ module Api
       end
 
       def filter_by_origin(travel_pattern_query, origin)
-         return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?
+        return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?
 
-         travel_patterns = TravelPattern.arel_table
-         origin_zone_ids = OdZone.joins(:region).merge(Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+        travel_patterns = TravelPattern.arel_table
+        origin_zone_ids = OdZone.joins(:region).merge(Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
 
-         travel_pattern_query.where(
-           travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
-             travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
-               travel_patterns[:allow_reverse_sequence_trips].eq(true)
-             )
-           )
-         )
+        travel_pattern_query.where(
+          travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
+            travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
+              travel_patterns[:allow_reverse_sequence_trips].eq(true)
+            )
+          )
+        )
       end
 
       def filter_by_destination(travel_pattern_query, destination)
@@ -96,7 +96,7 @@ module Api
         # Eager loading will ensure that all the previous filters will still apply to the nested relations
         travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: {service_schedule: [:service_schedule_type, :service_sub_schedules]})
         travel_patterns.select do |travel_pattern|
-          schedules = travel_pattern.schedules_by_type(true)
+          schedules = travel_pattern.schedules_by_type
 
           # If there are reduced schedules, then we don't need to check any other schedules
           if schedules[:reduced_service_schedules].present?

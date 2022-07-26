@@ -73,7 +73,6 @@ namespace :qa do
 
     desc "Setup Sample Purposes"
     task purposes: :environment do
-      # CONFIRM
       purps = [{name: "grocery"}, {name: "medical"}, {name: 'shopping'}]
       purps.each do |purp|
         Purpose.where(code: purp[:name]).first_or_create!(purp)

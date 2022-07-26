@@ -88,7 +88,6 @@ namespace :ecolane do
 
     unless local_error
       #If we made it this far, then we have a new set of POIs and we can delete the old ones.
-      # CONFIRM
       Landmark.is_old.destroy_all
       new_poi_count = Landmark.count
       messages << "Successfully loaded  #{new_poi_count} POIs"
