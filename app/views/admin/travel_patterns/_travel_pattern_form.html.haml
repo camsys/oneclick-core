@@ -56,6 +56,11 @@
     %hr
     = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
 
+    - content_for :footer do
+      .btn.btn-primary.form-submit Submit
+      %a.btn.btn-danger.form-reset{href: admin_travel_patterns_path} Cancel
+      
+
 :javascript
   $(document).on("turbolinks:load", function() {
     if (#{mode == "view"}) {

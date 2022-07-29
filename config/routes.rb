@@ -95,6 +95,9 @@ Rails.application.routes.draw do
       # Services
       resources :services, only: [:index]
 
+      # Travel Patterns
+      resources :travel_patterns, only: [:index]
+
       # Trips
       resources :trips, only: [:create, :show]
       post 'trips/plan' => 'trips#create'

@@ -25,6 +25,9 @@ class ServiceSubSchedule < ApplicationRecord
   end
   scope :for_weekly_type, -> {where(service_schedule: ServiceSchedule.weekly_schedules)}
   scope :for_calendar_type, -> {where(service_schedule: ServiceSchedule.calendar_date_schedules)}
+  scope :for_date, -> (date) do
+    where(arel_table[:calendar_date].eq(date).or(arel_table[:day].eq(date.wday)))
+  end
 
 
   ### CLASS METHODS ###

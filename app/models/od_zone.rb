@@ -3,6 +3,7 @@ class OdZone < GeographyRecord
 
   belongs_to :agency
   belongs_to :region, class_name: 'Region', foreign_key: :region_id, dependent: :destroy
+  accepts_nested_attributes_for :region
 
   make_attribute_mappable :geom
 

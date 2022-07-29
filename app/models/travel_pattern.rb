@@ -3,9 +3,16 @@ class TravelPattern < ApplicationRecord
   scope :for_superuser, -> {all}
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id))}
   scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_date, -> (date) do
+    joins(:service_schedules, :booking_window)
+      .merge(ServiceSchedule.for_date(date))
+      .merge(BookingWindow.for_date(date))
+  end
 
   belongs_to :agency
   belongs_to :booking_window
+  belongs_to :origin_zone, class_name: 'OdZone'
+  belongs_to :destination_zone, class_name: 'OdZone'
 
   has_many :travel_pattern_services, dependent: :destroy
   has_many :services, through: :travel_pattern_services
@@ -23,6 +30,15 @@ class TravelPattern < ApplicationRecord
   validates :name, uniqueness: {scope: :agency_id}
   validates_presence_of :name, :booking_window, :agency
 
+  def to_api_response
+    travel_pattern_opts = { 
+      only: [:id, :agency_id, :name, :description],
+      methods: :to_calendar
+    }
+
+    self.as_json(travel_pattern_opts)
+  end
+
   def self.for_user(user)
     if user.superuser?
       for_superuser.ordered
@@ -36,6 +52,8 @@ class TravelPattern < ApplicationRecord
   end
 
   def schedules_by_type
+    pre_loaded = self.association(:travel_pattern_service_schedules).loaded?
+
     # Prepping the return value
     schedules_by_type = {
       weekly_schedules: [],
@@ -44,8 +62,10 @@ class TravelPattern < ApplicationRecord
     }
 
     # Get all associated schedules (in reverse alphabetical order)
-    service_schedules = self.travel_pattern_service_schedules
-                            .eager_load(service_schedule: :service_schedule_type)
+    service_schedules = pre_loaded ? 
+                          self.travel_pattern_service_schedules.to_a :
+                          self.travel_pattern_service_schedules
+                            .eager_load(service_schedule: [:service_schedule_type, :service_sub_schedules])
                             .joins(:service_schedule)
                             .merge(ServiceSchedule.order(name: :desc))
                             .to_a
@@ -61,5 +81,69 @@ class TravelPattern < ApplicationRecord
     end
 
     return schedules_by_type
+  end
+
+  def to_calendar
+    travel_pattern_service_schedules = schedules_by_type
+
+    weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
+    extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
+    reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
+
+    calendar = {}
+    date = booking_window.earliest_booking.to_date
+    end_date = booking_window.latest_booking.to_date
+    
+    while date <= end_date
+      date_string = date.strftime('%Y-%m-%d')
+      calendar[date_string] = {}
+
+      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        next unless valid_start && valid_end
+        
+        sub_schedule = service_schedule.sub_schedules.find do |sub_schedule|
+          sub_schedules.calendar_date == date
+        end
+
+        break(sub_schedule) if sub_schedule
+      end
+
+      # Reduced schedules overwrite all other schedules so we can skip the rest of this iteration
+      if reduced_sub_schedule
+        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
+        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
+        date += 1.day
+        next
+      end
+
+      weekly_schedules = weekly_schedules.select do |service_schedule|
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start && valid_end
+      end
+
+      weekly_sub_schedules = weekly_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
+        sub_schedule.day == date.wday
+      end
+
+      extra_service_schedules = extra_service_schedules.select do |service_schedule|
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start && valid_end
+      end
+
+      extra_service_sub_schedules = extra_service_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
+        sub_schedule.calendar_date == date
+      end
+
+      sub_schedules = weekly_sub_schedules + extra_service_sub_schedules
+      calendar[date_string][:start_time] = sub_schedules.min_by(&:start_time)&.start_time
+      calendar[date_string][:end_time] = sub_schedules.max_by(&:end_time)&.end_time
+      date += 1.day
+    end
+
+    return calendar
   end
 end

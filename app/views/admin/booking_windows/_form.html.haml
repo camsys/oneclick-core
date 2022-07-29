@@ -4,7 +4,7 @@
   data: {type: 'html'},
   html: {class: 'flex-outer', id: form_id_from_path, multipart: true, method: mode == 'new' ? :post : :put} do |form|
 
-  -max_notice = Config.maximun_booking_notice
+  -max_notice = Config.maximum_booking_notice || 30
   .form-group
     =form.association :agency, selected: @booking_window.agency.id, disabled: true, wrapper: :travel_patterns_input_group
     =form.hidden_field :agency_id

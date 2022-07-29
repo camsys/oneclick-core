@@ -1,10 +1,9 @@
 FactoryBot.define do
   factory :booking_window do
-    agency nil
-    name "MyString"
-    description "MyString"
+    association :agency, factory: :transportation_agency
+    sequence(:name) { |n| "Booking Window #{n}" }
     minimum_days_notice 1
-    maximun_days_notice 1
-    notice_cutoff_time "2022-06-06 19:28:21"
+    maximum_days_notice 30
+    minimum_notice_cutoff_hour 12
   end
 end
