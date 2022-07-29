@@ -105,18 +105,16 @@ class Admin::ReportsController < Admin::AdminController
     # Get trips for the current user's agency and role
     @trips = current_user.get_trips_for_staff_user
 
-    if @trip_only_created_in_1click
-      non_1click_trips = @trips.joins(itineraries: :booking)
-                     .where(itineraries:{trip_type: 'paratransit'})
-                     .where(bookings:{created_in_1click: false}).select(:id)
-      @trips = @trips.where.not(id:non_1click_trips)
-    end
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+    if @trip_only_created_in_1click
+      @trips = @trips.joins(itineraries: :booking)
+                     .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
+    end
     @trips = @trips.order(:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv }
