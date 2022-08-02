@@ -14,7 +14,7 @@
       - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
         =link_to edit_admin_service_schedule_path(id: service_schedule.id), class: "edit_service_schedule_action_button action_button", title: "Edit Service Schedule" do
           %span.glyphicon.glyphicon-pencil
-        =link_to admin_service_schedule_path(service_schedule), method: :delete, class: "delete_service_schedule_action_button action_button", title: "Delete Service Schedule" do
+        =link_to admin_service_schedule_path(service_schedule), method: :delete, class: "delete_service_schedule_action_button action_button", title: "Delete Service Schedule", data: {confirm: 'Warning: This will delete the service schedule and it will be removed from any travel patterns in which it is currently being used. Press "OK" to confirm.'} do
           %span.glyphicon.glyphicon-trash
       - elsif current_user.oversight_staff? || current_user.transportation_staff?
         =link_to admin_service_schedule_path(service_schedule), class: "view_service_schedule_action_button action_button", title: "View Service Schedule" do
