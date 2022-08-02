@@ -14,6 +14,8 @@
 - mode = local_assigns[:mode]
 - agency = local_assigns[:agency]
 - schedule_type = local_assigns[:schedule_type]
+- schedule_name = local_assigns[:schedule_name]
+- schedule_description = local_assigns[:schedule_description]
 
 %h1
   = "#{mode.capitalize} Service Schedule"
@@ -28,11 +30,11 @@
     = f.association :agency, selected: agency.id, disabled: true
     = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
   .col-sm-4
-    = f.input :name, readonly: mode == "view", placeholder: "Enter schedule name"
+    = f.input :name, readonly: mode == "view", placeholder: "Enter schedule name", input_html: {value: schedule_name}
   .col-sm-4
     = f.association :service_schedule_type, label: "Type", collection: ServiceScheduleType.all, required: true, include_blank: "Select schedule type", disabled: mode == "view", value: schedule_type
   .col-sm-12
-    = f.input :description, readonly: mode == "view"
+    = f.input :description, readonly: mode == "view", input_html: {value: schedule_description}
     %hr
 
   .col-sm-12

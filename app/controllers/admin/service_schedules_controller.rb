@@ -11,11 +11,15 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
     @agency = @service_schedule.agency
     @schedule_type = @service_schedule.service_schedule_type
+    @schedule_name = @service_schedule.name
+    @schedule_description = @service_schedule.description
   end
 
   def new
     @service_schedule = ServiceSchedule.new
     @schedule_type = nil
+    @schedule_name = params[:name]
+    @schedule_description = params[:description]
   end
 
   def create
@@ -104,7 +108,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
       redirect_to admin_service_schedules_path
     else
       flash[:danger] = error_message
-      redirect_to new_admin_service_schedule_path(agency_id: @service_schedule.agency_id)
+      redirect_to new_admin_service_schedule_path(agency_id: @service_schedule.agency_id, name: service_schedule_params[:name], description: service_schedule_params[:description])
     end
   end
 
@@ -112,6 +116,8 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     @service_schedule = ServiceSchedule.find(params[:id])
     @agency = @service_schedule.agency
     @schedule_type = @service_schedule.service_schedule_type
+    @schedule_name = @service_schedule.name
+    @schedule_description = @service_schedule.description
   end
 
   def update
