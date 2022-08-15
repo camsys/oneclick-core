@@ -15,13 +15,14 @@ class ServiceSchedule < ApplicationRecord
   belongs_to :agency
   belongs_to :service_schedule_type
   has_many :service_sub_schedules, dependent: :destroy
-  has_many :travel_pattern_service_schedules
+  has_many :travel_pattern_service_schedules, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_service_schedules
 
   attr_accessor :sub_schedule_calendar_dates
   attr_accessor :sub_schedule_calendar_times
   accepts_nested_attributes_for :service_sub_schedules
 
+  validates :service_schedule_type, presence: true
   validates :name, presence: true, uniqueness: {scope: :agency_id}
   validate :end_date_after_start_date
 

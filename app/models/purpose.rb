@@ -10,6 +10,7 @@ class Purpose < ApplicationRecord
 
   before_save :snake_casify, if: :has_code?
   validate :name_is_present?
+  validates :name, uniqueness: {scope: :agency_id}
 
   def has_code?
     code.present?
@@ -17,5 +18,6 @@ class Purpose < ApplicationRecord
 
   def name_is_present?
     errors.add(:name, :blank) if self[:name].blank?
+    errors.add(:name, :taken) if Purpose.where.not(id: id).exists?(name: self[:name], agency_id: agency_id)
   end
 end

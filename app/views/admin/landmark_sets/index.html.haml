@@ -6,24 +6,21 @@
     %tr
       %th Agency
       %th Name
-      %th.td-buttons{'aria-label':'Buttons'}
+      %th{'aria-label':'Buttons'}
   -@landmark_sets.each do |sets|
     %tr{style: "cursor: pointer", data: {url: admin_landmark_sets_path}}
       %td
         =sets.agency&.name
       %td
         =sets.name
-      %td.td-buttons
+      %td.text-right
         -if can?(:show, LandmarkSet) && cannot?(:edit, LandmarkSet)
-          =link_to admin_landmark_sets_path,
-              class: "btn btn--no-bg" do
+          =link_to admin_landmark_sets_path, class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-eye-open
         -if can?(:show, LandmarkSet) && can?(:edit, LandmarkSet)
-          =link_to edit_admin_landmark_set_path(id: sets.id),
-              class: "btn btn--no-bg" do
+          =link_to edit_admin_landmark_set_path(id: sets.id), class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-pencil{aria:{hidden:true}}
-        =link_to admin_landmark_set_path(id: sets.id), method: :delete,
-            class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
+        =link_to admin_landmark_set_path(id: sets.id), method: :delete, class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
           %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
 
 %footer.footer__links

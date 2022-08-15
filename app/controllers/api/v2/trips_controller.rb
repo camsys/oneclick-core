@@ -43,7 +43,7 @@ module Api
         ).where(
           agency: agency
         ).merge(
-          TravelPatternPurpose.where(purpose_id: params[:purpose_id])
+          TravelPatternPurpose.where(purpose_id: trip_params[:purpose_id])
         ).for_date(trip_date)
 
         # Initialize a trip based on the params

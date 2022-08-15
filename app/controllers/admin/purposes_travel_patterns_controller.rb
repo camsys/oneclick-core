@@ -1,5 +1,5 @@
 class Admin::PurposesTravelPatternsController < Admin::AdminController
-  before_action :load_agency_from_params_or_user, only: [:new]
+  before_action :load_agency_from_params_or_user, only: [:new, :create]
 
   def index
     @purposes = Purpose.accessible_by(current_ability)
@@ -31,9 +31,12 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
     @purpose = Purpose.new(purpose_params)
     @purpose.agency_id = params[:agency_id]
     authorize! :create, @purpose
-  	@purpose.save
-
-  	redirect_to admin_trip_purposes_path
+  	if @purpose.save
+      redirect_to admin_trip_purposes_path
+    else
+      flash.now[:danger] = 'Trip Purpose could not be created.'
+      render :new
+    end
   end
 
   def edit
@@ -44,8 +47,12 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
   def update
     @purpose = Purpose.find(params[:id])
     authorize! :edit, @purpose
-    @purpose.update(purpose_params)
-    redirect_to admin_trip_purposes_path
+    if @purpose.update(purpose_params)
+      redirect_to admin_trip_purposes_path
+    else
+      flash.now[:danger] = 'Trip Purpose could not be updated.'
+      render :edit
+    end
   end
 
   private
