@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :funding_source do
-    name "MyString"
+    sequence(:name) { |n| "Funding Source #{n}" }
     description "MyString"
     agency
   end

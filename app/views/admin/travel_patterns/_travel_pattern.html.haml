@@ -3,13 +3,13 @@
     =travel_pattern.agency
   %td
     =travel_pattern.name
-  %td
+  %td.text-right
     %div
       - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
-        =link_to edit_admin_travel_pattern_path(id: travel_pattern.id), class: "edit_travel_pattern_action_button action_button", title: "Edit Travel Pattern" do
+        =link_to edit_admin_travel_pattern_path(id: travel_pattern.id), class: "btn btn--no-bg", title: "Edit Travel Pattern" do
           %span.glyphicon.glyphicon-pencil
-        =link_to admin_travel_pattern_path(travel_pattern), method: :delete, class: "delete_travel_pattern_action_button action_button", title: "Delete Travel Pattern" do
+        =link_to admin_travel_pattern_path(travel_pattern), method: :delete, class: "btn text-danger btn--no-bg", title: "Delete Travel Pattern" do
           %span.glyphicon.glyphicon-trash
       - elsif current_user.oversight_staff? || current_user.transportation_staff?
-        =link_to admin_travel_pattern_path(travel_pattern), class: "view_travel_pattern_action_button action_button", title: "View Travel Pattern" do
+        =link_to admin_travel_pattern_path(travel_pattern), class: "btn btn--no-bg", title: "View Travel Pattern" do
           %span.glyphicon.glyphicon-eye-open

@@ -23,6 +23,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   def create
+    debugger
     service_schedule_params = params.require(:service_schedule).except(:service_sub_schedules_attributes, :sub_schedule_calendar_dates_attributes, :sub_schedule_calendar_times_attributes).permit!
     if params[:service_schedule][:service_sub_schedules_attributes]
       sub_schedule_params = params.require(:service_schedule).require(:service_sub_schedules_attributes)
@@ -42,9 +43,10 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           error_message = @service_schedule.errors.full_messages.join("\n")
           raise ActiveRecord::Rollback
         end
+        
         if service_schedule_params[:start_date] && service_schedule_params[:end_date]
           @service_schedule.start_date = service_schedule_params[:start_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
-          @service_schedule.end_date = service_schedule_params[:end_date].blank? ? nil : Date.parse(service_schedule_params[:start_date], "%Y/%m/%d")
+          @service_schedule.end_date = service_schedule_params[:end_date].blank? ? nil : Date.parse(service_schedule_params[:end_date], "%Y/%m/%d")
         end
 
         if @service_schedule.save
@@ -59,6 +61,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                 sub_schedule.service_schedule = @service_schedule
                 unless sub_schedule.save!
                   schedule_created = false
+                  debugger
                   error_message = sub_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
                 end
@@ -161,33 +164,31 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           # Editing Weekly pattern schedule type
           if @service_schedule.is_a_weekly_schedule? && sub_schedule_params
             sub_schedule_params.each do |s|
-              if s[:_destroy] == "true"
-                unless s[:id].blank?
-                  unless deleted_schedule = ServiceSubSchedule.find_by(id: s[:id]).destroy
-                    error_message = deleted_schedule.errors.full_messages.join("\n")
-                    schedule_updated = false
-                    raise ActiveRecord::Rollback
-                  end
-                  schedule_updated = true
+              if s[:id].blank?
+                sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
+                sub_schedule.service_schedule = @service_schedule
+                unless sub_schedule.save!
+                  schedule_updated = falsequi
+                  error_message = sub_schedule.errors.full_messages.join("\n")
+                  raise ActiveRecord::Rollback
                 end
+                schedule_updated = true
               else
-                if s[:id].blank?
-                  sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
-                  sub_schedule.service_schedule = @service_schedule
-                  unless sub_schedule.save!
-                    schedule_updated = false
+                sub_schedule = ServiceSubSchedule.find_by(id: s[:id])
+                if s[:_destroy] == "true"
+                  unless sub_schedule.destroy
                     error_message = sub_schedule.errors.full_messages.join("\n")
-                    raise ActiveRecord::Rollback
-                  end
-                  schedule_updated = true
-                else
-                  unless updated_schedule = ServiceSubSchedule.find_by(id: s[:id]).update(s.except(:_destroy).permit!)
                     schedule_updated = false
-                    error_message = updated_schedule.errors.full_messages.join("\n")
                     raise ActiveRecord::Rollback
                   end
                   schedule_updated = true
+                elsif !sub_schedule.update(s.except(:_destroy).permit!)
+                  # debugger
+                  schedule_updated = false
+                  error_message = sub_schedule.errors.full_messages.join("\n")
+                  raise ActiveRecord::Rollback
                 end
+                schedule_updated = true
               end
             end
 
