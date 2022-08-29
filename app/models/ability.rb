@@ -102,6 +102,7 @@ class Ability
       end
 
       # General affiliated admin permissions
+      can :manage, CustomGeography
       can :manage, Eligibility
       can :manage, Accommodation
       can :manage, Purpose

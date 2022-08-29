@@ -1,8 +1,13 @@
 class Admin::CustomGeographiesController < Admin::AdminController
   load_and_authorize_resource
+  before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
     @geographies = current_user.get_geographies_for_user
+  end
+
+  def new
+
   end
 
   def create
