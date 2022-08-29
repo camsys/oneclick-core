@@ -1,5 +1,5 @@
 #system-pois.form-container.pull-left
-  %h2 System POIs
+  %h2 Ecolane POIs
   ="Showing #{@system_pagy.count} results out of #{@system_poi_count} total POIs"
   =render partial: "poi_search_form", locals: { prefix: "system", query: @system_query, pagy: @system_pagy, form_url: search_url(action_name, agency_id: @landmark_set.agency_id, partial_path: "admin/landmark_sets/_system_pois") }
 
