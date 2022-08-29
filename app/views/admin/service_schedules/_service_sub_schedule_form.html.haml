@@ -41,7 +41,7 @@
           %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
           %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
-            %span.text-muted Add schedule
+            %span.text-muted Add hours
             %span.text-muted.glyphicon.glyphicon-plus
   .panel.schedule-row-wrapper{class: 'panel-default'}
     .row.panel-body
@@ -91,7 +91,7 @@
       .col-sm-10
         %span.sub-schedule-container
         %button.btn.add-calendar-time-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
-          %span.text-muted Add schedule
+          %span.text-muted Add hours
           %span.text-muted.glyphicon.glyphicon-plus
 
 -# Script nested under form so it can reference it in ScheduleHelper call
