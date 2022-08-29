@@ -1,5 +1,5 @@
 class Admin::FundingSourcesController < Admin::AdminController
-  load_and_authorize_resource except: :index
+  load_and_authorize_resource
   before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
@@ -7,7 +7,7 @@ class Admin::FundingSourcesController < Admin::AdminController
                                     .joins(:agency)
                                     .merge(Agency.order(:name))
                                     .includes(:agency)
-    authorize! :read, @funding_sources
+    #authorize! :read, @funding_sources
   end
 
   

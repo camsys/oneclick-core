@@ -1,4 +1,5 @@
 class Admin::PurposesTravelPatternsController < Admin::AdminController
+  load_and_authorize_resource Purpose
   before_action :load_agency_from_params_or_user, only: [:new, :create]
 
   def index
@@ -6,7 +7,8 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
                        .joins(:agency)
                        .merge(Agency.order(:name))
                        .includes(:agency)
-    authorize! :read, @purposes
+
+    #authorize! :read, @purposes
   end
 
   def show

@@ -105,7 +105,7 @@ class Ability
       can :manage, CustomGeography
       can :manage, Eligibility
       can :manage, Accommodation
-      can :manage, Purpose
+      #can :manage, Purpose
       can :manage, Feedback
       can :manage, Landmark
       can [:show, :update], Agency,     # Can read or update their own agency
@@ -133,6 +133,8 @@ class Ability
         can [:read,:edit], LandmarkSet
 
         can [:read], TravelPattern
+        can :manage, Purpose, agency_id: user.staff_agency.try(:id)
+        can :manage, FundingSource, agency_id: user.staff_agency.try(:id)
 
         # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Service,
@@ -145,6 +147,8 @@ class Ability
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :create, Agency
+        can :manage, Purpose,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, FundingSource,
             agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Service,
