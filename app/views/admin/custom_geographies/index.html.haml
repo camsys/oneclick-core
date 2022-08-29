@@ -49,6 +49,10 @@
     // Update map on row click
     $("#geographies-table").on("click", "tbody tr", function() {
       var geography_geom = $(this).data("geom");
+      // Clear previous geographies from map.
+      map.eachLayer(function (layer) {
+        if (M.tileLayerUrls.osm != layer._url) {map.removeLayer(layer)};
+      });
       M.drawMaps(map, [
         geography_geom
       ]);
