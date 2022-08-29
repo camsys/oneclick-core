@@ -3,9 +3,9 @@
 
 .form-group.string.optional.label-container
   .col-sm-12
-    = f.input :origin_zone_id, :collection => @agency.od_zones, :label_method => :name, :value_method => :id, :label => "Origin Zone:", :include_blank => false
+    = f.association :origin_zone, collection: options_for_od_zone(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group, prompt: "Select origin zone for travel pattern", :label => "Origin Zone:"
   .col-sm-12
-    = f.input :destination_zone_id, :collection => @agency.od_zones, :label_method => :name, :value_method => :id, :label => "Destination Zone:", :include_blank => false
+    = f.association :destination_zone, collection: options_for_od_zone(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group, prompt: "Select destination zone for travel pattern",  :label => "Destination Zone:"
   .col-sm-12
     %label.control-label.text.optional
       = f.check_box :allow_reverse_sequence_trips

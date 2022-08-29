@@ -13,6 +13,7 @@
 
 - mode = local_assigns[:mode]
 - agency = local_assigns[:agency]
+-form_id = "edit_od_zone"
 
 %h1
   = "#{mode.capitalize} O/D Zone"
@@ -31,8 +32,11 @@
   .col-sm-12
     = f.input :description, readonly: mode == "view", placeholder: "Enter description of O/D zone"
   .col-sm-12
-    = render layout: '/layouts/panel' do
-      = render partial: 'od_sub_zone_form', locals: {mode: mode, f: f, agency: agency}
+    = render partial: 'od_sub_zone_form', locals: {mode: mode, f: f, agency: agency}
+
+  .text-center
+    =link_to 'Cancel', admin_od_zones_path, class: 'btn btn-danger'
+    =f.submit 'Save', class: 'btn btn-primary'
 
 :javascript
   $(document).on("turbolinks:load", function() {

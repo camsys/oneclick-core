@@ -1,7 +1,15 @@
 class Landmark < Place
+  include GeoKitchen
+  include LeafletAmbassador
+
+  attr_reader :geom_buffer
+  make_attribute_mappable :geom
+  make_attribute_mappable :geom_buffer
+  acts_as_geo_ingredient attributes: [:name, :buffer]
+
   ### Associations ###
   belongs_to :agency
-  has_many :landmark_set_landmarks, inverse_of: :landmark, dependent: :destroy
+  has_many :landmark_set_landmarks, inverse_of: :landmark
   has_many :landmark_sets, through: :landmark_set_landmarks
 
   ### Validations ####
@@ -73,6 +81,31 @@ class Landmark < Place
     end
 
   end #Update
+
+  def geom_buffer
+    @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+    output_geom = []
+    if self.geom
+      if self.geom.is_a?(RGeo::Geos::CAPIPointImpl)
+        # Convert point into polygon.
+        geom = self.geom.buffer(0.001)
+        output_geom = [ geom ]
+      end
+    else
+      @errors << "#{this.to_s} could not be converted to a geometry."
+    end
+    output_geom = @factory.multi_polygon([]).union(geom)
+    RGeo::Feature.cast(output_geom, RGeo::Feature::MultiPolygon)
+  end
+
+  def to_s
+    "#{name}"
+  end
+
+  # Returns a GeoIngredient referring to this landmark
+  def to_geo
+    GeoIngredient.new('Landmark', name: name, buffer: 0)
+  end
 
   def self.search(term)
     where('LOWER(name) LIKE :term', term: "%#{term.downcase}%")

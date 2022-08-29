@@ -1,9 +1,11 @@
 class OdZone < GeographyRecord
+  include GeoKitchen
   include LeafletAmbassador
 
   belongs_to :agency
   belongs_to :region, class_name: 'Region', foreign_key: :region_id, dependent: :destroy
-  accepts_nested_attributes_for :region
+  has_many :travel_patterns, foreign_key: :origin_zone_id, dependent: :restrict_with_error
+  has_many :travel_patterns, foreign_key: :destination_zone_id, dependent: :restrict_with_error
 
   make_attribute_mappable :geom
 
@@ -17,8 +19,12 @@ class OdZone < GeographyRecord
   validates_presence_of :agency
   validates :name, presence: true, uniqueness: true
 
-  attr_accessor :start_or_end_area
-  attr_accessor :zone_recipe
+  accepts_nested_attributes_for :region
+
+  # Build associated geographies
+  def build_geographies
+    build_region unless region
+  end
 
   def self.for_user(user)
     if user.superuser?

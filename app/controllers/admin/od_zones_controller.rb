@@ -1,4 +1,8 @@
 class Admin::OdZonesController < Admin::AdminController
+  before_action :load_agency_from_params_or_user, only: [:new]
+
+  include GeoKitchen
+
   def index
     @od_zones = get_od_zones_for_current_user
   end
@@ -6,12 +10,13 @@ class Admin::OdZonesController < Admin::AdminController
   def show
     @od_zone = OdZone.find(params[:id])
     @agency =  current_user.current_agency || Agency.first
+    @od_zone.build_geographies # Build empty region.
   end
 
   def new
     @od_zone = OdZone.new
-    @agency = current_user.current_agency || Agency.first
     @od_zone.agency = @agency
+    @od_zone.build_geographies # Build empty region.
   end
 
   def create
@@ -35,7 +40,7 @@ class Admin::OdZonesController < Admin::AdminController
   def update
     @od_zone = OdZone.find(params[:id])
 
-    if @od_zone.valid?
+    if @od_zone.valid? && @od_zone.update_attributes(od_zone_params)
       flash[:success] = "O/D Zone successfully updated."
       redirect_to admin_od_zones_path
     else
@@ -46,7 +51,11 @@ class Admin::OdZonesController < Admin::AdminController
 
   def destroy
     od_zone = OdZone.find(params[:id])
-    od_zone.destroy
+    if od_zone.destroy
+      flash[:success] = "O/D Zone successfully deleted."
+    else
+      flash[:danger] = od_zone.errors.full_messages.join(" ")
+    end
     redirect_to admin_od_zones_path
   end
 
@@ -54,12 +63,12 @@ class Admin::OdZonesController < Admin::AdminController
   def autocomplete
     respond_to do |format|
       format.json do
-        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h}}
-        @pois = Landmark.search(params[:term]).limit(10).map {|g| {label: g.to_s, value: GeoIngredient.new}}
-        @poi_sets = LandmarkSet.search(params[:term]).limit(10).map {|g| {label: g.to_s, value: GeoIngredient.new}}
+        @counties = County.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h, geom: g.geom_to_array}}
+        @zipcodes = Zipcode.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h, geom: g.geom_to_array}}
+        @cities = City.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h, geom: g.geom_to_array}}
+        @custom_geographies = CustomGeography.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s, value: g.to_geo.to_h, geom: g.geom_to_array}}
+        @pois = Landmark.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s.gsub('Landmark','POI'), value: g.to_geo.to_h, geom: g.geom_buffer_to_array}}
+        @poi_sets = LandmarkSet.search(params[:term]).limit(10).map {|g| {label: g.to_geo.to_s.gsub('LandmarkSet','Set of POIs'), value: g.to_geo.to_h, geom: g.geom_to_array}}
 
         json_response = @counties + @zipcodes + @cities + @custom_geographies + @pois + @poi_sets
         render json: json_response
@@ -74,8 +83,8 @@ class Admin::OdZonesController < Admin::AdminController
                                     :description,
                                     :agency_id,
                                     :agency,
-                                    :zone_recipe,
-                                    region_attributes: [:recipe])
+    region_attributes: [:recipe, :id]
+    )
   end
 
   def get_od_zones_for_current_user

@@ -15,11 +15,19 @@
         %th
     =render partial: 'od_zone', collection: @od_zones
   %div#od-zones-map{style: "height: 420px; margin-left: 10px"}
-.center-buttons
-  - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
-    = link_to 'New O/D Zone', new_admin_od_zone_path, class: 'btn btn-primary'
-  = link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
-  = link_to 'Return to Dashboard', root_path, class: 'btn btn-default'
+
+%div.text-center
+  - modalID = 'new-od-zone'
+  - if can? :create, OdZone
+    - if @agency_map.length == 1
+      =link_to 'New O/D Zone', new_admin_od_zone_path(agency_id: @agency_map.first.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New O/D Zone', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New O/D Zone', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_od_zone_path }
 
 :javascript
 

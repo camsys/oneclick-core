@@ -128,6 +128,7 @@ var M = {
   //   recipeInput: a jQuery object referring to the hidden input field for the recipe
   //   searchPath: a path for making autocomplete api calls.
   //   ingredientLabelTag: HTML for a div to populate for each ingredient label added to the builder.
+  //   mapObj: Leaflet.js map object
   Recipe: function(params) {
     this.container = params.container;
     this._input = this.container.find('.region-input');
@@ -136,7 +137,9 @@ var M = {
     this._recipe = params.recipeInput;
     this._searchPath = params.searchPath;
     this._ingredientLabelTag = params.ingredientLabelTag;
+    this._mapObj = params.mapObj;
     this.ingredients = [];
+    this.ingredientPolys = {};
     this._load();
     this.originalIngredients = this.ingredients.slice(); // Set original ingredients to a duplicate of ingredients, once loaded
     this._init();
@@ -167,6 +170,13 @@ M.Recipe.prototype = {
     this.ingredients.push(ui.item.value);
     this._input.val(''); // Clear the input after selection
     this._dump();
+    if (this._mapObj && ui.item.geom) {
+      // Draw polygon shape of selected item onto the map.
+      var layer = ui.item.geom;
+      var poly = M.drawPoly(this._mapObj, layer, { color: M.colors[0]});
+      this.ingredientPolys[ui.item.value.attributes.name] = poly;
+      this._mapObj.fitBounds(poly.getBounds());
+    }
     return false;
   },
   _render: function(ul, item) {
@@ -220,12 +230,50 @@ M.Recipe.prototype = {
     var labelText = ingredient.attributes.name;
     if(ingredient.attributes.state) { labelText += (', ' + ingredient.attributes.state) }
     label.text(labelText);
+    label.prop('title', labelText);
+
+    // Insert the ingredient buffer into the buffer input, if present.
+    var bufferInput = container.find('[name="zone_buffer"]');
+    var bufferCheckboxInput = container.find('[name="zone_buffer_checkbox"]');
+    if (bufferInput.length > 0 && ingredient.attributes.buffer) {
+      bufferInput.val(ingredient.attributes.buffer.toString());
+      if (ingredient.attributes.buffer > 0) {
+        bufferCheckboxInput.prop('checked', true);
+      }
+    }
+    bufferInput.change(function (e) {
+      // Update the ingredient and recipe with buffer change.
+      var newBufferVal = $(this).val();
+      that.ingredients[i].attributes.buffer = newBufferVal;
+      that._dump();
+    });
+
+    // Setup change handler for buffer input checkbox, if present.
+    bufferCheckboxInput.change(function (e) {
+      // Update the initial buffer value with buffer checkbox change.
+      var bufferInput = $(this).parents('.btn.ingredient-container').find('[name="zone_buffer"]');
+      if ($(this).is(":checked")) {
+          const defaultBufferInFeet = 500;
+          bufferInput.val(defaultBufferInFeet);
+      } else {
+          bufferInput.val(0);
+      }
+      bufferInput.trigger("change");
+    });
 
     // Set up delete button for ingredient
     var button = container.find('.btn');
     button.click(function() {
       that.ingredients.splice(i, 1);
       that._dump();
+      if (that._mapObj) {
+        // Remove polygon shape of selected item from the map.
+        var poly = that.ingredientPolys[ingredient.attributes.name];
+        if (poly) {
+          poly.remove();
+          delete that.ingredientPolys[labelText];
+        }
+      }
     });
   },
 

@@ -37,6 +37,10 @@ module GeoKitchen
       output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom
+          if geom.is_a?(RGeo::Geos::CAPIPointImpl)
+            # Convert point into polygon.
+            geom = geom.buffer(0.001)
+          end
           geom
         else
           @errors << "#{ingredient.to_s} could not be converted to a geometry."
@@ -110,12 +114,12 @@ module GeoKitchen
     end
 
     def other_attributes
-      @attributes.except(:name)
+      @attributes.except(:name).except(:buffer)
     end
 
     # Find the db record this ingredient refers to
     def find_record
-      @model.find_by(@attributes)
+      @model.find_by(name: name)
     end
 
     # Get the geometry of the record this ingredient refers to

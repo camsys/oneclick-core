@@ -5,14 +5,19 @@
     =f.simple_fields_for :region do |r|
       =r.input :recipe, as: :hidden,
         input_html: { value: @od_zone.region.recipe.to_json.html_safe }
-
+    %span{style: "float:right"}
+      Note: 1 mile = 5.280 feet
   -# div for holding the service area map
   .col-sm-6
     #map
 
 :javascript
   $(document).ready(function() {
-    var map = M.setupMap('map');
+    var opts = {
+      viewCenter: [40.0024133,-75.2584558] // Philadelphia, PA
+    };
+
+    var map = M.setupMap('map', opts);
 
     var fh = new FormHandler($('#{form_selector_from_id}'));
 
@@ -22,9 +27,10 @@
 
     var startOrEndAreaRecipe = new M.Recipe({
       container: $('#region'),
-      recipeInput: $('#od_zone_region_recipe'),
+      recipeInput: $('#od_zone_region_attributes_recipe'),
       searchPath: '#{autocomplete_admin_od_zones_path}',
-      ingredientLabelTag: '#{escape_javascript( render partial: "admin/od_zones/ingredient_label", locals: {can_update: true})}'
+      ingredientLabelTag: '#{escape_javascript( render partial: "admin/od_zones/ingredient_label", locals: {can_update: true})}',
+      mapObj: map
     });
 
     fh.onReset(function() {
