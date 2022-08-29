@@ -39,7 +39,6 @@ class Ability
       can :read, Service,               # Can read services under that user and services with no agency
         id: user.services.pluck(:id).concat(Service.no_agency.pluck(:id))
       can [:read, :edit], Alert                # Can manage alerts
-      can :read, :report         # Can read reports
       can [:read,:edit], Eligibility
       can [:read,:edit], Accommodation
       can [:read, :edit], FundingSource,
@@ -48,8 +47,6 @@ class Ability
       can :read, GeographyRecord
       can [:read, :edit], Landmark
       can [:read], LandmarkSet
-      can [:read], TravelPattern
-
 
       ## TransportationAgency Staff Permissions ##
       if user.transportation_staff?
@@ -68,7 +65,6 @@ class Ability
 
       ## OversightAgency Staff Permissions ##
       if user.oversight_staff?
-        can [:read], TravelPattern
 
         # Can read users that are staff for the same agency and travelers for that agency
         can [:edit,:staff,:travelers], User,

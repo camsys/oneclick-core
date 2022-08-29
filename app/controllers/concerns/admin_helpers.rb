@@ -13,7 +13,7 @@ module AdminHelpers
       { label: "Configuration",   url: urls.admin_configs_path,         show: can?(:read, Config) },
       { label: "Reports",         url: urls.admin_reports_path,         show: can?(:read, :report) },
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },
-      { label: "Staff",           url: urls.staff_admin_users_path,           show: can?(:read, User) },
+      { label: "Staff",           url: urls.staff_admin_users_path,           show: can?(:manage, User) },
       { label: "Translations",    url: simple_translation_engine.translations_path, show: can?(:read, Translation) },
       { label: "Travelers",       url: urls.travelers_admin_users_path, show: can?(:read, User) },
       { label: "My Agency",
