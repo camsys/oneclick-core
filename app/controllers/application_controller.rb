@@ -30,6 +30,9 @@ class ApplicationController < ActionController::Base
     elsif current_user.oversight_admin? || current_user.oversight_staff?
       ag_ids = [current_user.staff_agency.id].concat(current_user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id))
       @agency_map = Agency.where(id:ag_ids).order(:name).pluck(:name,:id)
+    elsif current_user.transportation_admin? || current_user.transportation_staff?
+      ag_ids = [current_user.staff_agency.id]
+      @agency_map = Agency.where(id:ag_ids).order(:name).pluck(:name,:id)
     end
   end
   private

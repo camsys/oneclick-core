@@ -15,7 +15,9 @@ class Admin::FundingSourcesController < Admin::AdminController
   end
 
   def new
-    @funding_source.agency = @agency
+    @funding_source = FundingSource.new(agency: @agency)
+    #authorize! :create, @funding_source
+    #@funding_source.agency = @agency
   end
 
   def edit

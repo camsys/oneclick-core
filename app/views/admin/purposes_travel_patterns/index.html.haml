@@ -29,7 +29,7 @@
   - modalID = 'new-trip-purpose'
   - if can? :create, Purpose
     - if @agency_map.length == 1
-      =link_to 'New Trip Purpose', new_admin_trip_purpose_path(agency_id: @agency_map.first.id), class: 'btn btn-primary'
+      =link_to 'New Trip Purpose', new_admin_trip_purpose_path(agency_id: @agency_map.first[1]), class: 'btn btn-primary'
     -else
       =link_to 'New Trip Purpose', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
   =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'

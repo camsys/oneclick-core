@@ -41,8 +41,8 @@ class Ability
       can [:read, :edit], Alert                # Can manage alerts
       can [:read,:edit], Eligibility
       can [:read,:edit], Accommodation
-      can [:read, :edit], FundingSource,
-        agency_id: user.staff_agency.try(:id)
+      #can [:read, :edit], FundingSource
+          #  agency_id: user.staff_agency.try(:id)
       can [:read,:edit], Purpose
       can :read, GeographyRecord
       can [:read, :edit], Landmark
@@ -75,8 +75,8 @@ class Ability
             id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
         can [:read, :update], Feedback  # Can read/update ALL feedbacks
 
-        can [:show], FundingSource,
-            agency_id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
+        #can [:show], FundingSource,
+        #    agency_id: user.staff_agency.agency_oversight_agency.map{|aoa| aoa.transportation_agency.id}.concat([user.staff_agency.id])
 
         # Can access services associated with own oversight agency, and those with no oversight agency(i.e taxi services)
         can :read, Service,
@@ -106,8 +106,8 @@ class Ability
       can :manage, Landmark
       can [:show, :update], Agency,     # Can read or update their own agency
           id: user.staff_agency.try(:id)
-      can [:show, :update], FundingSource,
-          agency_id: user.staff_agency.try(:id)
+      #can [:show, :update], FundingSource,
+      #    agency_id: user.staff_agency.try(:id)
 
       # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
       can :manage, User,
@@ -126,11 +126,14 @@ class Ability
 
       # Transportation Admin Permissions
       if user.transportation_admin?
-        can [:read,:edit], LandmarkSet
 
-        can [:read], TravelPattern
+        can :manage, TravelPattern, agency_id: user.staff_agency.try(:id)
+        can :manage, LandmarkSet, agency_id: user.staff_agency.try(:id)
+        can :manage, OdZone, agency_id: user.staff_agency.try(:id)
+        can :manage, ServiceSchedule, agency_id: user.staff_agency.try(:id)
         can :manage, Purpose, agency_id: user.staff_agency.try(:id)
         can :manage, FundingSource, agency_id: user.staff_agency.try(:id)
+        can :manage, BookingWindow, agency_id: user.staff_agency.try(:id)
 
         # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Service,
@@ -138,14 +141,23 @@ class Ability
       end
 
       # Oversight Admin Permissions
-      if user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
-        can :manage, TravelPattern
+      if false && user.oversight_admin?                # Can manage Transportation Agencies assigned to the user's Oveersight Agency
+        can :manage, TravelPattern,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Agency,
             id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :create, Agency
+        can :manage, LandmarkSet,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
+        can :manage, OdZone,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
+        can :manage, ServiceSchedule,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Purpose,
             agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, FundingSource,
+            agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
+        can :manage, BookingWindow,
             agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Service,
           id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
@@ -162,7 +174,7 @@ class Ability
     end # end admin
 
     ### SUPERUSER PERMISSIONS ###
-    if user.superuser?
+    if user.superuser? || user.oversight_admin?
       can :manage, :all # Can perform all actions on all models
     end
 
