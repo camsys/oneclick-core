@@ -4,9 +4,9 @@ class ServiceSubSchedule < ApplicationRecord
 
   ### VALIDATIONS ###
   validates_inclusion_of :day, in: SUN..SAT, if: -> {service_schedule.is_a_weekly_schedule?} # 0 = Sunday .. 6 = Saturday
-  validates_inclusion_of :start_time, in: 0..DAY_LENGTH # seconds since midnight
-  validates_inclusion_of :end_time, in: 0..DAY_LENGTH  # seconds since midnight
-  validate :start_time_must_be_before_end_time
+  validates_inclusion_of :start_time, in: 0..DAY_LENGTH, if: :has_times? # seconds since midnight
+  validates_inclusion_of :end_time, in: 0..DAY_LENGTH, if: :has_times? # seconds since midnight
+  validate :start_time_must_be_before_end_time, if: :has_times?
 
   ### CALLBACKS ###
   # after_create :create_midnight_shim, if: :ends_at_midnight?
@@ -86,6 +86,10 @@ class ServiceSubSchedule < ApplicationRecord
   private
 
 
+  def has_times?
+    start_time && end_time
+  end
+
   # Creates a 'midnight shim' -- an 0-second schedule at midnight the following day
   # -- allowing trips that start/end at midnight the following day to be valid.
   def ensure_midnight_shim
@@ -110,7 +114,7 @@ class ServiceSubSchedule < ApplicationRecord
 
   # Validates that start_time is at or before end_time
   def start_time_must_be_before_end_time
-    errors.add(:start_time, "cannot be after end time") if (start_time > end_time)
+    errors.add(:start_time, "cannot be after end time") if (has_times? && start_time > end_time)
   end
 
 end
