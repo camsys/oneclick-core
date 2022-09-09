@@ -22,15 +22,14 @@
   url: form_url,
   authenticity_token: true,
   data: {type: 'html'},
-  html: {class: 'form-horizontal form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+  html: {class: 'flex-outer', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
 
-  .col-sm-6
+  .form-group
     = f.input :agency, collection: [[@od_zone.agency.name, @od_zone.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
     = f.hidden_field :agency_id
-  .col-sm-6
-    = f.input :name, readonly: mode == "view", placeholder: "Enter name of O/D zone", required: true
-  .col-sm-12
-    = f.input :description, readonly: mode == "view", placeholder: "Enter description of O/D zone"
+    = f.input :name, readonly: mode == "view", placeholder: "Enter name of O/D zone", required: true, wrapper: :travel_patterns_input_group
+  .form-group
+    = f.input :description, readonly: mode == "view", placeholder: "Enter description of O/D zone", wrapper: :travel_patterns_input_group
   .col-sm-12
     = render partial: 'od_sub_zone_form', locals: {mode: mode, f: f, agency: agency}
 

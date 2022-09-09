@@ -17,9 +17,15 @@ class OdZone < GeographyRecord
   #scope :for_transport_user, -> (user) {where(service: user.current_agency.services)}
 
   validates_presence_of :agency
-  validates :name, presence: true, uniqueness: true
+  validate :name_is_present?
+  validates :name, uniqueness: {scope: :agency_id}
 
   accepts_nested_attributes_for :region
+
+  def name_is_present?
+    errors.add(:name, :blank) if self[:name].blank?
+    errors.add(:name, :taken) if OdZone.where.not(id: id).exists?(name: self[:name], agency_id: agency_id)
+  end
 
   # Build associated geographies
   def build_geographies

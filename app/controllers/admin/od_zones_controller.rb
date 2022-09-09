@@ -26,7 +26,12 @@ class Admin::OdZonesController < Admin::AdminController
       flash[:success] = "New O/D Zone successfully created."
       redirect_to admin_od_zones_path
     else
-      flash[:danger] = "There was an issue creating the O/D Zone."
+      error_message = "There was an issue creating the O/D Zone."
+      if od_zone.errors.count > 0
+        error_message += "\n"
+        error_message += od_zone.errors.full_messages.join("\n")
+      end
+      flash[:danger] = error_message
       redirect_to new_admin_od_zone_path
     end
   end
@@ -44,7 +49,12 @@ class Admin::OdZonesController < Admin::AdminController
       flash[:success] = "O/D Zone successfully updated."
       redirect_to admin_od_zones_path
     else
-      flash[:danger] = "There was an issue updating the O/D Zone."
+      error_message = "There was an issue updating the O/D Zone."
+      if @od_zone.errors.count > 0
+        error_message += "\n"
+        error_message += @od_zone.errors.full_messages.join("\n")
+      end
+      flash[:danger] = error_message
       redirect_to edit_admin_od_zone_path(id: @od_zone.id)
     end
   end
