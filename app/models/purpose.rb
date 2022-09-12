@@ -12,6 +12,7 @@ class Purpose < ApplicationRecord
 
   before_save :snake_casify, if: :has_code?
   validate :name_is_present?
+  validates_presence_of :agency
   validates :name, uniqueness: {scope: :agency_id}
 
   def has_code?
