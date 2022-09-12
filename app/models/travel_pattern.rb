@@ -29,7 +29,7 @@ class TravelPattern < ApplicationRecord
   accepts_nested_attributes_for :travel_pattern_funding_sources, allow_destroy: true, reject_if: :all_blank
 
   validates :name, uniqueness: {scope: :agency_id}
-  validates_presence_of :name, :booking_window, :agency
+  validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone
 
   def to_api_response
     travel_pattern_opts = { 

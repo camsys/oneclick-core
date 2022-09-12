@@ -7,6 +7,8 @@ class Purpose < ApplicationRecord
   belongs_to :agency
   has_many :trips
   has_and_belongs_to_many :services
+  has_many :travel_pattern_purposes
+  has_many :travel_patterns, through: :travel_pattern_purposes, dependent: :restrict_with_error
 
   scope :for_superuser, -> {all}
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
@@ -15,6 +17,7 @@ class Purpose < ApplicationRecord
 
   before_save :snake_casify, if: :has_code?
   validate :name_is_present?
+  validates_presence_of :agency
   validates :name, uniqueness: {scope: :agency_id}
 
   def has_code?

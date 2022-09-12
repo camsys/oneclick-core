@@ -33,10 +33,10 @@
   =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
   =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
 
-=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Set of POIs', modalID: modalID } do
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Set of Ecolane POIs', modalID: modalID } do
   =render partial: '/shared/select_agency', locals: { form_url: new_admin_landmark_set_path }
 
 :javascript
   $(document).ready(function() {
     $('.datatable').DataTable({});
-  })
+  });

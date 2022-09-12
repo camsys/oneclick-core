@@ -23,10 +23,11 @@ class Admin::TravelPatternsController < Admin::AdminController
 
     TravelPattern.transaction do
       begin
-        if TravelPattern.create(travel_pattern_params)
+        travel_pattern = TravelPattern.new(travel_pattern_params)
+        if travel_pattern.save
           travel_pattern_created = true
         else
-          error_message = @travel_pattern.errors.full_messages.join("\n")
+          error_message = travel_pattern.errors.full_messages.join("\n")
           raise ActiveRecord::Rollback
         end
       rescue => e
@@ -40,7 +41,7 @@ class Admin::TravelPatternsController < Admin::AdminController
       redirect_to admin_travel_patterns_path
     else
       flash[:danger] = error_message
-      redirect_to new_admin_travel_pattern_path
+      redirect_to new_admin_travel_pattern_path(agency_id: travel_pattern_params[:agency_id])
     end
   end
 

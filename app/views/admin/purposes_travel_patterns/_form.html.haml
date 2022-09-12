@@ -7,7 +7,7 @@
   .form-group
     =form.input :agency, collection: [[purpose.agency.name, purpose.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
     =form.hidden_field :agency_id
-    =form.input :name, placeholder: 'Enter name of trip purpose', disabled: mode == 'view', input_html: { value: purpose[:name] }, wrapper: :travel_patterns_input_group
+    =form.input :name, placeholder: 'Enter name of trip purpose', disabled: mode == 'view', required: true, input_html: { value: purpose[:name] }, wrapper: :travel_patterns_input_group
   .form-group
     =form.input :description, placeholder: 'Enter description of trip purpose', disabled: mode == 'view', wrapper: :travel_patterns_input_group
 

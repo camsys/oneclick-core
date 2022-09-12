@@ -1,5 +1,7 @@
 class FundingSource < ApplicationRecord
   belongs_to :agency
+  has_many :travel_pattern_funding_sources
+  has_many :travel_patterns, through: :travel_pattern_funding_sources, dependent: :restrict_with_error
 
   scope :for_superuser, -> {all}
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}

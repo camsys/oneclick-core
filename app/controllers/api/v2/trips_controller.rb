@@ -35,7 +35,6 @@ module Api
         # Find a matching Travel Pattern
         agency = @traveler.traveler_transit_agency.transportation_agency
         trip_time = Time.parse(trip_params[:trip_time])
-        trip_date = trip_time.to_date
 
         matching_travel_patterns = TravelPattern.joins(
           :travel_pattern_purposes,
@@ -44,7 +43,7 @@ module Api
           agency: agency
         ).merge(
           TravelPatternPurpose.where(purpose_id: trip_params[:purpose_id])
-        ).for_date(trip_date)
+        ).for_date(trip_time.to_date)
 
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
@@ -61,7 +60,6 @@ module Api
         end
         
       end
-      
 
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.

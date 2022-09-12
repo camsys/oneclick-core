@@ -20,7 +20,11 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
   def destroy
     @purpose = Purpose.find(params[:id])
     authorize! :destroy, @purpose
-    @purpose.destroy
+    if @purpose.destroy
+      flash[:success] = "Trip Purpose successfully deleted."
+    else
+      flash[:danger] = @purpose.errors.full_messages.join(" ")
+    end
 
     redirect_to admin_trip_purposes_path
   end
