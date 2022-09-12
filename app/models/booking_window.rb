@@ -6,6 +6,11 @@ class BookingWindow < ApplicationRecord
   validates :minimum_days_notice, numericality: { less_than_or_equal_to: :maximum_days_notice }
   validate :valid_booking_notice
 
+  scope :for_superuser, -> {all}
+  scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
+  scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
+
   scope :for_date, -> (date) do
     notice = (date - Date.current).to_i
     where(
@@ -37,6 +42,20 @@ class BookingWindow < ApplicationRecord
         self.errors.add(attribute, "must be less than or equal to #{max_notice}") unless self[attribute] <= max_notice
         self.errors.add(attribute, "must be greater than or equal to 1") unless self[attribute] >= 1
       end
+    end
+  end
+
+  def self.for_user(user)
+    if user.superuser?
+      for_superuser
+    elsif user.currently_oversight?
+      for_oversight_user(user)
+    elsif user.currently_transportation?
+      for_current_transport_user(user)
+    elsif user.transportation_user?
+      for_transport_user(user)
+    else
+      nil
     end
   end
 end

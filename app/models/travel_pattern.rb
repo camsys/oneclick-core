@@ -1,8 +1,9 @@
 class TravelPattern < ApplicationRecord
   scope :ordered, -> {joins(:agency).order("agencies.name, travel_patterns.name")}
   scope :for_superuser, -> {all}
-  scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id))}
-  scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
+  scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
   scope :for_date, -> (date) do
     joins(:service_schedules, :booking_window)
       .merge(ServiceSchedule.for_date(date))
@@ -45,6 +46,8 @@ class TravelPattern < ApplicationRecord
     elsif user.currently_oversight?
       for_oversight_user(user).ordered
     elsif user.currently_transportation?
+      for_current_transport_user(user).order("name desc")
+    elsif user.transportation_user?
       for_transport_user(user).order("name desc")
     else
       nil

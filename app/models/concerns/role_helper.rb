@@ -148,6 +148,10 @@ module RoleHelper
     oversight_admin? || oversight_staff?
   end
 
+  def transportation_user?
+    transportation_admin? || transportation_staff?
+  end
+
   def unaffiliated_user?
     (admin? || staff?) && roles.length == 1 && roles.first.resource.nil?
   end

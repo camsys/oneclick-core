@@ -3,7 +3,7 @@ class Admin::BookingWindowsController < Admin::AdminController
   before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
-    @booking_windows = @booking_windows.order(:name)
+    @booking_windows = @booking_windows.for_user(current_user).order(:name)
   end
 
   def new

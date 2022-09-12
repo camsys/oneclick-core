@@ -3,7 +3,8 @@ class Admin::PurposesTravelPatternsController < Admin::AdminController
   before_action :load_agency_from_params_or_user, only: [:new, :create]
 
   def index
-    @purposes = Purpose.accessible_by(current_ability)
+    @purposes = Purpose.for_user(current_user)
+                       .accessible_by(current_ability)
                        .joins(:agency)
                        .merge(Agency.order(:name))
                        .includes(:agency)

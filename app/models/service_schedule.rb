@@ -1,8 +1,9 @@
 class ServiceSchedule < ApplicationRecord
   scope :ordered, -> {joins(:agency).order("agencies.name, service_schedules.name")}
   scope :for_superuser, -> {all}
-  scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id))}
-  scope :for_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
+  scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
+  scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
   scope :weekly_schedules, -> { joins(:service_schedule_type).merge(ServiceScheduleType.weekly_schedule_type) }
   scope :calendar_date_schedules, -> { joins(:service_schedule_type).merge(ServiceScheduleType.calendar_date_schedule_type) }
   scope :for_date, -> (date) do
@@ -34,6 +35,8 @@ class ServiceSchedule < ApplicationRecord
     elsif user.currently_oversight?
       for_oversight_user(user).ordered
     elsif user.currently_transportation?
+      for_current_transport_user(user).order("name desc")
+    elsif user.transportation_user?
       for_transport_user(user).order("name desc")
     else
       nil

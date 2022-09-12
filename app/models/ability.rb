@@ -111,7 +111,7 @@ class Ability
 
       # Can manage users that are staff for the same agency or unaffiliated staff and travelers for that agency
       can :manage, User,
-          id: user.accessible_staff.pluck(:id).concat(user.get_travelers_for_staff_user&.pluck(:id))
+          id: user.accessible_staff.pluck(:id).concat(user.get_travelers_for_staff_user&.pluck(:id) || [])
 
       # Can CRUD services with no agency
       can :manage, Service,

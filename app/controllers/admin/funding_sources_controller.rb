@@ -3,7 +3,8 @@ class Admin::FundingSourcesController < Admin::AdminController
   before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
-    @funding_sources = FundingSource.accessible_by(current_ability)
+    @funding_sources = FundingSource.for_user(current_user)
+                                    .accessible_by(current_ability)
                                     .joins(:agency)
                                     .merge(Agency.order(:name))
                                     .includes(:agency)

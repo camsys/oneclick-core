@@ -98,10 +98,10 @@ class Admin::OdZonesController < Admin::AdminController
   end
 
   def get_od_zones_for_current_user
-    #OdZone.for_user(current_user)
     OdZone.accessible_by(current_ability)
-                                    .joins(:agency)
-                                    .merge(Agency.order(:name))
-                                    .includes(:agency)
+      .joins(:agency)
+      .merge(Agency.order(:name))
+      .includes(:agency)
+      .for_user(current_user)
   end
 end
