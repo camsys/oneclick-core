@@ -106,8 +106,8 @@ class TravelPattern < ApplicationRecord
         valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
         next unless valid_start && valid_end
         
-        sub_schedule = service_schedule.sub_schedules.find do |sub_schedule|
-          sub_schedules.calendar_date == date
+        sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
+          sub_schedule.calendar_date == date
         end
 
         break(sub_schedule) if sub_schedule
