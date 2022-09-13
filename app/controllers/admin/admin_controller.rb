@@ -58,8 +58,10 @@ class Admin::AdminController < ApplicationController
   end
 
   def load_agency_from_params_or_user
-    @agency = current_user.current_agency
-    @agency ||= Agency.find(params[:agency_id]) if params[:agency_id]
+    # If user has selected an agency via Select Agency modal, prefer that.
+    @agency = Agency.find(params[:agency_id]) if params[:agency_id]
+    # Otherwise load agency from oversight agency drop-down selection.
+    @agency ||= current_user.current_agency
   end
     
 end
