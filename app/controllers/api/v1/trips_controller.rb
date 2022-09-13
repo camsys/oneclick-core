@@ -26,7 +26,6 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
-
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
@@ -53,7 +52,10 @@ module Api
             }))
           end
         elsif api_v2_params # This is doing it the right way
-          trips_params = params[:trips].map {|t| trip_params(t) }
+          trips_params = params[:trips].map { |t|
+            t[:trip][:purpose_id] = Purpose.find_by(name: t[:trip][:purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id 
+            trip_params(t)
+          }
         else # For creating a single trip
           trips_params = [trip_params(params)]
         end
@@ -80,6 +82,7 @@ module Api
                                     arrive_by: trips_params[0][:arrive_by],
                                     user_id: trips_params[0][:user_id])
                              .order(updated_at: :desc)
+
         origin_place = Place.attrs_from_google_place(trips_params[0][:origin_attributes][:google_place_attributes])
         destination_place = Place.attrs_from_google_place(trips_params[0][:destination_attributes][:google_place_attributes])
         first_existing_trip = existing_trips.first
@@ -358,7 +361,16 @@ module Api
       end
 
       def place_attributes
-        [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
+        [
+          :name, :street_number, :route, :city, :state, :zip, :lat, :lng, 
+          {
+            google_place_attributes: [
+              { address_components: [ :long_name, :short_name, {types: []} ] },
+              { geometry: [{location: [:lat, :lng]}] }, 
+              :name, :formatted_address, :place_id
+            ]
+          }
+        ]
       end
 
       # Converts mode code from Legacy to OCC
