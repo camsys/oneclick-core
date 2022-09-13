@@ -239,6 +239,9 @@ M.Recipe.prototype = {
       bufferInput.val(ingredient.attributes.buffer.toString());
       if (ingredient.attributes.buffer > 0) {
         bufferCheckboxInput.prop('checked', true);
+        if ('Landmark' == ingredient.model || 'LandmarkSet' == ingredient.model) {
+            bufferCheckboxInput.attr('disabled', true); // Cannot uncheck
+        }
       }
     }
     bufferInput.change(function (e) {

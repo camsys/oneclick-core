@@ -104,7 +104,7 @@ class Landmark < Place
 
   # Returns a GeoIngredient referring to this landmark
   def to_geo
-    GeoIngredient.new('Landmark', name: name, buffer: 0)
+    GeoIngredient.new('Landmark', name: name, buffer: 500)
   end
 
   def self.search(term)

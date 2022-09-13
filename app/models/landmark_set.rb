@@ -43,7 +43,7 @@ class LandmarkSet < ApplicationRecord
 
   # Returns a GeoIngredient referring to this landmark set
   def to_geo
-    GeoIngredient.new('LandmarkSet', name: name)
+    GeoIngredient.new('LandmarkSet', name: name, buffer: 500)
   end
 
   def self.search(term)
