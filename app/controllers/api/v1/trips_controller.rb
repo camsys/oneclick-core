@@ -53,7 +53,6 @@ module Api
           end
         elsif api_v2_params # This is doing it the right way
           trips_params = params[:trips].map { |t|
-            t[:trip][:purpose_id] = Purpose.find_by(name: t[:trip][:purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id 
             trip_params(t)
           }
         else # For creating a single trip
@@ -149,7 +148,6 @@ module Api
       # If return_time is passed in the booking request, create a return trip
       # as well, and attempt to book it.
       def book
-
         outbound_itineraries = booking_request_params
 
         # Keep track if anything failed and then cancel all the itineraries ####
@@ -157,8 +155,7 @@ module Api
         itins  = []
         #########################################################################
 
-        responses = booking_request_params
-        .map do |booking_request|
+        responses = booking_request_params.map do |booking_request|
           # Find the itinerary identified in the booking request
           itin = Itinerary.find_by(id: booking_request.delete(:itinerary_id))
           itin.try(:select) # Select the itinerary so that the return trip can be built properly
@@ -189,6 +186,7 @@ module Api
             # This itinerary has already been booked. Don't book it again.
             next response.merge(booking_response_hash(itin.booking))
           end
+
           booking = itin.try(:book, booking_options: booking_request)
           unless booking.is_a?(Booking)
             failed = true
@@ -207,7 +205,7 @@ module Api
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
-                
+        
         # If any of the itineraries failed, cancel them all and return failures
         if failed 
           responses = []
@@ -344,6 +342,14 @@ module Api
       end
 
       def trip_params(parameters)
+        if @traveler
+          parameters[:trip][:user_id] ||= @traveler.id
+        end
+
+        if parameters[:trip][:external_purpose] && @traveler
+          parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id
+        end
+
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
           {destination_attributes: place_attributes},

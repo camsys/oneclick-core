@@ -145,7 +145,9 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
-  gem 'factory_bot_rails'
+
+  # Factory_bot 5.0 no longer allows static attributes. We should change our factories if we want to upgrade
+  gem 'factory_bot_rails', '~> 4.11'
   ##########################################
 end
 

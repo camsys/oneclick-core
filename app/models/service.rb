@@ -26,14 +26,14 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+
+  has_one :service_oversight_agency, dependent: :destroy
+  # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
-  has_one :service_oversight_agency, dependent: :destroy
-
-  # has_many :feedbacks, as: :feedbackable
+  has_many :purposes, through: :travel_patterns
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
-  has_and_belongs_to_many :purposes, -> { distinct }
   belongs_to :agency
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
