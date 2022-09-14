@@ -137,7 +137,8 @@ class ShapefileUploader
         end
         @errors << "#{fail_count} record(s) failed to load." if fail_count > 0
       end
-    rescue StandardError
+    rescue StandardError => ex
+      puts ex.message
       @errors << "An error occurred while unpacking the uploaded Shapefile. Please double check your shapefile and try again"
     end
   end

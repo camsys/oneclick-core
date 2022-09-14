@@ -57,7 +57,9 @@ class KMLUploader
             end
             polygon_wkt = 'POLYGON((' + polygon_points.join(", ").to_s + '))'
             factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
-            geom = factory.parse_wkt(polygon_wkt).geometry
+            polygon_geom = factory.parse_wkt(polygon_wkt)
+            output_geom = factory.multi_polygon([]).union(polygon_geom)
+            geom = RGeo::Feature.cast(output_geom, RGeo::Feature::MultiPolygon)
             #Rails.logger.info "Parsed #{geom.to_s}"
 
             record = ActiveRecord::Base.logger.silence do
@@ -81,7 +83,8 @@ class KMLUploader
         @errors << "#{fail_count} record(s) failed to load." if fail_count > 0
         end
       end
-    rescue StandardError
+    rescue StandardError => ex
+      puts ex.message
       @errors << "An error occurred while unpacking the uploaded KML file. Please double check your KML file and try again"
     end
   end
