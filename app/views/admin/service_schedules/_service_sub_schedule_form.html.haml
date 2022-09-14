@@ -165,6 +165,12 @@
 
       $(".form-inline[data-schedule-type = '" + $("#service_schedule_service_schedule_type_id").val() + "']").show();
       $(".form-inline[data-schedule-type != '" + $("#service_schedule_service_schedule_type_id").val() + "']").hide();
+
+      $(".start-time").closest(".schedule-body").each(function() {
+        if ($(this).find(".start-time").val() == "" && $(this).find(".end-time").val() == "") {
+          $(this).hide();
+        }
+      });
   });
 
 :javascript

@@ -330,6 +330,24 @@ class Admin::ServiceSchedulesController < Admin::AdminController
                 end
               end
             end
+            if @service_schedule.service_sub_schedules.count == 0
+              calendar_date_params.each do |d|
+                unless new_schedule = ServiceSubSchedule.create(service_schedule: @service_schedule, calendar_date: Date.parse(d[:calendar_date], "%Y/%m/%d"), start_time: nil, end_time: nil)
+                  schedule_updated = false
+                  error_message = new_schedule.errors.full_messages.join("\n")
+                  raise ActiveRecord::Rollback
+                end
+                unless new_schedule.valid?
+                  schedule_updated = false
+                  error_message = new_schedule.errors.full_messages.join("\n")
+                  raise ActiveRecord::Rollback
+                end
+                puts "created #{d[:calendar_date]}, no times"
+                schedule_updated = true
+              end
+            elsif @service_schedule.service_sub_schedules.any? { |s| s.start_time != nil && s.end_time != nil}
+              @service_schedule.service_sub_schedules.where(start_time: nil, end_time: nil).destroy_all
+            end
           else
             schedule_updated = false
           end
@@ -339,6 +357,7 @@ class Admin::ServiceSchedulesController < Admin::AdminController
         end
 
         if @service_schedule.service_sub_schedules.count == 0
+          # TODO update validation message depending on schedule type
           error_message = "Service schedule must have at least one date and/or time defined"
           schedule_updated = false
           raise ActiveRecord::Rollback
