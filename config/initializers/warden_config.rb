@@ -33,7 +33,7 @@ Warden::Manager.before_failure do |env, opts|
       **opts,
       timestamp: Time.now
     }
-    Rails.application.config.logger.info(JSON::dump(json))
+    #Rails.application.config.logger.info(JSON::dump(json))
   rescue
     puts "Warden Auth Failure Logging Failed"
     return
@@ -47,6 +47,9 @@ Warden::Manager.after_authentication except: :fetch do |user, auth, opts|
     if user.staff_agency&.oversight? && user.current_agency.nil?
       user.current_agency = user.staff_agency
     end
+    #if user.current_agency.nil?
+    #  user.current_agency = Agency.first
+    #end
     # Adds logging for authentication success
     user_role = nil
     user_id = user.id
