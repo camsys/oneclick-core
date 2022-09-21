@@ -30,6 +30,8 @@
   - if can? :create, FundingSource
     - if @agency_map.length == 1
       =link_to 'New Funding Source', new_admin_funding_source_path(agency_id: @agency_map.first[1]), class: 'btn btn-primary'
+    - elsif current_user&.currently_transportation?
+      =link_to 'New Funding Source', new_admin_funding_source_path(agency_id: current_user&.current_agency&.id), class: 'btn btn-primary'
     -else
       =link_to 'New Funding Source', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
   =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
