@@ -37,7 +37,7 @@ module Api
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
-            details = trip[:details] || Trip::DEFAULT_TRIP_DETAILS
+            
             trip_params(ActionController::Parameters.new({
               trip: {
                 origin_attributes: start_location,
@@ -47,7 +47,7 @@ module Api
                 user_id: @traveler && @traveler.id,
                 purpose_id: purpose ? purpose.id : nil,
                 external_purpose: external_purpose,
-                details: details
+                details: trip[:details]
               }
             }))
           end
@@ -349,6 +349,8 @@ module Api
         if parameters[:trip][:external_purpose] && @traveler
           parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id
         end
+
+        parameters[:trip][:details] = parameters[:trip].fetch(:details, Trip::DEFAULT_TRIP_DETAILS)
 
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
