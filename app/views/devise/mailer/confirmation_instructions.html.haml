@@ -1,9 +1,0 @@
-%p
-  ="#{SimpleTranslationEngine.translate(@resource.preferred_locale.try(:name) || 'en', 'emails.confirmation.welcome')}"
-  =@email
-
-%p
-  ="#{SimpleTranslationEngine.translate(@resource.preferred_locale.try(:name) || 'en', 'emails.confirmation.message')}"
-
-%p
-  = link_to "#{SimpleTranslationEngine.translate(@resource.preferred_locale.try(:name) || 'en', 'emails.confirmation.confirm')}", confirmation_url(@resource, confirmation_token: @token)

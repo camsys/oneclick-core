@@ -60,9 +60,8 @@ module TokenAuthenticationHelpers
     # the valid_for_authentication? method is defined in Devise's models/authenticatable.rb and overloaded in models/lockable.rb
     # passed block will only run if user is NOT locked out
     valid_for_authentication? do
-      # check if password is correct and user has been confirmed
-      valid_password?(password) &&
-      (confirmed? || confirmation_period_valid?)
+      # check if password is correct
+      valid_password?(password)
     end
   end
   

@@ -10,7 +10,7 @@ class User < ApplicationRecord
   include TravelerProfileUpdater   # Update Profile from API Call
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
-         :lockable, :confirmable
+         :lockable
   write_to_csv with: Admin::UsersReportCSVWriter
 
   # acts_as_token_authenticatable unless it's a guest user
@@ -188,11 +188,6 @@ class User < ApplicationRecord
   #All Emails are Lower Case
   def downcase_email
     self.email.downcase!
-  end
-  
-  # Set Require Confirmation to be true
-  def confirmation_required?
-    Config.require_user_confirmation || false
   end
 
   def password_complexity

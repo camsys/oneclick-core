@@ -28,7 +28,6 @@ class Admin::ConfigsController < Admin::AdminController
     :trapeze_token,
     :feedback_overdue_days,
     :ui_url,
-    :require_user_confirmation,
     :max_walk_minutes,
     :dashboard_mode,
     :maximum_booking_notice,
@@ -74,8 +73,6 @@ class Admin::ConfigsController < Admin::AdminController
       return value.select(&:present?).map(&:to_sym)
     when :feedback_overdue_days, :max_walk_minutes, :maximum_booking_notice
       return value.to_i
-    when :require_user_confirmation
-      return (value == "true")
     when :trapeze_ada_funding_sources
       return value.delete(' ').split(',')
     else

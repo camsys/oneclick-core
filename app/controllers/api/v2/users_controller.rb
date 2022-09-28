@@ -64,10 +64,6 @@ module Api
           if @user.valid_for_api_authentication?(user_params[:password])
             @user.ensure_authentication_token
           else
-            # Otherwise, add some errors to the response depending on what went wrong.
-            if !@user.confirmed?
-              @errors[:unconfirmed] = "You must confirm your account by clicking the link in the confirmation email that was sent."
-            end
             
             if @user.on_last_attempt?
               @errors[:last_attempt] = "You have one more attempt before account is locked for #{User.unlock_in / 60} minutes."
