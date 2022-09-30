@@ -19,7 +19,7 @@
 
 %h1
   = "#{mode.capitalize} Service Schedule"
-  - form_url = mode == "new" ? admin_service_schedules_path : admin_service_schedule_path
+  - form_url = mode == "new" ? admin_service_schedules_path(agency_id: @agency.id) : admin_service_schedule_path
 = simple_form_for @service_schedule,
   url: form_url,
   authenticity_token: true,

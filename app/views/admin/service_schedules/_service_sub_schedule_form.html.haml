@@ -171,6 +171,48 @@
           $(this).hide();
         }
       });
+
+      fh.form.on("submit", function(e) {
+        let formValid = true;
+
+        if ($(".calendar-date:visible").length == 0) {
+          e.preventDefault();
+          alert("Service schedule must contain at least one calendar date.");
+          formValid = false;
+        }
+
+        $(".sub-schedule-container .calendar-date:visible, .sub-schedule-container select:visible").each(function() {
+          if ($(this).val() == "") {
+            e.preventDefault();
+            $(this)[0].setCustomValidity("Field cannot be blank.");
+            $(this)[0].reportValidity();
+            formValid = false;
+            return false;
+          }
+          else {
+            $(this)[0].setCustomValidity("");
+            formValid = true;
+          }
+        });
+        if (formValid) {
+          $(".start-time:visible").each(function() {
+            if ($(this).val() > $(this).closest(".schedule-body").find(".end-time").val()) {
+              e.preventDefault();
+              $(this)[0].setCustomValidity("Start time cannot be after end time.");
+              $(this)[0].reportValidity();
+              formValid = false;
+              return false;
+            }
+            else {
+              $(this)[0].setCustomValidity("");
+            }
+          });
+        }
+      });
+
+      $("input:visible, select:visible").on("change", function() {
+        $(this)[0].setCustomValidity("");
+      })
   });
 
 :javascript

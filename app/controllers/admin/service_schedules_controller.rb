@@ -104,7 +104,9 @@ class Admin::ServiceSchedulesController < Admin::AdminController
               end
             end
           else
-            error_message = "Service schedule must have at least one date and/or time defined"
+            error_message = @service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Weekly pattern") ?
+                              "Service schedule must have at least one time slot defined." :
+                              "Service schedule must have at least one calendar date defined."
             schedule_created = false
             raise ActiveRecord::Rollback
           end
@@ -358,7 +360,9 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
         if @service_schedule.service_sub_schedules.count == 0
           # TODO update validation message depending on schedule type
-          error_message = "Service schedule must have at least one date and/or time defined"
+          error_message = @service_schedule.service_schedule_type == ServiceScheduleType.find_by(name: "Weekly pattern") ?
+                            "Service schedule must have at least one time slot defined." :
+                            "Service schedule must have at least one calendar date defined."
           schedule_updated = false
           raise ActiveRecord::Rollback
         end
