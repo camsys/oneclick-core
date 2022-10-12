@@ -24,12 +24,13 @@ class ShapefileUploader
   def load
     @errors.clear
     Rails.logger.info "Unzipping file..."
-    if @filetype == "application/zip"
+    if @filetype == "application/zip" ||
+      @filetype == "application/x-zip-compressed"
       Zip::File.open(@path) do |zip_file|
         extract_shapefiles(zip_file) {|file| load_shapefile(file)}
       end
     else
-      @errors << "Please upload a .zip file."
+      @errors << "The file type #{@filetype.to_s} is unsupported. Please upload a .zip file."
     end
     return self
   end
