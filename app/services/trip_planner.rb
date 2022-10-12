@@ -86,17 +86,21 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    # Find all the services that are available for your time and locations
-    @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+    # Apply remaining filters if not in travel patterns mode.
+    # Services using travel patterns are checked through travel patterns API.
+    if Config.dashboard_mode != 'travel_patterns'
+      # Find all the services that are available for your time and locations
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-    # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-    @relevant_accommodations = Accommodation.all.ordered_by_rank
+      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
 
-    # Now finish filtering by purpose, eligibility, and accommodation
-    @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    end
+
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
 
