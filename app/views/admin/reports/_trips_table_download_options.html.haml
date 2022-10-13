@@ -18,10 +18,11 @@
     label: "Trip Purpose"
 
 -# Oversight Agency
-= f.input :oversight_agency, required: false,
-    collection: OversightAgency.all,
-    value_method: :id,
-    label: "Planned By"
+- unless Config.dashboard_mode == "travel_patterns"
+  = f.input :oversight_agency, required: false,
+      collection: OversightAgency.all,
+      value_method: :id,
+      label: "Planned By"
 
 -# TRIP ORIGIN REGION BUILDER
 =render partial: 'admin/services/region_builder',
