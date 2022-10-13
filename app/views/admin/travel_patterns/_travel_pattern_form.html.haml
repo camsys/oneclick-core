@@ -57,17 +57,14 @@
     = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
 
     - content_for :footer do
-      .btn.btn-primary.form-submit Submit
-      %a.btn.btn-danger.form-reset{href: admin_travel_patterns_path} Cancel
-      
+      - if mode != 'view'
+        .btn.btn-primary.form-submit Submit
+        %a.btn.btn-danger.form-reset{href: admin_travel_patterns_path} Cancel
+      - else
+        =link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"
 
 :javascript
   $(document).on("turbolinks:load", function() {
-    if (#{mode == "view"}) {
-      $(".panel-footer center .btn").hide();
-      $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"}')
-    }
-
     $(".travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label").css("text-align", "left");
     $(".form-submit").on("click", (e) => {
       $(e.target).parents().closest('form').submit();

@@ -94,6 +94,10 @@
           %span.text-muted Add hours
           %span.text-muted.glyphicon.glyphicon-plus
 
+- if mode == 'view'
+  - content_for :footer do
+    =link_to "Done", admin_service_schedules_path, class: "btn btn-primary"
+
 -# Script nested under form so it can reference it in ScheduleHelper call
 :javascript
   $(document).ready(function() {

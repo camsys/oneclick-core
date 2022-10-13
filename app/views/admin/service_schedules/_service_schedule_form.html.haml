@@ -39,11 +39,4 @@
 
   .col-sm-12
     = render partial: 'service_sub_schedule_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, schedule_type: schedule_type}, layout: '/layouts/panel'
-
-:javascript
-  $(document).ready(function() {
-    if (#{mode == "view"}) {
-      $(".panel-footer center .btn").hide();
-      $(".panel-footer center").append('#{raw escape_javascript link_to "Done", admin_service_schedules_path, class: "btn btn-primary"}')
-    }
-  });
+    
