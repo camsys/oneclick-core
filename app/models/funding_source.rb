@@ -8,7 +8,7 @@ class FundingSource < ApplicationRecord
   scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
 
-  validates_presence_of :name, :description, :agency
+  validates_presence_of :name, :agency
   validates :name, uniqueness: {scope: :agency_id}
 
   def self.for_user(user)
