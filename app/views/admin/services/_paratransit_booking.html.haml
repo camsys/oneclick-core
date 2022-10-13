@@ -67,7 +67,8 @@
           as: :text,
           readonly: should_be_readonly,
           label: "ADA Funding Sources",
-          input_html: {value: booking_details[:ada_funding_sources]}
+          input_html: {value: booking_details[:ada_funding_sources]},
+          required: false
         =bd.input :preferred_sponsors,
           as: :text,
           readonly: should_be_readonly,
@@ -83,17 +84,20 @@
           as: :string,
           readonly: should_be_readonly,
           label: "Dummy/Guest User",
-          input_html: {value: booking_details[:dummy_user]}
+          input_html: {value: booking_details[:dummy_user]},
+          required: false
         =bd.input :guest_funding_sources,
           as: :text,
           readonly: should_be_readonly,
           label: "Guest Funding Sources",
-          input_html: {value: booking_details[:guest_funding_sources]}
+          input_html: {value: booking_details[:guest_funding_sources]},
+          required: false
         =bd.input :guest_purpose,
           as: :string,
           readonly: should_be_readonly,
           label: "Guest Purpose",
-          input_html: {value: booking_details[:guest_purpose]}
+          input_html: {value: booking_details[:guest_purpose]},
+          required: false
 
 
       %hr
