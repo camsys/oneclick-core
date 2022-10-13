@@ -8,7 +8,7 @@
       - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
         =link_to edit_admin_od_zone_path(id: od_zone.id), class: "edit_od_zone_action_button action_button", title: "Edit O/D Zone" do
           %span.glyphicon.glyphicon-pencil
-        =link_to admin_od_zone_path(od_zone), method: :delete, class: "delete_od_zone_action_button action_button", title: "Delete O/D Zone", data: {confirm: 'Warning: This will delete the O/D zone and it will be removed from any travel patterns in which it is currently being used. Press "OK" to confirm.'} do
+        =link_to admin_od_zone_path(od_zone), method: :delete, class: "delete_od_zone_action_button action_button", title: "Delete O/D Zone", data: {confirm: 'Warning: This will delete the O/D zone. Press "OK" to confirm.'} do
           %span.glyphicon.glyphicon-trash
       - elsif current_user.oversight_staff? || current_user.transportation_staff?
         =link_to admin_od_zone_path(od_zone), class: "view_od_zone_action_button action_button", title: "View O/D Zone" do

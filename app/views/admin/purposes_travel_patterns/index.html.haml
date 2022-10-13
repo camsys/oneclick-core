@@ -22,7 +22,7 @@
           =link_to admin_trip_purpose_path(purpose), class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-eye-open
         - if can? :delete, Purpose
-          =link_to admin_trip_purpose_path(purpose), class: "btn text-danger btn--no-bg", method: :delete, data: {confirm: 'Warning: This will delete the trip purpose and it will be removed from any travel patterns in which it is currently being used. Press "OK" to confirm.'} do
+          =link_to admin_trip_purpose_path(purpose), class: "btn text-danger btn--no-bg", method: :delete, data: {confirm: 'Warning: This will delete the trip purpose. Press "OK" to confirm.'} do
             %span.glyphicon.glyphicon-trash
 
 %div.text-center
