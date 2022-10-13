@@ -32,16 +32,6 @@
 :javascript
 
   $(document).ready(function() {
-    // Link to appropriate feedback detail on row click
-    $('#travel-patterns-table tbody tr td').click(function(e) {
-      if (e.target !== this) {
-        return;
-      }
-      else {
-        window.location = $(this).closest("tr").data("url");
-      }
-    });
-
     var dataTable = $('.datatable').DataTable({});
 
     document.addEventListener("turbolinks:before-cache", function() {

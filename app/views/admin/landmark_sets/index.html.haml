@@ -8,7 +8,7 @@
       %th Name
       %th{'aria-label':'Buttons'}
   -@landmark_sets.each do |sets|
-    %tr{style: "cursor: pointer", data: {url: admin_landmark_sets_path}}
+    %tr
       %td
         =sets.agency&.name
       %td
