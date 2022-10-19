@@ -29,7 +29,8 @@ class TravelPattern < ApplicationRecord
   accepts_nested_attributes_for :travel_pattern_funding_sources, allow_destroy: true, reject_if: :all_blank
 
   validates :name, uniqueness: {scope: :agency_id}
-  validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone
+  # TODO: verify whether the presence of a service schedule is good enough, or if it has to be a specific kind of schedule.
+  validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :funding_sources, :purposes, :service_schedule
 
   def to_api_response
     travel_pattern_opts = { 
