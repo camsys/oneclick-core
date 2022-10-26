@@ -15,11 +15,21 @@ module Api
         travel_pattern_query = filter_by_date(travel_pattern_query, query_params[:date])
         travel_patterns = filter_by_time(travel_pattern_query, query_params[:start_time], query_params[:end_time])
 
+        # Finally, filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
+        # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
+        travel_patterns = travel_patterns.map(&:to_api_response)
+        travel_patterns.select! { |travel_pattern|
+          dates = travel_pattern['to_calendar'].values
+          dates.detect { |date|
+            (date[:start_time] || -1) >= 0 && (date[:start_time] || -1) >= 1
+          }
+        }
+
         if travel_patterns.any?
-          Rails.logger.info("Found the following matching Travel Patterns: #{travel_patterns.map(&:id)}")
+          Rails.logger.info("Found the following matching Travel Patterns: #{ travel_patterns.map{|t| t['id']} }")
           render status: :ok, json: { 
             status: "success", 
-            data: travel_patterns.map(&:to_api_response)
+            data: travel_patterns
           }
         else
           Rails.logger.info("No matching Travel Patterns found")
