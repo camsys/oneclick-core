@@ -16,7 +16,7 @@ class TravelPattern < ApplicationRecord
   belongs_to :destination_zone, class_name: 'OdZone'
 
   has_many :travel_pattern_services, dependent: :destroy
-  has_many :services, through: :travel_pattern_services
+  has_many :services, through: :travel_pattern_services, dependent: :restrict_with_error
   has_many :travel_pattern_service_schedules, dependent: :destroy
   has_many :service_schedules, through: :travel_pattern_service_schedules
   has_many :travel_pattern_purposes, dependent: :destroy
