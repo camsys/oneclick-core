@@ -450,7 +450,8 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
   def lookup_customer_number params
-    search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer).try(:[], :customer_number)
+    customers = arrayify(search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer))
+    return customers.length == 1 ? customers.first.try(:[], :customer_number) : nil
   end
   
   ### Create OCC Trip from Ecolane Trip ###
