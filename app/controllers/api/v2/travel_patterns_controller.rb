@@ -11,6 +11,7 @@ module Api
         travel_pattern_query = filter_by_origin(travel_pattern_query, query_params[:origin])
         travel_pattern_query = filter_by_destination(travel_pattern_query, query_params[:destination])
         travel_pattern_query = filter_by_purpose(travel_pattern_query, query_params[:purpose])
+        travel_pattern_query = filter_by_funding_sources(travel_pattern_query, query_params[:purpose])
         travel_pattern_query = filter_by_date(travel_pattern_query, query_params[:date])
         travel_patterns = filter_by_time(travel_pattern_query, query_params[:start_time], query_params[:end_time])
 
@@ -75,6 +76,26 @@ module Api
         Rails.logger.info("Filtering through Travel Patterns that have the Purpose: #{purpose}")
         travel_pattern_query.joins(:purposes)
                             .merge(Purpose.where(name: purpose))
+      end
+
+      def filter_by_funding_sources(travel_pattern_query, purpose)
+        return travel_pattern_query unless purpose.present?
+
+        valid_funding_sources = []
+        get_funding = true
+        customer_info = @traveler.booking_profile.booking_ambassador.fetch_customer_information(get_funding)
+        funding_sources = [customer_info['customer']['funding']['funding_source']].flatten
+
+        funding_sources.each do |funding_source|
+          allowed = [funding_source['allowed']].flatten
+          if allowed.detect { |hash| hash['purpose'] == purpose }
+            valid_funding_sources.push(funding_source['name'])
+          end
+        end
+
+        Rails.logger.info("Filtering through Travel Patterns that have at least one of these funding sources: #{valid_funding_sources}")
+        travel_pattern_query.joins(:funding_sources)
+                            .merge(FundingSource.where(name: valid_funding_sources))
       end
 
       def filter_by_date(travel_pattern_query, trip_date)
