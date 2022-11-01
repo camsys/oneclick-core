@@ -30,7 +30,7 @@ class TravelPattern < ApplicationRecord
 
   validates :name, uniqueness: {scope: :agency_id}
   # TODO: verify whether the presence of a service schedule is good enough, or if it has to be a specific kind of schedule.
-  validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :funding_sources, :purposes, :service_schedules
+  validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :travel_pattern_funding_sources, :travel_pattern_purposes, :travel_pattern_service_schedules
 
   def to_api_response
     travel_pattern_opts = { 

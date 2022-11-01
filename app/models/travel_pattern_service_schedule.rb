@@ -1,5 +1,5 @@
 class TravelPatternServiceSchedule < ApplicationRecord
-  belongs_to :travel_pattern
+  belongs_to :travel_pattern, inverse_of: :travel_pattern_service_schedules
   belongs_to :service_schedule
 
   scope :weekly_service_schedules, -> do
@@ -22,6 +22,7 @@ class TravelPatternServiceSchedule < ApplicationRecord
 
   validates :priority, numericality: {greater_than: 0}
   validate :weekly_schedules_cannot_override
+  validates_presence_of :service_schedule
 
   delegate :is_a_weekly_schedule?, :is_a_calendar_date_schedule?, to: :service_schedule  
   

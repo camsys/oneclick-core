@@ -23,8 +23,8 @@ class Admin::TravelPatternsController < Admin::AdminController
 
     TravelPattern.transaction do
       begin
-        travel_pattern = TravelPattern.new(travel_pattern_params)
-        if travel_pattern.save
+        @travel_pattern = TravelPattern.new(travel_pattern_params)
+        if @travel_pattern.save
           travel_pattern_created = true
         else
           error_message = travel_pattern.errors.full_messages.join("\n")
