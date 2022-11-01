@@ -171,11 +171,11 @@ class Admin::ServicesController < Admin::AdminController
       @service.errors.add(:agency,"Oversight Agency empty for #{@service.name}, did not perform service create/ update")
     end
 
-    oa = OversightAgency.find oversight_id
+    oa = OversightAgency.find_by(id: oversight_id)
     ta  = TransportationAgency.find transportation_id
 
-    associated_tas = oa.agency_oversight_agency.map{|aoa| aoa.transportation_agency}
-    is_included = associated_tas.include?(ta)
+    associated_tas = oa&.agency_oversight_agency&.map{|aoa| aoa.transportation_agency}
+    is_included = associated_tas&.include?(ta)
 
     unless is_included
       @service.errors.add(:agency,err_message)

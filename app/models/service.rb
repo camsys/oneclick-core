@@ -41,7 +41,7 @@ class Service < ApplicationRecord
   accepts_nested_attributes_for :travel_pattern_services, allow_destroy: true, reject_if: :all_blank
 
   ### VALIDATIONS & CALLBACKS ###
-  validates_presence_of :name, :type
+  validates_presence_of :name, :type, :agency
   validates_with FareValidator # For validating fare_structure and fare_details
   contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
