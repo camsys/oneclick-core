@@ -13,7 +13,7 @@
   
 -# TRIP PURPOSES
 = f.input :purposes, required: false,
-    collection: Purpose.all.map{|p| [p[:name], p[:id]]},
+    collection: Purpose.for_user(current_user).map{|p| [p[:name], p[:id]]},
     as: :check_boxes,
     label: "Trip Purpose"
 
