@@ -84,11 +84,16 @@ class Landmark < Place
 
   def geom_buffer
     @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+    @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)
     output_geom = []
     if self.geom
       if self.geom.is_a?(RGeo::Geos::CAPIPointImpl)
+        # Re-project point into geographic coordinate system so we can use distance units instead of degrees.
+        point = RGeo::Feature.cast(self.geom, factory: @factory_simple_mercator, project: true)
         # Convert point into polygon.
-        geom = self.geom.buffer(0.001)
+        poly = point.buffer(GeoRecipe::DEFAULT_BUFFER_IN_FT)
+        # Project point back to original system.
+        geom = RGeo::Feature.cast(poly, factory: @factory, project: true)
         output_geom = [ geom ]
       end
     else
@@ -104,7 +109,7 @@ class Landmark < Place
 
   # Returns a GeoIngredient referring to this landmark
   def to_geo
-    GeoIngredient.new('Landmark', name: name, buffer: 500)
+    GeoIngredient.new('Landmark', name: name, buffer: GeoRecipe::DEFAULT_BUFFER_IN_FT)
   end
 
   def self.search(term)

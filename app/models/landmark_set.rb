@@ -21,12 +21,17 @@ class LandmarkSet < ApplicationRecord
 
   def geom
     @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+    @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)
     output_geom = self.landmarks.map do |landmark|
       geom = landmark.geom
       if geom
         if geom.is_a?(RGeo::Geos::CAPIPointImpl)
+          # Re-project point into geographic coordinate system so we can use distance units instead of degrees.
+          point = RGeo::Feature.cast(geom, factory: @factory_simple_mercator, project: true)
           # Convert point into polygon.
-          geom = geom.buffer(0.001)
+          poly = point.buffer(GeoRecipe::DEFAULT_BUFFER_IN_FT)
+          # Project point back to original system.
+          geom = RGeo::Feature.cast(poly, factory: @factory, project: true)
         end
         geom
       else
@@ -43,7 +48,7 @@ class LandmarkSet < ApplicationRecord
 
   # Returns a GeoIngredient referring to this landmark set
   def to_geo
-    GeoIngredient.new('LandmarkSet', name: name, buffer: 500)
+    GeoIngredient.new('LandmarkSet', name: name, buffer: GeoRecipe::DEFAULT_BUFFER_IN_FT)
   end
 
   def self.search(term)
