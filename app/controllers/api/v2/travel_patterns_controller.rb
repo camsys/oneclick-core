@@ -11,7 +11,7 @@ module Api
         travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, query_params[:origin])
         travel_pattern_query = TravelPattern.filter_by_destination(travel_pattern_query, query_params[:destination])
         travel_pattern_query = TravelPattern.filter_by_purpose(travel_pattern_query, query_params[:purpose])
-        travel_pattern_query = TravelPattern.filter_by_funding_sources(travel_pattern_query, query_params[:purpose], @traveler&.booking_profile)
+        travel_pattern_query = TravelPattern.filter_by_funding_sources(travel_pattern_query, query_params[:purpose], @traveler&.booking_profile&.booking_ambassador)
         travel_pattern_query = TravelPattern.filter_by_date(travel_pattern_query, query_params[:date])
         travel_patterns = TravelPattern.filter_by_time(travel_pattern_query, query_params[:start_time], query_params[:end_time])
 
