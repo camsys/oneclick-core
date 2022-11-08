@@ -415,7 +415,7 @@ class EcolaneAmbassador < BookingAmbassador
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
+      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
       arrayify(funding_source["allowed"]).each do |allowed|
@@ -713,20 +713,67 @@ class EcolaneAmbassador < BookingAmbassador
     mapping
   end
 
-  ### Build a Funding Hash for the Trip using 1-Click's Rules 
+  ### Return array of unique funding source names from the trip's matching travel patterns.
+  ### Returns an empty array if no matches found.
+  def get_travel_pattern_funding_sources
+    travel_pattern_funding_sources = []
+
+    agency = @user&.traveler_transit_agency&.transportation_agency
+    if agency.nil?
+      return travel_pattern_funding_sources
+    end
+
+    travel_pattern_query = TravelPattern.where(agency: agency)
+    Rails.logger.info("Getting Travel Patterns Funding Sources with agency_id: #{agency&.id}")
+
+    origin = { lat: @trip&.origin&.lat, lng: @trip&.origin&.lng }
+    destination = { lat: @trip&.destination&.lat, lng: @trip&.destination&.lng }
+    # TODO: Set these params from @trip.trip_time
+    trip_date = nil
+    start_time = nil
+    end_time = nil
+
+    travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, origin)
+    travel_pattern_query =  TravelPattern.filter_by_destination(travel_pattern_query, destination)
+    travel_pattern_query =  TravelPattern.filter_by_purpose(travel_pattern_query, @purpose)
+    travel_pattern_query =  TravelPattern.filter_by_funding_sources(travel_pattern_query, @purpose, self)
+    travel_pattern_query =  TravelPattern.filter_by_date(travel_pattern_query, trip_date)
+    travel_patterns =  TravelPattern.filter_by_time(travel_pattern_query, start_time, end_time)
+
+    travel_patterns.each do |travel_pattern|
+      funding_source_names = travel_pattern.funding_sources.pluck(:name)
+      travel_pattern_funding_sources.concat(funding_source_names).uniq
+    end
+
+    return travel_pattern_funding_sources
+  end
+
+  ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
+
+    travel_pattern_funding_sources = []
+    if Config.dashboard_mode == 'travel_patterns'
+      travel_pattern_funding_sources = get_travel_pattern_funding_sources
+      if travel_pattern_funding_sources.blank?
+        # If configured to use travel patterns, return if they have no funding.
+        return {}
+      end
+    end
 
     # Find the options that include the best funding source
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
     best_index = nil
     arrayify(get_funding_options).each do |option|
-      if option["type"] != "valid" || option["purpose"] != @purpose 
+      option_funding_source = option["funding_source"].strip
+      # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
+      if option["type"] != "valid" || option["purpose"] != @purpose ||
+        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
         next
       end
-      if option["funding_source"].in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option["funding_source"]) < best_index) 
-        best_index = @preferred_funding_sources.index(option["funding_source"])
+      if option_funding_source.in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
+        best_index = @preferred_funding_sources.index(option_funding_source)
         potential_options = [option] 
-      elsif option["funding_source"].in? @preferred_funding_sources and @preferred_funding_sources.index(option["funding_source"]) == best_index
+      elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
         potential_options << option 
       end
     end

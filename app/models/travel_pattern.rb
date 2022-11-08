@@ -150,4 +150,110 @@ class TravelPattern < ApplicationRecord
 
     return calendar
   end
+
+  #
+  # Filter Methods
+  #
+
+  def self.filter_by_origin(travel_pattern_query, origin)
+    return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?
+
+    travel_patterns = TravelPattern.arel_table
+    origin_zone_ids = OdZone.joins(:region).merge(Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+
+    travel_pattern_query.where(
+      travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
+        travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
+          travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        )
+      )
+    )
+  end
+
+  def self.filter_by_destination(travel_pattern_query, destination)
+    return travel_pattern_query unless destination.present? && destination[:lat].present? && destination[:lng].present?
+
+    travel_patterns = TravelPattern.arel_table
+    destination_zone_ids = OdZone.joins(:region).merge(Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+
+    travel_pattern_query.where(
+      travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
+        travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
+          travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        )
+      )
+    )
+  end
+
+  def self.filter_by_purpose(travel_pattern_query, purpose)
+    return travel_pattern_query unless purpose.present?
+
+    Rails.logger.info("Filtering through Travel Patterns that have the Purpose: #{purpose}")
+    travel_pattern_query.joins(:purposes)
+                        .merge(Purpose.where(name: purpose))
+  end
+
+  def self.filter_by_funding_sources(travel_pattern_query, purpose, booking_ambassador)
+    return travel_pattern_query unless purpose.present?
+
+    valid_funding_sources = []
+    get_funding = true
+    customer_info = booking_ambassador.fetch_customer_information(get_funding)
+    funding_sources = [customer_info['customer']['funding']['funding_source']].flatten
+
+    funding_sources.each do |funding_source|
+      allowed = [funding_source['allowed']].flatten
+      if allowed.detect { |hash| hash['purpose'] == purpose }
+        valid_funding_sources.push(funding_source['name'].strip)
+      end
+    end
+
+    Rails.logger.info("Filtering through Travel Patterns that have at least one of these funding sources: #{valid_funding_sources}")
+    travel_pattern_query.joins(:funding_sources)
+                        .merge(FundingSource.where(name: valid_funding_sources))
+  end
+
+  def self.filter_by_date(travel_pattern_query, trip_date)
+    return travel_pattern_query unless trip_date.present?
+
+    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running on: #{trip_date}")
+    Rails.logger.info("Filtering through Travel Patterns that have a Booking Window that includes: #{trip_date}")
+    trip_date = Date.strptime(trip_date, '%Y-%m-%d')
+    travel_pattern_query.for_date(trip_date)
+  end
+
+  # This method should be the first time we call the database, before this we were only constructing the query
+  def self.filter_by_time(travel_pattern_query, trip_start, trip_end)
+    return travel_pattern_query unless trip_start
+    trip_start = trip_start.to_i
+    trip_end = (trip_end || trip_start).to_i
+
+    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start/1.hour}:#{trip_start%1.minute}, to: #{trip_end/1.hour}:#{trip_end%1.minute}")
+    # Eager loading will ensure that all the previous filters will still apply to the nested relations
+    travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: {service_schedule: [:service_schedule_type, :service_sub_schedules]})
+    travel_patterns.select do |travel_pattern|
+      schedules = travel_pattern.schedules_by_type
+
+      # If there are reduced schedules, then we don't need to check any other schedules
+      if schedules[:reduced_service_schedules].present?
+        Rails.logger.info("Travel Pattern ##{travel_pattern.id} has matching reduced service schedules")
+        schedules = schedules[:reduced_service_schedules]
+      else
+        Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have maching calendar date schedules, checking other schedule types")
+        schedules = schedules[:reduced_service_schedules] + schedules[:extra_service_schedules]
+      end
+
+      # Grab any valid schedules
+      schedules.any? do |travel_pattern_service_schedule|
+        service_schedule = travel_pattern_service_schedule.service_schedule
+        service_schedule.service_sub_schedules.any? do |sub_schedule|
+          valid_start_time = sub_schedule.start_time <= trip_start
+          valid_end_time = sub_schedule.end_time >= trip_end
+
+          valid_start_time && valid_end_time
+        end
+      end
+    end # end travel_patterns.select
+  end # end filter_by_time
+
 end
