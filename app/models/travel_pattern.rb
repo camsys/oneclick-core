@@ -193,12 +193,12 @@ class TravelPattern < ApplicationRecord
                         .merge(Purpose.where(name: purpose))
   end
 
-  def self.filter_by_funding_sources(travel_pattern_query, purpose)
+  def self.filter_by_funding_sources(travel_pattern_query, purpose, booking_profile)
     return travel_pattern_query unless purpose.present?
 
     valid_funding_sources = []
     get_funding = true
-    customer_info = @traveler.booking_profile.booking_ambassador.fetch_customer_information(get_funding)
+    customer_info = booking_profile.booking_ambassador.fetch_customer_information(get_funding)
     funding_sources = [customer_info['customer']['funding']['funding_source']].flatten
 
     funding_sources.each do |funding_source|

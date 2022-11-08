@@ -736,7 +736,7 @@ class EcolaneAmbassador < BookingAmbassador
     travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, origin)
     travel_pattern_query =  TravelPattern.filter_by_destination(travel_pattern_query, destination)
     travel_pattern_query =  TravelPattern.filter_by_purpose(travel_pattern_query, @purpose)
-    travel_pattern_query =  TravelPattern.filter_by_funding_sources(travel_pattern_query, @purpose)
+    travel_pattern_query =  TravelPattern.filter_by_funding_sources(travel_pattern_query, @purpose, @booking_profile)
     travel_pattern_query =  TravelPattern.filter_by_date(travel_pattern_query, trip_date)
     travel_patterns =  TravelPattern.filter_by_time(travel_pattern_query, start_time, end_time)
 
