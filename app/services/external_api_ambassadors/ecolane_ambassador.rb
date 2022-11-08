@@ -415,7 +415,7 @@ class EcolaneAmbassador < BookingAmbassador
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
+      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
       arrayify(funding_source["allowed"]).each do |allowed|
@@ -764,15 +764,16 @@ class EcolaneAmbassador < BookingAmbassador
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
     best_index = nil
     arrayify(get_funding_options).each do |option|
+      option_funding_source = option["funding_source"].strip
       # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
       if option["type"] != "valid" || option["purpose"] != @purpose ||
-        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option["funding_source"]).nil?)
+        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
         next
       end
-      if option["funding_source"].in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option["funding_source"]) < best_index) 
-        best_index = @preferred_funding_sources.index(option["funding_source"])
+      if option["funding_source"].in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
+        best_index = @preferred_funding_sources.index(option_funding_source)
         potential_options = [option] 
-      elsif option["funding_source"].in? @preferred_funding_sources and @preferred_funding_sources.index(option["funding_source"]) == best_index
+      elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
         potential_options << option 
       end
     end

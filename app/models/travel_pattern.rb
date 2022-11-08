@@ -204,7 +204,7 @@ class TravelPattern < ApplicationRecord
     funding_sources.each do |funding_source|
       allowed = [funding_source['allowed']].flatten
       if allowed.detect { |hash| hash['purpose'] == purpose }
-        valid_funding_sources.push(funding_source['name'])
+        valid_funding_sources.push(funding_source['name'].strip)
       end
     end
 
