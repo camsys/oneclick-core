@@ -383,7 +383,11 @@ class Admin::ServiceSchedulesController < Admin::AdminController
 
   def destroy
     service_schedule = ServiceSchedule.find(params[:id])
-    service_schedule.destroy
+    if service_schedule.destroy
+      flash[:success] = "Service Schedule successfully deleted."
+    else
+      flash[:danger] = service_schedule.errors.full_messages.join(" ")
+    end
     redirect_to admin_service_schedules_path
   end
 

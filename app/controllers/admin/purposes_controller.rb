@@ -7,7 +7,11 @@ class Admin::PurposesController < Admin::AdminController
   end
 
   def destroy
-    @purpose.destroy
+    if @purpose.destroy
+      flash[:success] = "Purpose successfully deleted."
+    else
+      flash[:danger] = @purpose.errors.full_messages.join(" ")
+    end
     redirect_to admin_purposes_path
   end
 

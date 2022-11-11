@@ -43,8 +43,12 @@ class Admin::FundingSourcesController < Admin::AdminController
   end
 
   def destroy
-    @funding_source.destroy
-    redirect_to admin_funding_sources_path, notice: 'Funding Source was successfully deleted.'
+    if @funding_source.destroy
+      flash[:success] = "Funding Source successfully deleted."
+    else
+      flash[:danger] = @funding_source.errors.full_messages.join(" ")
+    end
+    redirect_to admin_funding_sources_path
   end
 
   private
