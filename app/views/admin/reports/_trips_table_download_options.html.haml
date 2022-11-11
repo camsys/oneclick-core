@@ -12,10 +12,16 @@
   label: 'Only Show Trips Created In 1Click:'
   
 -# TRIP PURPOSES
-= f.input :purposes, required: false,
-    collection: Purpose.for_user(current_user).map{|p| [p[:name], p[:id]]},
-    as: :check_boxes,
-    label: "Trip Purpose"
+- unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
+  .purposes-filter
+    - if Config.dashboard_mode == "travel_patterns" && (current_user.transportation_user? || current_user.currently_transportation?)
+      - purposes_collection = Purpose.for_user(current_user).map{|p| ["#{p[:name]}", p[:id]]}.sort_by { |p| p[0].downcase }
+    - else
+      - purposes_collection = Purpose.all.map{|p| ["#{p[:name]}", p[:id]]}.sort_by { |p| p[0].downcase }
+    = f.input :purposes, required: false,
+        collection: purposes_collection,
+        as: :check_boxes,
+        label: "Trip Purpose"
 
 -# Oversight Agency
 - unless Config.dashboard_mode == "travel_patterns"
