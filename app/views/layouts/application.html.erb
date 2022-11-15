@@ -32,7 +32,9 @@
           <ul class="nav navbar-nav navbar-right">
             <% if current_user%>
               <li class="menu-item agency">
-                <% if current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 0 %>
+                <!-- Only show agency emulation drop-down on list views. -->
+                <% if action_name.in?(["index", "root", "staff", "travelers"]) &&
+                  (current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 0) %>
                   <%= form_tag change_agency_admin_users_path do %>
                   <%= select("agency",
                              "id",
