@@ -468,9 +468,11 @@ module Api
           end
 
           itinerary_hash = {
+            assistant: itinerary.assistant,
             arrival: arrival ? arrival.strftime("%Y-%m-%dT%H:%M") : nil,
             booking_confirmation: itinerary.booking_confirmation,
             comment: nil, # DEPRECATE? in old OneClick, this just takes the English comment
+            companions: itinerary.companions,
             cost: itinerary.cost.to_f,
             departure: departure ? departure.strftime("%Y-%m-%dT%H:%M") : nil,
             duration: duration,

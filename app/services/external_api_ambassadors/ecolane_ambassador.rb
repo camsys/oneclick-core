@@ -526,6 +526,9 @@ class EcolaneAmbassador < BookingAmbassador
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
+    assistant = eco_trip.fetch(:assistant, "false")
+    companions = eco_trip.fetch(:companions, 0).to_i
+    children = eco_trip.fetch(:children, 0).to_i
     origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
@@ -534,6 +537,8 @@ class EcolaneAmbassador < BookingAmbassador
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
     {
+      assistant: assistant,
+      companions: companions + children,
       start_time: start_time, 
       end_time: end_time,
       transit_time: (start_time and end_time) ? (end_time - start_time).to_i : nil,
