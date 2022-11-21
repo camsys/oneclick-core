@@ -8,7 +8,7 @@
       - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
         =link_to edit_admin_travel_pattern_path(id: travel_pattern.id), class: "btn btn--no-bg", title: "Edit Travel Pattern" do
           %span.glyphicon.glyphicon-pencil
-        =link_to admin_travel_pattern_path(travel_pattern), method: :delete, class: "btn text-danger btn--no-bg", title: "Delete Travel Pattern" do
+        =link_to admin_travel_pattern_path(travel_pattern), method: :delete, class: "btn text-danger btn--no-bg", title: "Delete Travel Pattern", data: {confirm: 'Warning: This will delete the travel pattern. Press "OK" to confirm.'} do
           %span.glyphicon.glyphicon-trash
       - elsif current_user.oversight_staff? || current_user.transportation_staff?
         =link_to admin_travel_pattern_path(travel_pattern), class: "btn btn--no-bg", title: "View Travel Pattern" do

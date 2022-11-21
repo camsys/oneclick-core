@@ -78,8 +78,11 @@ class Admin::TravelPatternsController < Admin::AdminController
 
   def destroy
     if @travel_pattern.destroy
-      redirect_to admin_travel_patterns_path
+      flash[:success] = "Travel Pattern successfully deleted."
+    else
+      flash[:danger] = @travel_pattern.errors.full_messages.join(" ")
     end
+    redirect_to admin_travel_patterns_path
   end
 
   private
