@@ -19,6 +19,20 @@ class LandmarkSet < ApplicationRecord
 
   validates_presence_of :name, :agency
 
+  # Prevent deletion if in use by a region.
+  def destroy
+    regions = Region.all
+    regions.each do |region|
+      region.recipe.ingredients.each do |ingredient|
+        if ingredient.model.to_s == LandmarkSet.name && self.name == ingredient.attributes[:name]
+          return false
+        end
+      end
+    end
+
+    super
+  end
+
   def geom
     @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
     @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)

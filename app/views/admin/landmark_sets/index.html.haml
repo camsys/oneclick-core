@@ -20,7 +20,10 @@
         -if can?(:show, LandmarkSet) && can?(:edit, LandmarkSet)
           =link_to edit_admin_landmark_set_path(id: sets.id), class: "btn btn--no-bg" do
             %span.glyphicon.glyphicon-pencil{aria:{hidden:true}}
-        =link_to admin_landmark_set_path(id: sets.id), method: :delete, class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}" do
+        =link_to admin_landmark_set_path(id: sets.id),
+          method: :delete,
+          class: "btn text-danger btn--no-bg #{can?(:delete, LandmarkSet) ? '': 'disabled'}",
+          data: {confirm: "Are you sure?  This action cannot be undone!"} do
           %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
 
 %footer.footer__links

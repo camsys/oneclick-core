@@ -58,7 +58,11 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def destroy
-    @landmark_set.destroy
+    if @landmark_set.destroy
+      flash[:success] = "Set of Ecolane POIs Deleted Successfully"
+    else
+      flash[:warning] = "Set of Ecolane POIs could not be Deleted"
+    end
     redirect_to admin_landmark_sets_path
   end
 
