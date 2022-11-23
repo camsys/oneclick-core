@@ -163,6 +163,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
     success = false
     LandmarkSet.transaction do
       if @landmark_set.save()
+        @landmark_set.update_associated_regions
         success = true
       else
         raise ActiveRecord::Rollback
