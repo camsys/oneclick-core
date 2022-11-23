@@ -29,7 +29,7 @@ RSpec.describe Admin::PurposesController, type: :controller do
     it 'creates a purpose' do      
       purpose_count = Purpose.count
       
-      params = {purpose: {code: 'Test DeLEte& purpose22', name: 'Test'}}
+      params = {purpose: {code: 'Test DeLEte& purpose22', name: 'Test', agency_id: create(:transportation_agency).id}}
       post :create, params: params, format: :js
       
       # Confirm that the variable was set

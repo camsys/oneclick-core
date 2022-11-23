@@ -61,12 +61,14 @@ RSpec.describe Service, type: :model do
     
     it { should have_and_belong_to_many :accommodations }
     it { should have_and_belong_to_many :eligibilities }
-    it { should have_and_belong_to_many :purposes }
+    it { should have_many :purposes }
     
     # For Purposes Testing
     let(:medical_service) { create(:paratransit_service, :medical_only, :no_geography) }
     let(:all_purpose_service) { create(:paratransit_service, :no_geography) }
     let(:metallica_trip) { create(:trip, :going_to_see_metallica) }
+
+    before(:each) { create(:ecolane_user_profile, service: all_purpose_service, user: metallica_trip.user) }
     
     it 'should be available to users if it has all necessary accommodations' do
       # Make the paratransit service accommodating

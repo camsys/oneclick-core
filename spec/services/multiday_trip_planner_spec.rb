@@ -41,5 +41,4 @@ RSpec.describe MultidayTripPlanner do
     end
   end
   
-  
 end

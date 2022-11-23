@@ -8,6 +8,7 @@ class ReturnTripPlanner < TripPlanner
   # Pass the outbound trip, a hash of attributes for overwriting the default
   # return trip attributes, and a hash of options to be passed to the trip planner
   def initialize(outbound_trip, return_trip_attrs={}, options={})
+    debugger
     @outbound_trip = outbound_trip
     @outbound_trip_type = @outbound_trip.trip_type
     @outbound_service = @outbound_trip.selected_service
@@ -27,6 +28,7 @@ class ReturnTripPlanner < TripPlanner
   
   # After planning, select the (should be only) itinerary
   def plan
+    debugger
     super
     @trip.itineraries
          .find_by(trip_type: @outbound_trip_type, service: @outbound_service)

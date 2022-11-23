@@ -26,6 +26,9 @@ FactoryBot.define do
       name "Test Paratransit Service"
       type "Paratransit"
 
+      # According to the logic in app/services/trip_planner.rb, #build_paratransit_itineraries method,
+      # all available paratransit services must have ecolane for their booking_api
+      ecolane_bookable
 
       trait :no_geography do
         after(:create) do |s|
@@ -71,10 +74,24 @@ FactoryBot.define do
 
       trait :medical_only do
         after(:create) do |s|
-          s.purposes << create(:purpose)
+          travel_pattern = create(:travel_pattern, agency: s.agency)
+          travel_pattern.purposes << create(:purpose, agency: s.agency)
+          s.travel_patterns << travel_pattern
         end
       end
       
+      trait :ecolane_bookable do
+        booking_api "ecolane"
+        booking_details { 
+          Hash.new
+        }
+
+        after(:build) do |svc|
+          svc.stub(:valid_booking_profile).and_return true
+        end
+      end
+
+
       trait :ride_pilot_bookable do
         booking_api "ride_pilot"
         booking_details { 

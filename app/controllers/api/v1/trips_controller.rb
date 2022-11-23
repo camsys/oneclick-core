@@ -18,7 +18,7 @@ module Api
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+        future_trips_hash = @traveler.future_trips(params.fetch(:max_results, 10))
                                      .outbound
                                      .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
@@ -31,13 +31,14 @@ module Api
         api_v2_params = params[:trips]
 
         trips_params = {}
+
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
-            
+
             trip_params(ActionController::Parameters.new({
               trip: {
                 origin_attributes: start_location,
@@ -176,10 +177,15 @@ module Api
         .map do |booking_request|
           # Pull the itinerary out of the booking_request hash and set up a
           # default (failure) booking response
-          itin = booking_request.delete(:itinerary) 
-          itins << itin       
-
+          itin = booking_request.delete(:itinerary)
           response = booking_response_base(itin).merge({booked: false})
+
+          unless itin
+            failed = true
+            next response
+          end
+
+          itins << itin       
                                         
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
           if itin.booked?
@@ -347,7 +353,7 @@ module Api
         end
 
         if parameters[:trip][:external_purpose] && @traveler
-          parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id
+          parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.try(:transportation_agency)).try(:id)
         end
 
         parameters[:trip][:details] = parameters[:trip].fetch(:details, Trip::DEFAULT_TRIP_DETAILS)
@@ -363,6 +369,8 @@ module Api
           :external_purpose
         )
       end
+
+      # p.require(:trip).permit([ {origin_attributes: [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]} ])
 
       def details_attributes
         [:notification_preferences]
@@ -519,7 +527,7 @@ module Api
 
       # Builds a location hash out of the location param, packaging it as a google place hash
       def trip_location_to_google_hash(location)
-        { google_place_attributes: location.to_json }
+        { google_place_attributes: JSON.parse(location.to_json) }
       end
       
       # Returns the base hash for booking action responses

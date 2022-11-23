@@ -90,7 +90,7 @@ class Service < ApplicationRecord
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
-    :schedule, :geography, :eligibility, :accommodation, :purpose
+    :schedule, :geography, :eligibility, :accommodation, :purpose, :booking_profile
   ]
 
   TAXI_SERVICES = %w[ Taxi Uber Lyft ]
@@ -135,6 +135,8 @@ class Service < ApplicationRecord
       return self.available_by_accommodation_for(trip)
     when :purpose
       return self.available_by_purpose_for(trip)
+    when :booking_profile
+      return self.available_by_booking_profile(trip)
     else
       return self.all
     end
@@ -190,6 +192,17 @@ class Service < ApplicationRecord
   # find services available by a trips purpose
   scope :available_by_purpose, -> (purpose) do
     where(id: no_purposes | with_matching_purpose(purpose))
+  end
+
+  scope :available_by_booking_profile, -> (trip) do
+    where(
+      arel_table[:type].not_eq('Paratransit')
+      .or(
+        arel_table[:booking_api].eq('ecolane').and(
+          arel_table[:id].in(UserBookingProfile.where(user_id: trip.user_id).pluck(:service_id))
+        )
+      )
+    )
   end
 
   # Builds instance methods for determining if record falls within given scope

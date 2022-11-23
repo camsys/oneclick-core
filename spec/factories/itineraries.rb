@@ -17,8 +17,13 @@ FactoryBot.define do
     end
 
     factory :paratransit_itinerary do
+      transient do 
+        paratransit_service { create(:paratransit_service, :medical_only, :with_schedules, :with_descriptions) }
+      end
+
       trip_type "paratransit"
-      service {create(:paratransit_service, :medical_only, :with_schedules, :with_descriptions)}
+      trip { create(:ecolane_trip, service: paratransit_service) }
+      service { paratransit_service }
       transit_time 2336
       
       factory :strict_and_accommodating_paratransit_itinerary do
@@ -51,18 +56,17 @@ FactoryBot.define do
           booking { create(:ride_pilot_booking, :canceled)}
         end
         
-        trait :unbooked do
-          booking nil
-        end
-        
         factory :booked_itinerary do
           booked
         end
         
       end
+
+      trait :unbooked do
+        booking nil
+      end
       
     end
-
 
   end
 end

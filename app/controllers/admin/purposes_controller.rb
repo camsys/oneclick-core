@@ -37,7 +37,7 @@ class Admin::PurposesController < Admin::AdminController
   private
 
   def purpose_params
-  	params.require(:purpose).permit(:code, :name)
+  	params.require(:purpose).permit(:code, :name, :agency_id)
   end
 
 end

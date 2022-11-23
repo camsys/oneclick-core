@@ -4,7 +4,7 @@ FactoryBot.define do
     skip_create
 
     initialize_with do
-      outbound_trip = attributes[:outbound_trip] || FactoryBot.create(:booked_trip)
+      outbound_trip = attributes[:outbound_trip] || FactoryBot.create(:ecolane_trip, :eco_booked)
       return_trip_attrs = attributes[:return_trip_attrs] || {}
       options = attributes[:options] || {}
       ReturnTripPlanner.new(outbound_trip, return_trip_attrs, options)

@@ -2,13 +2,13 @@ require 'rails_helper'
 
 # NOTE: Removed Uber and Lyft services from the "it skips or includes service filters when requested"
 # test as those get filtered out by TripPlanner now and might need to do some work to keep it synced
-RSpec.describe TripPlanner do  
+RSpec.describe TripPlanner do
   before(:each) { create(:otp_config) }
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
   before(:each) { create(:lyft_client_token) }
   let(:trip) {create :trip}
-  let(:accommodating_trip) { create(:trip, user: create(:user, :needs_accommodation)) }
+  let(:accommodating_trip) { create(:ecolane_trip, user: create(:user, :needs_accommodation), service: accommodating_paratransit) }
   let!(:paratransit) { create(:paratransit_service, :medical_only) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
@@ -36,7 +36,7 @@ RSpec.describe TripPlanner do
   # TRIP PLANNERS
   let(:generic_trip_planner) { create(:trip_planner, options: {router: otps[:car]}) }
   let(:transit_tp) { create(:trip_planner, options: {router: otps[:transit]})}
-  let(:paratransit_tp) { create(:trip_planner, options: {router: otps[:car]})}
+  let(:paratransit_tp) { create(:trip_planner, options: {router: otps[:car]}, trip: create(:ecolane_trip, service: paratransit))}
   let(:taxi_tp) { create(:trip_planner, options: {router: otps[:car]})}
   let(:walk_tp) { create(:trip_planner, options: {router: otps[:walk]})}
   let(:bicycle_tp) { create(:trip_planner, options: {router: otps[:bicycle]})}
@@ -135,6 +135,8 @@ RSpec.describe TripPlanner do
   end
 
   it 'should find relevant eligibilities' do
+    create(:ecolane_user_profile, service: strict_paratransit, user: paratransit_tp.trip.user)
+
     paratransit_tp.set_available_services
     expect(paratransit_tp.relevant_eligibilities.pluck(:code).sort)
       .to eq(Eligibility.where(code: "over_65").pluck(:code).sort)
@@ -164,7 +166,7 @@ RSpec.describe TripPlanner do
     # Plan the trip with the accommodations filter skipped
     skip_accom_filter_tp.trip = accommodating_trip
     skip_accom_filter_tp.plan
-    puts Service.all.map{|s| "#{s.id} #{s.name} #{s.type}"}
+
     # Except the services returned by the trip planner to include non-accommodating services
     expect(accommodating_trip.services.pluck(:id)).to match_array(
       # Ignore transit, since doesn't have a belongs_to relationship with itineraries

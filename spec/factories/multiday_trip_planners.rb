@@ -4,7 +4,7 @@ FactoryBot.define do
     skip_create
 
     initialize_with do
-      trip = attributes[:trip] || FactoryBot.create(:trip)
+      trip = attributes[:trip] || FactoryBot.create(:ecolane_trip)
       options = attributes[:options] || {}
       trip_times = attributes[:trip_times] || [
           DateTime.current, 

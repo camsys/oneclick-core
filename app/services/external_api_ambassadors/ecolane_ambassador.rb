@@ -23,9 +23,9 @@ class EcolaneAmbassador < BookingAmbassador
     add_missing_attributes
     
     # Funding Rules Shortcuts
-    @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
-    @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
-    @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
+    @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources)&.split(',')&.map{ |x| x.strip }
+    @preferred_sponsors =  (@service.booking_details.try(:[], :preferred_sponsors)&.split(',')&.map{ |x| x.strip } || []) + [nil]
+    @ada_funding_sources = (@service.booking_details.try(:[], :ada_funding_sources)&.split(',')&.map{ |x| x.strip } || []) + [nil]
     @dummy = @service.booking_details.try(:[], :dummy_user)
     @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources)
     if @guest_funding_sources

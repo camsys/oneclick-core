@@ -69,27 +69,27 @@ RSpec.describe Admin::ServicesController, type: :controller do
       expect(attributes_match).to be true
     end
 
-     it 'faithfully creates a taxi service based on passed parameters' do
-       attrs = attributes_for(:taxi_service)
-       params = {taxi: attrs,oversight:{oversight_agency_id: ''}}
-       count = Taxi.count
+    it 'faithfully creates a taxi service based on passed parameters' do
+      attrs = attributes_for(:taxi_service).merge(agency_id: agency.id)
+      params = {taxi: attrs, oversight: {oversight_agency_id: ''}}
+      count = Taxi.count
 
-       post :create, params: params
+      post :create, params: params
+    
+      # test for the 302 status-code (redirect)
+      expect(response).to have_http_status(302)
 
-       # test for the 302 status-code (redirect)
-       expect(response).to have_http_status(302)
+      # Confirm that a new service was created
+      expect(Taxi.count).to eq(count + 1)
 
-       # Confirm that a new service was created
-       expect(Taxi.count).to eq(count + 1)
-
-       # Confirm that the most recently created service matches the parameters sent
-       @service = Taxi.last
-       attributes_match = attrs.all? { |att| attrs[att] == @service[att] }
-       expect(attributes_match).to be true
-     end
+      # Confirm that the most recently created service matches the parameters sent
+      @service = Taxi.last
+      attributes_match = attrs.all? { |att| attrs[att] == @service[att] }
+      expect(attributes_match).to be true
+    end
 
     it 'faithfully creates an uber service based on passed parameters' do
-       attrs = attributes_for(:uber_service)
+       attrs = attributes_for(:uber_service).merge(agency_id: agency.id)
        params = {uber: attrs,oversight:{oversight_agency_id: ''}}
        count = Uber.count
 
@@ -108,7 +108,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
      end
 
     it 'faithfully creates a lyft service based on passed parameters' do
-       attrs = attributes_for(:lyft_service)
+       attrs = attributes_for(:lyft_service).merge(agency_id: agency.id)
        params = {lyft: attrs,oversight:{oversight_agency_id: ''}}
        count = Lyft.count
 

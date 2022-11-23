@@ -6,7 +6,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   
   let(:trip) { create(:trip) }
   let(:itinerary) { create(:itinerary, trip: nil) }
-  let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
+  let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil, service: paratransit_service) }
   let(:user) { trip.user }
   let(:hacker) { create(:english_speaker) }
   let!(:eligibility) { FactoryBot.create :eligibility }
@@ -20,6 +20,9 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
   before(:each) { create(:lyft_client_token) }
+  before(:each) { create(:traveler_transit_agency, user: user) }
+  before(:each) { create(:ecolane_user_profile, user: user, service: paratransit_service) }
+  before(:each) { allow_any_instance_of(EcolaneAmbassador).to receive(:sync) }
 
   ### PLANNING ###
 
@@ -171,7 +174,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
   describe "booking and canceling" do
     
     # Build a stubbed-out itinerary that responds to booking requests
-    let(:bookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
+    let(:bookable_itinerary) { create(:paratransit_itinerary, :unbooked, trip: trip, service: paratransit_service) }
     let(:unbookable_itinerary) { create(:ride_pilot_itinerary, :unbooked, trip: trip) }
 
     before(:each) do
@@ -249,7 +252,6 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       post :book, params: booking_params_w_return
       response_body = JSON.parse(response.body)
       bookable_itinerary.reload
-                  
       return_trip = Trip.find_by(id: response_body["booking_results"][1]["trip_id"])
       return_itin = Itinerary.find_by(id: response_body["booking_results"][1]["itinerary_id"])
 

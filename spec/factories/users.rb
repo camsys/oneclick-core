@@ -9,6 +9,7 @@ FactoryBot.define do
     
     transient do
       staff_agency nil
+      service nil
     end
 
     trait :admin do
@@ -128,6 +129,12 @@ FactoryBot.define do
     trait :with_old_trip do
       after(:create) do |u|
         u.trips << create(:trip, trip_time: Date.today - 2.months)
+      end
+    end
+
+    trait :with_ecolane_profile do
+      after(:create) do |u|
+        u.booking_profiles << create(:ecolane_user_profile, user: u)
       end
     end
     

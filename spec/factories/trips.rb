@@ -31,9 +31,29 @@ FactoryBot.define do
     
     factory :booked_trip do
       after(:create) do |trip|
-        create(:paratransit_itinerary, trip: trip)
+        itin = create(:paratransit_itinerary, trip: trip)
+        create(:ecolane_user_profile, user: trip.user, service: itin.service)
         create(:transit_itinerary, trip: trip)
         create(:booked_itinerary, trip: trip)
+      end
+    end
+
+    factory :ecolane_trip do
+      transient do 
+        service { create(:paratransit_service) }
+      end
+
+      after(:create) do |trip, evaluator|
+        trip.user.booking_profiles << create(:ecolane_user_profile, service: evaluator.service)
+      end
+
+      trait :eco_booked do
+        after(:create) do |trip, evaluator|
+          itin = create(:paratransit_itinerary, trip: trip, service: evaluator.service)
+          create(:ecolane_user_profile, user: trip.user, service: evaluator.service)
+          create(:transit_itinerary, trip: trip)
+          create(:booked_itinerary, trip: trip)
+        end
       end
     end
 
@@ -57,7 +77,5 @@ FactoryBot.define do
     trait :going_to_see_metallica do |t|
       association :purpose, factory: :metallica_concert
     end
-    
-
   end
 end

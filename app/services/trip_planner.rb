@@ -193,6 +193,7 @@ class TripPlanner
       if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
         next nil
       end 
+      
       Itinerary.new(
         service: svc,
         trip_type: :paratransit,

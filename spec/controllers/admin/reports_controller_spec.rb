@@ -3,9 +3,9 @@ require 'rails_helper'
 RSpec.describe Admin::ReportsController, type: :controller do
 
   let(:superuser) { create(:superuser) }
-  let(:transportation_staff) { create :transportation_staff }
-  let(:partner_staff) { create :partner_staff }
-  let(:oversight_staff) { create :oversight_staff }
+  let(:transportation_staff) { create(:transportation_staff) }
+  let(:partner_staff) { create(:partner_staff) }
+  let(:oversight_staff) { create(:oversight_staff) }
   let(:traveler) { create(:user) }
 
   let(:from_date) { (Date.today - 3.months) }

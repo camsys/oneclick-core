@@ -55,6 +55,7 @@ class Ability
         can [:read, :update], Feedback, # Can read/update feedbacks related to their agency's services
           id: Feedback.about(user.services).pluck(:id)
         can :create, User
+        can :read, :report
       end
       
       ## PartnerAgency Staff Permissions ##
@@ -81,8 +82,11 @@ class Ability
         # Can access services associated with own oversight agency, and those with no oversight agency(i.e taxi services)
         can :read, Service,
             id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id))
+
         can :change_agency, User,
             id: user.id
+        
+        can :read, :report
       end
       # staff users can update themselves
       can :update, User,

@@ -9,5 +9,12 @@ FactoryBot.define do
       external_user_id '0'
       external_password "RIDEPILOTTOKEN"
     end
+
+    factory :ecolane_user_profile do
+      service { create(:paratransit_service) }
+      details { { customer_id: "0" } }
+      booking_api "ecolane"
+      external_user_id '0'
+    end
   end
 end
