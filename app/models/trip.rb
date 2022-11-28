@@ -57,9 +57,9 @@ class Trip < ApplicationRecord
   DISPOSITION_STATUSES = {
     unknown: 'Unknown Disposition',
     fixed_route_saved: 'Saved fixed route trip',
-    fixed_route_denied: 'Trip plan denied due to Travel Patterns violation',
+    fixed_route_denied: 'Fixed route denial',
     ecolane_booked: 'Successfully booked in Ecolane',
-    ecolane_denied: 'Booking in Ecolane denied due to Travel Patterns violation'
+    ecolane_denied: 'Ecolane booking denial'
   }
 
 
