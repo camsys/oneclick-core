@@ -154,6 +154,12 @@ class TravelPattern < ApplicationRecord
   #
   # Filter Methods
   #
+  def self.filter_by_service(travel_pattern_query, services)
+    return travel_pattern_query unless services.present?
+
+    travel_pattern_query.joins(:services)
+                        .merge(Service.where(id: services.map(&:id)))
+  end
 
   def self.filter_by_origin(travel_pattern_query, origin)
     return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?

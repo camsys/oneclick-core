@@ -4,10 +4,18 @@ module Api
       before_action :require_authentication
 
       def index
-        agency = @traveler.traveler_transit_agency.transportation_agency
-        travel_pattern_query = TravelPattern.where(agency: agency)
-        Rails.logger.info("Filtering through Travel Patterns with agency_id: #{agency.id}")
+        user_county = traveler.return_county_if_ecolane_email.name
 
+        agency = @traveler.traveler_transit_agency.transportation_agency
+        services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
+        services = services.filter { |service|
+          counties = service.booking_details[:home_counties].split(',').map(&:strip)
+          counties.include? (user_county)
+        }
+        
+        Rails.logger.info("Filtering through Travel Patterns with agency_id: #{agency.id}")
+        travel_pattern_query = TravelPattern.where(agency: agency)
+        travel_pattern_query = TravelPattern.filter_by_service(travel_pattern_query, services)
         travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, query_params[:origin])
         travel_pattern_query = TravelPattern.filter_by_destination(travel_pattern_query, query_params[:destination])
         travel_pattern_query = TravelPattern.filter_by_purpose(travel_pattern_query, query_params[:purpose])

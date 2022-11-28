@@ -738,6 +738,13 @@ class EcolaneAmbassador < BookingAmbassador
     start_time = nil
     end_time = nil
 
+    user_county = @user.return_county_if_ecolane_email.name
+    services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
+    services = services.filter { |service|
+      counties = service.booking_details[:home_counties].split(',').map(&:strip)
+      counties.include? (user_county)
+    }
+    travel_pattern_query = TravelPattern.filter_by_service(travel_pattern_query, services)
     travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, origin)
     travel_pattern_query =  TravelPattern.filter_by_destination(travel_pattern_query, destination)
     travel_pattern_query =  TravelPattern.filter_by_purpose(travel_pattern_query, @purpose)
