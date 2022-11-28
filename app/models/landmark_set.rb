@@ -33,6 +33,21 @@ class LandmarkSet < ApplicationRecord
     super
   end
 
+  # If the landmark set is updated, update any regions using it.
+  def update_associated_regions
+    Region.transaction(requires_new: true) do
+      regions = Region.all
+      regions.each do |region|
+        region.recipe.ingredients.each do |ingredient|
+          if ingredient.model.to_s == LandmarkSet.name && self.name == ingredient.attributes[:name]
+            # Re-save the region so its geometry is updated.
+            region.save!
+          end
+        end
+      end
+    end
+  end
+
   def geom
     @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
     @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)
