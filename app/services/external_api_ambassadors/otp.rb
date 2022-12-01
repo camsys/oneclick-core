@@ -9,9 +9,11 @@ module OTP
 
   class OTPService
     attr_accessor :base_url
+    attr_accessor :version
 
-    def initialize(base_url="")
+    def initialize(base_url="", version="v1")
       @base_url = base_url
+      @version = version
     end
 
     # Makes multiple OTP requests in parallel, and returns once they're all done.
@@ -110,7 +112,9 @@ module OTP
         url_options += "&maxTransferTime=" + max_transfer_time.to_s
       end
 
-      #If it's a bicycle trip, OTP uses walk distance as the bicycle distance
+      # v2 currently doesn't have this param but plans to be added so we leave this
+      # We do filter for this in ServicesController if OTP doesn't return
+      # If it's a bicycle trip, OTP uses walk distance as the bicycle distance
       if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
         url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
       else
@@ -176,8 +180,9 @@ module OTP
       'park_transit':'CAR_PARK,WALK,TRANSIT',
       'car_transit':'CAR,WALK,TRANSIT',
       'bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
-      'rail':'TRAINISH,WALK',
-      'bus':'BUSISH,WALK',
+      'paratransit':'TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT',
+      'rail':'TRAM,SUBWAY,RAIL,WALK',
+      'bus':'BUS,WALK',
       'walk':'WALK',
       'car':'CAR',
       'bicycle':'BICYCLE'}

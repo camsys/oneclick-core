@@ -185,30 +185,37 @@ class TripPlanner
   def build_paratransit_itineraries
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
-    itineraries = @available_services[:paratransit].map do |svc|
+    # gtfs flex can load paratransit itineraries but not all otp instances have flex
+    if Config.open_trip_planner_version == 'v2'
+      router_paratransit_itineraries = build_fixed_itineraries(:paratransit)
+      return router_paratransit_itineraries.select{|itin| @available_services[:paratransit].pluck(:id).include?(itin.service_id)}
+    else
+      itineraries = @available_services[:paratransit].map do |svc|
       
-      #TODO: this is a hack and needs to be replaced.
-      # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
-      # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
-      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
-        next
-      end 
-      Itinerary.new(
-        service: svc,
-        trip_type: :paratransit,
-        cost: svc.fare_for(@trip, router: @router),
-        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
-      )
+        # Should not be able to use the paratransit service if booking API is not set up.
+        Rails.logger.info("Checking service id: #{svc&.id}")
+        if svc.booking_api != "ecolane"
+          next nil
+        end
+        #TODO: this is a hack and needs to be replaced.
+        # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
+        # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
+        if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
+          next nil
+        end 
+        Itinerary.new(
+          service: svc,
+          trip_type: :paratransit,
+          cost: svc.fare_for(@trip, router: @router),
+          transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
+        )
 
-    end
+      end
 
-    # Get rid of nil itineraries caused by skipping Ecolane Services
-    itineraries.delete(nil)
+      # Get rid of nil itineraries caused by skipping Ecolane Services
+      itineraries.delete(nil)
 
-    if itineraries.blank? 
-      return []
-    else 
-      return itineraries 
+      return itineraries.blank? ? [] : itineraries
     end
 
   end

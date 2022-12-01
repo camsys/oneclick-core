@@ -6,7 +6,7 @@ class OTPAmbassador
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
     transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
-    paratransit:  { label: :otp_car,    modes: "CAR" },
+    paratransit:  { label: :otp_car,    modes: "TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT" },
     taxi:         { label: :otp_car,    modes: "CAR" },
     walk:         { label: :otp_walk,     modes: "WALK"},
     car:          { label: :otp_car,    modes: "CAR"},
@@ -30,7 +30,8 @@ class OTPAmbassador
     @services = services
 
     @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
-    @otp = OTPService.new(Config.open_trip_planner)
+    otp_version = Config.open_trip_planner_version || 'v1'
+    @otp = OTPService.new(Config.open_trip_planner, otp_version)
 
     # add http calls to bundler based on trip and modes
     prepare_http_requests.each do |request|
