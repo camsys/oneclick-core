@@ -1,0 +1,48 @@
+:css
+  h1 {
+    text-align: center;
+  }
+
+  .od_zone_description label {
+    width: 8.3333333333%;
+  }
+
+  .od_zone_description .col-sm-9 {
+    width: 91.6666666667%;
+  }
+
+- mode = local_assigns[:mode]
+- agency = local_assigns[:agency]
+-form_id = "edit_od_zone"
+
+%h1
+  = "#{mode.capitalize} O/D Zone"
+  - form_url = mode == "new" ? admin_od_zones_path : admin_od_zone_path
+= simple_form_for @od_zone,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'flex-outer', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+
+  .form-group
+    = f.input :agency, collection: [[@od_zone.agency.name, @od_zone.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
+    = f.hidden_field :agency_id
+    = f.input :name, readonly: mode == "view", placeholder: "Enter name of O/D zone", required: true, wrapper: :travel_patterns_input_group
+  .form-group
+    = f.input :description, readonly: mode == "view", placeholder: "Enter description of O/D zone", wrapper: :travel_patterns_input_group
+  .col-sm-12
+    = render partial: 'od_sub_zone_form', locals: {mode: mode, f: f, agency: agency}
+
+  .text-center
+    =link_to 'Cancel', admin_od_zones_path, class: 'btn btn-danger'
+    =f.submit 'Save', class: 'btn btn-primary'
+
+:javascript
+  $(document).on("turbolinks:load", function() {
+
+    $(".od_zone_description label, .od_zone_agency label, .od_zone_name label").css("text-align", "left");
+    $(".form-submit").on("click", (e) => {
+      $(e.target).parents().closest('form').submit();
+    })
+
+  });

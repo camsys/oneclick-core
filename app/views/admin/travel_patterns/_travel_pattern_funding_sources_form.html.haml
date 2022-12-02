@@ -1,0 +1,24 @@
+-# For use in building new funding source forms
+-can_update = (mode != 'view' && (can? :update, @travel_pattern))
+
+.form-group.string.optional.label-container
+  .flex-inner
+    %label.control-label.text.optional
+      Eligible Funding Sources:
+    .btn.btn-primary.pull-right.autocomplete-add-all{disabled: !can_update, data: { selector: ".funding_sources", source: "travelPatternFundingSourcesSource" } }
+      Add all Funding Sources
+.well.well-sm.autocomplete-tag-index.funding_sources
+  =f.simple_fields_for :travel_pattern_funding_sources do |tpfs_form|
+    -object = tpfs_form.object
+    =render partial: "autocomplete_tag", locals: { form: tpfs_form, tag_label: object&.funding_source&.name, object: object, unique_key: :funding_source_id, object_fields: [:id, :funding_source_id, :_destroy], can_update: can_update }
+
+  - if can_update
+    .autocomplete-tag-new
+      .input-group
+        %input.autocomplete-field.form-control{ placeholder: 'Enter a funding source', data: { source: "travelPatternFundingSourcesSource" } }
+      .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
+
+:javascript
+  function travelPatternFundingSourcesSource () {
+    return JSON.parse('#{@agency.funding_sources.order(:name).map{ |funding_source| {label: funding_source[:name], "unique-key" => funding_source.id}}.to_json.html_safe}');
+  }

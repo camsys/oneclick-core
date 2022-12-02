@@ -1,4 +1,16 @@
 class Landmark < Place
+  include GeoKitchen
+  include LeafletAmbassador
+
+  attr_reader :geom_buffer
+  make_attribute_mappable :geom
+  make_attribute_mappable :geom_buffer
+  acts_as_geo_ingredient attributes: [:name, :buffer]
+
+  ### Associations ###
+  belongs_to :agency
+  has_many :landmark_set_landmarks, inverse_of: :landmark
+  has_many :landmark_sets, through: :landmark_set_landmarks
 
   ### Validations ####
   validates :name, uniqueness: true
@@ -69,5 +81,39 @@ class Landmark < Place
     end
 
   end #Update
+
+  def geom_buffer
+    @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+    @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)
+    output_geom = []
+    if self.geom
+      if self.geom.is_a?(RGeo::Geos::CAPIPointImpl)
+        # Re-project point into geographic coordinate system so we can use distance units instead of degrees.
+        point = RGeo::Feature.cast(self.geom, factory: @factory_simple_mercator, project: true)
+        # Convert point into polygon.
+        poly = point.buffer(GeoRecipe::DEFAULT_BUFFER_IN_FT)
+        # Project point back to original system.
+        geom = RGeo::Feature.cast(poly, factory: @factory, project: true)
+        output_geom = [ geom ]
+      end
+    else
+      @errors << "#{this.to_s} could not be converted to a geometry."
+    end
+    output_geom = @factory.multi_polygon([]).union(geom)
+    RGeo::Feature.cast(output_geom, RGeo::Feature::MultiPolygon)
+  end
+
+  def to_s
+    "#{name}"
+  end
+
+  # Returns a GeoIngredient referring to this landmark
+  def to_geo
+    GeoIngredient.new('Landmark', name: name, buffer: GeoRecipe::DEFAULT_BUFFER_IN_FT)
+  end
+
+  def self.search(term)
+    where('LOWER(name) LIKE :term', term: "%#{term.downcase}%")
+  end
 
 end #Landmark

@@ -49,7 +49,17 @@ class TripPlanner
     build_all_itineraries
 
     # Run through post-planning filters
-    filter_itineraries 
+    filter_itineraries
+    no_transit = true
+    no_paratransit = true
+    @trip.itineraries.each do |itin|
+      if itin.trip_type == "transit"
+        no_transit = false
+      elsif itin.trip_type == "paratransit"
+        no_paratransit = false
+      end
+    end
+    @trip.no_valid_services = no_paratransit && no_transit
     @trip.save
   end
 
@@ -71,40 +81,25 @@ class TripPlanner
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
 
-    # Filter out servies where the age REQUIREMENTS are not met (NOTE: age requirements are different than age eligibilities)
+    # Only select services that your age makes you eligible for
     if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    # Find all the services that are available for your time and locations
-    @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+    # Apply remaining filters if not in travel patterns mode.
+    # Services using travel patterns are checked through travel patterns API.
+    if Config.dashboard_mode != 'travel_patterns'
+      # Find all the services that are available for your time and locations
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-    # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-    @relevant_accommodations = Accommodation.all.ordered_by_rank
+      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
 
-    # Now finish filtering by purposes, eligible ages, eligibility booleans, and accommodations
-    ### Split off services that are available by age    
-    @eligible_by_age = @available_services.none
-    if @trip.user and @trip.user.age 
-      @eligible_by_age = (@available_services.by_eligible_max_age(@trip.user.age) + @available_services.by_eligible_min_age(@trip.user.age)).uniq
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
     end
-
-    # Pull out services that are not eligible by age, but MAY be eligible by other criteria
-    @not_eligible_by_age = @available_services.where.not(id: @eligible_by_age)
-
-    #Convert the Arrays to Relations
-    @eligible_by_age = @master_service_scope.published.where(id: @eligible_by_age)
-    
-    #Filter age eligible and not age eligible separately and then join them back together
-    @not_eligible_by_age =  @not_eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    @eligible_by_age =  @eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :accommodation]))
-
-    @available_services = (@eligible_by_age + @not_eligible_by_age).uniq
-    
-    # Convert this Array back to a relation OPTIMIZE this
-    @available_services = @master_service_scope.published.where(id: @available_services.pluck(:id))
 
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
@@ -127,10 +122,10 @@ class TripPlanner
   # Additional sanity checks can be applied here.
   def filter_itineraries
     walk_seen = false
+    max_walk_minutes = Config.max_walk_minutes || 45
     itineraries = @trip.itineraries.map do |itin|
 
       ## Test: Make sure we never exceed the maximium walk time
-      max_walk_minutes = Config.max_walk_minutes || 45
       if itin.walk_time and itin.walk_time > max_walk_minutes*60
         next
       end
@@ -191,7 +186,7 @@ class TripPlanner
       return router_paratransit_itineraries.select{|itin| @available_services[:paratransit].pluck(:id).include?(itin.service_id)}
     else
       itineraries = @available_services[:paratransit].map do |svc|
-      
+
         # Should not be able to use the paratransit service if booking API is not set up.
         Rails.logger.info("Checking service id: #{svc&.id}")
         if svc.booking_api != "ecolane"

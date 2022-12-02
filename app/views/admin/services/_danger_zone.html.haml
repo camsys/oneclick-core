@@ -1,14 +1,14 @@
 =content_for :header do
   Danger Zone
-  
-.row.form-group
-  .col-sm-9
-    %label Delete the Service, permanently removing it from the database.
-  .col-sm-3
-    =link_to "Delete this Service", admin_service_path(@service), 
-        method: :delete, 
-        class: "btn btn-danger", 
-        data: {confirm: "Are you sure?  This action cannot be undone!"}
+- unless hide_delete
+  .row.form-group
+    .col-sm-9
+      %label Delete the Service, permanently removing it from the database.
+    .col-sm-3
+      =link_to "Delete this Service", admin_service_path(@service),
+          method: :delete,
+          class: "btn btn-danger",
+          data: {confirm: "Are you sure?  This action cannot be undone!"}
 .row.form-group
   -if @service.published?
     .col-sm-9

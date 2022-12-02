@@ -1,0 +1,13 @@
+-# Takes a record collection and an array of symbols for column names/methods
+%table.table{class: local_assigns[:class] || ""}
+  %thead.thead-default
+    %tr
+      -columns.each do |col|
+        %th
+          =col.to_s.titleize
+  %tbody
+    -records.each do |record|
+      %tr
+        -columns.each do |col|
+          %td
+            =record.send(col)

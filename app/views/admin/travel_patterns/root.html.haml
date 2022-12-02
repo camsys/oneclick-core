@@ -1,0 +1,24 @@
+-# TODO: Setup proper link paths
+%h1.text-center Travel Patterns
+.cntr-root
+  %section.cntr-secondary.col-md-4
+    -# Geographies related links
+    .subcntr
+      = link_to 'Standard Geographies', admin_geographies_path, class: 'btn btn-default'
+      = link_to 'Custom Geographies', admin_custom_geographies_path, class: 'btn btn-primary'
+      = link_to 'Sets of POIs', admin_landmark_sets_path, class: 'btn btn-primary'
+      = content_tag(:p, '')
+    .subcntr.arr
+      %img{ src:'/arrows_all-to-1.svg'}
+  %section.cntr-secondary.col-md-4
+    .subcntr
+      = link_to 'O/D Zones', admin_od_zones_path, class: 'btn btn-primary'
+      = link_to 'Service Schedules', admin_service_schedules_path, class: 'btn btn-primary'
+      = link_to 'Trip Purposes', admin_trip_purposes_path, class: 'btn btn-primary'
+      = link_to 'Funding Sources',  admin_funding_sources_path, class: 'btn btn-primary'
+      = link_to 'Booking Windows',  admin_booking_windows_path, class: 'btn btn-primary'
+    .subcntr.arr
+      %img{ src:'/arrows_all-to-2.svg'}
+  %section.cntr-travelpattern.col-md-4
+    .subcntr
+      = link_to 'Travel Patterns', admin_travel_patterns_path, class: 'btn btn-primary'

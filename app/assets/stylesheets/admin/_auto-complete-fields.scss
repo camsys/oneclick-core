@@ -1,0 +1,58 @@
+@import 'mixins';
+@import 'variables';
+@import 'bootstrap_extensions';
+
+.btn.autocomplete-tag-show {
+  @include unit-box($brand-primary-pastel);
+  margin-left: 5px;
+  margin-right: 0px;
+  margin-bottom: 0px;
+  padding: 5px 5px 5px 5px;
+  line-height: 2.2;
+  height: 48px;
+  cursor: default;
+
+  label {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+}
+
+.autocomplete-tag-new {
+  @include dashed-unit-box($gray-paler);
+
+  height: 48px;
+  padding: 6px;
+  margin-left: 5px;
+  margin-right: 0px;
+  margin-bottom: 0px;
+
+  input.autocomplete-field {
+    height: 34px;
+    @include subtle-input
+  }
+
+  label {
+    margin-top: 5px;
+  }
+}
+
+.autocomplete-results ul {
+  padding: 0;
+
+  li {
+    padding-left: 6px;
+  }
+
+  :hover {
+    background-color: lightblue;
+  }
+}
+
+.well.autocomplete-tag-index {
+  padding-left: 4px;
+  row-gap: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 68px;
+}

@@ -30,14 +30,24 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
+
+### PRODUCTION APP RELATED #################
+# Support for application.yml on AWS
+gem 'figaro'
+# Replacement for Heroku Scheduler on AWS
+gem 'whenever', require: false
 ############################################
 
+### LOGGING RELATED #######################
+gem 'lograge'
+gem 'lograge-sql'
+############################################
 
 ### VIEWS & FORMATTING #####################
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
-gem 'bootstrap-sass', '3.2.0.4'
+gem 'bootstrap-sass', '~> 3.3.6'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
@@ -47,6 +57,10 @@ gem 'phony_rails' # For normalizing phone numbers
 gem 'jquery-datatables-rails', '~> 3.4.0'
 ############################################
 
+### PAGINATION #############################
+# gem 'kaminari', '~> 1.2.2'
+gem 'pagy', '~> 5.10.1'
+############################################
 
 ### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
@@ -76,9 +90,8 @@ gem 'savon'
 
 
 ### FILE UPLOAD ############################
-gem 'carrierwave', '~> 1.0'
+gem 'carrierwave-aws', '~> 1.1'
 gem 'mini_magick' # For resizing images
-gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
 gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations json
 ############################################
@@ -89,6 +102,7 @@ gem 'rgeo'
 gem "rgeo-proj4"
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
+gem 'geospatial-kml'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps
@@ -132,7 +146,9 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
-  gem 'factory_bot_rails'
+
+  # Factory_bot 5.0 no longer allows static attributes. We should change our factories if we want to upgrade
+  gem 'factory_bot_rails', '~> 4.11'
   ##########################################
 end
 

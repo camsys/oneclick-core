@@ -1,15 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe Admin::EligibilitiesController, type: :controller do
-  
-  let(:admin) { create(:admin) }
+
+  let(:superuser) { create(:superuser) }
   let(:staff) { create(:staff_user) }
   let(:traveler) { create(:user) }
   let(:veteran) { create(:veteran) }
   
-  context "while signed in as an admin" do
+  context "while signed in as a superuser" do
     
-    before(:each) { sign_in admin }
+    before(:each) { sign_in superuser }
     
     it 'gets a list of all eligibilities' do
       get :index

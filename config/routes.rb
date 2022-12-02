@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       end
       get 'trips/past_trips' => 'trips#past_trips'
       get 'trips/future_trips' => 'trips#future_trips'
+      put 'itineraries/update_trip_details' => 'trips#update_trip_details'
       # post 'trips/past_trips' => 'trips#index'
       post 'itineraries/plan' => 'trips#create'
       post 'itineraries/select' => 'trips#select'
@@ -94,6 +95,9 @@ Rails.application.routes.draw do
 
       # Services
       resources :services, only: [:index, :show]
+
+      # Travel Patterns
+      resources :travel_patterns, only: [:index]
 
       # Trips
       resources :trips, only: [:new, :create, :show]
@@ -154,7 +158,11 @@ Rails.application.routes.draw do
     resources :accommodations, :only => [:index, :destroy, :create, :edit, :update]
 
     # Agencies
-    resources :agencies, only: [:index, :destroy, :create, :show, :update]
+    resources :agencies, only: [:index, :destroy, :create, :show, :update], shallow: true do
+    end
+
+    # Booking Windows
+    resources :booking_windows
 
     # Configs
     resources :configs, only: [:index]
@@ -170,6 +178,9 @@ Rails.application.routes.draw do
       end
     end
 
+    # Funding Sources
+    resources :funding_sources
+
     # Alerts
     resources :alerts, :only => [:index, :destroy, :create, :edit, :update] do
       collection do
@@ -177,13 +188,15 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :custom_geographies, :only => [:index, :create, :new ,:destroy]
+
     # Geographies
     get 'geographies' => 'geographies#index'
     post 'counties' => 'geographies#upload_counties'
     post 'cities' => 'geographies#upload_cities'
     post 'zipcodes' => 'geographies#upload_zipcodes'
-    post 'custom_geographies' => 'geographies#upload_custom_geographies'
     get 'autocomplete' => 'geographies#autocomplete'
+    post 'legacy/custom_geographies/create' => 'geographies#upload_custom_geographies'
 
     # Landmarks
     resources :landmarks, :only => [:index, :edit, :create, :update, :destroy] do
@@ -192,8 +205,20 @@ Rails.application.routes.draw do
       end
     end
 
+    # Landmark Sets
+    put 'landmark_sets/new' => 'landmark_sets#new'
+    put 'landmark_sets/:id/edit' => 'landmark_sets#edit'
+    resources :landmark_sets
+
+    resources :od_zones, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
+      collection do
+        get 'autocomplete' => 'od_zones#autocomplete'
+      end
+    end
+
     # Purposes
     resources :purposes, :only => [:index, :destroy, :create, :edit, :update]
+    resources :trip_purposes, controller: :purposes_travel_patterns
 
     # Reports
     resources :reports, only: [:index] do
@@ -218,15 +243,27 @@ Rails.application.routes.draw do
     end
 
     # Services
-    resources :services, :only => [:index, :destroy, :create, :show, :update]
+    resources :services, :only => [:index, :destroy, :create, :show, :update] do
+    end
+
+
+    resources :service_schedules, :only => [:index, :create, :new, :destroy, :show, :edit, :update]
+
+    resources :travel_patterns, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
+      collection do
+        get 'root' => 'travel_patterns#root'
+      end
+    end
+
 
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
       collection do
           get "staff"
           get "travelers"
+          post "change_agency"
         end
-      end
+    end
 
   end #Admin
 

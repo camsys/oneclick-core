@@ -5,7 +5,8 @@ module Api
 
       attributes  :email, :first_name, :last_name,
                   :lang, :characteristics, :accommodations,
-                  :preferred_modes, :preferred_trip_types
+                  :preferred_modes, :preferred_trip_types, :details
+
 
       # Returns name of preferred locale, or nil if not set
       def lang
@@ -36,6 +37,10 @@ module Api
       # Returns preferred trip types (the new way [bicycle, paratransit, walk, etc.])
       def preferred_trip_types
         object.preferred_trip_types.blank? ? [] : object.preferred_trip_types
+      end
+
+      def details
+        object.user_booking_profiles.where(service_id: nil).pluck(:details).first
       end
 
     end

@@ -7,12 +7,18 @@ class Admin::PurposesController < Admin::AdminController
   end
 
   def destroy
-    @purpose.destroy
+    if @purpose.destroy
+      flash[:success] = "Purpose successfully deleted."
+    else
+      flash[:danger] = @purpose.errors.full_messages.join(" ")
+    end
     redirect_to admin_purposes_path
   end
 
   def create
-  	Purpose.create!(purpose_params)
+  	purpose = Purpose.new(purpose_params)
+    purpose[:name] = purpose.code if purpose.name.blank?
+    purpose.save!
   	redirect_to admin_purposes_path
   end
 
@@ -31,7 +37,7 @@ class Admin::PurposesController < Admin::AdminController
   private
 
   def purpose_params
-  	params.require(:purpose).permit(:code)
+  	params.require(:purpose).permit(:code, :name)
   end
 
 end

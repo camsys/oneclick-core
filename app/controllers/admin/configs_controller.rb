@@ -6,9 +6,11 @@
 
 class Admin::ConfigsController < Admin::AdminController
   include RemoteFormResponder
-  
+  include ConfigHelpers
+
   authorize_resource
   before_action :load_configs, only: [:index, :update]
+  helper_method :build_dashboard_mode_collection
 
   PERMITTED_CONFIGS = [
     :open_trip_planner,
@@ -29,10 +31,13 @@ class Admin::ConfigsController < Admin::AdminController
     :ui_url,
     :require_user_confirmation,
     :max_walk_minutes,
+    :dashboard_mode,
+    :maximum_booking_notice,
     daily_scheduled_tasks: []
   ].freeze
 
   def index
+    @dashboard_mode_collection = build_dashboard_mode_collection
   end
   
   def update
@@ -44,9 +49,13 @@ class Admin::ConfigsController < Admin::AdminController
     @errors = Config.update(configs.keys, configs.values)
                     .map(&:errors)
                     .select(&:present?)
-    flash[:danger] = @errors.flat_map(&:full_messages)
-                            .to_sentence unless @errors.empty?
-    respond_with_partial    
+    if @errors.empty?
+      flash[:success] = 'Config updated sucessfully'
+    else
+      flash[:danger] = @errors.flat_map(&:full_messages)
+                              .to_sentence unless @errors.empty?
+    end
+    respond_with_partial
   end
   
   def configs_params
@@ -64,7 +73,7 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days, :max_walk_minutes
+    when :feedback_overdue_days, :max_walk_minutes, :maximum_booking_notice
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
@@ -75,4 +84,11 @@ class Admin::ConfigsController < Admin::AdminController
     end
   end
 
+  private
+
+  def build_dashboard_mode_collection
+    PERMITTED_DASHBOARD_MODES.map do |mode|
+      DashboardModeInputHelper.new(mode)
+    end
+  end
 end

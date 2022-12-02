@@ -30,10 +30,15 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
     expect(transit_serialization['end_location']).to eq({
       geometry: {
         location: {
-          lat: transit_itinerary.trip.destination.lat,
-          lng: transit_itinerary.trip.destination.lng
+          lat: transit_itinerary.trip.destination.lat.to_f,
+          lng: transit_itinerary.trip.destination.lng.to_f
         }
-      }
+      },
+      address_components:[{"long_name"=>"100", "short_name"=>"100", "types"=>["street_number"]}, {"long_name"=>"Cambridgepark Drive", "short_name"=>"Cambridgepark Drive", "types"=>["route"]}, {"long_name"=>"Cambridge", "short_name"=>"Cambridge", "types"=>["locality", "political"]}, {"long_name"=>"02140", "short_name"=>"02140", "types"=>["postal_code"]}, {"long_name"=>"MA", "short_name"=>"MA", "types"=>["administrative_area_level_1", "political"]}, {"long_name"=>nil, "short_name"=>nil, "types"=>["administrative_area_level_2", "political"]}],
+      formatted_address: "100 Cambridgepark Drive, Cambridge, MA 02140",
+      id: transit_itinerary.id,
+      name: "Old Cambridge Systematics",
+      stop_code: nil
     }.with_indifferent_access)
     expect(transit_serialization['end_time']).to eq(transit_itinerary.end_time.iso8601)
     expect(transit_serialization['id']).to eq(transit_itinerary.id)
@@ -65,7 +70,12 @@ RSpec.describe Api::V1::ItinerarySerializer, type: :serializer do
           lat: transit_itinerary.trip.origin.lat,
           lng: transit_itinerary.trip.origin.lng
         }
-      }
+      },
+      address_components: [{"long_name"=>"101", "short_name"=>"101", "types"=>["street_number"]}, {"long_name"=>"Station Landing", "short_name"=>"Station Landing", "types"=>["route"]}, {"long_name"=>"Medford", "short_name"=>"Medford", "types"=>["locality", "political"]}, {"long_name"=>"02139", "short_name"=>"02139", "types"=>["postal_code"]}, {"long_name"=>"MA", "short_name"=>"MA", "types"=>["administrative_area_level_1", "political"]}, {"long_name"=>nil, "short_name"=>nil, "types"=>["administrative_area_level_2", "political"]}],
+      formatted_address: "101 Station Landing, Medford, MA 02139",
+      id: transit_itinerary.id,
+      name: "Central Square",
+      stop_code: nil
     }.with_indifferent_access)
     expect(transit_serialization['start_time']).to eq(transit_itinerary.start_time.iso8601)
     expect(transit_serialization['url']).to eq(transit_itinerary.service.url)

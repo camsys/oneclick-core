@@ -100,7 +100,7 @@ class BookingAmbassador
   end
 
   # Create 1-Click Trips for Each Trip in the Booking System
-  def sync
+  def sync days_ago=1
     nil
   end
 

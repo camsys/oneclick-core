@@ -13,6 +13,8 @@ Bundler.require(*Rails.groups)
 
 module OneclickCore
   class Application < Rails::Application
+    # Init Log file
+    puts "Passenger/ Puma starting up in #{Rails.env} mode"
 
     # I18n Internationalization
     config.i18n.default_locale = (ENV['DEFAULT_LOCALE'] || "en").try(:to_sym)
@@ -42,7 +44,6 @@ module OneclickCore
           methods: [:get, :post, :put, :delete, :options]
         end
     end
-
     # Likely needed to allow forwarding when a CNAME DNS is not used.
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'ALLOWALL'
@@ -73,14 +74,32 @@ module OneclickCore
       # Loads names of installed modules into ENV variables
       require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_modules.rb')
     end
-    
+
+
     # Logs all API requests to DB. See app/services/api_request_logger.rb for details.
     config.api_request_logger = ApiRequestLogger.new('/api', {
       exclude_controllers: [],
-      exclude_actions: {}
+      exclude_actions: {},
+      log_to_db: true
     })
-    config.api_request_logger.start    
-    
+    config.api_request_logger.start
+
+    config.admin_console_logger = ApiRequestLogger.new(%w[/admin /], {
+      exclude_controllers: [],
+      exclude_actions: {},
+      log_to_db: false
+    })
+    config.admin_console_logger.start
+    # Enable app logging when applicable
+    if ENV["RAILS_LOG_TO_STDOUT"].present?
+      # Create logger for logging database changes(creating/ altering/ dropping tables)
+      # Should largely be okay to build this here since this is only tracking db migrations
+      # and rake tasks run in development by default
+      config.db_logger = ActiveSupport::Logger.new("log/db_changes.log")
+      config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+    end
+
+
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
 
 

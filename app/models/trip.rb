@@ -1,5 +1,8 @@
 class Trip < ApplicationRecord
-  
+
+  ### INSTANCE ATTRIBUTES ###
+  attr_accessor :no_valid_services
+
   ### INCLUDES ###
   include BookingHelpers::TripHelpers
   
@@ -16,7 +19,7 @@ class Trip < ApplicationRecord
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
-  has_many :partner_agencies, through: :user 
+  has_many :oversight_agencies, through: :user
 
   has_many :trip_accommodations
   has_many :relevant_accommodations, class_name: "Accommodation", through: :trip_accommodations, source: :accommodation
@@ -29,6 +32,7 @@ class Trip < ApplicationRecord
   accepts_nested_attributes_for :destination
   
   before_validation :set_trip_time
+  serialize :details
 
   write_to_csv with: Admin::TripsReportCSVWriter
 
@@ -38,9 +42,34 @@ class Trip < ApplicationRecord
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
   TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+  DEFAULT_TRIP_DETAILS = { notification_preferences: nil}
+
+  # Constant list of bad cities and the correct city
+  CORRECTED_CITIES_HASHES = [
+    { incorrect: 'West Manchester Township', correct: 'York'}, 
+    { incorrect: 'West Manchester Twp', correct: 'York'}, 
+    { incorrect: 'Hampden Township', correct: 'Mechanicsburg'},
+    { incorrect: 'Hampden Twp', correct: 'Mechanicsburg'}
+  ]
+  BAD_CITIES = CORRECTED_CITIES_HASHES.map{|h| h[:incorrect]}
+
+  # Trip disposition means trip request, so if I save a transit trip, that's a transit trip disposition
+  DISPOSITION_STATUSES = {
+    unknown: 'Unknown Disposition',
+    fixed_route_saved: 'Saved fixed route trip',
+    fixed_route_denied: 'Fixed route denial',
+    ecolane_booked: 'Successfully booked in Ecolane',
+    ecolane_denied: 'Ecolane booking denial'
+  }
 
 
   ### SCOPES ###
+  # Trips where users under an input transportation agency
+  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id).pluck(:user_id))}
+  # Trips with no transportation agency
+  scope :with_no_transportation_agency, -> {where.not(user_id: TravelerTransitAgency.where(
+    transportation_agency_id: TransportationAgency.all.pluck(:id)
+  ).pluck(:user_id))}
 
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }
@@ -53,7 +82,10 @@ class Trip < ApplicationRecord
   # Past trips have trip time before now, ordered from last to first; future
   # trips have trip time now and forward, ordered from first to last.
   scope :past, -> { where('trip_time < ?', DateTime.now.in_time_zone - 6.hours).order('trip_time DESC') }
+  scope :past_14_days, -> { where('trip_time >= ?', DateTime.now.in_time_zone - 6.hours - 14.days).order('trip_time DESC') }
   scope :future, -> { where('trip_time >= ?', DateTime.now.in_time_zone - 6.hours).order('trip_time ASC') }
+
+  # Select trips that are saved
   scope :selected, -> { where.not(selected_itinerary_id: nil) }
 
   # Geographic scopes return trips that start or end in the passed geom
@@ -66,9 +98,23 @@ class Trip < ApplicationRecord
   end
   
   # Returns trip that have any of the given purposes
-  scope :with_purpose, -> (purpose_ids) do
-    where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
+  scope :with_purpose, -> (purposes) do
+    where(id: where(external_purpose: purposes).pluck(:id))
   end
+
+  # Return trips that are transit trips
+  scope :transit_trips, -> {
+    joins('inner join itineraries on itineraries.id = trips.selected_itinerary_id').where({ 'itineraries.trip_type': 'transit'})
+  }
+
+  # Return trips in the next n days
+  # Note: this is not selecting trips that are in 7 days or less from now
+  scope :in_next_n_days, ->(n_days) {
+                            where({
+                                  trip_time: (
+                                    (DateTime.now.in_time_zone.midnight.to_time + n_days * 60 * 24).to_datetime.midnight..
+                                      (DateTime.now.in_time_zone.midnight.to_time + (n_days + 1) * 60 * 60 * 24).to_datetime.midnight),
+                                })}
   
   # Scopes based on trip linkages
   scope :outbound, -> do # Outbound trips: the first leg
@@ -84,8 +130,13 @@ class Trip < ApplicationRecord
   end
 
   # Scopes based on user
+  scope :oversight_agency_in, -> (oversight_agency) do
+    where(user_id: oversight_agency.staff_and_admins.pluck(:id))
+  end
+
+  # Scopes based on user
   scope :partner_agency_in, -> (partner_agency) do
-    where(user_id: partner_agency.staff.pluck(:id))
+    where(user_id: partner_agency.staff_and_admins.pluck(:id))
   end
   
   ### CLASS METHODS ###
@@ -99,7 +150,6 @@ class Trip < ApplicationRecord
   def self.ods
     pluck(:origin_id, :destination_id).flatten.compact.uniq
   end
-
 
   ### INSTANCE METHODS ###
   def unselect

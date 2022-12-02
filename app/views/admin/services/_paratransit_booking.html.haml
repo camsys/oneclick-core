@@ -1,3 +1,8 @@
+- ## LOCALS:
+-# should_be_readonly: A boolean meant to represent whether or not the current user
+-# can update the form
+- should_be_readonly = (cannot? :update, @service)
+
 =content_for :header do
   Booking
 
@@ -7,7 +12,8 @@
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
   =f.input :booking_api, 
-      input_html: {class: 'booking-api'}, 
+      input_html: {class: 'booking-api'},
+      readonly: should_be_readonly,
       collection: Booking::BOOKING_TYPES.map {|code, name| [code.to_s.camelcase, code] }
   
   -booking_details = @service.booking_details || {}
@@ -15,46 +21,111 @@
   -# RIDEPILOT
   .booking-inputs.ride_pilot-booking.hidden
     =f.fields_for :booking_details do |bd|
-      =bd.input :provider_id, as: :integer, label: "RidePilot Provider ID", input_html: {value: booking_details[:provider_id]}
+      =bd.input :provider_id,
+        as: :integer,
+        readonly: should_be_readonly,
+        label: "RidePilot Provider ID",
+        input_html: {value: booking_details[:provider_id]}
 
 
   -# ECOLANE
   .booking-inputs.ecolane-booking.hidden
     =f.fields_for :booking_details do |bd|
       %h4.text-center Connection
-      =bd.input :external_id, as: :string, label: "Ecolane ID", input_html: {value: booking_details[:external_id]}
-      =bd.input :token, as: :string, label: "Token", input_html: {value: booking_details[:token]}
-      =bd.input :home_counties, as: :string, label: "Home Counties", input_html: {value: booking_details[:home_counties]}
+      =bd.input :external_id,
+        as: :string,
+        label: "Ecolane Agency Subdomain",
+        readonly: should_be_readonly,
+        input_html: {value: booking_details[:external_id]}
+      =bd.input :token,
+        as: :string,
+        readonly: should_be_readonly,
+        label: "Token",
+        input_html: {value: booking_details[:token]}
+      =bd.input :home_counties,
+        as: :string,
+        readonly: should_be_readonly,
+        label: "Home Counties",
+        input_html: {value: booking_details[:home_counties]}
       %hr
       %h4.text-center Funding Rules
-      =bd.input :use_ecolane_funding_rules, collection: [false, true], include_blank: false, label: "Use Ecolane Funding Rules", selected: (booking_details[:use_ecolane_funding_rules]), input_html: {id: 'ecolane-rules'}
+      =bd.input :use_ecolane_funding_rules,
+        collection: [false, true],
+        readonly: should_be_readonly,
+        include_blank: false,
+        label: "Use Ecolane Funding Rules",
+        selected: (booking_details[:use_ecolane_funding_rules]),
+        input_html: {id: 'ecolane-rules'}
       .oneclick-rules
-        =bd.input :preferred_funding_sources, as: :text, placeholder: "ADA", label: "Permitted Funding Sources", input_html: {value: booking_details[:preferred_funding_sources]}
-        =bd.input :ada_funding_sources, as: :text, label: "ADA Funding Sources", input_html: {value: booking_details[:ada_funding_sources]}
-        =bd.input :preferred_sponsors, as: :text, label: "Permitted Sponsors", input_html: {value: booking_details[:preferred_sponsors]}
-        =bd.input :banned_purposes, as: :text, placeholder: "", label: "Banned Purposes", input_html: {value: booking_details[:banned_purposes]}
-        =bd.input :dummy_user, as: :string, label: "Dummy/Guest User", input_html: {value: booking_details[:dummy_user]}
-        =bd.input :guest_funding_sources, as: :text, label: "Guest Funding Sources", input_html: {value: booking_details[:guest_funding_sources]}
-        =bd.input :guest_purpose, as: :string, label: "Guest Purpose", input_html: {value: booking_details[:guest_purpose]}
+        =bd.input :preferred_funding_sources,
+          as: :text,
+          readonly: should_be_readonly,
+          label: "Permitted Funding Sources",
+          input_html: {value: booking_details[:preferred_funding_sources]}
+        =bd.input :ada_funding_sources,
+          as: :text,
+          readonly: should_be_readonly,
+          label: "ADA Funding Sources",
+          input_html: {value: booking_details[:ada_funding_sources]},
+          required: false
+        =bd.input :preferred_sponsors,
+          as: :text,
+          readonly: should_be_readonly,
+          label: "Permitted Sponsors",
+          input_html: {value: booking_details[:preferred_sponsors]}
+        =bd.input :banned_purposes,
+          as: :text,
+          readonly: should_be_readonly,
+          placeholder: "",
+          label: "Banned Purposes",
+          input_html: {value: booking_details[:banned_purposes]}
+        =bd.input :dummy_user,
+          as: :string,
+          readonly: should_be_readonly,
+          label: "Dummy/Guest User",
+          input_html: {value: booking_details[:dummy_user]},
+          required: false
+        =bd.input :guest_funding_sources,
+          as: :text,
+          readonly: should_be_readonly,
+          label: "Guest Funding Sources",
+          input_html: {value: booking_details[:guest_funding_sources]},
+          required: false
+        =bd.input :guest_purpose,
+          as: :string,
+          readonly: should_be_readonly,
+          label: "Guest Purpose",
+          input_html: {value: booking_details[:guest_purpose]},
+          required: false
 
 
       %hr
       %h4.text-center User Lists
-      =bd.input :banned_users, as: :text, label: "Banned Users", input_html: {value: booking_details[:banned_users]}
-      =bd.input :trusted_users, as: :text, label: "Trusted Users", input_html: {value: booking_details[:trusted_users]}
-      =bd.input :require_selfservice_validation, collection: [false, true], include_blank: false, label: "Require Self Service Validation", selected: (booking_details[:require_selfservice_validation])
-
-      %hr
-      %h4.text-center Schedule
-      =bd.input :min_days, as: :integer, label: "Min Booking Notice (days)", input_html: {value: booking_details[:min_days]}
-      =bd.input :max_days, as: :integer, label: "Max Booking Notice (days)", input_html: {value: booking_details[:max_days]}
-      =bd.input :cutoff_time, collection: ScheduleHelper::TIMES_OF_DAY, include_blank: false, label: "Cutoff Time", selected: (booking_details[:cutoff_time])
-
+      =bd.input :banned_users,
+        as: :text,
+        readonly: should_be_readonly,
+        label: "Banned Users",
+        input_html: {value: booking_details[:banned_users]}
+      =bd.input :trusted_users,
+        as: :text,
+        readonly: should_be_readonly,
+        label: "Trusted Users",
+        input_html: {value: booking_details[:trusted_users]}
+      =bd.input :require_selfservice_validation,
+        collection: [false, true],
+        readonly: should_be_readonly,
+        include_blank: false,
+        label: "Require Self Service Validation",
+        selected: (booking_details[:require_selfservice_validation])
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden
     =f.fields_for :booking_details do |bd|
-      =bd.input :trapeze_provider_id, as: :integer, label: "Trapeze Provider ID", input_html: {value: booking_details[:trapeze_provider_id]}
+      =bd.input :trapeze_provider_id,
+        as: :integer,
+        readonly: should_be_readonly,
+        label: "Trapeze Provider ID",
+        input_html: {value: booking_details[:trapeze_provider_id]}
 
 :javascript
   $(document).ready(function() {
@@ -77,7 +148,6 @@
     // Handle Toggleing between Ecolane Rules And Oneclick Funding Rules
     var hideOneclickRules = function() {
       var ecolane_rules = ecolaneRulesInput.val();
-      console.log(ecolane_rules);
       if(ecolane_rules == 'true'){
         console.log('hide');
         $('.oneclick-rules').addClass('hidden');

@@ -1,15 +1,15 @@
 require 'rails_helper'
 
-RSpec.describe Admin::PurposesController, type: :controller do 
+RSpec.describe Admin::PurposesController, type: :controller do
 
-  let(:admin) { create(:admin) }
+  let(:superuser) { create(:superuser) }
   let(:staff) { create(:staff_user) }
   let(:traveler) { create(:user) }
   let(:metallica_concert) { FactoryBot.create :metallica_concert }
   
-  context "while signed in as an admin" do
+  context "while signed in as a superuser" do
     
-    before(:each) { sign_in admin }
+    before(:each) { sign_in superuser }
     
     it 'gets a list of all purposes' do
       get :index
@@ -29,7 +29,7 @@ RSpec.describe Admin::PurposesController, type: :controller do
     it 'creates a purpose' do      
       purpose_count = Purpose.count
       
-      params = {purpose: {code: 'Test DeLEte& purpose22'}}
+      params = {purpose: {code: 'Test DeLEte& purpose22', name: 'Test'}}
       post :create, params: params, format: :js
       
       # Confirm that the variable was set

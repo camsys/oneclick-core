@@ -1,0 +1,51 @@
+// The Origin/Destination header
+
+%p{style: 'text-align: left'}
+  %span{style: 'font-weight: 700'}
+    ="THIS IS AN AUTOMATED MESSAGE - DO NOT REPLY DIRECTLY TO THIS EMAIL. PLEASE CALL YOUR LOCAL TRANSIT AGENCY WITH ANY QUESTIONS OR CONCERNS REGARDING YOUR TRIP."
+%br
+
+%h1{style: 'text-align:left'}
+  ="Your saved Find My Ride trip for #{@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")} is coming up in #{@days_away} days!"
+%h2{style: 'text-align:left'}
+  ="Please see below for specific trip details:"
+%br
+
+-unless @itinerary.service.nil?
+  = render :partial => "service_summary_header", :locals => { :itinerary => @itinerary }
+  %br
+
+%table.trip_header{style: "font-size:1.0em; padding: 12px 0px; font-family: 'Helvetica Neue', Arial;"}
+  %tr
+    %td{style: "color:grey; padding-right: 10px;"}
+      %strong.trip_header_detail
+        = "#{translate('api_v1.emails.user_trip.origin')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong.trip_header_detail
+        =@trip.origin.to_s
+  %tr
+    %td{style: "color:grey; weight:strong; padding-right: 10px;"}
+      %strong.trip_header_detail
+        ="#{translate('api_v1.emails.user_trip.destination')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong.trip_header_detail
+        =@trip.destination.to_s
+  %tr
+    %td{style: "color:grey; padding-right: 10px;"}
+      %strong.trip_header_detail
+        ="#{translate('api_v1.emails.user_trip.date')}: "
+    %td{style: "padding-right: 10px;"}
+      %strong
+        =@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")
+
+// Summary of Itinerary Info
+= render :partial => 'trip_summary_header', :locals => { :itinerary => @itinerary }
+
+// Detailed Itinerary Info
+-unless @itinerary.trip_type.in? ['taxi', 'uber', 'paratransit', 'lyft']
+  = render :partial => "static_details", :locals => { :itinerary => @itinerary }
+
+// Static Map
+%td{style: "text-align: center;", colspan: 2}
+  %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
+    =image_tag(attachments[@itinerary.id.to_s + ".png"].url)

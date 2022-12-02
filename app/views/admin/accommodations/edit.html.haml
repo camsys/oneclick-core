@@ -1,7 +1,8 @@
 =content_for :title do
   = @accommodation.code
 
-=render partial: 'edit_accommodation', layout: '/layouts/panel'
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+=render partial: 'edit_accommodation', layout: '/layouts/panel', locals: { hide_footer: (cannot? :update, @accommodation) }
+-if can? :delete, @accommodation
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: (cannot? :update, @accommodation)}
 
 =back_link admin_accommodations_path, label: "All Accommodations"

@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :user, aliases: [:commenter, :traveler] do
     sequence(:email) {|i| "test_user_#{rand(1000).to_s.rjust(3, "0")}_#{i}@camsys.com" }
-    password "welcome1"
-    password_confirmation "welcome1"
+    password "camsysisgr8"
+    password_confirmation "camsysisgr8"
     first_name "Test"
     last_name "McUser"
     confirmed
@@ -11,20 +11,38 @@ FactoryBot.define do
       staff_agency nil
     end
 
-    factory :admin do
+    trait :admin do
+      after(:create) do |u, params|
+        u.add_role(:admin, params.staff_agency)
+      end
+    end
+
+    trait :staff do
+      after(:create) do |u, params|
+        u.add_role(:staff, params.staff_agency)
+      end
+    end
+
+    factory :superuser do
+      sequence(:email) {|i| "superuser_#{i}@camsys.com" }
+      after(:create) {|u| u.add_role("superuser")}
+    end
+
+    factory :transportation_admin do
       sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
-      after(:create) {|u| u.add_role("admin")}
+      staff_agency {create(:transportation_agency)}
+      admin
     end
 
     factory :another_admin do 
       email "another_admin_user@camsys.com"
       after(:create) {|u| u.add_role("admin")}
     end
-    
-    trait :staff do      
-      after(:create) do |u, params|
-        u.add_role(:staff, params.staff_agency)
-      end
+
+    factory :oversight_admin do
+      sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
+      admin
     end
     
     factory :staff_user do
@@ -41,6 +59,12 @@ FactoryBot.define do
     factory :partner_staff do
       sequence(:email) {|i| "staff_user_#{i}@camsys.com" }
       staff_agency { create(:partner_agency) }
+      staff
+    end
+
+    factory :oversight_staff do
+      sequence(:email) {|i| "staff_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
       staff
     end
 

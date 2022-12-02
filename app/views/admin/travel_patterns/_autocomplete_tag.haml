@@ -1,0 +1,11 @@
+-tag_classes = object.persisted? ? "autocomplete-tag-show" : "autocomplete-tag-template hidden"
+-persisted = object.persisted? ? "true" : nil
+
+.btn{ class: tag_classes, data: { unique_key: object.send(unique_key), persisted: persisted }}
+  =form.label :name, tag_label
+  -if can_update
+    .btn.btn-link.pull-right.autocomplete-tag-delete
+      %span.glyphicon.glyphicon-remove
+    -object_fields.each do |field_name|
+      -data = { type: field_name == unique_key ? "unique-key" : field_name.to_s }
+      =form.hidden_field field_name, value: object.send(field_name), data: data

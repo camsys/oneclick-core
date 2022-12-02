@@ -1,6 +1,10 @@
 class City < GeographyRecord
+  include LeafletAmbassador
+
+  make_attribute_mappable :geom
+
   validates_presence_of :name, :state
-  acts_as_geo_ingredient attributes: [:name, :state]
+  acts_as_geo_ingredient attributes: [:name, :state, :buffer]
 
   def to_s
     "#{name}, #{state}"
@@ -8,7 +12,7 @@ class City < GeographyRecord
 
   # Returns a GeoIngredient refering to this city
   def to_geo
-    GeoIngredient.new('City', name: name, state: state)
+    GeoIngredient.new('City', name: name, state: state, buffer: 0)
   end
 
   def self.search(term)

@@ -44,6 +44,22 @@ $ingredient-height: 48px;
     }
   }
 
+  &.Landmark {
+    @include unit-box($brand-info-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-primary);
+    }
+  }
+
+  &.LandmarkSet {
+    @include unit-box($brand-info-pastel);
+
+    .delete-geography {
+      @include custom-btn-link($brand-primary);
+    }
+  }
+
   label {
     margin-left: 8px;
   }

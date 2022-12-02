@@ -22,8 +22,8 @@ class DashboardReport
   
   # Default formatting options to pass to chartkick calls as the :library option
   DEFAULT_CHART_OPTIONS = {
-    chartArea: { width: '90%', height: '75%' },
-    vAxis: { format: '#' }
+    chartArea: { width: '70%', height: '70%' },
+    vAxis: { format: '#,###' }
   }
   
   def initialize(report_type=nil, params={})

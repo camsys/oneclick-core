@@ -19,6 +19,7 @@ class EcolaneAmbassador < BookingAmbassador
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
+    check_travelers_transit_agency
     add_missing_attributes
     
     # Funding Rules Shortcuts
@@ -26,7 +27,15 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
     @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
     @dummy = @service.booking_details.try(:[], :dummy_user)
-    @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources).split("\r\n").map { |x| {code: x.split(',').first.strip, desc: x.split(',').last.strip}}
+    @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources)
+    if @guest_funding_sources
+      @guest_funding_sources = @guest_funding_sources.split("\r\n").map {
+        |x| {code: x.split(',').first.strip, desc: x.split(',').last.strip}
+      }
+    else
+      puts '*** no guest funding sources ***'
+      @guest_funding_sources = []
+    end
     @guest_purpose = @service.booking_details.try(:[], :guest_purpose)
 
     @booking_options = opts[:booking_options]
@@ -55,6 +64,22 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
+  def check_travelers_transit_agency
+    # If @user is not present, return
+    return unless @user.present? && @booking_profile.present?
+
+    # if user is a user but has no traveler transit agency
+    #   make one with the user booking profile
+    # if the user has a traveler transit agency but agency is nil
+    #   check booking profile for the service's agency and populate with that
+    if @user.traveler_transit_agency.nil?
+      ag = @booking_profile.service.agency
+      TravelerTransitAgency.find_or_create_by(user_id: @user.id, transportation_agency_id: ag.id)
+    elsif @user.traveler_transit_agency.transportation_agency.nil? && @booking_profile.present?
+      @user.traveler_transit_agency.transportation_agency = @booking_profile.service.agency
+    end
+  end
+
   def add_missing_attributes
     return unless @user and @booking_profile
     @customer_number ||= @booking_profile.external_user_id
@@ -76,11 +101,11 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
-  def sync
+  def sync days_ago=1
 
     #For performance, only update trips in the future
     options = {
-      start: (Time.current - 1.day).iso8601[0...-6]
+      start: (Time.current - days_ago.day).iso8601[0...-6]
     }
 
     (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
@@ -96,7 +121,7 @@ class EcolaneAmbassador < BookingAmbassador
   def book
     booking = new_order
     sync
-    return booking 
+    booking
   end
 
   def cancel
@@ -111,7 +136,7 @@ class EcolaneAmbassador < BookingAmbassador
     # Update Booking object with status info and return it
     new_status = status @itinerary.booking.confirmation 
     @itinerary.booking.update({status: new_status})
-    return @itinerary.booking
+    @itinerary.booking
   end
 
   def prebooking_questions
@@ -129,7 +154,7 @@ class EcolaneAmbassador < BookingAmbassador
           {question: "How many children or family members will be traveling with you?", choices: (0..2).to_a, code: "children"}
         ]
     end
-    return questions
+    questions
   end
 
   ####################################################################
@@ -139,20 +164,29 @@ class EcolaneAmbassador < BookingAmbassador
   def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
-    order =  build_order
-    resp = send_request(url, 'POST', order)
-    if Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-      confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id) 
-      eco_trip  = fetch_order(confirmation)["order"]
-      booking = self.booking
-      booking.update(occ_booking_hash(eco_trip))
-      booking.itinerary = itinerary
-      booking.confirmation = confirmation
-      booking.created_in_1click = true
-      booking.save
-      return booking
-    else
-      return nil
+    begin
+      order =  build_order
+      resp = send_request(url, 'POST', order)
+    # NOTE: this seems like overkill, but Ecolane uses both JSON and
+    # ...XML for their responses, and failed responses are formatted as JSON
+      body_hash = Hash.from_xml(resp.body)
+      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        eco_trip  = fetch_order(confirmation)["order"]
+        booking = self.booking
+        booking.update(occ_booking_hash(eco_trip))
+        booking.itinerary = itinerary
+        booking.confirmation = confirmation
+        booking.created_in_1click = true
+        booking.save
+        booking
+      else
+        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        nil
+      end
+    rescue REXML::ParseException
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+      nil
     end
   end
 
@@ -173,14 +207,25 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += "/orders"
     url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
     resp = send_request(@url + url_options, token)
-    Hash.from_xml(resp.body)
+    begin
+      Hash.from_xml(resp.body)
+    rescue REXML::ParseException => e
+      pp e
+      {}
+    end
   end
 
   # Get Single Order
   def fetch_order confirmation=@confirmation
     url_options = "/api/order/#{system_id}/#{confirmation}"
     resp = send_request(@url + url_options, token)
-    Hash.from_xml(resp.body)
+    # NOTE: this seems like overkill, but Ecolane uses both JSON and
+    # ...XML for their responses, and failed responses are formatted as JSON
+    begin
+      Hash.from_xml(resp.body)
+    rescue REXML::ParseException => e
+      {}
+    end
   end
 
   # Get customer information from ID
@@ -194,6 +239,26 @@ class EcolaneAmbassador < BookingAmbassador
     t = Time.current
     resp = send_request(url, token )
     Hash.from_xml(resp.body)
+  end
+
+  # Get all the Ecolane POIS
+  def fetch_system_poi_list
+    url_options = "/api/location/#{system_id}/pois"
+    url = @url + url_options
+    resp = send_request(url, token )
+
+    begin
+      resp_code = resp.code
+      body = Hash.from_xml(resp.body)
+    rescue
+      return nil
+    end
+
+    if resp_code == "200"
+      body["locations"]["location"]
+    else
+      nil
+    end
   end
 
   # Cancel a Trip
@@ -216,7 +281,7 @@ class EcolaneAmbassador < BookingAmbassador
     if resp_code == "200"
       Rails.logger.debug "Trip #{@confirmation} canceled."
       #The trip was successfully canceled
-      return true
+      true
     elsif status == 'canceled'
       Rails.logger.debug "Trip #{@confirmation}  already canceled."
       #The trip was not successfully deleted, because it was already canceled
@@ -224,7 +289,7 @@ class EcolaneAmbassador < BookingAmbassador
     else
       Rails.logger.debug "Trip #{@confirmation}  cannot be canceled."
       #The trip is not canceled
-      return false
+      false
     end
 
   end
@@ -242,7 +307,7 @@ class EcolaneAmbassador < BookingAmbassador
     else
       order = build_order 
     end
-
+    # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
     return nil if resp.code != "200"
     resp = Hash.from_xml(resp.body)
@@ -253,9 +318,9 @@ class EcolaneAmbassador < BookingAmbassador
   def get_fare
     return unless @customer_id #If there is no user, then just return nil
     if @use_ecolane_rules #use Ecolane Rules
-      return get_ecolane_fare 
+      get_ecolane_fare
     else
-      return get_1click_fare
+      get_1click_fare
     end
   end
 
@@ -318,10 +383,11 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info Hash.from_xml(message).ai 
+      Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
+      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
       return resp
     rescue Exception=>e
@@ -339,32 +405,53 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     # Convert cents to dollars
     balance = customer_information["customer"]["balance"].to_f / 100.0
-    return balance
+    balance
   end
 
 
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
     purposes = []
+    purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      if not @use_ecolane_rules and not funding_source["name"].in? @preferred_funding_sources
+      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
+        # Add the date range for which the purpose is eligible, if available.
+        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
         end
+        purposes_hash << purpose_hash
       end
     end
     banned_purposes = @service.booking_details[:banned_purposes]
-    purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+    purposes = purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+    [purposes, purposes_hash]
+  end
+
+  # Get a list of all the points of interest for the service
+  def get_pois
+      locations = fetch_system_poi_list
+      if locations.nil?
+        return nil
+      end
+
+      # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
+      hashes = []
+      locations.each do |location|
+        hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
+      end
+      hashes
   end
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
   def lookup_customer_number params
-    search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer).try(:[], :customer_number)
+    customers = arrayify(search_for_customers(params).try(:with_indifferent_access).try(:[], :search_results).try(:[], :customer))
+    return customers.length == 1 ? customers.first.try(:[], :customer_number) : nil
   end
   
   ### Create OCC Trip from Ecolane Trip ###
@@ -388,7 +475,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
-      return nil
+      nil
     # This Trip needs to be added to OCC
     else
       # Make the Trip
@@ -420,7 +507,8 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     arrive_by = (not destination_requested.nil?)
-    trip_time = origin_negotiated.to_time
+    # Save the trip_time in the database as UTC time for UTC data type.
+    trip_time = origin_negotiated
     {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
   end
 
@@ -438,9 +526,10 @@ class EcolaneAmbassador < BookingAmbassador
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
-    origin = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :location))
+    assistant = eco_trip.fetch(:assistant, "false")
+    companions = eco_trip.fetch(:companions, 0).to_i
+    children = eco_trip.fetch(:children, 0).to_i
     origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
-    destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100
@@ -448,6 +537,8 @@ class EcolaneAmbassador < BookingAmbassador
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
     {
+      assistant: assistant,
+      companions: companions + children,
       start_time: start_time, 
       end_time: end_time,
       transit_time: (start_time and end_time) ? (end_time - start_time).to_i : nil,
@@ -467,7 +558,7 @@ class EcolaneAmbassador < BookingAmbassador
       latest_pu = negotiated_pu.in_time_zone + 15.minutes 
     end
 
-    return {
+    {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
       type: "EcolaneBooking", 
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
@@ -496,7 +587,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
     result = search_for_customers({"date_of_birth": iso_dob, "customer_number": @customer_number})
     if result["search_results"].nil?
-      return false
+      false
     # If only one thing is returned, it comes as a hash.  Multilple items are returned as an array.
     # Since we want to see exactly 1 match, return true if this is a Hash and the account is enabled.
     elsif result["search_results"]["customer"].is_a? Hash
@@ -513,7 +604,7 @@ class EcolaneAmbassador < BookingAmbassador
       #  return false, customer
       #end
     else
-      return false, {}
+      [false, {}]
     end
   end
 
@@ -539,17 +630,18 @@ class EcolaneAmbassador < BookingAmbassador
         profile.details = {customer_id: passenger["id"]}
         profile.booking_api = "ecolane"
         profile.user = user
+        # do not try to sync user here - reenters ecolane_ambassador ctor
       end
 
       # Update the user's name
       user = @booking_profile.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     
-      user.save  
+      user.save
 
-      return user
+      user
     else
-      return nil
+      nil
     end
   end
 
@@ -565,17 +657,19 @@ class EcolaneAmbassador < BookingAmbassador
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
+    begin
+      if funding_hash
+        order_hash[:funding] = funding_hash
+      elsif funding
+        order_hash[:funding] = get_funding_hash
+      elsif @purpose
+        order_hash[:funding] = {purpose: @purpose}
+      end
 
-    if funding_hash 
-      order_hash[:funding] = funding_hash
-    elsif funding 
-      order_hash[:funding] = get_funding_hash
-    elsif @purpose
-      order_hash[:funding] = {purpose: @purpose}
+      order_hash.to_xml(root: 'order', :dasherize => false)
+    rescue REXML::ParseException
+      nil
     end
-
-    order_xml = order_hash.to_xml(root: 'order', :dasherize => false)
-    order_xml
   end
 
   #Build the hash for the pickup request
@@ -621,23 +715,77 @@ class EcolaneAmbassador < BookingAmbassador
         mapping[county] = service
       end
     end
-    return mapping
+    mapping
   end
 
-  ### Build a Funding Hash for the Trip using 1-Click's Rules 
+  ### Return array of unique funding source names from the trip's matching travel patterns.
+  ### Returns an empty array if no matches found.
+  def get_travel_pattern_funding_sources
+    travel_pattern_funding_sources = []
+
+    agency = @user&.traveler_transit_agency&.transportation_agency
+    if agency.nil?
+      return travel_pattern_funding_sources
+    end
+
+    travel_pattern_query = TravelPattern.where(agency: agency)
+    Rails.logger.info("Getting Travel Patterns Funding Sources with agency_id: #{agency&.id}")
+
+    origin = { lat: @trip&.origin&.lat, lng: @trip&.origin&.lng }
+    destination = { lat: @trip&.destination&.lat, lng: @trip&.destination&.lng }
+    # TODO: Set these params from @trip.trip_time
+    trip_date = nil
+    start_time = nil
+    end_time = nil
+
+    user_county = @user.return_county_if_ecolane_email.name
+    services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
+    services = services.filter { |service|
+      counties = service.booking_details[:home_counties].split(',').map(&:strip)
+      counties.include? (user_county)
+    }
+    travel_pattern_query = TravelPattern.filter_by_service(travel_pattern_query, services)
+    travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, origin)
+    travel_pattern_query =  TravelPattern.filter_by_destination(travel_pattern_query, destination)
+    travel_pattern_query =  TravelPattern.filter_by_purpose(travel_pattern_query, @purpose)
+    travel_pattern_query =  TravelPattern.filter_by_funding_sources(travel_pattern_query, @purpose, self)
+    travel_pattern_query =  TravelPattern.filter_by_date(travel_pattern_query, trip_date)
+    travel_patterns =  TravelPattern.filter_by_time(travel_pattern_query, start_time, end_time)
+
+    travel_patterns.each do |travel_pattern|
+      funding_source_names = travel_pattern.funding_sources.pluck(:name)
+      travel_pattern_funding_sources.concat(funding_source_names).uniq
+    end
+
+    return travel_pattern_funding_sources
+  end
+
+  ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
+
+    travel_pattern_funding_sources = []
+    if Config.dashboard_mode == 'travel_patterns'
+      travel_pattern_funding_sources = get_travel_pattern_funding_sources
+      if travel_pattern_funding_sources.blank?
+        # If configured to use travel patterns, return if they have no funding.
+        return {}
+      end
+    end
 
     # Find the options that include the best funding source
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
     best_index = nil
     arrayify(get_funding_options).each do |option|
-      if option["type"] != "valid" || option["purpose"] != @purpose 
+      option_funding_source = option["funding_source"].strip
+      # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
+      if option["type"] != "valid" || option["purpose"] != @purpose ||
+        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
         next
       end
-      if option["funding_source"].in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option["funding_source"]) < best_index) 
-        best_index = @preferred_funding_sources.index(option["funding_source"])
+      if option_funding_source.in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
+        best_index = @preferred_funding_sources.index(option_funding_source)
         potential_options = [option] 
-      elsif option["funding_source"].in? @preferred_funding_sources and @preferred_funding_sources.index(option["funding_source"]) == best_index
+      elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
         potential_options << option 
       end
     end
@@ -656,9 +804,9 @@ class EcolaneAmbassador < BookingAmbassador
     end
 
     if potential_options.blank?
-      return {}
+      {}
     else
-      return {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
+      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
     end
 
   end
@@ -680,14 +828,14 @@ class EcolaneAmbassador < BookingAmbassador
         highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
       end
     end
-    return [highest_priority_fare[0], {funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
+    [highest_priority_fare[0], { funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
   end
 
   def discounts_hash
     if @use_ecolane_rules #use Ecolane Rules
-      return build_ecolane_discount_array
+      build_ecolane_discount_array
     else
-      return build_1click_discount_array
+      build_1click_discount_array
     end
   end
 
@@ -749,7 +897,7 @@ class EcolaneAmbassador < BookingAmbassador
       discounts << v
     end
 
-    return discounts
+    discounts
 
   end
 
@@ -767,8 +915,8 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def arrayify thing 
-    if thing.is_a? Array 
-      return thing 
+    if thing.is_a? Array
+      thing
     else
       if thing.nil? 
         return []
@@ -791,35 +939,51 @@ class EcolaneAmbassador < BookingAmbassador
     [:future, :past].each do |times|
       if times == :future # Get all future trips
         trips = @user.trips.selected.future
-      else # Get the 10 most recent past trps
-        trips = @user.trips.selected.past.limit(10).reverse 
+      else # Get the most recent past 14 days of trips
+        trips = @user.trips.selected.past.past_14_days.reverse
       end
       
-      trips.each_cons(2) do |trip, next_trip|
-
-        #If this is already a round trip, keep moving. 
-        if trip.previous_trip or trip.next_trip
-          next
+      # Group trips on same day.
+      trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
+      trips_by_date.each do |trip_date, same_day_trips|
+        # Reset links on existing trips, unless trip has been created directly in 1click.
+        same_day_trips.each do |trip|
+          if trip.previous_trip and !trip&.selected_itinerary&.booking&.created_in_1click
+            trip.previous_trip = nil
+            trip.save 
+          end
         end
 
-        #Are these trips on the same day?
-        unless trip.trip_time.to_date == next_trip.trip_time.to_date
-          next
-        end
+        # Compare combinations of same day trips.
+        same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
+          trip = Trip.find_by(id: trip_id)
+          next_trip = Trip.find_by(id: next_trip_id)
 
-        #Does these trips have inverted origins/destinations?
-        unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
-          next
-        end
-        unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
-          next
-        end
+          # If this is already a round trip, and if trip has been created directly in 1click, 
+          # don't try to re-link. Otherwise, continue.
+          if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
+            next
+          end
 
-        #Ok these trips passed all the tests, combine them into one trip
-        next_trip.previous_trip = trip
-        next_trip.save 
+          # Are these trips on the same day?
+          unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
+            next
+          end
 
-      end #trips.each
+          #Does these trips have inverted origins/destinations?
+          unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
+            next
+          end
+          unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
+            next
+          end
+
+          #Ok these trips passed all the tests, combine them into one trip
+          next_trip.previous_trip = trip
+          next_trip.save 
+
+        end #trips.each
+      end #trips_by_date.each
     end #times.each
   end #link_trips
 

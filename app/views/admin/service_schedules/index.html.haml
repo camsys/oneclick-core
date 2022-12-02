@@ -1,0 +1,46 @@
+:css
+  .center-buttons {
+    text-align: center;
+  }
+
+=content_for :title do
+  Service Schedules
+
+%table.table.table-hover.datatable#service-schedules-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th Type
+      %th Start Date
+      %th End Date
+      %th Actions
+  =render partial: 'service_schedule', collection: @service_schedules
+
+%div.text-center
+  - modalID = 'new-service-schedule'
+  - if can? :create, FundingSource
+    - if @agency_map.length == 1
+      =link_to 'New Service Schedule', new_admin_service_schedule_path(agency_id: @agency_map.first[1]), class: 'btn btn-primary'
+    - elsif current_user&.currently_transportation?
+      =link_to 'New Service Schedule', new_admin_service_schedule_path(agency_id: current_user&.current_agency&.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New Service Schedule', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Service Schedule', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_service_schedule_path }
+
+:javascript
+
+  $(document).ready(function() {
+    var dataTable = $('.datatable').DataTable({});
+
+    document.addEventListener("turbolinks:before-cache", function() {
+      if (dataTable !== null) {
+       dataTable.destroy();
+       dataTable = null;
+      }
+    });
+  });

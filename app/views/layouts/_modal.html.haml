@@ -1,0 +1,11 @@
+.modal.fade{ tabindex: '-1', role: 'dialog', id: modalID }
+  .modal-dialog{ role: 'document' }
+    .modal-content
+
+      .modal-header
+        %h4.modal-title
+          %span.glyphicon.glyphicon-plus-sign
+          =title
+      
+      .modal-body
+        =yield

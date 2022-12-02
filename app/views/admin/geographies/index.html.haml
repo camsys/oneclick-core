@@ -1,48 +1,6 @@
-=content_for :title do
-  Geography
+-if Config.dashboard_mode == 'travel_patterns'
+  =render partial: 'admin/geographies/travel_patterns_index'
+-if Config.dashboard_mode =='default'
+  =render partial: 'admin/geographies/default_index'
 
--# Upload Forms
-.row
-  .col-md-6
-    =simple_form_for :geographies,
-      url: admin_counties_path,
-      html: {class: 'form-horizontal', multipart: true, method: :post },
-      authenticity_token: true do |f|
-      =render partial: 'upload_counties', layout: '/layouts/new_record_panel', locals: {f: f}
-  .col-md-6
-    =simple_form_for :geographies,
-      url: admin_cities_path,
-      html: {class: 'form-horizontal', multipart: true, method: :post },
-      authenticity_token: true do |f|
-      =render partial: 'upload_cities', layout: '/layouts/new_record_panel', locals: {f: f}
-  .col-md-6
-    =simple_form_for :geographies,
-      url: admin_zipcodes_path,
-      html: {class: 'form-horizontal', multipart: true, method: :post },
-      authenticity_token: true do |f|
-      =render partial: 'upload_zipcodes', layout: '/layouts/new_record_panel', locals: {f: f}
-  .col-md-6
-    =simple_form_for :geographies,
-      url: admin_custom_geographies_path,
-      html: {class: 'form-horizontal', multipart: true, method: :post },
-      authenticity_token: true do |f|
-      =render partial: 'upload_custom_geographies', layout: '/layouts/new_record_panel', locals: {f: f}
 
--# Tables
-.row
-  .col-md-3
-    %h2 Counties
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @counties, class: "table-sm"}
-  .col-md-3
-    %h2 Cities
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name, :state], records: @cities, class: "table-sm"}
-  .col-md-3
-    %h2 Zipcodes
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name], records: @zipcodes, class: "table-sm"}
-  .col-md-3
-    %h2 Custom
-    =render partial: '/shared/record_table',
-      locals: {columns: [:name], records: @custom_geographies, class: "table-sm"}

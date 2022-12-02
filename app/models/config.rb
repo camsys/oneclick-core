@@ -12,8 +12,14 @@ class Config < ApplicationRecord
     :user_profile_update_emails,
     :get_ride_pilot_purposes,
     :feedback_reminders,
-    :purge_unused_guests
+    :purge_unused_guests,
+    :sync_all_ecolane_users_3_days,
+    :send_fixed_trip_reminders,
+    :add_notification_preferences
   ].freeze
+
+  # Default notification preferences for users, freezing for now
+  DEFAULT_NOTIFICATION_PREFS = [7,3,1].freeze
 
   # Returns the value of a setting when you say Config.<key>
   def self.method_missing(key, *args, &blk)

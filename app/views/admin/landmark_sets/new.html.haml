@@ -1,0 +1,5 @@
+=content_for :title do
+  New Set of Ecolane POIs
+
+-form_id = "new_landmark_set"
+=render partial: 'form', locals: { landmark_set: @landmark_set, form_id: form_id, form_url: admin_landmark_sets_path(agency_id: @landmark_set.agency_id), mode: "new" }

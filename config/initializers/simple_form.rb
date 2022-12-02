@@ -111,6 +111,22 @@ SimpleForm.setup do |config|
       ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
     end
   end
+
+  # This is the same as horizontal_input_group, except no form-control class, which messes up
+  # the boolean styling. Is mapped to checkbox type inputs below in config.wrapper_mappings
+  config.wrappers :boolean_wrapper, tag: 'div', class: 'form-group boolean-wrapper', error_class: 'has-error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.use :label, class: 'col-sm-3 control-label'
+
+    b.wrapper tag: 'div', class: 'col-sm-9' do |ba|
+      ba.wrapper tag: 'div', class: 'input-group col-sm-12' do |append|
+        append.use :input
+      end
+      ba.use :error, wrap_with: { tag: 'span', class: 'help-block' }
+      ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+    end
+  end
   
   ###
   # This is the same as horizontal_input_group, except no form-control class, which messes up
@@ -123,6 +139,20 @@ SimpleForm.setup do |config|
     b.wrapper tag: 'div', class: 'col-sm-9' do |ba|
       ba.wrapper tag: 'div', class: 'input-group col-sm-12' do |append|
         append.use :input
+      end
+      ba.use :error, wrap_with: { tag: 'span', class: 'help-block' }
+      ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+    end
+  end
+
+  config.wrappers :travel_patterns_input_group, tag: 'div', class: 'flex-inner', error_class: 'has-error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.use :label, class: 'control-label'
+
+    b.wrapper tag: 'div', class: 'grow-1' do |ba|
+      ba.wrapper tag: 'div', class: 'input-group' do |append|
+        append.use :input, class: 'form-control'
       end
       ba.use :error, wrap_with: { tag: 'span', class: 'help-block' }
       ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
@@ -209,7 +239,8 @@ SimpleForm.setup do |config|
   # type as key and the wrapper that will be used for all inputs with specified type.
   config.wrapper_mappings = {
     check_boxes: :checkbox_wrapper, # Map check_boxes to custom wrapper to properly style with bootstrap
-    radio_buttons: :radiobutton_wrapper # Map radio_buttons to custom wrapper to properly style with bootstrap
+    radio_buttons: :radiobutton_wrapper, # Map radio_buttons to custom wrapper to properly style with bootstrap
+    boolean: :boolean_wrapper # Map boolean to custom wrapper to properly style with bootstrap
   }
 
   # Namespaces where SimpleForm should look for custom input classes that

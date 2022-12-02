@@ -1,0 +1,73 @@
+:css
+  h1 {
+    text-align: center;
+  }
+
+  .ui-helper-hidden-accessible {
+    display: none;
+  }
+
+  .form-container.panel { 
+    width: 100%;
+  }
+
+  input[type="checkbox"] {
+    margin-left: 5px;
+  }
+
+  .form-group .col-sm-12 {
+    padding: 0 0 0 5px;
+    width: 100%;
+  }
+
+  .form-group .col-sm-9 {
+    padding: 0;
+    flex-grow: 1;
+  }
+
+- mode = local_assigns[:mode]
+- agency = local_assigns[:agency]
+
+%h1
+  = "#{mode.capitalize} Travel Pattern"
+  - form_url = mode == "new" ? admin_travel_patterns_path : admin_travel_pattern_path
+= simple_form_for @travel_pattern,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'flex-outer form-container', id: form_id_from_path, multipart: true, method: mode == "new" ? :post : :put} do |f|
+
+  = render layout: '/layouts/panel' do
+    .form-group
+      = f.association :agency, selected: agency.id, disabled: true, wrapper: :travel_patterns_input_group
+      = f.hidden_field :agency_id
+      = f.input :name, readonly: mode == "view", value: f.object[:name], placeholder: "Enter name of travel pattern", wrapper: :travel_patterns_input_group
+    .form-group
+      = f.input :description, readonly: mode == "view", placeholder: "Enter description of travel pattern", wrapper: :travel_patterns_input_group
+    %hr
+    .form-group
+      = f.association :booking_window, collection: options_for_booking_window(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group
+    %hr
+    = render partial: 'travel_pattern_od_zones_form', locals: {mode: mode, f: f, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_service_schedules_form', locals: {mode: mode, f: f, form_id: form_selector_from_id, form_url: form_url, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_purposes_form', locals: {mode: mode, f: f, agency: agency}
+    %hr
+    = render partial: 'travel_pattern_funding_sources_form', locals: {mode: mode, f: f, agency: agency}
+
+    - content_for :footer do
+      - if mode != 'view'
+        .btn.btn-primary.form-submit Submit
+        %a.btn.btn-danger.form-reset{href: admin_travel_patterns_path} Cancel
+      - else
+        =link_to "Done", admin_travel_patterns_path, class: "btn btn-primary"
+
+:javascript
+  $(document).on("turbolinks:load", function() {
+    $(".travel_pattern_description label, .travel_pattern_agency label, .travel_pattern_name label").css("text-align", "left");
+    $(".form-submit").on("click", (e) => {
+      $(e.target).parents().closest('form').submit();
+    })
+
+  });
