@@ -4,39 +4,26 @@ module Api
       before_action :require_authentication
 
       def index
-        user_county = @traveler.return_county_if_ecolane_email&.name
-        agency = @traveler.traveler_transit_agency.transportation_agency
-        services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
-        services = services.filter { |service|
-          counties = service.booking_details[:home_counties].split(',').map{ |county| county.strip.downcase.capitalize }
-          counties.include? (user_county)
-        }
-        
-        Rails.logger.info("Filtering through Travel Patterns with agency_id: #{agency.id}")
-        travel_pattern_query = TravelPattern.where(agency: agency)
-        travel_pattern_query = TravelPattern.filter_by_service(travel_pattern_query, services)
-        travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, query_params[:origin])
-        travel_pattern_query = TravelPattern.filter_by_destination(travel_pattern_query, query_params[:destination])
-        travel_pattern_query = TravelPattern.filter_by_purpose(travel_pattern_query, query_params[:purpose])
-        travel_pattern_query = TravelPattern.filter_by_funding_sources(travel_pattern_query, query_params[:purpose], @traveler&.booking_profile&.booking_ambassador)
-        travel_pattern_query = TravelPattern.filter_by_date(travel_pattern_query, query_params[:date])
-        travel_patterns = TravelPattern.filter_by_time(travel_pattern_query, query_params[:start_time], query_params[:end_time])
+        agency = @traveler.transportation_agency
+        service = @traveler.current_service
+        purpose = query_params.delete(:purpose)
+        funding_source_names = @traveler.get_funding_data(service)[purpose]
+        date = query_params.delete(:date)
 
-        # Finally, filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
-        # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
-        travel_patterns = travel_patterns.map(&:to_api_response)
-        travel_patterns.select! { |travel_pattern|
-          dates = travel_pattern['to_calendar'].values
-          dates.detect { |date|
-            (date[:start_time] || -1) >= 0 && (date[:start_time] || -1) >= 1
-          }
-        }
+        query_params[:agency] = agency
+        query_params[:service] = service
+        query_params[:purpose] = Purpose.find_or_initialize_by(agency: agency, name: purpose.strip) if purpose
+        query_params[:funding_sources] = FundingSource.where(name: funding_source_names) if purpose # check funding sources only if there's also a trip purpose
+        query_params[:date] = Date.strptime(query_params[:date], '%Y-%m-%d') if date
+
+        Rails.logger.info("Filtering through Travel Patterns with the following filters: #{query_params}")
+        travel_patterns = TravelPattern.available_for(query_params)
 
         if travel_patterns.any?
           Rails.logger.info("Found the following matching Travel Patterns: #{ travel_patterns.map{|t| t['id']} }")
           render status: :ok, json: { 
             status: "success", 
-            data: travel_patterns
+            data: TravelPattern.to_api_response(travel_patterns)
           }
         else
           Rails.logger.info("No matching Travel Patterns found")

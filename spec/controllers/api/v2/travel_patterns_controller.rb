@@ -18,6 +18,19 @@ RSpec.describe Api::V2::TravelPatternsController, type: :controller do
     create(:travel_pattern, :with_weekly_pattern_schedule, agency: user_agency) # Extra Pattern
     create(:travel_pattern, :with_calendar_date_schedule, agency: user_agency) # Extra Pattern
     create(:travel_pattern) # Extra Pattern
+
+    purpose.reload
+    purpose.update(agency: user_agency)
+    User.any_instance.stub(:get_funding_data).and_return(
+      { 
+        purpose[:name] => purpose.travel_patterns
+                                  .map(&:funding_sources)
+                                  .flatten
+                                  .map do |fs|
+                                    { name: fs.name, sponsor: nil }
+                                  end
+      }
+    )
   end
 
   context "When the Traveler is not logged in," do

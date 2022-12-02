@@ -5,7 +5,6 @@ module CharacteristicsHelper
   TRANSLATION_TYPES = [:name, :note, :question]
 
   def self.included(base)
-
   	# This block of code creates the following setters and getters
   	# en_name, es_name, en_note, es_note, etc. 
   	I18n.available_locales.each do |locale|
@@ -19,11 +18,12 @@ module CharacteristicsHelper
         end
       end
     end
-  
+
+    base.extend(ClassMethods)
   end
 
   def snake_casify
-  	 self.code = self.code.parameterize.underscore
+  	self.code = self.class.format_string_to_code(self[:name])
   end
 
   def ensure_rank
@@ -69,6 +69,21 @@ module CharacteristicsHelper
   # Builds a translation key code of the given type (e.g. :name)
   def tkey_code(t)
     "#{self.class.name.downcase}_#{self.code}_#{t}"
+  end
+
+  module ClassMethods
+    ##
+    # Class method that takes a string as an input and converts it to the proper format for a code.
+    # It strips any leading and trailing spaces, downcases everything, and converts it to snake case.
+    # Using this on user inputs before querying the DB should result in less headaches due to
+    # user error in the data entry process. But only in cases where letter case and spacing do not
+    # need to match exactly.
+    # 
+    # @param [String] str The string to convert to code format.
+    # 
+    def format_string_to_code(str)
+      str&.parameterize&.underscore
+    end
   end
 
 end

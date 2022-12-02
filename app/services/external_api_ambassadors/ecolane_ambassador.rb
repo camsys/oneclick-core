@@ -9,7 +9,9 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
-    self.trip = opts[:trip] if opts[:trip]
+    if opts[:trip]
+      self.trip = opts[:trip]
+    end
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
@@ -23,20 +25,23 @@ class EcolaneAmbassador < BookingAmbassador
     add_missing_attributes
     
     # Funding Rules Shortcuts
-    @preferred_funding_sources = @service.booking_details.try(:[], :preferred_funding_sources).split(',').map{ |x| x.strip }
-    @preferred_sponsors =  @service.booking_details.try(:[], :preferred_sponsors).split(',').map{ |x| x.strip } + [nil]
-    @ada_funding_sources = @service.booking_details.try(:[], :ada_funding_sources).split(',').map{ |x| x.strip } + [nil]
-    @dummy = @service.booking_details.try(:[], :dummy_user)
-    @guest_funding_sources = @service.booking_details.try(:[], :guest_funding_sources)
+    # nil is added to the ada_funding_sources, and the sponsors because, occasionally, a purpose will
+    # not specify one. In which case no funding source or sponsor is a valid option, but the lowest
+    # priority one.
+    @preferred_funding_sources = @service.preferred_funding_source_names
+    @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
+    @ada_funding_sources = @service.ada_funding_source_names + [nil]
+    @dummy = @service.booking_details.fetch(:dummy_user)
+    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources)
     if @guest_funding_sources
-      @guest_funding_sources = @guest_funding_sources.split("\r\n").map {
-        |x| {code: x.split(',').first.strip, desc: x.split(',').last.strip}
+      @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
+        { code: x.split(',').first.strip, desc: x.split(',').last.strip }
       }
     else
       puts '*** no guest funding sources ***'
       @guest_funding_sources = []
     end
-    @guest_purpose = @service.booking_details.try(:[], :guest_purpose)
+    @guest_purpose = @service.booking_details.fetch(:guest_purpose)
 
     @booking_options = opts[:booking_options]
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
@@ -85,6 +90,19 @@ class EcolaneAmbassador < BookingAmbassador
     @customer_number ||= @booking_profile.external_user_id
     @customer_id ||= @booking_profile.details[:customer_id]
     @confirmation ||= booking.confirmation
+  end
+
+  def trip=(trip)
+    return @trip = trip if trip.nil?
+    raise TypeError.new("#{trip.class} can't be coerced into Trip!!") unless trip.is_a? Trip
+    @trip = trip
+    if @trip.previous_trip_id.nil?
+      @outbound_trip = @trip
+      @inbound_trip = @trip.next_trip # this will be nil for one-way trips, but could be a round-trip
+    else 
+      @inbound_trip = @trip # These are guarenteed to be round-trips
+      @outbound_trip = @trip.previous_trip
+    end
   end
 
   #####################################################################
@@ -428,9 +446,117 @@ class EcolaneAmbassador < BookingAmbassador
         purposes_hash << purpose_hash
       end
     end
-    banned_purposes = @service.booking_details[:banned_purposes]
-    purposes = purposes.sort.uniq - (banned_purposes.blank? ? [] : banned_purposes.split(',').map{ |x| x.strip })
+    banned_purposes = @service.banned_purpose_names
+    purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def get_customer_funding_data
+    funding_data = []
+    get_funding = true
+    customer = fetch_customer_information(get_funding).fetch('customer', {})
+    funding_options = arrayify(
+      customer.fetch('funding', {})
+              .fetch('funding_source')
+    )
+    
+    funding_options.each do |funding_source|
+      default = funding_source.fetch('default', false)
+      purposes_and_sponsors = arrayify(funding_source['allowed'])
+      
+      purposes_and_sponsors.each do |purpose_and_sponsor|
+        purpose = purpose_and_sponsor['purpose']
+        sponsor = purpose_and_sponsor['sponsor']
+
+        funding_data.push(
+          {
+            default: default,
+            funding_source: funding_source['name'],
+            purpose: purpose,
+            purpose_code: Purpose.format_string_to_code(purpose),
+            sponsor: purpose_and_sponsor['sponsor'],
+            valid_from: funding_source['valid_from'],
+            valid_until: funding_source['valid_until']
+          }
+        )
+      end
+    end
+
+    funding_data
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def valid_funding_source_combinations
+    funding_source_combinations = get_customer_funding_data
+    return funding_source_combinations if funding_source_combinations.blank?
+
+    if @trip
+      start_time = @outbound_trip.trip_time
+      end_time = (@inbound_trip || @outbound_trip).trip_time
+    else
+      start_time = Time.now
+      end_time = Time.now
+    end
+
+    # Rejects any expired or unstarted funding source/purpose combinations
+    funding_source_combinations.reject! do |combination|
+      if combination[:valid_from]
+        invalid_start = Time.parse(combination[:valid_from]) > start_time
+      else
+        invalid_start = false
+      end
+
+      if combination[:valid_until]
+        invalid_end = Time.parse(combination[:valid_until]) < end_time
+      else
+        invalid_end = false
+      end
+
+      invalid_start || invalid_end
+    end
+
+    if @purpose
+      # Rejects funding source combinationss with non-matching purposes
+      funding_source_combinations.reject! do |combination|
+        combination[:purpose_code] != Purpose.format_string_to_code(@purpose)
+      end
+    end
+
+    if @service
+      # Rejects funding sources combinations with purposes banned by the Service
+      banned_purpose_codes = Set.new(
+        @service.banned_purpose_names
+                .map { |purpose| Purpose.format_string_to_code(purpose) }
+      )
+      funding_source_combinations.reject! do |combination|
+        banned_purpose_codes.include?(combination[:purpose_code])
+      end
+
+      # Keeps funding sources combinations with funding sources permitted by the Service
+      permitted_funding_sources = Set.new(
+        @preferred_funding_sources.map { |funding_source| 
+          funding_source&.parameterize&.underscore
+        }
+      )
+      funding_source_combinations.select! do |combination|
+        permitted_funding_sources.include?(combination[:funding_source]&.parameterize&.underscore)
+      end
+
+      # Keeps funding sources combinations with sponsors permitted by the Service
+      permitted_sponsors = Set.new(
+        @preferred_sponsors.map { |sponsor| 
+          sponsor&.parameterize&.underscore
+        }
+      )
+      funding_source_combinations.select! do |combination|
+        permitted_sponsors.include?(combination[:sponsor]&.parameterize&.underscore)
+      end
+    end
+
+    return funding_source_combinations
   end
 
   # Get a list of all the points of interest for the service
@@ -575,9 +701,8 @@ class EcolaneAmbassador < BookingAmbassador
 
   ### Does the ID/County/DOB match a single customer?
   def validate_passenger #customer_number, dob, system_id, token
-
     
-    if service.booking_details[:banned_users] and @customer_number.in? service.booking_details.try(:[], :banned_users).split(',').map{ |x| x.strip }
+    if @customer_number.in? @service.banned_customer_ids
       return false, {}
     end
 
@@ -710,7 +835,7 @@ class EcolaneAmbassador < BookingAmbassador
     services = Service.is_ecolane.published
     mapping = {}
     services.each do |service|
-      counties = service.booking_details[:home_counties].split(',').map{ |c| c.strip }
+      counties = service.home_county_names
       counties.each do |county|
         mapping[county] = service
       end
@@ -721,60 +846,88 @@ class EcolaneAmbassador < BookingAmbassador
   ### Return array of unique funding source names from the trip's matching travel patterns.
   ### Returns an empty array if no matches found.
   def get_travel_pattern_funding_sources
-    travel_pattern_funding_sources = []
+    agency = @user&.transportation_agency
+    return [] unless @user && @trip && @outbound_trip && @purpose && @service && agency
 
-    agency = @user&.traveler_transit_agency&.transportation_agency
-    if agency.nil?
-      return travel_pattern_funding_sources
+    origin = { lat: @outbound_trip.origin&.lat, lng: @outbound_trip.origin&.lng }
+    destination = { lat: @outbound_trip.destination&.lat, lng: @outbound_trip.destination&.lng }
+    funding_source_combinations = valid_funding_source_combinations
+    funding_source_names = funding_source_combinations.map{|combo| combo[:funding_source]}
+    trip_date = @outbound_trip.trip_time.to_date
+    start_time = @outbound_trip.trip_time - @outbound_trip.trip_time.midnight
+
+    # inbound_trip could be nil for one-way trips
+    if @inbound_trip
+      end_time = @inbound_trip.trip_time - @inbound_trip.trip_time.midnight
+    else
+      end_time = nil
     end
-
-    travel_pattern_query = TravelPattern.where(agency: agency)
-    Rails.logger.info("Getting Travel Patterns Funding Sources with agency_id: #{agency&.id}")
-
-    origin = { lat: @trip&.origin&.lat, lng: @trip&.origin&.lng }
-    destination = { lat: @trip&.destination&.lat, lng: @trip&.destination&.lng }
-    # TODO: Set these params from @trip.trip_time
-    trip_date = nil
-    start_time = nil
-    end_time = nil
-
-    user_county = @user.return_county_if_ecolane_email&.name
-    services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
-    services = services.filter { |service|
-      counties = service.booking_details[:home_counties].split(',').map(&:strip)
-      counties.include? (user_county)
+    
+    query_params = {
+      agency: agency,
+      service: @service,
+      purpose: Purpose.find_or_initialize_by(name: @purpose, agency: agency),
+      date: trip_date,
+      start_time: start_time,
+      end_time: end_time,
     }
-    travel_pattern_query = TravelPattern.filter_by_service(travel_pattern_query, services)
-    travel_pattern_query = TravelPattern.filter_by_origin(travel_pattern_query, origin)
-    travel_pattern_query =  TravelPattern.filter_by_destination(travel_pattern_query, destination)
-    travel_pattern_query =  TravelPattern.filter_by_purpose(travel_pattern_query, @purpose)
-    travel_pattern_query =  TravelPattern.filter_by_funding_sources(travel_pattern_query, @purpose, self)
-    travel_pattern_query =  TravelPattern.filter_by_date(travel_pattern_query, trip_date)
-    travel_patterns =  TravelPattern.filter_by_time(travel_pattern_query, start_time, end_time)
 
-    travel_patterns.each do |travel_pattern|
-      funding_source_names = travel_pattern.funding_sources.pluck(:name)
-      travel_pattern_funding_sources.concat(funding_source_names).uniq
-    end
-
-    return travel_pattern_funding_sources
+    verified_funding_sources = Set.new(
+      FundingSource.joins(:travel_patterns)
+                    .where(
+                      agency_id: agency.id,
+                      travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) },
+                      name: funding_source_names
+                    ).distinct.pluck(:name)
+    )
+    
+    funding_source_combinations.select { |combination|
+      verified_funding_sources.include?(combination[:funding_source])
+    }
   end
 
   ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
-
-    travel_pattern_funding_sources = []
     if Config.dashboard_mode == 'travel_patterns'
+      best_funding = nil
+      best_sponsor= nil
       travel_pattern_funding_sources = get_travel_pattern_funding_sources
-      if travel_pattern_funding_sources.blank?
-        # If configured to use travel patterns, return if they have no funding.
+
+      # If configured to use travel patterns, return if they have no funding.
+      return {} if travel_pattern_funding_sources.blank?
+
+      # @preferred_funding_sources comes straight from the service's booking details
+      # so the funding source names are already in priority order.
+      funding_found = @preferred_funding_sources.detect { |preferred_funding_source|
+        best_funding = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
+        }&.fetch(:funding_source, nil)
+      }
+
+      # Now we can get rid of anything that's not the best funding_source
+      travel_pattern_funding_sources.select! { |valid_combination| 
+        valid_combination[:funding_source] == best_funding
+      }
+
+      # @preferred_sponsors comes straight from the service's booking details
+      # so the sponsors are already in priority order.
+      @preferred_sponsors.detect { |preferred_sponsor|
+        best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
+        }&.fetch(:sponsor, nil)
+      }
+
+      if funding_found
+        return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
+      else
         return {}
       end
     end
 
     # Find the options that include the best funding source
+    best_option = nil
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
-    best_index = nil
+    travel_pattern_funding_sources = []
     arrayify(get_funding_options).each do |option|
       option_funding_source = option["funding_source"].strip
       # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
@@ -842,10 +995,10 @@ class EcolaneAmbassador < BookingAmbassador
   def build_1click_discount_array 
     discount_array = []
     @guest_funding_sources.each do |funding_source|
-      funding_source_hash = {funding_source: funding_source[:code], purpose: @guest_purpose}
+      funding_source_hash = {funding_source: funding_source[:code]&.strip, purpose: @guest_purpose}
       fare = get_1click_fare funding_source_hash
       unless fare.nil?
-        discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code], base_fare: false})
+        discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code]&.strip, base_fare: false})
       end
     end
     discount_array

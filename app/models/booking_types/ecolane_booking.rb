@@ -6,6 +6,7 @@ class EcolaneBooking < Booking
     "completed",
     "ordered",
     " noshow",
+    "noshow",
     "dispatch",
     nil,
     "active"
@@ -16,7 +17,7 @@ class EcolaneBooking < Booking
   ].freeze
 
   CANCELED_TRIP_STATUS_CODES = [
-    "canceled", " noshow"
+    "canceled", " noshow", "noshow"
   ].freeze
 
   # Checking for a confirmation code seems more reliable than checking a possibly incomplete list of statuses
