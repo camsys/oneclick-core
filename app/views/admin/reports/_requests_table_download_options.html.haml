@@ -5,3 +5,5 @@
 =f.input :request_to_date, required: false,
   input_html: {class: 'datepicker'}, 
   as: :string, label: "To Date"
+
+= "NOTE: Reports will be limited to #{CSVWriter::DEFAULT_RECORD_LIMIT} records."

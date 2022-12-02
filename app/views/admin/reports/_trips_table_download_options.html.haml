@@ -35,6 +35,8 @@
 =f.input :trip_destination_recipe, as: :hidden,
   input_html: { value: '[]'}
 
+= "NOTE: Reports will be limited to #{CSVWriter::DEFAULT_RECORD_LIMIT} records."
+
 
 
 :javascript

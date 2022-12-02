@@ -103,7 +103,7 @@ class Admin::ReportsController < Admin::AdminController
   
   def trips_table
     # Get trips for the current user's agency and role
-    @trips = current_user.get_trips_for_staff_user.limit(50000)
+    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
 
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
@@ -117,7 +117,7 @@ class Admin::ReportsController < Admin::AdminController
     end
     @trips = @trips.order(:trip_time)
     respond_to do |format|
-      format.csv { send_data @trips.to_csv(limit: 50000) }
+      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
     end
   end
 
@@ -167,7 +167,7 @@ class Admin::ReportsController < Admin::AdminController
     @requests = RequestLog.from_date(@request_from_date).to_date(@request_to_date)
     
     respond_to do |format|
-      format.csv { send_data @requests.to_csv }
+      format.csv { send_data @requests.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
     end
   end
   
