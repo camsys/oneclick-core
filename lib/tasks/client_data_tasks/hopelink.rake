@@ -33,7 +33,7 @@ namespace :hopelink do
                 url: "http://www.communitytransit.org/",
                 phone: "(800) 562-1375",
                 fare_structure: :url,
-                fare_details: {url: "https://www.communitytransit.org/fares/fares-and-passes"}
+                fare_details: {url: "https://www.communitytransit.org/fares/fares-and-passes"},
                 published: true},
             {type: "Transit", name: "Disabled American Veterans", published: true},
             {
@@ -78,7 +78,7 @@ namespace :hopelink do
                 url: "http://www.kitsaptransit.com",
                 phone: "(800) 501-7433",
                 fare_structure: :url,
-                fare_details: {url: "http://www.kitsaptransit.com/fares/fares"}
+                fare_details: {url: "http://www.kitsaptransit.com/fares/fares"},
                 published: true},
             {type: "Transit", name: "Lincoln Hill Retirement Community", published: true},
             {
@@ -86,7 +86,7 @@ namespace :hopelink do
                 name: "Metro Transit",
                 gtfs_agency_id: "1",
                 url: "http://metro.kingcounty.gov",
-                phone: "206-553-3000"
+                phone: "206-553-3000",
                 fare_structure: :url,
                 fare_details: {url: "http://metro.kingcounty.gov/tops/bus/fare/fare-info.html#fare_matrix"},
                 published: true
@@ -200,7 +200,7 @@ namespace :hopelink do
                 url: "https://www.wsdot.wa.gov/ferries/",
                 phone: "1 (888) 808-7977",
                 fare_structure: :url,
-                fare_details: {url: "https://wave2go.wsdot.com/webstore/landingPage?cg=21&c=76"}
+                fare_details: {url: "https://wave2go.wsdot.com/webstore/landingPage?cg=21&c=76"},
                 published: true},
             {
                 type: "Transit",
@@ -209,18 +209,18 @@ namespace :hopelink do
                 url: "http://www.ridewta.com",
                 phone: "1-866-989-4287",
                 fare_structure: :url,
-                fare_details: {url: "http://www.ridewta.com/fares-passes/fares"}
+                fare_details: {url: "http://www.ridewta.com/fares-passes/fares"},
                 published: true},
         ].each do |svc|
         puts "Creating #{svc[:type]} Service: #{svc[:name]}"
-        Service.find_or_create_by(name: svc[:name])
-                .update_attributes(svc)
+        Service.find_or_create_by!(type: svc[:type], name: svc[:name], agency_id: TransportationAgency.first.id)
+                .update_attributes!(svc)
         end
     end
 
     desc "Setup OTP version config"
     task config: :environment do
-        Config.find_by(key: "open_trip_planner").update_attributes(value: "https://hopelink-otp.ibi-transit.com/otp/routers/default")
-        Config.find_or_create_by(key: "open_trip_planner_verion").update_attributes(value: "v2")
+        Config.find_by(key: "open_trip_planner").update_attributes!(value: "https://hopelink-otp.ibi-transit.com/otp/routers/default")
+        Config.find_or_create_by!(key: "open_trip_planner_verion").update_attributes!(value: "v2")
     end
 end
