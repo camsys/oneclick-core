@@ -112,6 +112,8 @@ en:
     mode_transit_name: "Transit"
     mode_paratransit_name: "Paratransit"
     mode_car_name: "Drive"
+    mode_uber_name: "Uber"
+    mode_lyft_name: "Lyft"
     to: "to"
     from: "from"
     minutes: "minutes"

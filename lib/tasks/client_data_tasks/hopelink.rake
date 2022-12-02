@@ -111,7 +111,15 @@ namespace :hopelink do
                 gtfs_agency_id: "1777",
                 url: "https://www.co.pierce.wa.us/2200/Ferry-Schedule",
                 published: true},
-            # both Transit and Paratransit but marked as Paratransit as we filter for paratransit but assume all transit
+            # both Transit and Paratransit so make both so shows up in both filters.
+            # If searched by gtfs agency id/name, doesnt matter which is returned as data is the same
+            {
+                type: "Transit",
+                name: "Pierce County Human Services",
+                gtfs_agency_id: "2361",
+                url: "https://www.piercecountywa.gov/1269/Transportation-Services",
+                published: true
+            },
             {
                 type: "Paratransit",
                 name: "Pierce County Human Services",
@@ -152,14 +160,24 @@ namespace :hopelink do
                 published: true
             },
             {type: "Transit", name: "Skagit Transit", published: true},
-            # both Transit and Paratransit but marked as Paratransit as we filter for paratransit but assume all transit
+            # both Transit and Paratransit so make both so shows up in both filters.
+            # If searched by gtfs agency id/name, doesnt matter which is returned as data is the same
+            {
+                type: "Transit",
+                name: "Snoqualmie Valley Transportation",
+                gtfs_agency_id: "1824",
+                url: "http://www.svtbus.org/",
+                phone: "425-888-7001",
+                published: true
+            },
             {
                 type: "Paratransit",
                 name: "Snoqualmie Valley Transportation",
                 gtfs_agency_id: "1824",
                 url: "http://www.svtbus.org/",
                 phone: "425-888-7001",
-                published: true},
+                published: true
+            },
             {
                 type: "Transit",
                 name: "Solid Ground",
