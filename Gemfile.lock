@@ -25,7 +25,6 @@ GEM
   remote: http://rubygems.org/
   specs:
     actioncable (5.0.7.2)
-    actioncable (5.0.7.2)
       actionpack (= 5.0.7.2)
       nio4r (>= 1.2, < 3.0)
       websocket-driver (~> 0.6.1)
@@ -496,4 +495,4 @@ RUBY VERSION
    ruby 2.6.9p207
 
 BUNDLED WITH
-   2.3.20
+   2.3.10
