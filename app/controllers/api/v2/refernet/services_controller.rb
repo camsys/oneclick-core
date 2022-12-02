@@ -118,7 +118,6 @@ module Api
           services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
-              #['CAR'].each do |mode|
                 new_request = build_request(origin, service, mode)
                 unless new_request.nil? 
                   requests << new_request

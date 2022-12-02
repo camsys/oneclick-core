@@ -250,43 +250,40 @@ namespace :db do
           
       pa.add_staff(User.registered.last)
       ta.add_staff(User.registered.first)
+      TravelerTransitAgency.find_or_create_by!(user_id: User.registered.first.id, transportation_agency_id: ta.id)
       
       pa.save!
       ta.save!
     end
 
-    # DEPRECATED: moved to Travel Pattern
-    # TODO: need to add sample data for travel patterns
-    # desc "Sample Service Schedules and Types"
-    # task service_schedules: :environment do
-    #   schedule_types = [
-    #       {name: ServiceScheduleType::WEEKLY_SCHEDULE },
-    #       {name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE }
-    #   ]
+    desc "Sample Service Schedules and Types"
+    task service_schedules: :environment do
+      schedule_types = [
+          {name: ServiceScheduleType::WEEKLY_SCHEDULE },
+          {name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE }
+      ]
 
-    #   schedule_types.each do |t|
-    #     ServiceScheduleType.create!(t)
-    #   end
+      schedule_types.each do |t|
+        ServiceScheduleType.create!(t)
+      end
 
-    #   service_schedules = [
-    #       {
-    #         service: Service.first,
-    #         service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::WEEKLY_SCHEDULE),
-    #         name: "Weekly standard service"
-    #       },
-    #       {
-    #         service: Service.first,
-    #         service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE),
-    #         name: "2022 Holidays",
-    #         start_date: Date.new(2022, 01, 01),
-    #         end_date: Date.new(2022, 12, 31)
-    #       }
-    #   ]
+      service_schedules = [
+          {
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::WEEKLY_SCHEDULE),
+            name: "Weekly standard service"
+          },
+          {
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE),
+            name: "2022 Holidays",
+            start_date: Date.new(2022, 01, 01),
+            end_date: Date.new(2022, 12, 31)
+          }
+      ]
 
-    #   service_schedules.each do |s|
-    #     ServiceSchedule.create!(s)
-    #   end
-    # end
+      service_schedules.each do |s|
+        ServiceSchedule.create!(s)
+      end
+    end
 
     desc "Sample Landmark Sets"
     task landmark_sets: :environment do

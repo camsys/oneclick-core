@@ -38,17 +38,19 @@ module Api
         set_trip_purpose
 
         # Find a matching Travel Pattern
-        agency = @traveler.traveler_transit_agency.transportation_agency
-        trip_time = Time.parse(trip_params[:trip_time])
+        if @traveler.traveler_transit_agency
+          agency = @traveler.traveler_transit_agency.transportation_agency
+          trip_time = Time.parse(trip_params[:trip_time])
 
-        matching_travel_patterns = TravelPattern.joins(
-          :travel_pattern_purposes,
-          :agency
-        ).where(
-          agency: agency
-        ).merge(
-          TravelPatternPurpose.where(purpose_id: trip_params[:purpose_id])
-        ).for_date(trip_time.to_date)
+          matching_travel_patterns = TravelPattern.joins(
+            :travel_pattern_purposes,
+            :agency
+          ).where(
+            agency: agency
+          ).merge(
+            TravelPatternPurpose.where(purpose_id: trip_params[:purpose_id])
+          ).for_date(trip_time.to_date)
+        end
 
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
