@@ -116,7 +116,7 @@ class User < ApplicationRecord
     regex = /ecolane_user\.com$/
     if regex.match(email)
       # Ecolane fake email has format: 9999_@ecolane.com so split from the @, then split from the _
-      county = email.split('@').first&.split('_').last
+      county = email.split('@').first&.split('_')&.last
       County.find_by(name: county&.capitalize)
     end
   end

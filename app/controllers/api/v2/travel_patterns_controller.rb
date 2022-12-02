@@ -4,12 +4,11 @@ module Api
       before_action :require_authentication
 
       def index
-        user_county = traveler.return_county_if_ecolane_email.name
-
+        user_county = @traveler.return_county_if_ecolane_email&.name
         agency = @traveler.traveler_transit_agency.transportation_agency
         services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
         services = services.filter { |service|
-          counties = service.booking_details[:home_counties].split(',').map(&:strip)
+          counties = service.booking_details[:home_counties].split(',').map{ |county| county.strip.downcase.capitalize }
           counties.include? (user_county)
         }
         

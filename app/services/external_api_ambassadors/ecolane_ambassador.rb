@@ -738,7 +738,7 @@ class EcolaneAmbassador < BookingAmbassador
     start_time = nil
     end_time = nil
 
-    user_county = @user.return_county_if_ecolane_email.name
+    user_county = @user.return_county_if_ecolane_email&.name
     services = Service.where(agency_id: agency.id).paratransit_services.published.is_ecolane
     services = services.filter { |service|
       counties = service.booking_details[:home_counties].split(',').map(&:strip)
@@ -806,7 +806,7 @@ class EcolaneAmbassador < BookingAmbassador
     if potential_options.blank?
       {}
     else
-      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
+      {funding_source: best_option["funding_source"]&.strip, purpose: @purpose, sponsor: best_option["sponsor"]}
     end
 
   end
@@ -828,7 +828,7 @@ class EcolaneAmbassador < BookingAmbassador
         highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
       end
     end
-    [highest_priority_fare[0], { funding_source: highest_priority_fare[1], purpose: @purpose, sponsor: highest_priority_fare[2]}]
+    [highest_priority_fare[0], { funding_source: highest_priority_fare[1]&.strip, purpose: @purpose, sponsor: highest_priority_fare[2]}]
   end
 
   def discounts_hash
@@ -872,7 +872,7 @@ class EcolaneAmbassador < BookingAmbassador
     fare_hash = Hash.from_xml(resp.body)
     fares = fare_hash['fares']['fare']
     fares.each do |fare|
-      new_funding_source = fare["funding"]["funding_source"]
+      new_funding_source = fare["funding"]["funding_source"]&.strip
       new_fare = fare["client_copay"].to_f/100
       new_comment = fare["funding"]["description"]
 
