@@ -69,7 +69,7 @@ module OTP
       mode = options[:mode] || "TRANSIT,WALK"
       wheelchair = options[:wheelchair] || "false"
       walk_speed = options[:walk_speed] || 3.0 #walk_speed is defined in MPH and converted to m/s before going to OTP
-      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP
+      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP v1
       max_bicycle_distance = options[:max_bicycle_distance] || 5
       optimize = options[:optimize] || 'QUICK'
       num_itineraries = options[:num_itineraries] || 3
@@ -77,6 +77,9 @@ module OTP
       max_transfer_time = options[:max_transfer_time] || nil
       banned_routes = options[:banned_routes] || nil
       preferred_routes = options[:preferred_routes] || nil
+
+      walk_reluctance = options[:walk_reluctance] || Config.walk_reluctance
+      wait_reluctance = options[:wait_reluctance]
 
       #Parameters
       time = trip_datetime.strftime("%-I:%M%p")
@@ -107,17 +110,24 @@ module OTP
         url_options += "&minTransferTime=" + min_transfer_time.to_s
       end
 
-      unless max_transfer_time.nil?
-        url_options += "&maxTransferTime=" + max_transfer_time.to_s
+      # v2 doesn't like max* fields in favor of *reluctance fields
+      # however reluctance fields are also in v1
+      url_options += "&walkReluctance=" + walk_reluctance.to_s
+      unless @version == 'v2'
+        unless max_transfer_time.nil?
+          url_options += "&maxTransferTime=" + max_transfer_time.to_s
+        end
+
+        # If it's a bicycle trip, OTP uses walk distance as the bicycle distance
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
+        else
+          url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+        end
       end
 
-      # v2 currently doesn't have this param but plans to be added so we leave this
-      # We do filter for this in ServicesController if OTP doesn't return
-      # If it's a bicycle trip, OTP uses walk distance as the bicycle distance
-      if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
-        url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
-      else
-        url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+      unless wait_reluctance.nil?
+        url_options += "&waitReluctance=" + wait_reluctance.to_s
       end
 
       url_options += "&numItineraries=" + num_itineraries.to_s

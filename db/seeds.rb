@@ -30,3 +30,8 @@ Rake::Task['simple_translation_engine:update'].invoke
 Config.find_or_create_by(key: "maximum_booking_notice") do |config|
   config.value = 30
 end
+
+# Initialize walk reluctance config
+Config.find_or_create_by(key: "walk_reluctance") do |config|
+  config.value = 10
+end

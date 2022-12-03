@@ -31,6 +31,7 @@ class Admin::ConfigsController < Admin::AdminController
     :ui_url,
     :require_user_confirmation,
     :max_walk_minutes,
+    :walk_reluctance,
     :dashboard_mode,
     :maximum_booking_notice,
     daily_scheduled_tasks: []
@@ -73,7 +74,7 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days, :max_walk_minutes, :maximum_booking_notice
+    when :feedback_overdue_days, :max_walk_minutes, :walk_reluctance, :maximum_booking_notice
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
