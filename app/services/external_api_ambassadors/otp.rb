@@ -112,7 +112,9 @@ module OTP
 
       # v2 doesn't like max* fields in favor of *reluctance fields
       # however reluctance fields are also in v1
-      url_options += "&walkReluctance=" + walk_reluctance.to_s
+      unless walk_reluctance.nil?
+        url_options += "&walkReluctance=" + walk_reluctance.to_s
+      end
       unless @version == 'v2'
         unless max_transfer_time.nil?
           url_options += "&maxTransferTime=" + max_transfer_time.to_s
