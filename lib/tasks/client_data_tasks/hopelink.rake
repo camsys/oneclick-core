@@ -58,7 +58,10 @@ namespace :hopelink do
                 name: "Homage Senior Services",
                 gtfs_agency_id: "2316",
                 url: "https://homage.org/",
-                published: true},
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
+            },
             {type: "Transit", name: "Hopelink", published: true},
             {
                 type: "Transit",
@@ -103,8 +106,17 @@ namespace :hopelink do
                 name: "Northshore Senior Center",
                 gtfs_agency_id: "4918",
                 url: "https://www.northshoreseniorcenter.org/programs-services/#1603576406908-16db901a-8dba",
-                published: true},
-            {type: "Paratransit", name: "Paratransit Services", published: true},
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
+            },
+            {
+                type: "Paratransit",
+                name: "Paratransit Services",
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
+            },
             {
                 type: "Transit",
                 name: "Pierce County Ferries",
@@ -125,7 +137,9 @@ namespace :hopelink do
                 name: "Pierce County Human Services",
                 gtfs_agency_id: "2361",
                 url: "https://www.piercecountywa.gov/1269/Transportation-Services",
-                published: true
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
             },
             {
                 type: "Transit",
@@ -140,7 +154,9 @@ namespace :hopelink do
                 name: "Puget Sound Educational Service District",
                 gtfs_agency_id: "2309",
                 url: "https://www.psesd.org/programs-services/administrative-management-services/transportation",
-                published: true
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
             },
             {type: "Transit", name: "Puget Sound Express", published: true},
             {type: "Transit", name: "Rainier Foothills Transportation", published: true},
@@ -176,7 +192,9 @@ namespace :hopelink do
                 gtfs_agency_id: "1824",
                 url: "http://www.svtbus.org/",
                 phone: "425-888-7001",
-                published: true
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
             },
             {
                 type: "Transit",
@@ -189,7 +207,10 @@ namespace :hopelink do
                 name: "Sound Generations", 
                 gtfs_agency_id: "2291",
                 url: "https://soundgenerations.org/our-programs/transportation/",
-                published: true},
+                published: true,
+                accommodations: Accommodation.all,
+                eligibilities: Eligibility.all,
+            },
             {
                 type: "Transit",
                 name: "Sound Transit",
@@ -239,6 +260,6 @@ namespace :hopelink do
     desc "Setup OTP version config"
     task config: :environment do
         Config.find_by(key: "open_trip_planner").update_attributes!(value: "https://hopelink-otp.ibi-transit.com/otp/routers/default")
-        Config.find_or_create_by!(key: "open_trip_planner_verion").update_attributes!(value: "v2")
+        Config.find_or_create_by!(key: "open_trip_planner_version").update_attributes!(value: "v2")
     end
 end
