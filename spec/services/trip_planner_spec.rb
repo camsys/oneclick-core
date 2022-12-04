@@ -68,8 +68,6 @@ RSpec.describe TripPlanner do
     end
     itins = paratransit_tp.build_paratransit_itineraries
     expect(itins).to be_an(Array)
-    puts itins.inspect
-    puts Paratransit.published.inspect
     expect(itins.count).to eq(Paratransit.published.available_for(paratransit_tp.trip).count)
     expect(itins[0]).to be_an(Itinerary)
   end
