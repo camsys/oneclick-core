@@ -61,7 +61,7 @@ RSpec.describe Service, type: :model do
     
     it { should have_and_belong_to_many :accommodations }
     it { should have_and_belong_to_many :eligibilities }
-    it { should have_and_belong_to_many :purposes }
+    it { should have_many :purposes }
     
     # For Purposes Testing
     let(:medical_service) { create(:paratransit_service, :medical_only, :no_geography) }

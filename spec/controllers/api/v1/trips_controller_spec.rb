@@ -4,11 +4,11 @@ require 'rails_helper'
 # Figure out which bookings need to be tested as well
 RSpec.describe Api::V1::TripsController, type: :controller do
   
-  let(:trip) { create(:trip) }
-  let(:itinerary) { create(:itinerary, trip: nil) }
-  let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
-  let(:user) { trip.user }
-  let(:hacker) { create(:english_speaker) }
+  let!(:trip) { create(:trip) }
+  let!(:itinerary) { create(:itinerary, trip: nil) }
+  let!(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
+  let!(:user) { trip.user }
+  let!(:hacker) { create(:english_speaker) }
   let!(:eligibility) { FactoryBot.create :eligibility }
   let!(:paratransit_service) { FactoryBot.create(:paratransit_service, :medical_only, :no_geography) }
   let!(:metallica_concert) { FactoryBot.create(:metallica_concert) }

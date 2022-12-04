@@ -143,6 +143,7 @@ class TripPlanner
       itin 
     end
     itineraries.delete(nil)
+
     @trip.itineraries = itineraries
   end
 
@@ -178,7 +179,7 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
-    return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
+   return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
     # gtfs flex can load paratransit itineraries but not all otp instances have flex
     if Config.open_trip_planner_version == 'v2'

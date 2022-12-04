@@ -1,18 +1,18 @@
 FactoryBot.define do
   factory :accommodation do
     
-    code "accommodation"
+    code { "accommodation" }
 
     factory :wheelchair do
-      code "wheelchair"
+      code { "wheelchair" }
     end
 
     factory :stretcher do
-      code "stretcher"
+      code { "stretcher" }
     end
 
     factory :jacuzzi do
-      code "jacuzzi"
+      code { "jacuzzi" }
     end
     
     initialize_with { Accommodation.find_or_create_by(code: code) }

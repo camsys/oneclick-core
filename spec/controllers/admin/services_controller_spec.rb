@@ -71,6 +71,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
 
      it 'faithfully creates a taxi service based on passed parameters' do
        attrs = attributes_for(:taxi_service)
+       attrs[:agency_id] = create(:agency).id
        params = {taxi: attrs,oversight:{oversight_agency_id: ''}}
        count = Taxi.count
 
@@ -90,6 +91,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
 
     it 'faithfully creates an uber service based on passed parameters' do
        attrs = attributes_for(:uber_service)
+       attrs[:agency_id] = create(:agency).id
        params = {uber: attrs,oversight:{oversight_agency_id: ''}}
        count = Uber.count
 
@@ -109,6 +111,7 @@ RSpec.describe Admin::ServicesController, type: :controller do
 
     it 'faithfully creates a lyft service based on passed parameters' do
        attrs = attributes_for(:lyft_service)
+       attrs[:agency_id] = create(:agency).id
        params = {lyft: attrs,oversight:{oversight_agency_id: ''}}
        count = Lyft.count
 

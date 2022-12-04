@@ -25,7 +25,7 @@ module OTP
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
           url = plan_url(request)
-          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 60, inactivity_timeout: 60).get
+          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 60, inactivity_timeout: 60, tls: {verify_peer: true}).get
         end
 
         responses = nil

@@ -63,8 +63,13 @@ RSpec.describe TripPlanner do
 
   it 'builds paratransit itineraries' do
     paratransit_tp.prepare_ambassadors
+    Paratransit.all.each do |paratransit|
+      create(:user_booking_profile, service_id: paratransit.id, user: paratransit_tp.trip.user)
+    end
     itins = paratransit_tp.build_paratransit_itineraries
     expect(itins).to be_an(Array)
+    puts itins.inspect
+    puts Paratransit.published.inspect
     expect(itins.count).to eq(Paratransit.published.available_for(paratransit_tp.trip).count)
     expect(itins[0]).to be_an(Itinerary)
   end
