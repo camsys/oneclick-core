@@ -31,7 +31,10 @@ Config.find_or_create_by(key: "maximum_booking_notice") do |config|
   config.value = 30
 end
 
-# Initialize walk reluctance config
+# Initialize reluctance configs
 Config.find_or_create_by(key: "walk_reluctance") do |config|
   config.value = 10
+end
+Config.find_or_create_by(key: "bike_reluctance") do |config|
+  config.value = 5
 end

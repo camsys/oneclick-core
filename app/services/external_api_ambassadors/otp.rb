@@ -79,6 +79,7 @@ module OTP
       preferred_routes = options[:preferred_routes] || nil
 
       walk_reluctance = options[:walk_reluctance] || Config.walk_reluctance
+      bike_reluctance = options[:bike_reluctance] || Config.bike_reluctance
       wait_reluctance = options[:wait_reluctance]
 
       #Parameters
@@ -111,11 +112,18 @@ module OTP
       end
 
       # v2 doesn't like max* fields in favor of *reluctance fields
-      # however reluctance fields are also in v1
-      unless walk_reluctance.nil?
-        url_options += "&walkReluctance=" + walk_reluctance.to_s
-      end
-      unless @version == 'v2'
+      # reluctance fields are also in v1 but we only use them in v2 here
+      if @version == 'v2'
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          unless bike_reluctance.nil?
+            url_options += "&bikeReluctance=" + bike_reluctance.to_s
+          end
+        else
+          unless walk_reluctance.nil?
+            url_options += "&walkReluctance=" + walk_reluctance.to_s
+          end
+        end
+      else
         unless max_transfer_time.nil?
           url_options += "&maxTransferTime=" + max_transfer_time.to_s
         end
