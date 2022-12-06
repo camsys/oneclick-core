@@ -41,7 +41,16 @@ class Trip < ApplicationRecord
 
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+  TRIP_TYPES = [
+    :transit, 
+    :paratransit,
+    :taxi,
+    :walk,
+    :car,
+    :bicycle,
+    #:uber,
+    #:lyft
+  ]
   DEFAULT_TRIP_DETAILS = { notification_preferences: nil}
 
   # Constant list of bad cities and the correct city
