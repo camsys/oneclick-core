@@ -85,6 +85,11 @@ class Service < ApplicationRecord
     joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': agency.id)
   end
 
+  # This is a hack, we should change booking_details from a serialized string to an hstore to do proper searches
+  scope :with_home_county, -> (county) do
+    where('booking_details ILIKE ?', "%home_counties:%#{county}%")
+  end
+
   # Filter by age
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
@@ -238,6 +243,32 @@ class Service < ApplicationRecord
   ####################
   # INSTANCE METHODS #
   ####################
+
+  def ada_funding_source_names
+    booking_detail_to_array(:ada_funding_sources)
+  end
+
+  def banned_purpose_names
+    booking_detail_to_array(:banned_purposes)
+  end
+
+  def banned_customer_ids
+    booking_detail_to_array(:banned_users)
+  end
+
+  def home_county_names
+    booking_detail_to_array(:home_counties).map { |county_name| 
+      county_name.downcase.capitalize
+    }
+  end
+
+  def preferred_sponsor_names
+    booking_detail_to_array(:preferred_sponsors)
+  end
+
+  def preferred_funding_source_names
+    booking_detail_to_array(:preferred_funding_sources)
+  end
   
   def to_s
     name
@@ -284,6 +315,12 @@ class Service < ApplicationRecord
   # Consolidates schedules automatically after save
   def consolidate_schedules
     schedules.consolidate
+  end
+
+  def booking_detail_to_array(key)
+    booking_details.fetch(key, '')
+                    .split(',')
+                    .map(&:strip)
   end
 
 

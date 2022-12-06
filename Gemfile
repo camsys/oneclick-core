@@ -165,6 +165,7 @@ group :development do
   gem "letter_opener"
 
   gem 'rb-readline'
+  gem "rdoc", "~> 6.3.0"
 end
 
 

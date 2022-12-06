@@ -4,10 +4,106 @@ class TravelPattern < ApplicationRecord
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
   scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
-  scope :for_date, -> (date) do
-    joins(:service_schedules, :booking_window)
-      .merge(ServiceSchedule.for_date(date))
-      .merge(BookingWindow.for_date(date))
+  ## 
+  # This scope returns only Travel Patterns related to the +Agency+ provided.
+  # 
+  # @param [Agency] agency The +Agency+ used to select Travel Patterns.
+  scope :with_agency, -> (agency) do
+    raise TypeError.new("#{agency.class} can't be coerced into Agency") unless agency.is_a?(Agency)
+    TravelPattern.where(agency_id: agency.id)
+  end
+
+  ## 
+  # This scope returns only Travel Patterns related to the +Service+ provided.
+  # 
+  # @param [Service] service The +Service+ used to select Travel Patterns.
+  scope :with_service, -> (service) do
+    raise TypeError.new("#{service.class} can't be coerced into Service") unless service.is_a?(Service)
+    joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
+  end
+
+  ## 
+  # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
+  # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
+  # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+
+  # is set to +true+ for that Travel Pattern.
+  # 
+  # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
+  # @option origin [Number] :lat The latitude of the trip's starting point.
+  # @option origin [Number] :lng The longitude of the trip's starting point.
+  scope :with_origin, -> (origin) {
+    raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
+    
+    travel_patterns = TravelPattern.arel_table
+    origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+
+    where(
+      travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
+        travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
+          travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        )
+      )
+    )
+  }
+
+  ##
+  # This scope returns only Travel Patterns where the provided +destination+ is a valid ending 
+  # point for trips as determined by the Travel Pattern's +destination_zone+ and 
+  # +destination_zone+. The +origin_zone+ is considered a valid ending point if 
+  # +allow_reverse_sequence_trips+ is set to +true+ for that Travel Pattern.
+  # 
+  # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
+  # @option destination [Number] :lat The latitude of the trip's ending point.
+  # @option destination [Number] :lng The longitude of the trip's ending point.
+  scope :with_destination, -> (destination) {
+    raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
+
+    travel_patterns = TravelPattern.arel_table
+    destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+
+    where(
+      travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
+        travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
+          travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        )
+      )
+    )
+  }
+
+  ##
+  # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
+  # Pattern's list of associated purposes.
+  # 
+  # @param [Purpose] purpose The +Purpose+ used to select Travel Patterns.
+  scope :with_purpose, -> (purpose) do
+    raise TypeError.new("#{purpose.class} can't be coerced into Purpose") unless purpose.is_a?(Purpose)
+    joins(:travel_pattern_purposes).where(travel_pattern_purposes: {purpose_id: purpose.id})
+  end
+
+  ##
+  # This scope returns only Travel Patterns where the provided +FundingSource+ is included in the Travel
+  # Pattern's list of associated funding sources.
+  # 
+  # @param [FundingSource] funding_source The +FundingSource+ used to select Travel Patterns.
+  scope :with_funding_sources, -> (funding_sources) do
+    unless funding_sources.is_a?(ActiveRecord::Relation) && funding_sources.model == FundingSource
+      raise TypeError.new("#{funding_sources.class} can't be coerced into ActiveRecord::Relation<FundingSource>")
+    end
+
+    joins(:travel_pattern_funding_sources).where(travel_pattern_funding_sources: {funding_source: funding_sources}).distinct
+  end
+
+  ##
+  # This scope returns only Travel Patterns where the provided +date+ occurs within both the Travel
+  # Pattern's accociated Service Schedules and Booking Window.
+  # 
+  # @param [Date] date The date to use.
+  scope :with_date, -> (date) do
+    raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
+
+    joins(:travel_pattern_service_schedules, :booking_window)
+      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
+      .where(booking_window: BookingWindow.for_date(date)).distinct
   end
 
   belongs_to :agency
@@ -151,81 +247,52 @@ class TravelPattern < ApplicationRecord
     return calendar
   end
 
+  # Class Methods
+
+  ##
+  # A method for quickly filtering through Travel Patterns based on a param hash passed in as an
+  # arguemnt. All params are optional. Any params not included in the hash will not be used to
+  # filter with.
   #
-  # Filter Methods
-  #
-  def self.filter_by_service(travel_pattern_query, services)
-    return travel_pattern_query unless services.present?
+  # @param [Hash] query_params The params hash used to select Travel Patterns.
+  # @option query_params [Agency] :agency The *Agency* that the Travel Patterns should belong to.
+  # @option query_params [Service] :service A *Service* that the Travel Patterns should be associated with.
+  # @option query_params [Hash] :origin A hash representing a starting point for a potential Trip. 
+  # @option origin [Number] :lat
+  # @option origin [Number] :lng
+  # @option query_params [Hash] :destination A hash representing an ending point for a potential Trip. 
+  # @option destination [Number] :lat
+  # @option destination [Number] :lng
+  # @option query_params [Purpose] :purpose A *Purpose* that the Travel Pattern should be associated with.
+  # @option query_params [FundingSource] :funding_source A *FundingSource* that the Travel Pattern should be associated with.
+  # @option query_params [Date] :date A *Date* that the Travel Pattern should be able to book a trip for.
+  # @option query_params [String, Integer] :start_time The starting time of a potential trip represented  as number of seconds since midnight.
+  # @option query_params [String, Integer] :end_time The ending time of a potential trip represented  as number of seconds since midnight.
+  def self.available_for(query_params)
+    filters = [:agency, :service, :origin, :destination, :purpose, :funding_sources, :date]
+    query = self.all
 
-    travel_pattern_query.joins(:services)
-                        .merge(Service.where(id: services.map(&:id)))
-  end
+    # First filter by all provided params
+    filters.each do |filter|
+      method_name = ("with_" + filter.to_s).to_sym
+      param = query_params[filter]
 
-  def self.filter_by_origin(travel_pattern_query, origin)
-    return travel_pattern_query unless origin.present? && origin[:lat].present? && origin[:lng].present?
-
-    travel_patterns = TravelPattern.arel_table
-    origin_zone_ids = OdZone.joins(:region).merge(Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
-
-    travel_pattern_query.where(
-      travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
-        travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
-      )
-    )
-  end
-
-  def self.filter_by_destination(travel_pattern_query, destination)
-    return travel_pattern_query unless destination.present? && destination[:lat].present? && destination[:lng].present?
-
-    travel_patterns = TravelPattern.arel_table
-    destination_zone_ids = OdZone.joins(:region).merge(Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
-
-    travel_pattern_query.where(
-      travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
-        travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
-      )
-    )
-  end
-
-  def self.filter_by_purpose(travel_pattern_query, purpose)
-    return travel_pattern_query unless purpose.present?
-
-    Rails.logger.info("Filtering through Travel Patterns that have the Purpose: #{purpose}")
-    travel_pattern_query.joins(:purposes)
-                        .merge(Purpose.where(name: purpose))
-  end
-
-  def self.filter_by_funding_sources(travel_pattern_query, purpose, booking_ambassador)
-    return travel_pattern_query unless purpose.present?
-
-    valid_funding_sources = []
-    get_funding = true
-    customer_info = booking_ambassador.fetch_customer_information(get_funding)
-    funding_sources = [customer_info['customer']['funding']['funding_source']].flatten
-
-    funding_sources.each do |funding_source|
-      allowed = [funding_source['allowed']].flatten
-      if allowed.detect { |hash| hash['purpose'] == purpose }
-        valid_funding_sources.push(funding_source['name'].strip)
-      end
+      query = query.send(method_name, param) unless param.nil?
     end
 
-    Rails.logger.info("Filtering through Travel Patterns that have at least one of these funding sources: #{valid_funding_sources}")
-    travel_pattern_query.joins(:funding_sources)
-                        .merge(FundingSource.where(name: valid_funding_sources))
+    travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
   end
 
-  def self.filter_by_date(travel_pattern_query, trip_date)
-    return travel_pattern_query unless trip_date.present?
-
-    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running on: #{trip_date}")
-    Rails.logger.info("Filtering through Travel Patterns that have a Booking Window that includes: #{trip_date}")
-    trip_date = Date.strptime(trip_date, '%Y-%m-%d')
-    travel_pattern_query.for_date(trip_date)
+  def self.to_api_response(travel_patterns)
+    # Filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
+    # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
+    travel_patterns.map(&:to_api_response)
+                    .select { |travel_pattern|
+                      dates = travel_pattern['to_calendar'].values
+                      dates.detect { |date|
+                        (date[:start_time] || -1) >= 0 && (date[:end_time] || -1) >= 1
+                      }
+                    }
   end
 
   # This method should be the first time we call the database, before this we were only constructing the query
@@ -234,7 +301,7 @@ class TravelPattern < ApplicationRecord
     trip_start = trip_start.to_i
     trip_end = (trip_end || trip_start).to_i
 
-    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start/1.hour}:#{trip_start%1.minute}, to: #{trip_end/1.hour}:#{trip_end%1.minute}")
+    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start/1.hour}:#{trip_start%1.hour/1.minute}, to: #{trip_end/1.hour}:#{trip_end%1.hour/1.minute}")
     # Eager loading will ensure that all the previous filters will still apply to the nested relations
     travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: {service_schedule: [:service_schedule_type, :service_sub_schedules]})
     travel_patterns.select do |travel_pattern|
@@ -246,7 +313,7 @@ class TravelPattern < ApplicationRecord
         schedules = schedules[:reduced_service_schedules]
       else
         Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have maching calendar date schedules, checking other schedule types")
-        schedules = schedules[:reduced_service_schedules] + schedules[:extra_service_schedules]
+        schedules = schedules[:weekly_schedules] + schedules[:extra_service_schedules]
       end
 
       # Grab any valid schedules
