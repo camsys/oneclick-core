@@ -23,7 +23,7 @@ RSpec.describe Api::V2::ItinerariesController, type: :controller do
   #### Emailing ###
   describe "emailing" do
 
-    it 'sends an email' do
+    it 'sends an email', :skip do
       params = {email_address: 'test@oneclick.com', itinerary_id: paratransit_itinerary.id  }
       trip.itineraries << paratransit_itinerary
       trip.save

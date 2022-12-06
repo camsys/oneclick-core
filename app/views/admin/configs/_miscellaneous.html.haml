@@ -44,7 +44,7 @@
     input_html: {value: (Config.find_by(key: :walk_reluctance).try(:value) || "10")},
     as: :integer
 
-   = f.input :bike_reluctance, require: true,
+  = f.input :bike_reluctance, require: true,
     label: "Walk reluctance",
     input_html: {value: (Config.find_by(key: :bike_reluctance).try(:value) || "5")},
     as: :integer

@@ -25,7 +25,6 @@ FactoryBot.define do
     factory :paratransit_service, parent: :service, class: 'Paratransit' do
       name { "Test Paratransit Service" }
       type { "Paratransit" }
-      booking_api { "ecolane" }
 
       trait :no_geography do
         after(:create) do |s|
@@ -73,6 +72,10 @@ FactoryBot.define do
         after(:create) do |s|
           s.travel_patterns << create(:travel_pattern, :with_empty_service_schedule)
         end
+      end
+
+      trait :ecolane_bookable do
+        booking_api { "ecolane" }
       end
       
       trait :ride_pilot_bookable do

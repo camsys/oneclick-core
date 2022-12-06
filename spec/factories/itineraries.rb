@@ -60,6 +60,37 @@ FactoryBot.define do
         end
         
       end
+
+      factory :ecolane_itinerary do
+        service { create(:paratransit_service, :ecolane_bookable) }
+        trip { create(:trip) }
+        after(:create) do |itin|
+          s = itin.service
+          u = itin.trip.user
+          u.booking_profiles << create(:ride_pilot_user_profile, user: u, service: s)
+        end
+        
+        trait :booked do
+          booking { create(:ride_pilot_booking, :booked)}
+          
+          after(:create) do |itin|
+            itin.select
+          end
+        end
+        
+        trait :canceled do
+          booking { create(:ride_pilot_booking, :canceled)}
+        end
+        
+        trait :unbooked do
+          booking { nil }
+        end
+        
+        factory :ecolane_booked_itinerary do
+          booked
+        end
+        
+      end
       
     end
 

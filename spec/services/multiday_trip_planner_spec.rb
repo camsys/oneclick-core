@@ -6,7 +6,7 @@ RSpec.describe MultidayTripPlanner do
   
   # Stubbed OTP Responses
   let!(:otp_car_response) { JSON.parse(File.read("spec/files/otp_response_car.json")) }
-  let!(:paratransit) { create(:paratransit_service, :medical_only) }
+  let!(:paratransit) { create(:paratransit_service, :medical_only, :ecolane_bookable) }
   let!(:taxi) { create(:taxi_service) }
   let!(:uber) { create(:uber_service) }
   let!(:lyft) { create(:lyft_service) }

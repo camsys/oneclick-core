@@ -33,7 +33,7 @@ FactoryBot.define do
       after(:create) do |trip|
         create(:paratransit_itinerary, trip: trip)
         create(:transit_itinerary, trip: trip)
-        create(:booked_itinerary, trip: trip)
+        create(:ecolane_booked_itinerary, trip: trip)
       end
     end
 

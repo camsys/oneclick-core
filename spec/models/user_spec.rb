@@ -210,9 +210,6 @@ RSpec.describe User, type: :model do
         it{ should      be_able_to( [:read, :update],   feedback) }
         it{ should_not  be_able_to( [:read, :update],   other_feedback) }
         
-        # Reports
-        it{ should  be_able_to( :read,              :report) }
-        
       end
       
       describe "partner agency staff users" do

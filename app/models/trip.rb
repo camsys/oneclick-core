@@ -48,8 +48,8 @@ class Trip < ApplicationRecord
     :walk,
     :car,
     :bicycle,
-    #:uber,
-    #:lyft
+    # :uber, # commenting out since API has changed
+    # :lyft # commenting out since API has changed
   ]
   DEFAULT_TRIP_DETAILS = { notification_preferences: nil}
 
