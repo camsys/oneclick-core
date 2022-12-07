@@ -179,12 +179,28 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
-   return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
+    return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
     # gtfs flex can load paratransit itineraries but not all otp instances have flex
     if Config.open_trip_planner_version == 'v2'
-      router_paratransit_itineraries = build_fixed_itineraries(:paratransit)
-      return router_paratransit_itineraries.select{|itin| @available_services[:paratransit].pluck(:id).include?(itin.service_id)}
+      otp_itineraries = build_fixed_itineraries(:paratransit)
+      # paratransit itineraries can return just transit since we also look for a mixed
+      # filter these out
+      # then set itineraries that are a mix of paratransit and transit mixed
+      router_paratransit_itineraries = otp_itineraries.map{|itin|
+        no_paratransit = true
+        has_transit = false
+        itin.legs.each do |leg|
+          no_paratransit = false if leg['mode'].include?('FLEX')
+          has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
+        end
+        if no_paratransit
+          next nil
+        end
+        itin.trip_type = 'paratransit_mixed' if has_transit
+        itin
+      }.compact
+      return router_paratransit_itineraries
     else
       itineraries = @available_services[:paratransit].map do |svc|
 

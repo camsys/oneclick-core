@@ -58,9 +58,7 @@ namespace :hopelink do
                 name: "Homage Senior Services",
                 gtfs_agency_id: "2316",
                 url: "https://homage.org/",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {type: "Transit", name: "Hopelink", published: true},
             {
@@ -106,16 +104,12 @@ namespace :hopelink do
                 name: "Northshore Senior Center",
                 gtfs_agency_id: "4918",
                 url: "https://www.northshoreseniorcenter.org/programs-services/#1603576406908-16db901a-8dba",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {
                 type: "Paratransit",
                 name: "Paratransit Services",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {
                 type: "Transit",
@@ -137,9 +131,7 @@ namespace :hopelink do
                 name: "Pierce County Human Services",
                 gtfs_agency_id: "2361",
                 url: "https://www.piercecountywa.gov/1269/Transportation-Services",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {
                 type: "Transit",
@@ -154,9 +146,7 @@ namespace :hopelink do
                 name: "Puget Sound Educational Service District",
                 gtfs_agency_id: "2309",
                 url: "https://www.psesd.org/programs-services/administrative-management-services/transportation",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {type: "Transit", name: "Puget Sound Express", published: true},
             {type: "Transit", name: "Rainier Foothills Transportation", published: true},
@@ -192,9 +182,7 @@ namespace :hopelink do
                 gtfs_agency_id: "1824",
                 url: "http://www.svtbus.org/",
                 phone: "425-888-7001",
-                published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
+                published: true
             },
             {
                 type: "Transit",
@@ -208,8 +196,6 @@ namespace :hopelink do
                 gtfs_agency_id: "2291",
                 url: "https://soundgenerations.org/our-programs/transportation/",
                 published: true,
-                accommodations: Accommodation.all,
-                eligibilities: Eligibility.all,
             },
             {
                 type: "Transit",
@@ -249,11 +235,15 @@ namespace :hopelink do
                 phone: "1-866-989-4287",
                 fare_structure: :url,
                 fare_details: {url: "http://www.ridewta.com/fares-passes/fares"},
-                published: true},
+                published: true
+                },
         ].each do |svc|
         puts "Creating #{svc[:type]} Service: #{svc[:name]}"
-        Service.find_or_create_by!(type: svc[:type], name: svc[:name], agency_id: TransportationAgency.first.id)
-                .update_attributes!(svc)
+        service = Service.find_or_create_by!(type: svc[:type], name: svc[:name], agency_id: TransportationAgency.first.id)
+        service.update_attributes!(svc)
+        service.accommodations = []
+        service.eligibilities = []
+        service.save!
         end
     end
 

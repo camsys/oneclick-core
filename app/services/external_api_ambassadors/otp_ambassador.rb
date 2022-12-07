@@ -132,8 +132,13 @@ class OTPAmbassador
 
   # Modifies OTP Itin's legs, inserting information about 1-Click services
   def associate_legs_with_services(otp_itin)
+    
     otp_itin.legs = otp_itin.legs.map do |leg|
       svc = get_associated_service_for(leg)
+      # double check if its paratransit but not set to that mode
+      if !leg['mode'].include?('FLEX') && leg['boardRule'] == 'mustPhone'
+        leg['mode'] = 'FLEX_ACCESS'
+      end
       leg['serviceId'] = svc ? svc.id : nil
       leg['serviceName'] = svc ? svc.name : (leg['agencyName'] || leg['agencyId'])
       leg['serviceFareInfo'] = svc ? svc.url : nil  # Should point to service's fare_info_url, but we don't have that yet

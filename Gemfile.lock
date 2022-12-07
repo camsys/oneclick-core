@@ -265,7 +265,8 @@ GEM
       activesupport (>= 3.0)
       phony (>= 2.18.12)
     public_suffix (5.0.0)
-    puma (3.12.6)
+    puma (6.0.0)
+      nio4r (~> 2.0)
     racc (1.6.0)
     rack (2.2.4)
     rack-cors (1.1.1)
@@ -463,7 +464,7 @@ DEPENDENCIES
   pagy (~> 5.10.1)
   pg (~> 0.18)
   phony_rails
-  puma (~> 3.0)
+  puma
   rack-cors
   rails (~> 5.0.1)
   rails-controller-testing
