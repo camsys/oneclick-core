@@ -21,6 +21,7 @@ RSpec.describe TripPlanner do
   let!(:otp_responses) { {
     car: JSON.parse(File.read("spec/files/otp_response_car.json")),
     transit: JSON.parse(File.read("spec/files/otp_response_transit.json")),
+    paratransit: JSON.parse(File.read("spec/files/otp_response_paratransit.json")),
     walk: JSON.parse(File.read("spec/files/otp_response_walk.json")),
     bicycle: JSON.parse(File.read("spec/files/otp_response_bicycle.json")),
     error: JSON.parse(File.read("spec/files/otp_response_error.json"))
@@ -36,7 +37,7 @@ RSpec.describe TripPlanner do
   # TRIP PLANNERS
   let(:generic_trip_planner) { create(:trip_planner, options: {router: otps[:car]}) }
   let(:transit_tp) { create(:trip_planner, options: {router: otps[:transit]})}
-  let(:paratransit_tp) { create(:trip_planner, options: {router: otps[:car]})}
+  let(:paratransit_tp) { create(:trip_planner, options: {router: otps[:paratransit]})}
   let(:taxi_tp) { create(:trip_planner, options: {router: otps[:car]})}
   let(:walk_tp) { create(:trip_planner, options: {router: otps[:walk]})}
   let(:bicycle_tp) { create(:trip_planner, options: {router: otps[:bicycle]})}
@@ -61,7 +62,7 @@ RSpec.describe TripPlanner do
     expect(itins[0]).to be_an(Itinerary)
   end
 
-  it 'builds paratransit itineraries' do
+  it 'builds paratransit itineraries (v1)' do
     paratransit_tp.prepare_ambassadors
     Paratransit.all.each do |paratransit|
       create(:user_booking_profile, service_id: paratransit.id, user: paratransit_tp.trip.user)
@@ -70,6 +71,26 @@ RSpec.describe TripPlanner do
     expect(itins).to be_an(Array)
     expect(itins.count).to eq(Paratransit.published.available_for(paratransit_tp.trip).count)
     expect(itins[0]).to be_an(Itinerary)
+  end
+
+  it 'builds paratransit itineraries (v2)' do
+    Config.find_or_create_by!(key: 'open_trip_planner_version').update_attributes!(value: 'v2')
+    paratransit_tp.prepare_ambassadors
+    itins = paratransit_tp.build_paratransit_itineraries
+    expect(itins).to be_an(Array)
+    # tests relevant to what's in otp_response_paratransit.json
+    expect(itins.count).to eq(3)
+    expect(itins.map{|itin| itin.trip_type}).to eq(["paratransit", "paratransit_mixed", "paratransit_mixed"])
+    # otp amabassador should check for paratransit where mode is not 'FLEX' and change it to 'FLEX'
+    itins.each do |itin|
+      itin.legs.each do |leg|
+        if leg['boardRule'] == 'mustPhone'
+          expect(leg['mode']).to eq('FLEX_ACCESS')
+        else
+          expect(leg['mode']).not_to eq('FLEX_ACCESS')
+        end
+      end
+    end
   end
 
   it 'builds taxi itineraries' do

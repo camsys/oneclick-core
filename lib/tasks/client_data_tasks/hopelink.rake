@@ -85,7 +85,7 @@ namespace :hopelink do
             {
                 type: "Transit",
                 name: "Metro Transit",
-                gtfs_agency_id: "1",
+                gtfs_agency_id: "kcm:1",
                 url: "http://metro.kingcounty.gov",
                 phone: "206-553-3000",
                 fare_structure: :url,
@@ -193,7 +193,7 @@ namespace :hopelink do
             {
                 type: "Paratransit",
                 name: "Sound Generations", 
-                gtfs_agency_id: "2291",
+                gtfs_agency_id: "soundgenerations-wa-us:2291",
                 url: "https://soundgenerations.org/our-programs/transportation/",
                 published: true,
             },
