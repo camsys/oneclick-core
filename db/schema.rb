@@ -368,9 +368,9 @@ ActiveRecord::Schema.define(version: 20221118125252) do
 
   create_table "purposes", force: :cascade do |t|
     t.string   "code"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
-    t.string   "name",        null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.string   "name",        default: "", null: false
     t.string   "description"
     t.integer  "agency_id"
     t.index ["agency_id"], name: "index_purposes_on_agency_id", using: :btree
@@ -574,10 +574,10 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.string  "name",                                        null: false
     t.text    "description"
     t.integer "agency_id"
-    t.integer "booking_window_id"
     t.integer "origin_zone_id"
     t.integer "destination_zone_id"
     t.boolean "allow_reverse_sequence_trips", default: true, null: false
+    t.integer "booking_window_id"
     t.index ["agency_id"], name: "index_travel_patterns_on_agency_id", using: :btree
     t.index ["booking_window_id"], name: "index_travel_patterns_on_booking_window_id", using: :btree
     t.index ["destination_zone_id"], name: "index_travel_patterns_on_destination_zone_id", using: :btree

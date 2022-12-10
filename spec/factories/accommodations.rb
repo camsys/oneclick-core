@@ -15,7 +15,7 @@ FactoryBot.define do
       code { "jacuzzi" }
     end
     
-    initialize_with { Accommodation.find_or_create_by(code: code) }
+    initialize_with { Accommodation.find_or_create_by!(code: code) }
 
     # Create translations for the accommodation
     trait :with_translations do

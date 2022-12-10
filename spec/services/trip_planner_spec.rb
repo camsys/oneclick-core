@@ -91,6 +91,8 @@ RSpec.describe TripPlanner do
         end
       end
     end
+    # unset v2
+    Config.find_or_create_by!(key: 'open_trip_planner_version').update_attributes!(value: 'v1')
   end
 
   it 'builds taxi itineraries' do

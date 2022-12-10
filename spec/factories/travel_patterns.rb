@@ -7,13 +7,9 @@ FactoryBot.define do
     origin_zone { association :origin_zone, agency: agency }
     destination_zone { association :destination_zone, agency: agency }
 
-    before(:create) do |travel_pattern|
-      funding_source = create(:funding_source)
-      travel_pattern.travel_pattern_funding_sources << build(:travel_pattern_funding_source, funding_source: funding_source, travel_pattern: travel_pattern) 
-      
-      purpose = create(:purpose, agency: travel_pattern.agency)
-      travel_pattern.travel_pattern_purposes << build(:travel_pattern_purpose, purpose: purpose, travel_pattern: travel_pattern)        
-    end
+    with_trip_purpose
+    with_empty_service_schedule
+    with_funding_source
 
     trait :with_empty_service_schedule do
       before(:create) do |travel_pattern|
@@ -35,6 +31,19 @@ FactoryBot.define do
         travel_pattern.travel_pattern_service_schedules << build(:travel_pattern_service_schedule, service_schedule: service_schedule, travel_pattern: travel_pattern)
       end
     end
-    
+
+    trait :with_trip_purpose do
+      before(:create) do |travel_pattern|
+        new_purpose = create(:purpose, agency: travel_pattern.agency)
+        travel_pattern.travel_pattern_purposes << build(:travel_pattern_purpose, purpose: new_purpose, travel_pattern: travel_pattern)  
+      end
+    end
+
+    trait :with_funding_source do
+      before(:create) do |travel_pattern|
+        funding_source = create(:funding_source, agency: travel_pattern.agency)
+        travel_pattern.travel_pattern_funding_sources << build(:travel_pattern_funding_source, funding_source: funding_source, travel_pattern: travel_pattern)
+      end
+    end
   end
 end

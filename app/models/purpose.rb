@@ -15,14 +15,10 @@ class Purpose < ApplicationRecord
   scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
 
-  before_save :snake_casify, if: :has_code?
+  before_save :snake_casify
   validate :name_is_present?
   validates_presence_of :agency
   validates :name, uniqueness: {scope: :agency_id}
-
-  def has_code?
-    code.present?
-  end
 
   def name_is_present?
     errors.add(:name, :blank) if self[:name].blank?

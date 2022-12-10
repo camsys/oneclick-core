@@ -4,6 +4,7 @@ FactoryBot.define do
     association :service_schedule_type, factory: :weekly_pattern_schedule_type 
     
     sequence(:name) { |n| "Service Schedule #{n}"}
+    # sequence(:priority)
 
     factory :weekly_pattern_schedule do
       after(:create) do |service_schedule|

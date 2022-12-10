@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :purpose do
-
+    
     sequence(:name) { |n| "medical #{n}" }
     code { 'medical' }
-    association :agency
+    association :agency, factory: :transportation_agency
 
     factory :metallica_concert do
       sequence(:name) { |n| "Metallica! #{n}" }
