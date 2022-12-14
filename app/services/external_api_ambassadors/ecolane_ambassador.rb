@@ -43,7 +43,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
     @guest_purpose = @service.booking_details.fetch(:guest_purpose)
 
-    @booking_options = opts[:booking_options]
+    @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
 
@@ -224,7 +224,7 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += @customer_id.to_s
     url_options += "/orders"
     url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
-    resp = send_request(@url + url_options, token)
+    resp = send_request(@url + url_options)
     begin
       Hash.from_xml(resp.body)
     rescue REXML::ParseException => e
@@ -236,7 +236,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Get Single Order
   def fetch_order confirmation=@confirmation
     url_options = "/api/order/#{system_id}/#{confirmation}"
-    resp = send_request(@url + url_options, token)
+    resp = send_request(@url + url_options)
     # NOTE: this seems like overkill, but Ecolane uses both JSON and
     # ...XML for their responses, and failed responses are formatted as JSON
     begin
@@ -255,15 +255,15 @@ class EcolaneAmbassador < BookingAmbassador
     url_options += "?funding=" + funding.to_s + "&locations=" + locations.to_s
     url = @url + url_options
     t = Time.current
-    resp = send_request(url, token )
-    Hash.from_xml(resp.body)
+    resp = send_request(url)
+    Hash.from_xml(resp.body).with_indifferent_access
   end
 
   # Get all the Ecolane POIS
   def fetch_system_poi_list
     url_options = "/api/location/#{system_id}/pois"
     url = @url + url_options
-    resp = send_request(url, token )
+    resp = send_request(url)
 
     begin
       resp_code = resp.code
@@ -328,8 +328,9 @@ class EcolaneAmbassador < BookingAmbassador
     # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
     return nil if resp.code != "200"
-    resp = Hash.from_xml(resp.body)
-    resp.try(:with_indifferent_access).try(:[],:fare).try(:[],:client_copay).to_f/100 
+    resp = Hash.from_xml(resp.body) || {}
+    fare = resp.with_indifferent_access.fetch(:fare, {})
+    (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
   end
 
   # Find the fare for a trip.
@@ -422,7 +423,7 @@ class EcolaneAmbassador < BookingAmbassador
   def get_current_balance
     customer_information = fetch_customer_information(funding=true)
     # Convert cents to dollars
-    balance = customer_information["customer"]["balance"].to_f / 100.0
+    balance = customer_information[:customer][:balance].to_f / 100.0
     balance
   end
 
@@ -456,29 +457,29 @@ class EcolaneAmbassador < BookingAmbassador
   def get_customer_funding_data
     funding_data = []
     get_funding = true
-    customer = fetch_customer_information(get_funding).fetch('customer', {})
+    customer = fetch_customer_information(get_funding).fetch(:customer, {})
     funding_options = arrayify(
-      customer.fetch('funding', {})
-              .fetch('funding_source')
+      customer.fetch(:funding, {})
+              .fetch(:funding_source)
     )
     
     funding_options.each do |funding_source|
-      default = funding_source.fetch('default', false)
-      purposes_and_sponsors = arrayify(funding_source['allowed'])
+      default = funding_source.fetch(:default, false)
+      purposes_and_sponsors = arrayify(funding_source[:allowed])
       
       purposes_and_sponsors.each do |purpose_and_sponsor|
-        purpose = purpose_and_sponsor['purpose']
-        sponsor = purpose_and_sponsor['sponsor']
+        purpose = purpose_and_sponsor[:purpose]
+        sponsor = purpose_and_sponsor[:sponsor]
 
         funding_data.push(
           {
             default: default,
-            funding_source: funding_source['name'],
+            funding_source: funding_source[:name],
             purpose: purpose,
             purpose_code: Purpose.format_string_to_code(purpose),
-            sponsor: purpose_and_sponsor['sponsor'],
-            valid_from: funding_source['valid_from'],
-            valid_until: funding_source['valid_until']
+            sponsor: purpose_and_sponsor[:sponsor],
+            valid_from: funding_source[:valid_from],
+            valid_until: funding_source[:valid_until]
           }
         )
       end
@@ -652,13 +653,14 @@ class EcolaneAmbassador < BookingAmbassador
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
+    eco_trip = eco_trip.with_indifferent_access
     assistant = eco_trip.fetch(:assistant, "false")
     companions = eco_trip.fetch(:companions, 0).to_i
     children = eco_trip.fetch(:children, 0).to_i
-    origin_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :negotiated)
-    destination_negotiated = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :negotiated)
-    destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
-    fare = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :client_copay).to_f/100
+    origin_negotiated = eco_trip.fetch(:pickup, {})[:negotiated]
+    destination_negotiated = eco_trip.fetch(:dropoff, {})[:negotiated]
+    destination_requested = eco_trip.fetch(:dropoff, {})[:requested]
+    fare = eco_trip.fetch(:fare, {})[:client_copay].to_f/100 + eco_trip.fetch(:fare, {})[:additional_passenger].to_f/100
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
@@ -771,13 +773,18 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def build_order funding=true, funding_hash=nil
+    itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
+    @booking_options[:escort] ||= yes_or_no(itin&.assistant)
+    @booking_options[:companions] ||= itin&.companions
+    
     order_hash = {
-        assistant: yes_or_no(@booking_options.try(:with_indifferent_access).try(:[], :escort)), 
-        companions: @booking_options.try(:with_indifferent_access).try(:[], :companions) || 0, 
-        children: @booking_options.try(:with_indifferent_access).try(:[], :children) || 0, 
-        other_passengers: 0,
-        pickup: build_pu_hash,
-        dropoff: build_do_hash}
+      assistant: @booking_options[:escort], 
+      companions: @booking_options[:companions] || 0, 
+      children: @booking_options[:children] || 0, 
+      other_passengers: 0,
+      pickup: build_pu_hash,
+      dropoff: build_do_hash
+    }
 
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
@@ -969,16 +976,16 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order =  build_order funding=false
     resp = send_request(url, 'POST', order)
-    fare_hash = Hash.from_xml(resp.body)
-    fares = fare_hash['fares']['fare']
+    fare_hash = Hash.from_xml(resp.body).with_indifferent_access
+    fares = (fare_hash[:fares] || {})[:fare]
     highest_priority_fare = []
     #When there is only one option in the fares table, it is  not returned as an array.  Turn it into an array
     unless fares.kind_of? Array
-      fares = [fares]
+      fares = [fares].compact
     end
     fares.each do |fare|
-      if highest_priority_fare.empty? or highest_priority_fare[3].to_f < fare['priority'].to_f
-        highest_priority_fare = [fare['client_copay'].to_f/100.0, fare['funding']['funding_source'], fare['funding']['sponsor'], fare['priority']]
+      if highest_priority_fare.empty? or highest_priority_fare[3].to_f < fare[:priority].to_f
+        highest_priority_fare = [fare[:client_copay].to_f/100.0, fare[:funding][:funding_source], fare[:funding][:sponsor], fare[:priority]]
       end
     end
     [highest_priority_fare[0], { funding_source: highest_priority_fare[1]&.strip, purpose: @purpose, sponsor: highest_priority_fare[2]}]
@@ -1009,7 +1016,7 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order = Nokogiri::XML(build_order)
     order = order.to_s
-    resp = send_request(url, token, 'POST', order)
+    resp = send_request(url, 'POST', order)
 
     begin
       resp_code = resp.code
@@ -1022,12 +1029,12 @@ class EcolaneAmbassador < BookingAmbassador
     end
 
     temp_hash = {}
-    fare_hash = Hash.from_xml(resp.body)
-    fares = fare_hash['fares']['fare']
+    fare_hash = Hash.from_xml(resp.body).with_indifferent_access
+    fares = (fare_hash[:fares] || {}).fetch(:fare, [])
     fares.each do |fare|
-      new_funding_source = fare["funding"]["funding_source"]&.strip
-      new_fare = fare["client_copay"].to_f/100
-      new_comment = fare["funding"]["description"]
+      new_funding_source = fare.fetch(:funding, {})[:funding_source]&.strip
+      new_fare = fare[:client_copay].to_f/100 + fare[:additional_passenger].to_f/100
+      new_comment = fare.fetch(:funding, {})[:description]
 
       current = temp_hash[new_funding_source]
 
