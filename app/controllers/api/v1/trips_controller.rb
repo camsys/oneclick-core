@@ -262,13 +262,21 @@ module Api
             # Handle the case when the trip is the return trip.
             trip = itin.trip
             trip.previous_trip = nil
-            trip.details[:trip_type]=trip_type
+            if trip.details
+              trip.details[:trip_type]=trip_type
+            else
+              trip.details = {trip_type: trip_type}
+            end
             trip.save 
 
             # Handle the case when the trip is the outbound trip.
             next_trip = itin.trip.next_trip
             if next_trip
-              next_trip.details[:trip_type]=trip_type
+              if next_trip.details
+                next_trip.details[:trip_type]=trip_type
+              else
+                next_trip.details = {trip_type: trip_type}
+              end
               next_trip.previous_trip = nil
               next_trip.save
             end
