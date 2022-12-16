@@ -320,7 +320,7 @@ class EcolaneAmbassador < BookingAmbassador
     url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
     
-    if funding_hash
+    if funding_hash && !funding_hash.empty?
       order = build_order(true, funding_hash)
     else
       order = build_order 
@@ -790,7 +790,7 @@ class EcolaneAmbassador < BookingAmbassador
       order_hash[:customer_id] = @customer_id || @dummy
     end
     begin
-      if funding_hash
+      if funding_hash && !funding_hash.empty?
         order_hash[:funding] = funding_hash
       elsif funding
         order_hash[:funding] = get_funding_hash
@@ -874,27 +874,41 @@ class EcolaneAmbassador < BookingAmbassador
       agency: agency,
       service: @service,
       purpose: Purpose.find_or_initialize_by(name: @purpose, agency: agency),
-      date: trip_date,
-      start_time: start_time,
-      end_time: end_time,
+      origin: origin,
+      destination: destination,
+      # TODO: Commenting out this newer workflow until it can be tested more.
+      # Putting it back to match earlier workflow for OCC-1075.
+      #date: trip_date,
+      #start_time: start_time,
+      #end_time: end_time,
     }
 
+    # TODO: Commenting out this newer workflow until it can be tested more.
+    # Putting it back to match earlier workflow for OCC-1075.
     verified_funding_sources = Set.new(
       FundingSource.joins(:travel_patterns)
-                    .where(
-                      agency_id: agency.id,
-                      travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) },
-                      name: funding_source_names
-                    ).distinct.pluck(:name)
-    )
+                   .where(
+                     agency_id: agency.id,
+                     travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) }
+                   ).distinct.pluck(:name)
+    ).to_a
+    #verified_funding_sources = Set.new(
+    #  FundingSource.joins(:travel_patterns)
+    #                .where(
+    #                  agency_id: agency.id,
+    #                  travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) },
+    #                  name: funding_source_names
+    #                ).distinct.pluck(:name)
+    #)
     
-    funding_source_combinations.select { |combination|
-      verified_funding_sources.include?(combination[:funding_source])
-    }
+    #funding_source_combinations.select { |combination|
+    #  verified_funding_sources.include?(combination[:funding_source])
+    #}
   end
 
   ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
+    travel_pattern_funding_sources = []
     if Config.dashboard_mode == 'travel_patterns'
       best_funding = nil
       best_sponsor= nil
@@ -903,38 +917,39 @@ class EcolaneAmbassador < BookingAmbassador
       # If configured to use travel patterns, return if they have no funding.
       return {} if travel_pattern_funding_sources.blank?
 
+      # TODO: Commenting out this newer workflow until it can be tested more.
+      # Putting it back to match earlier workflow for OCC-1075.
       # @preferred_funding_sources comes straight from the service's booking details
       # so the funding source names are already in priority order.
-      funding_found = @preferred_funding_sources.detect { |preferred_funding_source|
-        best_funding = travel_pattern_funding_sources.detect { |valid_combination|
-          valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
-        }&.fetch(:funding_source, nil)
-      }
+      #funding_found = @preferred_funding_sources.detect { |preferred_funding_source|
+      #  best_funding = travel_pattern_funding_sources.detect { |valid_combination|
+      #    valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
+      #  }&.fetch(:funding_source, nil)
+      #}
 
       # Now we can get rid of anything that's not the best funding_source
-      travel_pattern_funding_sources.select! { |valid_combination| 
-        valid_combination[:funding_source] == best_funding
-      }
+      #travel_pattern_funding_sources.select! { |valid_combination|
+      #  valid_combination[:funding_source] == best_funding
+      #}
 
       # @preferred_sponsors comes straight from the service's booking details
       # so the sponsors are already in priority order.
-      @preferred_sponsors.detect { |preferred_sponsor|
-        best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
-          valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
-        }&.fetch(:sponsor, nil)
-      }
+      #@preferred_sponsors.detect { |preferred_sponsor|
+      #  best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
+      #    valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
+      #  }&.fetch(:sponsor, nil)
+      #}
 
-      if funding_found
-        return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
-      else
-        return {}
-      end
+      #if funding_found
+      #  return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
+      #else
+      #  return {}
+      #end
     end
 
     # Find the options that include the best funding source
-    best_option = nil
+    best_index = nil
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
-    travel_pattern_funding_sources = []
     arrayify(get_funding_options).each do |option|
       option_funding_source = option["funding_source"].strip
       # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
@@ -966,7 +981,7 @@ class EcolaneAmbassador < BookingAmbassador
     if potential_options.blank?
       {}
     else
-      {funding_source: best_option["funding_source"]&.strip, purpose: @purpose, sponsor: best_option["sponsor"]}
+      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
     end
 
   end
@@ -1002,10 +1017,10 @@ class EcolaneAmbassador < BookingAmbassador
   def build_1click_discount_array 
     discount_array = []
     @guest_funding_sources.each do |funding_source|
-      funding_source_hash = {funding_source: funding_source[:code]&.strip, purpose: @guest_purpose}
+      funding_source_hash = {funding_source: funding_source[:code], purpose: @guest_purpose}
       fare = get_1click_fare funding_source_hash
       unless fare.nil?
-        discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code]&.strip, base_fare: false})
+        discount_array.append({fare: fare, comment: funding_source[:desc], funding_source: funding_source[:code], base_fare: false})
       end
     end
     discount_array
