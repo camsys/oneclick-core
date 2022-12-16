@@ -22,7 +22,7 @@ class EcolaneBooking < Booking
 
   # Checking for a confirmation code seems more reliable than checking a possibly incomplete list of statuses
   def booked?
-    confirmation.present?
+    confirmation.present? && !self.canceled?
   end
 
   def canceled?

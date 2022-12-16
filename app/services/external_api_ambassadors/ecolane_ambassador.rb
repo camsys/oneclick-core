@@ -774,11 +774,11 @@ class EcolaneAmbassador < BookingAmbassador
 
   def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
-    @booking_options[:escort] ||= yes_or_no(itin&.assistant)
+    @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     
     order_hash = {
-      assistant: @booking_options[:escort], 
+      assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
