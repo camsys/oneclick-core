@@ -17,12 +17,15 @@ class EcolaneBooking < Booking
   ].freeze
 
   CANCELED_TRIP_STATUS_CODES = [
-    "canceled", " noshow", "noshow"
+    "canceled", " noshow", "noshow", "canceled_without_confirmation"
   ].freeze
+
+  scope :booked, -> { where.not(confirmation: nil, status: CANCELED_TRIP_STATUS_CODES) }
+  scope :not_booked, -> { where(confirmation: nil).or(where(status: ECOLANE_STATUSES - BOOKED_TRIP_STATUS_CODES)) }
 
   # Checking for a confirmation code seems more reliable than checking a possibly incomplete list of statuses
   def booked?
-    confirmation.present?
+    confirmation.present? && !self.canceled?
   end
 
   def canceled?

@@ -152,7 +152,13 @@ class EcolaneAmbassador < BookingAmbassador
     # Unselect the itinerary on successful cancellation
     @itinerary.unselect if result
     # Update Booking object with status info and return it
-    new_status = status @itinerary.booking.confirmation 
+    if @itinerary.booking.confirmation
+      new_status = status @itinerary.booking.confirmation
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:canceled])
+    else
+      new_status = "canceled_without_confirmation"
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:canceled_without_confirmation])
+    end
     @itinerary.booking.update({status: new_status})
     @itinerary.booking
   end
@@ -283,7 +289,7 @@ class EcolaneAmbassador < BookingAmbassador
   def cancel_order 
     unless @confirmation
       Rails.logger.debug "Unable to cancel itinerary #{itinerary.id} because no confirmation number is present in the booking."
-      return false
+      return true
     end
 
     url_options = "/api/order/#{system_id}/#{@confirmation}"
@@ -774,11 +780,11 @@ class EcolaneAmbassador < BookingAmbassador
 
   def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
-    @booking_options[:escort] ||= yes_or_no(itin&.assistant)
+    @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     
     order_hash = {
-      assistant: @booking_options[:escort], 
+      assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,

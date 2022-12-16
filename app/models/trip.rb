@@ -10,12 +10,14 @@ class Trip < ApplicationRecord
   ### ASSOCIATIONS ###
   belongs_to :user
   has_many :itineraries, dependent: :destroy
+  has_many :bookings, through: :itineraries
   has_many :services, through: :itineraries
   has_many :purposes, through: :services
   belongs_to :purpose
   belongs_to :origin, class_name: 'Waypoint', foreign_key: :origin_id, dependent: :destroy
   belongs_to :destination, class_name: 'Waypoint', foreign_key: :destination_id, dependent: :destroy
   belongs_to :selected_itinerary, class_name: "Itinerary", foreign_key: :selected_itinerary_id
+  belongs_to :selected_booking, class_name: "Booking", foreign_key: :selected_itinerary_id, primary_key: :itinerary_id
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
@@ -59,9 +61,10 @@ class Trip < ApplicationRecord
     fixed_route_saved: 'Saved fixed route trip',
     fixed_route_denied: 'Fixed route denial',
     ecolane_booked: 'Successfully booked in Ecolane',
-    ecolane_denied: 'Ecolane booking denial'
+    ecolane_denied: 'Ecolane booking denial',
+    canceled: 'Canceled successfully after booking',
+    canceled_without_confirmation: 'Attempted to cancel without a confirmation number'
   }
-
 
   ### SCOPES ###
   # Trips where users under an input transportation agency
@@ -137,6 +140,8 @@ class Trip < ApplicationRecord
   scope :partner_agency_in, -> (partner_agency) do
     where(user_id: partner_agency.staff_and_admins.pluck(:id))
   end
+
+  scope :with_booking, -> { Trip.joins(:selected_booking) }
   
   ### CLASS METHODS ###
 

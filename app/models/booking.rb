@@ -17,11 +17,36 @@ class Booking < ApplicationRecord
   
   ### VALIDATIONS ###
   validates :type, presence: true, inclusion: BOOKING_TYPE_CLASSES
-  
-  
+
+  # Booked is only implimented in EcolaneBooking for now.
+  scope :booked, -> {
+    err = NoMethodError.new("You are calling the abstact Booking class's booked scope directly instead of implementing it in a subclass.")
+    raise err unless self == Booking
+
+    BOOKING_TYPE_CLASSES.map(&:constantize).reduce (none) { |query, booking_class|
+      begin
+        query.or(booking_class.booked)
+      rescue err.class => e
+        query
+      end
+    }
+  }
+
+  scope :not_booked, -> {
+    err = NoMethodError.new("You are calling the abstact Booking class's not_booked scope directly instead of implementing it in a subclass.")
+    raise err unless self == Booking
+
+    BOOKING_TYPE_CLASSES.map(&:constantize).reduce (none) { |query, booking_class|
+      begin
+        query.or(booking_class.not_booked)
+      rescue err.class => e
+        query
+      end
+    }
+  }
   ### INSTANCE METHODS ###
   
-  # By default, returns true if the Booking object exists.
+  # By default, returns true if the Booking object exists
   # TODO: Method should be overwritten in subclass
   def booked?
     raise "You are calling the abstact Booking class's booked? method directly instead of implementing it in a subclass."

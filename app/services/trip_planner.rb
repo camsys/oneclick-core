@@ -115,8 +115,16 @@ class TripPlanner
   end
   
   # Builds itineraries for all trip types
+  # Also needs to update existing itineraries (ie for the summary page before booking)
   def build_all_itineraries
-    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+    trip_itineraries = @trip_types.flat_map {|t| build_itineraries(t)}
+    new_itineraries = trip_itineraries.reject(&:persisted?)
+    old_itineraries = trip_itineraries.select(&:persisted?)
+
+    Itinerary.transaction do
+      old_itineraries.each(&:save!)
+      @trip.itineraries += new_itineraries
+    end
   end
 
   # Additional sanity checks can be applied here.
@@ -192,25 +200,32 @@ class TripPlanner
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
       if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
         next nil
-      end 
-      Itinerary.new(
-        service: svc,
-        trip_type: :paratransit,
-        cost: svc.fare_for(@trip, router: @router),
+      end
+      
+      # Look for an existing itinerary
+      # But ones that don't have a booking attached
+      # Otherwise, create a new itinerary
+      itinerary = Itinerary.left_joins(:booking)
+                            .where(bookings: { id: nil })
+                            .find_or_initialize_by(
+                              service_id: svc.id,
+                              trip_type: :paratransit,
+                              trip_id: @trip.id,
+                            )
+      
+      # Whether an itinerary was found, or initialized, we need to update it
+      itinerary.assign_attributes({
+        assistant: @options[:assistant],
+        companions: @options[:companions],
+        cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
         transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
-      )
-
+      })
+      
+      itinerary
     end
 
     # Get rid of nil itineraries caused by skipping Ecolane Services
-    itineraries.delete(nil)
-
-    if itineraries.blank? 
-      return []
-    else 
-      return itineraries 
-    end
-
+    return itineraries.compact
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response

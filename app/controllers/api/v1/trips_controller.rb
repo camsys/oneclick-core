@@ -26,43 +26,18 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
-        # Create an array of strong trip parameters based on itinerary_request sent
-        api_v1_params = params[:itinerary_request]
-        api_v2_params = params[:trips]
+        #Update the user's profile before planning the trip.
+        @traveler.update_profile(params[:user_profile]) if @traveler
 
-        trips_params = {}
-        if api_v1_params # This is doing it the old way
-          trips_params = api_v1_params.map do |trip|
-            purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
-            external_purpose = params[:trip_purpose]
-            start_location = trip_location_to_google_hash(trip[:start_location])
-            end_location = trip_location_to_google_hash(trip[:end_location])
-            
-            trip_params(ActionController::Parameters.new({
-              trip: {
-                origin_attributes: start_location,
-                destination_attributes: end_location,
-                trip_time: trip[:trip_time].to_datetime,
-                arrive_by: (trip[:departure_type] == "arrive"),
-                user_id: @traveler && @traveler.id,
-                purpose_id: purpose ? purpose.id : nil,
-                external_purpose: external_purpose,
-                details: trip[:details]
-              }
-            }))
-          end
-        elsif api_v2_params # This is doing it the right way
-          trips_params = params[:trips].map { |t|
-            trip_params(t)
-          }
-        else # For creating a single trip
-          trips_params = [trip_params(params)]
-        end
+        # Create an array of strong trip parameters based on itinerary_request sent
+        trips_params = get_trips_params_for_create()
 
         # Hash of options parameters sent
         options = {
           trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
-          user_profile: params[:user_profile]
+          user_profile: params[:user_profile],
+          companions: params[:companions],
+          assistant: params[:assistant]
           # trip_token: params[:trip_token],
           # optimize: params[:optimize],
           # max_walk_miles: params[:max_walk_miles],
@@ -70,57 +45,48 @@ module Api
           # max_walk_seconds: params[:max_walk_seconds], # Seconds
           # walk_mph: params[:walk_mph] #|| (@traveler.walking_speed ? @traveler.walking_speed.value : 3.0)
         }
-
-        #Update the user's profile before planning the trip.
-        if @traveler
-          @traveler.update_profile(options[:user_profile])
-        end
         
-        # Check if there is an existing trip for this user at same time and location.
-        existing_trips = Trip.where(trip_time: trips_params[0][:trip_time],
-                                    arrive_by: trips_params[0][:arrive_by],
-                                    user_id: trips_params[0][:user_id])
-                             .order(updated_at: :desc)
+        # Check for existing trips for this user at same time and location, then only create the new ones.
+        # .merge(Booking.not_booked)
+        Trip.transaction do
+          @trips = trips_params.map do |trip_param|
+            origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
+            destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+            existing_trip = Trip.where(trip_time: trip_param[:trip_time],
+                                        arrive_by: trip_param[:arrive_by],
+                                        user_id: trip_param[:user_id])
+                                .left_joins(:bookings)
+                                .where(bookings: {id: nil})
+                                .distinct
+                                .order(updated_at: :desc)
+                                .detect { |trip|
+                                  trip.origin.lat.to_f.round(6) == origin_place[:lat].to_f.round(6) &&
+                                  trip.origin.lng.to_f.round(6) == origin_place[:lng].to_f.round(6) &&
+                                  trip.destination.lat.to_f.round(6) == destination_place[:lat].to_f.round(6) &&
+                                  trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
+                                }
 
-        origin_place = Place.attrs_from_google_place(trips_params[0][:origin_attributes][:google_place_attributes])
-        destination_place = Place.attrs_from_google_place(trips_params[0][:destination_attributes][:google_place_attributes])
-        first_existing_trip = existing_trips.first
-        if existing_trips.any? &&
-          first_existing_trip.origin.lat.to_f.round(6) == origin_place[:lat].to_f.round(6) &&
-          first_existing_trip.origin.lng.to_f.round(6) == origin_place[:lng].to_f.round(6) &&
-          first_existing_trip.destination.lat.to_f.round(6) == destination_place[:lat].to_f.round(6) &&
-          first_existing_trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
-          # This trip has already been created. Don't create it again.
-          render status: 200, json: first_existing_trip, include: ['*.*'] and return
-        end
+            existing_trip ? existing_trip : Trip.create!(trip_param)
+          end.sort_by{ |t| t.trip_time }
 
-        # Create one or more trips based on requests sent.
-        @trips = Trip.create(trips_params)
+          # Link all the trips together. And plan the itineraries.
+          previous_trip = nil
+          @trips.each do |trip|
+            trip_planner = TripPlanner.new(trip, options)
+            trip_planner.plan
 
-        @trips.each do |trip|
-          trip_planner = TripPlanner.new(trip, options)
-          trip_planner.plan
-          trip.relevant_purposes = trip_planner.relevant_purposes
-          trip.relevant_eligibilities = trip_planner.relevant_eligibilities
-          trip.relevant_accommodations = trip_planner.relevant_accommodations
-        end
-        puts @trips.length
-        #Link up the trips
-        previous_trip = nil
-        @trips.sort_by{ |t| t.trip_time}.each do |trip|
-          if trip.no_valid_services == true
-            trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_denied])
+            trip.relevant_purposes = trip_planner.relevant_purposes
+            trip.relevant_eligibilities = trip_planner.relevant_eligibilities
+            trip.relevant_accommodations = trip_planner.relevant_accommodations
+            trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_denied] if trip.no_valid_services
+            trip.previous_trip = previous_trip
+            trip.save!
+
+            previous_trip = trip
           end
-          if previous_trip
-            previous_trip.next_trip = trip 
-            previous_trip.save
-          end
-          previous_trip = trip 
-        end 
-
-        if @trips
-          render status: 200, json: @trips.first, include: ['*.*']
         end
+
+        render status: 200, json: @trips.first, include: ['*.*']
       end
 
       # POST trips/select, itineraries/select
@@ -243,17 +209,17 @@ module Api
       # Unselects and cancels the target itinerary
       def cancel
         success = true 
-        results = bookingcancellation_request_params.map do |bc_req|
+        results = booking_cancellation_request_params.map do |bc_req|
          
           itin =  @traveler.itineraries.find_by(id: bc_req[:itinerary_id]) ||
                   @traveler.bookings.find_by(confirmation: bc_req[:booking_confirmation]).try(:itinerary)
-          trip_type= itin.trip_type
-          response = booking_response_base(itin).merge({success: false})
 
+          response = booking_response_base(itin).merge({success: false})
           next response unless itin
           
           # CANCEL THE ITINERARY, unselecting it and updating the booking object
           cancellation_result = itin.booked? ? itin.cancel : itin.unselect
+          trip_type = itin.trip_type
 
           # This is done to support FMR individual leg cancelling. 
           # If this logic ever changes, ensure that FMR individual leg cancelling is not affected.
@@ -261,25 +227,26 @@ module Api
           if cancellation_result
             # Handle the case when the trip is the return trip.
             trip = itin.trip
+            details = trip.details || {} # Details are sometimes nil
+            details[:trip_type] = trip_type
+            trip.details = details
             trip.previous_trip = nil
-            trip.details[:trip_type]=trip_type
-            trip.save 
+            trip.save
 
             # Handle the case when the trip is the outbound trip.
             next_trip = itin.trip.next_trip
             if next_trip
-              next_trip.details[:trip_type]=trip_type
+              details = next_trip.details || {} # Details are sometimes nil
+              details[:trip_type] = trip_type
+              next_trip.details = details
               next_trip.previous_trip = nil
               next_trip.save
             end
-
           end
 
           # Package response as per API V1 docsion
-          cancellation_response = bookingcancellation_response_hash(cancellation_result)
-          if not cancellation_response[:success] 
-            success = false 
-          end
+          cancellation_response = booking_cancellation_response_hash(cancellation_result)
+          success = false unless cancellation_response[:success] 
           next response.merge(cancellation_response)
         end
         status = (success ? 200 : 406)
@@ -311,6 +278,42 @@ module Api
         render json: {result: 200}
       end
 
+      def get_trips_params_for_create
+        api_v1_params = params[:itinerary_request]
+        api_v2_params = params[:trips]
+  
+        trips_params = []
+        if api_v1_params # This is doing it the old way
+          trips_params = api_v1_params.map do |trip|
+            purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
+            external_purpose = params[:trip_purpose]
+            start_location = trip_location_to_google_hash(trip[:start_location])
+            end_location = trip_location_to_google_hash(trip[:end_location])
+            
+            trip_params(ActionController::Parameters.new({
+              trip: {
+                origin_attributes: start_location,
+                destination_attributes: end_location,
+                trip_time: trip[:trip_time].to_datetime,
+                arrive_by: (trip[:departure_type] == "arrive"),
+                user_id: @traveler && @traveler.id,
+                purpose_id: purpose ? purpose.id : nil,
+                external_purpose: external_purpose,
+                details: trip[:details]
+              }
+            }))
+          end
+        elsif api_v2_params # This is doing it the right way
+          trips_params = params[:trips].map { |t|
+            trip_params(t)
+          }
+        else # For creating a single trip
+          trips_params = [trip_params(params)]
+        end
+  
+        return trips_params
+      end
+
       protected
       
       def booking_request_params
@@ -324,7 +327,7 @@ module Api
             :attendants,
             :return_time,
             :mobility_devices,
-            :escort,
+            :assistant,
             :companions,
             :children,
             :note
@@ -332,7 +335,7 @@ module Api
         end
       end
       
-      def bookingcancellation_request_params
+      def booking_cancellation_request_params
         params.require(:bookingcancellation_request).map do |p|
           p.permit(
             :itinerary_id,
@@ -350,7 +353,7 @@ module Api
           parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id
         end
 
-        parameters[:trip][:details] = parameters[:trip].fetch(:details, Trip::DEFAULT_TRIP_DETAILS)
+        parameters[:trip][:details] = parameters[:trip][:details] || Trip::DEFAULT_TRIP_DETAILS
 
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
@@ -585,11 +588,8 @@ module Api
       end
       
       # Makes an API V1 bookingcancellation response hash from a booking object
-      def bookingcancellation_response_hash(booking)
-        
-        if [true, false].include? booking 
-          return {success: booking}
-        end
+      def booking_cancellation_response_hash(booking)
+        return {success: booking} if [true, false].include? booking 
 
         booking.reload if booking.is_a? Booking
         case booking.try(:type_code)

@@ -52,7 +52,7 @@ class Itinerary < ApplicationRecord
     if self.selecting_trip
       self.selecting_trip.unselect
     else
-      false
+      true
     end
   end
 

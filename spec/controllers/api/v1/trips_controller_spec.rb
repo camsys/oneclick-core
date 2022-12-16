@@ -219,7 +219,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     end
 
     # NOTE: TEST FAILS, return_itin.booked? returns true
-    # even though the book method returns false for both itineraries that get cancelled
+    # even though the book method returns false for both itineraries that get canceled
     # if you check with a breakpoint and the debugger
     # which probably has to do with it being a RidePilot itinerary???
     xit 'cancels both legs if one leg fails to book' do
@@ -256,7 +256,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       expect(response).to be_success
     end
 
-    # NOTE: TEST FAILS, bookable_itinerary.cancelled? returns false
+    # NOTE: TEST FAILS, bookable_itinerary.canceled? returns false
     # even though it returns true if you check with a breakpoint inside the cancel action
     # which probably has to do with it being a RidePilot itinerary???
     xit 'cancels a trip' do
