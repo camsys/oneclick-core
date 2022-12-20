@@ -89,7 +89,7 @@ class Service < ApplicationRecord
 
   # This is a hack, we should change booking_details from a serialized string to an hstore to do proper searches
   scope :with_home_county, -> (county) do
-    where('booking_details ILIKE ?', "%home_counties:%#{county}%")
+    where('booking_details ~* ?', ".*home_counties:.*#{county}[ ]*(,|\n|\z).*")
   end
 
   # Filter by age

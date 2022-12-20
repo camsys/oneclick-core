@@ -62,7 +62,9 @@ module Api
         # Hash of options parameters sent
         options = {
           trip_types: params['modes'] ? params['modes'].map{|m| demodeify(m).to_sym } : TripPlanner::TRIP_TYPES,
-          user_profile: params[:user_profile]
+          user_profile: params[:user_profile],
+          companions: params[:companions],
+          assistant: params[:assistant],
           # trip_token: params[:trip_token],
           # optimize: params[:optimize],
           # max_walk_miles: params[:max_walk_miles],
@@ -76,51 +78,50 @@ module Api
           @traveler.update_profile(options[:user_profile])
         end
         
-        # Check if there is an existing trip for this user at same time and location.
-        existing_trips = Trip.where(trip_time: trips_params[0][:trip_time],
-                                    arrive_by: trips_params[0][:arrive_by],
-                                    user_id: trips_params[0][:user_id])
-                             .order(updated_at: :desc)
+        # Check if there re existing trips for this user at same times and locations.
+        # If there is an existing trip, update its itineraries in case changes were made.
+        # ie: Companions have been added and the cost needs to be recalculated
+        Trip.transaction do
+          @trips = trips_params.map do |trip_param|
+            # To be considered an existing trip it should have the same Origin, Destination,
+            # Trip time, Arrival time, and User as the requested trip.
+            # Ignore any trips with selected itineraries, as these are already booked.
+            origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
+            destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+            existing_trip = Trip.where(trip_time: trip_param[:trip_time],
+                                        arrive_by: trip_param[:arrive_by],
+                                        user_id: trip_param[:user_id],
+                                        selected_itinerary_id: nil)
+                                .order(updated_at: :desc)
+                                .detect { |trip|
+                                  trip.origin.lat.to_f.round(6) == origin_place[:lat].to_f.round(6) &&
+                                  trip.origin.lng.to_f.round(6) == origin_place[:lng].to_f.round(6) &&
+                                  trip.destination.lat.to_f.round(6) == destination_place[:lat].to_f.round(6) &&
+                                  trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
+                                }
+            
+            existing_trip ? existing_trip : Trip.create!(trip_param)
+          end.sort_by{ |t| t.trip_time }
 
-        origin_place = Place.attrs_from_google_place(trips_params[0][:origin_attributes][:google_place_attributes])
-        destination_place = Place.attrs_from_google_place(trips_params[0][:destination_attributes][:google_place_attributes])
-        first_existing_trip = existing_trips.first
-        if existing_trips.any? &&
-          first_existing_trip.origin.lat.to_f.round(6) == origin_place[:lat].to_f.round(6) &&
-          first_existing_trip.origin.lng.to_f.round(6) == origin_place[:lng].to_f.round(6) &&
-          first_existing_trip.destination.lat.to_f.round(6) == destination_place[:lat].to_f.round(6) &&
-          first_existing_trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
-          # This trip has already been created. Don't create it again.
-          render status: 200, json: first_existing_trip, include: ['*.*'] and return
-        end
+          # Now that trips have either been found or created, it's time to make sure they're up to date
+          previous_trip = nil
+          @trips.each do |trip|
+            trip_planner = TripPlanner.new(trip, options)
+            trip_planner.plan
 
-        # Create one or more trips based on requests sent.
-        @trips = Trip.create(trips_params)
+            trip.relevant_purposes = trip_planner.relevant_purposes
+            trip.relevant_eligibilities = trip_planner.relevant_eligibilities
+            trip.relevant_accommodations = trip_planner.relevant_accommodations
+            # trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_saved] # Not sure if we should update the disposition or not
+            trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_denied] if trip.no_valid_services
+            trip.previous_trip = previous_trip
+            trip.save!
 
-        @trips.each do |trip|
-          trip_planner = TripPlanner.new(trip, options)
-          trip_planner.plan
-          trip.relevant_purposes = trip_planner.relevant_purposes
-          trip.relevant_eligibilities = trip_planner.relevant_eligibilities
-          trip.relevant_accommodations = trip_planner.relevant_accommodations
-        end
-        puts @trips.length
-        #Link up the trips
-        previous_trip = nil
-        @trips.sort_by{ |t| t.trip_time}.each do |trip|
-          if trip.no_valid_services == true
-            trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:fixed_route_denied])
+            previous_trip = trip
           end
-          if previous_trip
-            previous_trip.next_trip = trip 
-            previous_trip.save
-          end
-          previous_trip = trip 
-        end 
-
-        if @trips
-          render status: 200, json: @trips.first, include: ['*.*']
         end
+
+        render status: 200, json: @trips.first, include: ['*.*']
       end
 
       # POST trips/select, itineraries/select
@@ -262,13 +263,21 @@ module Api
             # Handle the case when the trip is the return trip.
             trip = itin.trip
             trip.previous_trip = nil
-            trip.details[:trip_type]=trip_type
+            if trip.details
+              trip.details[:trip_type]=trip_type
+            else
+              trip.details = {trip_type: trip_type}
+            end
             trip.save 
 
             # Handle the case when the trip is the outbound trip.
             next_trip = itin.trip.next_trip
             if next_trip
-              next_trip.details[:trip_type]=trip_type
+              if next_trip.details
+                next_trip.details[:trip_type]=trip_type
+              else
+                next_trip.details = {trip_type: trip_type}
+              end
               next_trip.previous_trip = nil
               next_trip.save
             end
@@ -324,7 +333,7 @@ module Api
             :attendants,
             :return_time,
             :mobility_devices,
-            :escort,
+            :assistant,
             :companions,
             :children,
             :note
@@ -350,7 +359,7 @@ module Api
           parameters[:trip][:purpose_id] ||= Purpose.find_by(name: parameters[:trip][:external_purpose], agency: @traveler.traveler_transit_agency.transportation_agency).id
         end
 
-        parameters[:trip][:details] = parameters[:trip].fetch(:details, Trip::DEFAULT_TRIP_DETAILS)
+        parameters[:trip][:details] ||= Trip::DEFAULT_TRIP_DETAILS
 
         parameters.require(:trip).permit(
           {origin_attributes: place_attributes},
