@@ -191,6 +191,7 @@ class TripPlanner
     # gtfs flex can load paratransit itineraries but not all otp instances have flex
     if Config.open_trip_planner_version == 'v2'
       otp_itineraries = build_fixed_itineraries(:paratransit)
+      paratransit_service_ids = @available_services[:paratransit].pluck(:id)
       # paratransit itineraries can return just transit since we also look for a mixed
       # filter these out
       # then set itineraries that are a mix of paratransit and transit mixed
@@ -198,7 +199,7 @@ class TripPlanner
         no_paratransit = true
         has_transit = false
         itin.legs.each do |leg|
-          no_paratransit = false if leg['mode'].include?('FLEX')
+          no_paratransit = false if leg['mode'].include?('FLEX') && paratransit_service_ids.include?(leg['serviceId'])
           has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
         end
         if no_paratransit
