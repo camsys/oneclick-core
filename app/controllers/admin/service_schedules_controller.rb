@@ -178,25 +178,27 @@ class Admin::ServiceSchedulesController < Admin::AdminController
           # Editing Weekly pattern schedule type
           if @service_schedule.is_a_weekly_schedule? && sub_schedule_params
             sub_schedule_params.each do |s|
-              if s[:id].blank?
+              if s[:_destroy] == "true"
+                if sub_schedule = ServiceSubSchedule.find_by(id: s[:id])
+                  unless sub_schedule.destroy
+                    error_message = sub_schedule.errors.full_messages.join("\n")
+                    schedule_updated = false
+                    raise ActiveRecord::Rollback
+                  end
+                schedule_updated = true
+                end
+              elsif s[:id].blank?
                 sub_schedule = ServiceSubSchedule.new(s.except(:_destroy).permit!)
                 sub_schedule.service_schedule = @service_schedule
                 unless sub_schedule.save!
-                  schedule_updated = falsequi
+                  schedule_updated = false
                   error_message = sub_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
                 end
                 schedule_updated = true
               else
                 sub_schedule = ServiceSubSchedule.find_by(id: s[:id])
-                if s[:_destroy] == "true"
-                  unless sub_schedule.destroy
-                    error_message = sub_schedule.errors.full_messages.join("\n")
-                    schedule_updated = false
-                    raise ActiveRecord::Rollback
-                  end
-                  schedule_updated = true
-                elsif !sub_schedule.update(s.except(:_destroy).permit!)
+                if !sub_schedule.update(s.except(:_destroy).permit!)
                   schedule_updated = false
                   error_message = sub_schedule.errors.full_messages.join("\n")
                   raise ActiveRecord::Rollback
