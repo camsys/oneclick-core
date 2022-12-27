@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20221118125252) do
+ActiveRecord::Schema.define(version: 20221221210616) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -109,6 +109,7 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.datetime "estimated_pu"
     t.datetime "estimated_do"
     t.boolean  "created_in_1click", default: false
+    t.index ["created_in_1click"], name: "index_bookings_on_created_in_1click", using: :btree
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
 
@@ -232,6 +233,7 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.integer  "companions"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
+    t.index ["trip_type"], name: "index_itineraries_on_trip_type", using: :btree
   end
 
   create_table "landmark_set_landmarks", force: :cascade do |t|
@@ -267,7 +269,7 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.integer  "agency_id"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
-    t.index ["name"], name: "idx_landmarks_on_name", using: :btree
+    t.index ["name"], name: "index_landmarks_on_name", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -371,6 +373,7 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.string   "description"
     t.integer  "agency_id"
     t.index ["agency_id"], name: "index_purposes_on_agency_id", using: :btree
+    t.index ["code"], name: "index_purposes_on_code", using: :btree
   end
 
   create_table "purposes_services", id: false, force: :cascade do |t|
@@ -396,7 +399,11 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.integer  "duration"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
+    t.index ["auth_email"], name: "index_request_logs_on_auth_email", using: :btree
     t.index ["controller", "action"], name: "index_request_logs_on_controller_and_action", using: :btree
+    t.index ["created_at"], name: "index_request_logs_on_created_at", using: :btree
+    t.index ["duration"], name: "index_request_logs_on_duration", using: :btree
+    t.index ["status_code"], name: "index_request_logs_on_status_code", using: :btree
   end
 
   create_table "roles", force: :cascade do |t|
@@ -615,11 +622,16 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.string   "external_purpose"
     t.text     "details"
     t.string   "disposition_status",    default: "Unknown Disposition"
+    t.index ["arrive_by"], name: "index_trips_on_arrive_by", using: :btree
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
+    t.index ["details"], name: "index_trips_on_details", using: :btree
+    t.index ["disposition_status"], name: "index_trips_on_disposition_status", using: :btree
+    t.index ["external_purpose"], name: "index_trips_on_external_purpose", using: :btree
     t.index ["origin_id"], name: "index_trips_on_origin_id", using: :btree
     t.index ["previous_trip_id"], name: "index_trips_on_previous_trip_id", using: :btree
     t.index ["purpose_id"], name: "index_trips_on_purpose_id", using: :btree
     t.index ["selected_itinerary_id"], name: "index_trips_on_selected_itinerary_id", using: :btree
+    t.index ["trip_time"], name: "index_trips_on_trip_time", using: :btree
     t.index ["user_id"], name: "index_trips_on_user_id", using: :btree
   end
 
@@ -720,7 +732,14 @@ ActiveRecord::Schema.define(version: 20221118125252) do
     t.decimal  "lng",                                                    precision: 10, scale: 6
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
     t.string   "county"
+    t.index ["city"], name: "index_waypoints_on_city", using: :btree
     t.index ["geom"], name: "index_waypoints_on_geom", using: :gist
+    t.index ["lat"], name: "index_waypoints_on_lat", using: :btree
+    t.index ["lng"], name: "index_waypoints_on_lng", using: :btree
+    t.index ["route"], name: "index_waypoints_on_route", using: :btree
+    t.index ["state"], name: "index_waypoints_on_state", using: :btree
+    t.index ["street_number"], name: "index_waypoints_on_street_number", using: :btree
+    t.index ["zip"], name: "index_waypoints_on_zip", using: :btree
   end
 
   create_table "zipcodes", force: :cascade do |t|
