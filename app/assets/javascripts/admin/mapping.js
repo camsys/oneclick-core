@@ -117,7 +117,10 @@ var M = {
     layers.forEach(function(layer, i) {
       if(layer != null && layer.length > 0) {
         var poly = M.drawPoly(mapObj, layer, { color: M.colors[i]});
-        mapObj.fitBounds(poly.getBounds());
+        var polyBounds = poly.getBounds();
+        if (polyBounds.isValid()) {
+          mapObj.fitBounds(polyBounds);
+        }
       }
     });
   },
@@ -174,8 +177,11 @@ M.Recipe.prototype = {
       // Draw polygon shape of selected item onto the map.
       var layer = ui.item.geom;
       var poly = M.drawPoly(this._mapObj, layer, { color: M.colors[0]});
+      var polyBounds = poly.getBounds();
       this.ingredientPolys[ui.item.value.attributes.name] = poly;
-      this._mapObj.fitBounds(poly.getBounds());
+      if (polyBounds.isValid()) {
+        this._mapObj.fitBounds(polyBounds);
+      }
     }
     return false;
   },

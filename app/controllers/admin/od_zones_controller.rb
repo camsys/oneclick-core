@@ -38,8 +38,6 @@ class Admin::OdZonesController < Admin::AdminController
 
   def edit
     @od_zone = OdZone.find(params[:id])
-    @agency = current_user.current_agency || Agency.first
-    @od_zone.agency = @agency
   end
 
   def update

@@ -1,6 +1,6 @@
 %tr{style: "cursor: pointer", data: {url: admin_od_zone_path(od_zone), geom: od_zone.region.geom_to_array}}
   %td
-    =od_zone&.agency || Agency.first
+    =od_zone&.agency&.name
   %td
     =od_zone.name
   %td
