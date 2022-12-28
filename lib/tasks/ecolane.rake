@@ -7,13 +7,18 @@ namespace :ecolane do
     global_error = false
     local_error = false
 
-    #Ecolane POIs are broken down by system.  First, get a list of all the unique Ecolane Systems
+    # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
+    # Order from oldest to newest.
     systems = []
     services  = []
-    Service.paratransit_services.published.is_ecolane.each do |service|
-      if not service.booking_details[:external_id].blank? and not service.booking_details[:external_id].in? systems and not service.booking_details[:token].blank?
+    Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
+      if not service.booking_details[:external_id].blank? and
+        not service.booking_details[:external_id].in? systems and
+        not service.booking_details[:token].blank? and
+        not service.agency.blank?
         systems << service.booking_details[:external_id]
         services << service
+        puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
       end
     end
 
@@ -24,7 +29,7 @@ namespace :ecolane do
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
-      agency_id = service.agency&.id
+      agency_id = service&.agency&.id
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
@@ -40,11 +45,13 @@ namespace :ecolane do
           next
         end
 
+        new_poi_duplicate_count = 0
         # Import named pois before unnamed locations
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
 
           if Landmark.is_new.where('lower(name) = ?', hash[:name].downcase).count > 0
+            new_poi_duplicate_count += 1
             puts 'DUPLICATE '
             puts hash.ai
             next
@@ -64,7 +71,10 @@ namespace :ecolane do
             end
             new_poi.name = [new_poi.street_number, new_poi.route, new_poi.city].join(" ")
           end
-          new_poi.save
+          if !new_poi.save
+            puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
+            puts "#{new_poi}"
+          end
         end
 
       rescue Exception => e
@@ -81,14 +91,18 @@ namespace :ecolane do
       unless local_error
         #If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
-        messages << "Successfully loaded  #{new_poi_count} POIs for #{system}."
+        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
       end
 
     end
 
     unless local_error
-      #If we made it this far, then we have a new set of POIs and we can delete the old ones.
-      Landmark.is_old.destroy_all
+      # If we made it this far, then we have a new set of POIs and we can delete the old ones.
+      # Exclude any in use.
+      # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
+      landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
+      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       messages << "Successfully loaded  #{new_poi_count} POIs"
       messages << "count of pois with no city: #{poi_with_no_city}"
