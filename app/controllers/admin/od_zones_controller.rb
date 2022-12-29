@@ -20,19 +20,19 @@ class Admin::OdZonesController < Admin::AdminController
   end
 
   def create
-    od_zone = OdZone.create(od_zone_params)
+    @od_zone = OdZone.create(od_zone_params)
 
-    if od_zone.valid?
+    if @od_zone.valid?
       flash[:success] = "New O/D Zone successfully created."
       redirect_to admin_od_zones_path
     else
       error_message = "There was an issue creating the O/D Zone."
-      if od_zone.errors.count > 0
+      if @od_zone.errors.count > 0
         error_message += "\n"
-        error_message += od_zone.errors.full_messages.join("\n")
+        error_message += @od_zone.errors.full_messages.join("\n")
       end
       flash[:danger] = error_message
-      redirect_to new_admin_od_zone_path
+      render :new
     end
   end
 
