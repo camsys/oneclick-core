@@ -109,7 +109,6 @@ ActiveRecord::Schema.define(version: 20221221210616) do
     t.datetime "estimated_pu"
     t.datetime "estimated_do"
     t.boolean  "created_in_1click", default: false
-    t.index ["created_in_1click"], name: "index_bookings_on_created_in_1click", using: :btree
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
 
@@ -233,7 +232,6 @@ ActiveRecord::Schema.define(version: 20221221210616) do
     t.integer  "companions"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
-    t.index ["trip_type"], name: "index_itineraries_on_trip_type", using: :btree
   end
 
   create_table "landmark_set_landmarks", force: :cascade do |t|
@@ -269,7 +267,7 @@ ActiveRecord::Schema.define(version: 20221221210616) do
     t.integer  "agency_id"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
-    t.index ["name"], name: "index_landmarks_on_name", using: :btree
+    t.index ["name"], name: "idx_landmarks_on_name", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -401,7 +399,6 @@ ActiveRecord::Schema.define(version: 20221221210616) do
     t.datetime "updated_at",  null: false
     t.index ["auth_email"], name: "index_request_logs_on_auth_email", using: :btree
     t.index ["controller", "action"], name: "index_request_logs_on_controller_and_action", using: :btree
-    t.index ["created_at"], name: "index_request_logs_on_created_at", using: :btree
     t.index ["duration"], name: "index_request_logs_on_duration", using: :btree
     t.index ["status_code"], name: "index_request_logs_on_status_code", using: :btree
   end

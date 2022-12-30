@@ -86,6 +86,17 @@ module Api
             # To be considered an existing trip it should have the same Origin, Destination,
             # Trip time, Arrival time, and User as the requested trip.
             # Ignore any trips with selected itineraries, as these are already booked.
+            outbound_trip = trips_params.sort_by { |trip_param| trip_param[:trip_time] }.first
+            conflicting_trip = Trip.where(trip_time: outbound_trip[:trip_time],
+                                            arrive_by: outbound_trip[:arrive_by],
+                                            user_id: outbound_trip[:user_id],
+                                            previous_trip_id: nil)
+                                    .where.not(selected_itinerary_id: nil)
+                                    .includes(selected_itinerary: :booking)
+                                    .detect { |possible_trip| possible_trip.selected_itinerary.booking.booked? }
+  
+            return render(status: 409, json: {}, include: ['*.*']) if (conflicting_trip)
+            
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
             existing_trip = Trip.where(trip_time: trip_param[:trip_time],
