@@ -13,8 +13,7 @@ class Landmark < Place
   has_many :landmark_sets, through: :landmark_set_landmarks
 
   ### Validations ####
-  validates :name, uniqueness: true
-  validates :name, presence: true
+  validates :name, presence: true, uniqueness: { scope: :old }
   validates :lat , numericality: { greater_than_or_equal_to:  -90, less_than_or_equal_to:  90 }
   validates :lng, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }
 

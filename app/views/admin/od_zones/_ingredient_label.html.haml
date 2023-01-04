@@ -1,6 +1,6 @@
 .btn.ingredient-container{style: 'height: 42px;' }
   .col-sm-5
-    %label{style: 'display: inline-block; overflow: hidden; text-overflow: ellipsis;' }
+    %label{style: 'display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis;' }
   .col-sm-1
     %button.btn.btn-link.delete-geography{type:"button", style: 'padding-top: 0;', disabled: local_assigns[:can_update] == false}
       %span.glyphicon.glyphicon-remove
