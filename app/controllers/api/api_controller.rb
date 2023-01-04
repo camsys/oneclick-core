@@ -192,7 +192,8 @@ module Api
         status: status,
         json: {
           status: "success",
-          data: data
+          data: data,
+          errors: opts[:errors] || []
         }
       }
     end

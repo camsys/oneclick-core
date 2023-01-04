@@ -47,10 +47,11 @@ class OTPAmbassador
     else
       response_error = "No response for #{trip_type}."
     end
-    response_error.nil? ? nil : { error: response_error }
+    response_error.nil? ? nil : { error: {trip_type: trip_type, message: response_error} }
   end
 
   def get_gtfs_ids
+    return [] if errors(trip_type)
     itineraries = ensure_response(:transit).itineraries
     return itineraries.map{|i| i.legs.pluck("agencyId")}
   end
@@ -109,7 +110,13 @@ class OTPAmbassador
   # them in an OTPResponse object
   def ensure_response(trip_type)
     trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
-    @otp.unpack(@http_request_bundler.response(trip_type_label))
+    response = @http_request_bundler.response(trip_type_label)
+    status_code = @http_request_bundler.response_for(trip_type_label).try(:response_header).try(:status).to_s
+    if status_code && status_code == '200'
+      otp.unpack(response)
+    else
+      {"error" => "Http Error #{status_code}"}
+    end 
   end
 
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
