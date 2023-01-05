@@ -240,7 +240,7 @@ RSpec.describe Service, type: :model do
         "legs" => [ "distance" => trip_distance ]
       } ] } }
       # Make an object double for HTTPRequestBundler that sends back dummy OTP responses
-      hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true)
+      hrb = object_double(HTTPRequestBundler.new, response: mileage_otp_response, make_calls: {}, add: true, response_status_code: '200')
       expect(mileage_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq((mileage_base_fare + mileage_rate * trip_dist_mi).round(2))
     end
 
@@ -268,7 +268,7 @@ RSpec.describe Service, type: :model do
       fare = 10.0
       tff_response = { 'total_fare' => fare, 'status' => 'OK' }
       # Make an object double for HTTPRequestBundler that sends back dummy TFF responses
-      hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true)
+      hrb = object_double(HTTPRequestBundler.new, response: tff_response, make_calls: {}, add: true, response_status_code: '200')
       expect(tff_fare_service.fare_for(trip_1, http_request_bundler: hrb)).to eq(fare)
     end
     

@@ -111,7 +111,8 @@ class OTPAmbassador
   def ensure_response(trip_type)
     trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
     response = @http_request_bundler.response(trip_type_label)
-    status_code = @http_request_bundler.response_for(trip_type_label).try(:response_header).try(:status).to_s
+    status_code = @http_request_bundler.response_status_code(trip_type_label)
+    
     if status_code && status_code == '200'
       otp.unpack(response)
     else

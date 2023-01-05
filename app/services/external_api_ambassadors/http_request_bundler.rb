@@ -91,9 +91,8 @@ class HTTPRequestBundler
     make_multi_calls(requests_to_make)
   end
 
-  # Retrieves response based on label from either successes or errors hash
-  def response_for(label)
-    @successes[label] || @errors[label]
+  def response_status_code(label)
+    response_for(label).try(:response_header).try(:status).to_s
   end
 
   private
@@ -141,6 +140,11 @@ class HTTPRequestBundler
   # if not (and if request is present), makes all calls
   def ensure_response(label)
     make_calls unless (response_for(label) || !@requests.has_key?(label))
+  end
+
+  # Retrieves response based on label from either successes or errors hash
+  def response_for(label)
+    @successes[label] || @errors[label]
   end
   
   # Returns the response body

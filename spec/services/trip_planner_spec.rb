@@ -30,7 +30,11 @@ RSpec.describe TripPlanner do
   # OTP AMBASSADORS WITH STUBBED HTTP REQUEST BUNDLERS
   let!(:otps) do
     otp_responses.map do |tt, resp|
-      [tt, create(:otp_ambassador, http_request_bundler: object_double(HTTPRequestBundler.new, response: resp, make_calls: {}, add: true))]
+      [tt, create(:otp_ambassador, http_request_bundler: object_double(HTTPRequestBundler.new,
+      response: resp,
+      make_calls: {},
+      add: true,
+      response_status_code: tt.to_s == 'error' ? '500': '200'))]
     end.to_h
   end
 
@@ -53,6 +57,25 @@ RSpec.describe TripPlanner do
 
   it 'should have trip, options, otp, and errors attributes' do
     expect(generic_trip_planner).to respond_to(:trip, :options, :router, :errors)
+  end
+
+  describe 'error handling' do
+    it 'returns no itineraries on status codes not 200' do
+      error_tp.prepare_ambassadors
+      itins = error_tp.build_transit_itineraries
+      expect(itins).to be_an(Array)
+      expect(itins.length).to be(0)
+    end
+
+    it 'returns errors on status codes not 200' do
+      error_tp.plan
+      expect(error_tp.errors).to be_an(Array)
+      expect(error_tp.errors.length).to be > 0
+
+      transit_tp.plan
+      expect(transit_tp.errors).to be_an(Array)
+      expect(transit_tp.errors.length).to be(0)
+    end    
   end
 
   it 'builds transit itineraries' do
@@ -133,11 +156,6 @@ RSpec.describe TripPlanner do
   it 'all itineraries have transit_time populated' do
     generic_trip_planner.plan
     expect(generic_trip_planner.trip.itineraries.all? {|i| i.transit_time.is_a?(Integer)}).to be true
-  end
-
-  it 'handles errors' do
-    error_tp.plan
-    expect(error_tp.errors.count).to be > 0
   end
 
   it 'associates fixed itineraries with services when appropriate' do
