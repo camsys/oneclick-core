@@ -31,7 +31,11 @@ class Service < ApplicationRecord
   # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
-  has_many :purposes, through: :travel_patterns
+  if Config.dashboard_mode == "travel_patterns"
+    has_many :purposes, through: :travel_patterns
+  else
+    has_and_belongs_to_many :purposes
+  end
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
   belongs_to :agency
