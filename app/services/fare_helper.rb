@@ -7,7 +7,7 @@ module FareHelper
 
   # Helper class for calculating trip fares
   class FareCalculator
-    attr_reader :fare_structure, :fare_details, :trip
+    attr_reader :fare_structure, :fare_details, :trip, :options
 
     # Initialize with a fare_structure, fare_details, trip, and options
     def initialize(fare_structure, fare_details, trip, options={})
@@ -19,6 +19,7 @@ module FareHelper
       @taxi_ambassador = options[:taxi_ambassador]
       @origin_zone, @destination_zone = options[:origin_zone], options[:destination_zone]
       @service = options[:service] unless options[:service].nil?
+      @options = options
     end
 
     # Calculate the fare based on the passed trip and the fare_structure/details
@@ -77,7 +78,10 @@ module FareHelper
     def calculate_use_booking_service
       case @service.booking_api
       when "ecolane"
-        EcolaneAmbassador.new({trip: @trip, service: @service}).get_fare #TODO: Improve performance by using the request bundler
+        booking_options = {}
+        booking_options[:companions] = options[:companions] if options[:companions].to_i > 0
+        booking_options[:assistant] = options[:assistant] if options[:assistant].to_bool
+        EcolaneAmbassador.new({trip: @trip, service: @service, booking_options: booking_options}).get_fare #TODO: Improve performance by using the request bundler
       end 
     end
 

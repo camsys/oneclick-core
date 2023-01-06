@@ -30,10 +30,13 @@ class Admin::AdminController < ApplicationController
   end
 
   def build_homepage_charts
+    # Return nil if the request isn't from the main dashboard homepage
+    # - a bit hacky, but turns out this runs for all controllers in the admin namespace
+    return nil unless params[:controller] == 'admin/admin'
     # If current user, then get trips for staff, otherwise fall back to all trips this week
     trips = current_user.get_trips_for_staff_user&.where(trip_time: DateTime.this_week) || Trip.where(trip_time: DateTime.this_week)
-    relevant_auth_emails = current_user.get_travelers_for_staff_user.pluck(:email)
-                                       .concat(current_user.get_admin_staff_for_staff_user.pluck(:email))
+    relevant_auth_emails = current_user.get_travelers_for_staff_user&.pluck(:email)
+                                       &.concat(current_user.get_admin_staff_for_staff_user&.pluck(:email))
     # Add some prebuilt reports for displaying on the homepage
     DashboardReport.prebuilt_reports.merge!({
                                               planned_trips_this_week: [
@@ -52,6 +55,13 @@ class Admin::AdminController < ApplicationController
                                                 title: "Unique Users this Week"
                                               ]
                                             })
+  end
+
+  def load_agency_from_params_or_user
+    # If user has selected an agency via Select Agency modal, prefer that.
+    @agency = Agency.find(params[:agency_id]) if params[:agency_id]
+    # Otherwise load agency from oversight agency drop-down selection.
+    @agency ||= current_user.current_agency
   end
     
 end

@@ -16,7 +16,12 @@ module CSVWritable
     # Writes the current scope to a csv file
     def to_csv(opts={})
       csv_writer = opts[:with] || @csv_writer
-      csv_writer.new(all).write_file(opts)
+
+      if opts[:limit]
+        csv_writer.new(all).write_file_with_limit(opts)
+      else
+        csv_writer.new(all).write_file(opts)
+      end
     end
     
   end

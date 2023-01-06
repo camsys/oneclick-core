@@ -15,18 +15,18 @@ module RemoteFormResponder
   end
   
   # Renders a partial based on the partial path that has been set
-  def respond_with_partial
+  def respond_with_partial(layout_path: "/layouts/_panel")
     respond_to do |format|
       format.html do
-        render template: partial_path, layout: '/layouts/_panel'
+        render template: partial_path, layout: layout_path
       end
     end
   end
   
   # Renders a partial if partial path has been set; otherwise, yield to the passed block
-  def respond_with_partial_or &block    
+  def respond_with_partial_or(partial_layout: "/layouts/_panel", &block)  
     if partial_path.to_s.strip.present?
-      respond_with_partial
+      respond_with_partial(layout_path: partial_layout)
     else
       yield
     end

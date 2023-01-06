@@ -1,0 +1,12 @@
+-# For use in building new od zones forms
+-can_update = (mode != 'view' && (can? :update, @travel_pattern))
+
+.form-group.string.optional.label-container
+  .col-sm-12
+    = f.association :origin_zone, collection: options_for_od_zone(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group, prompt: "Select origin zone for travel pattern", :label => "Origin Zone:"
+  .col-sm-12
+    = f.association :destination_zone, collection: options_for_od_zone(agency), readonly: mode == "view", required: true, wrapper: :travel_patterns_input_group, prompt: "Select destination zone for travel pattern",  :label => "Destination Zone:"
+  .col-sm-12
+    %label.control-label.text.optional
+      = f.check_box :allow_reverse_sequence_trips, disabled: mode == "view"
+      In addition to trips which start in the origin zone and end in the destination zone, allow trips which start in the destination zone and end in the origin zone. Note: This is always true for round trips.

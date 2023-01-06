@@ -1,0 +1,4 @@
+%h1.text-center
+  New Booking Window
+
+=render partial: 'form', locals: { booking_window: @booking_window, form_url: admin_booking_windows_path(agency_id: @booking_window.agency_id), mode: 'new' }

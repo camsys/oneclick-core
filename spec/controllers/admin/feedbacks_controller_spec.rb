@@ -1,11 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Admin::FeedbacksController, type: :controller do
-  
-  let(:admin) { create :admin }
+
+  let(:superuser) { create(:superuser) }
   let(:transportation_agency) { create :transportation_agency, :with_services }
   let(:transportation_staff) { create :transportation_staff, staff_agency: transportation_agency }
-  let(:partner_staff) { create :partner_staff }
+  let(:oversight_staff) { create :oversight_staff }
   let(:traveler) { create :user }
   let(:service_1) { transportation_agency.services.first }
   let(:service_2) { transportation_agency.services.last }
@@ -17,10 +17,10 @@ RSpec.describe Admin::FeedbacksController, type: :controller do
   let!(:pending_feedback_3) { create :feedback, :pending, rating: nil }
   
   
-  # ADMIN
-  context "while signed in as an admin" do
+  # Superuser
+  context "while signed in as a superuser" do
     
-    before(:each) { sign_in admin }
+    before(:each) { sign_in superuser }
     
     it 'shows all pending feedback' do
       pending_feedback_count = Feedback.pending.count
@@ -55,9 +55,9 @@ RSpec.describe Admin::FeedbacksController, type: :controller do
   
   
   # PARTNER STAFF
-  context "while signed in as a partner staff" do
+  context "while signed in as oversight staff" do
     
-    before(:each) { sign_in partner_staff }
+    before(:each) { sign_in oversight_staff }
     
     it 'shows all pending feedback' do      
       pending_feedback_count = Feedback.pending.count

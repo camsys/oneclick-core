@@ -23,11 +23,14 @@ module GeoKitchen
   class GeoRecipe
     attr_reader :ingredients, :errors
 
+    DEFAULT_BUFFER_IN_FT = 500
+
     # Takes an array of GeoIngredients
     def initialize(ingredients=[])
       @ingredients = ingredients.select {|i| i.is_a?(GeoIngredient)}
       @errors = []
       @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
+      @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)
       invalid_count = ingredients.length - @ingredients.length
       @errors << "#{invalid_count} arguments were not GeoIngredients" if invalid_count > 0
     end
@@ -37,6 +40,20 @@ module GeoKitchen
       output_geom = @ingredients.map do |ingredient|
         geom = ingredient.to_geom
         if geom
+          if geom.is_a?(RGeo::Geos::CAPIPointImpl) ||
+            ingredient.attributes[:buffer].to_i > 0
+            # Re-project geometry into geographic coordinate system so we can use distance units instead of degrees.
+            geom_reproj = RGeo::Feature.cast(geom, factory: @factory_simple_mercator, project: true)
+            # Convert point into polygon.
+            buffer = DEFAULT_BUFFER_IN_FT
+            buffer_attr = ingredient.attributes[:buffer].to_i
+            if buffer_attr.is_a? Integer
+              buffer = buffer_attr
+            end
+            poly = geom_reproj.buffer(buffer)
+            # Project geometry back to original system.
+            geom = RGeo::Feature.cast(poly, factory: @factory, project: true)
+          end
           geom
         else
           @errors << "#{ingredient.to_s} could not be converted to a geometry."
@@ -110,12 +127,12 @@ module GeoKitchen
     end
 
     def other_attributes
-      @attributes.except(:name)
+      @attributes.except(:name).except(:buffer)
     end
 
     # Find the db record this ingredient refers to
     def find_record
-      @model.find_by(@attributes)
+      @model.find_by(name: name)
     end
 
     # Get the geometry of the record this ingredient refers to

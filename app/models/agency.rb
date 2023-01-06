@@ -22,7 +22,12 @@ class Agency < ApplicationRecord
   scope :partner_agencies, -> { where(type: "PartnerAgency") }
   scope :oversight_agencies, -> { where(type: "OversightAgency") }
 
+  has_many :od_zones, dependent: :destroy
   has_many :services, foreign_key: "agency_id", dependent: :nullify
+  has_many :service_schedules
+  has_many :purposes, dependent: :destroy
+  has_many :funding_sources, dependent: :destroy
+  has_many :travel_patterns
   # this is to help access the Agency index page, although it's a bit redundant
   has_one :agency_oversight_agency,foreign_key:"transportation_agency_id", dependent: :destroy
   belongs_to :agency_type
@@ -58,6 +63,14 @@ class Agency < ApplicationRecord
   # All the users that have a staff role scoped to this agency
   def staff
     User.with_role(:staff, self)
+  end
+
+  def admins
+    User.with_role(:admin, self)
+  end
+
+  def staff_and_admins
+    staff.or(admins)
   end
   
   # Add a user to this agency's staff

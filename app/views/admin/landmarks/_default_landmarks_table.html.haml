@@ -1,0 +1,30 @@
+%table.table.table-hover.datatable#landmark-table
+  %thead.thead-default
+    %tr
+      %th Name
+      %th Street Number
+      %th Route
+      %th City
+      %th State
+      %th Zip
+      %th Lat
+      %th Lng
+
+  -@landmarks.each do |landmark|
+    %tr{style: "cursor: pointer", data: {url: edit_admin_landmark_path(landmark)}}
+      %td
+        =landmark.name
+      %td
+        =landmark.street_number
+      %td
+        =landmark.route
+      %td
+        =landmark.city
+      %td
+        =landmark.state
+      %td
+        =landmark.zip
+      %td
+        =landmark.lat
+      %td
+        =landmark.lng

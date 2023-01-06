@@ -2,13 +2,35 @@ class Admin::GeographiesController < Admin::AdminController
   authorize_resource :geography_record, parent: false
 
   def index
-    @counties = County.all.order(:state, :name)
-    @cities = City.all.order(:state, :name)
-    @zipcodes = Zipcode.all.order(:name)
-    @custom_geographies = get_geographies_for_user
-    @agencies = current_user.get_transportation_agencies_for_user.order(:name)
+    if Config.dashboard_mode == 'travel_patterns'
+      @geography_types= ['Counties','Cities', 'Zip Codes']
+      # commenting out as this is probably relevant in a later controller action
+      # @agencies = current_user.get_transportation_agencies_for_user.order(:name)
 
-    check_for_missing_geometries(@counties, @cities, @zipcodes, @custom_geographies)
+      # Determine the type of geography to return and render based on the
+      # passed in :type query param, so this ends up looking like /admin/geographies?=counties if
+      # a user wanted to browse for counties
+      geography_type = params[:type]
+
+      case geography_type&.downcase
+      when 'cities'
+        @geographies=City.all.order(:state, :name)
+      when 'zip_codes'
+        @geographies = Zipcode.all.order(:name)
+      else
+        @geographies = County.all.order(:state, :name)
+      end
+
+      check_for_missing_geometries(@geographies)
+    else
+      @counties = County.all.order(:state, :name)
+      @cities = City.all.order(:state, :name)
+      @zipcodes = Zipcode.all.order(:name)
+      @custom_geographies = current_user.get_geographies_for_user
+      @agencies = current_user.get_transportation_agencies_for_user.order(:name)
+
+      check_for_missing_geometries(@counties, @cities, @zipcodes, @custom_geographies)
+    end
   end
 
   def upload_counties
@@ -35,12 +57,11 @@ class Admin::GeographiesController < Admin::AdminController
   end
 
   def upload_custom_geographies
-    agency = Agency.find_by(id: params[:agency][:agency])
     uploader = ShapefileUploader.new(params[:geographies][:file],
       geo_type: :custom_geography,
+      agency: params[:geographies][:agency],
       column_mappings: {name: 'NAME'})
     uploader.load
-    uploader.update_model_agency(agency)
     present_error_messages(uploader)
     redirect_to admin_geographies_path
   end
@@ -56,30 +77,6 @@ class Admin::GeographiesController < Admin::AdminController
         json_response = @counties + @zipcodes + @cities + @custom_geographies
         render json: json_response
       end
-    end
-  end
-
-  private
-
-  def custom_geography_params
-    params.require(:custom_geography).permit(
-    :agency,
-    :id
-    )
-  end
-
-  def get_geographies_for_user
-    if current_user.superuser?
-      CustomGeography.all.order(:name)
-    elsif current_user.transportation_staff? || current_user.transportation_admin?
-      CustomGeography.where(agency_id: current_user.staff_agency.id).order(:name)
-    elsif current_user.currently_oversight?
-      tas = current_user.staff_agency.agency_oversight_agency.map {|aoa| aoa.transportation_agency.id}
-      CustomGeography.where(agency_id: tas).order(:name)
-    elsif current_user.currently_transportation?
-      CustomGeography.where(agency_id: current_user.current_agency.id).order(:name)
-    elsif current_user.staff_agency.oversight? && current_user.current_agency.nil?
-      CustomGeography.where(agency_id: nil).order(:name)
     end
   end
 

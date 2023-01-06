@@ -1,0 +1,24 @@
+-# For use in building new purpose forms
+-can_update = (mode != 'view' && (can? :update, @travel_pattern))
+
+.form-group.string.optional.label-container
+  .flex-inner
+    %label.control-label.text.optional
+      Eligible Trip Purposes:
+    .btn.btn-primary.pull-right.autocomplete-add-all{disabled: !can_update, data: { selector: ".purposes", source: "travelPatternPurposesSource" } }
+      Add all Trip Purposes
+.well.well-sm.autocomplete-tag-index.purposes
+  =f.simple_fields_for :travel_pattern_purposes, @travel_pattern_purposes do |tpp_form|
+    -object = tpp_form.object
+    =render partial: "autocomplete_tag", locals: { form: tpp_form, tag_label: object.purpose&.send(:[], :name), object: object, unique_key: :purpose_id, object_fields: [:id, :purpose_id, :_destroy], can_update: can_update }
+
+  - if can_update
+    .autocomplete-tag-new
+      .input-group
+        %input.autocomplete-field.form-control{ placeholder: 'Enter a trip purpose', data: { source: "travelPatternPurposesSource" } }
+      .dropdown.autocomplete-results{style: 'position:absolute; z-index:500'}
+
+:javascript
+  function travelPatternPurposesSource () {
+    return JSON.parse('#{@agency.purposes.order(:name).map{ |purpose| {label: purpose[:name], "unique-key" => purpose.id}}.to_json.html_safe}');
+  }

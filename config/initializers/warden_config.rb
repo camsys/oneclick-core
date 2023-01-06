@@ -1,11 +1,16 @@
 require_relative '../../lib/modules/logging_helper'
-
+# NOTE: This file is required as Devise authentication doesn't get processed by the standard logger
+# ... so we need to add callbacks for:
+# 1. authentication failure
+# 2. authentication success
+# 3. user logout
+# ... in order to properly log them as PHI actions and not just a generic request
 Warden::Manager.before_failure do |env, opts|
   begin
     # Adds logging for authentication failure
     # the notable event is when a user's account gets locked
     user_role = nil
-    email = env["action_dispatch.request.parameters"][:user][:email]
+    email = env["action_dispatch.request.parameters"]&.[](:user)&.[](:email)
     origin = env["HTTP_ORIGIN"]
     user = User.find_by(email: email)
     user_id = !user.nil? ? user.id : nil

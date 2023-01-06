@@ -7,6 +7,8 @@ class Admin::ServicesController < Admin::AdminController
   attr_accessor :test_var
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
+  before_action :load_travel_patterns, only: [:show, :update]
+
   def index
     @services = get_services_for_current_user
     @oversight_agencies = current_user.accessible_oversight_agencies.length > 0 ?
@@ -35,7 +37,7 @@ class Admin::ServicesController < Admin::AdminController
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
     # if oversight is empty/ a bad combo of oversight, then redirect
-    validate_agencies_choices(oversight_agency_id,transportation_agency_id)
+    is_not_included = !Service::TAXI_SERVICES.include?(s_params[:type]) && validate_agencies_choices(oversight_agency_id,transportation_agency_id)
 
 
   	if @service.errors.empty? && @service.update_attributes(service_params)
@@ -88,7 +90,14 @@ class Admin::ServicesController < Admin::AdminController
       end
     # else if no oversight_params then just update service attributes as normal
     else
-      @service.update_attributes(s_params)
+      # ensure at least one travel pattern is assigned to the service before publishing (if in travel patterns config)
+      if Config.dashboard_mode == "travel_patterns" &&
+        ((s_params[:published] == "true" && @service.travel_pattern_services.count == 0) ||
+        (s_params[:travel_pattern_services_attributes]&.reject{|k,v| v[:travel_pattern_id].blank?}&.values&.all?{|v| v[:_destroy] == "true"} && @service.published == true))
+        @service.errors.add(:base, "Service cannot be published without at least one travel pattern assigned.")
+      else
+        @service.update_attributes(s_params)
+      end
     end
 
     # Code to handle server response on update fail/ success including redirects
@@ -100,7 +109,7 @@ class Admin::ServicesController < Admin::AdminController
       present_error_messages(@service)
     end
     #Force the updated attribute to update, even if only child objects were changed (e.g., Schedules, Accomodtations, etc.)
-    @service.update_attributes({updated_at: Time.now})
+    @service.update_attributes({updated_at: Time.now})   
 
     # Respond with the micro-form
     respond_with_partial_or do
@@ -162,11 +171,11 @@ class Admin::ServicesController < Admin::AdminController
       @service.errors.add(:agency,"Oversight Agency empty for #{@service.name}, did not perform service create/ update")
     end
 
-    oa = OversightAgency.find oversight_id
+    oa = OversightAgency.find_by(id: oversight_id)
     ta  = TransportationAgency.find transportation_id
 
-    associated_tas = oa.agency_oversight_agency.map{|aoa| aoa.transportation_agency}
-    is_included = associated_tas.include?(ta)
+    associated_tas = oa&.agency_oversight_agency&.map{|aoa| aoa.transportation_agency}
+    is_included = associated_tas&.include?(ta)
 
     unless is_included
       @service.errors.add(:agency,err_message)
@@ -193,6 +202,7 @@ class Admin::ServicesController < Admin::AdminController
     permitted_params += taxi_params if service_type == "Taxi"
     permitted_params += uber_params if service_type == "Uber"
     permitted_params += lyft_params if service_type == "Lyft"
+    permitted_params += travel_pattern_services_params if Config.dashboard_mode == "travel_patterns"
 
     # Permit the allowed parameters
   	params.require(:service).permit(permitted_params)
@@ -254,5 +264,15 @@ class Admin::ServicesController < Admin::AdminController
     I18n.available_locales.map { |l| "#{l}_description".to_sym }
   end
 
+  def travel_pattern_services_params
+    [travel_pattern_services_attributes: [ :id, :travel_pattern_id, :_destroy ]]
+  end
+
+  def load_travel_patterns
+    @travel_pattern_services = @service.travel_pattern_services
+                                   .includes(:travel_pattern)
+                                   .joins(:travel_pattern)
+                                   .merge(TravelPattern.order(:name))
+  end
 
 end

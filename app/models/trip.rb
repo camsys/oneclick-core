@@ -19,7 +19,7 @@ class Trip < ApplicationRecord
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
-  has_many :partner_agencies, through: :user 
+  has_many :oversight_agencies, through: :user
 
   has_many :trip_accommodations
   has_many :relevant_accommodations, class_name: "Accommodation", through: :trip_accommodations, source: :accommodation
@@ -57,9 +57,9 @@ class Trip < ApplicationRecord
   DISPOSITION_STATUSES = {
     unknown: 'Unknown Disposition',
     fixed_route_saved: 'Saved fixed route trip',
-    fixed_route_denied: 'Trip plan denied due to Travel Patterns violation',
+    fixed_route_denied: 'Fixed route denial',
     ecolane_booked: 'Successfully booked in Ecolane',
-    ecolane_denied: 'Booking in Ecolane denied due to Travel Patterns violation'
+    ecolane_denied: 'Ecolane booking denial'
   }
 
 
@@ -97,8 +97,8 @@ class Trip < ApplicationRecord
   end
   
   # Returns trip that have any of the given purposes
-  scope :with_purpose, -> (purpose_ids) do
-    where(id: joins(:purpose).where(purposes: { id: purpose_ids }).pluck(:id))
+  scope :with_purpose, -> (purposes) do
+    where(id: where(external_purpose: purposes).pluck(:id))
   end
 
   # Return trips that are transit trips
@@ -129,13 +129,13 @@ class Trip < ApplicationRecord
   end
 
   # Scopes based on user
-  scope :partner_agency_in, -> (partner_agency) do
-    where(user_id: partner_agency.staff.pluck(:id))
+  scope :oversight_agency_in, -> (oversight_agency) do
+    where(user_id: oversight_agency.staff_and_admins.pluck(:id))
   end
 
   # Scopes based on user
   scope :partner_agency_in, -> (partner_agency) do
-    where(user_id: partner_agency.staff.pluck(:id))
+    where(user_id: partner_agency.staff_and_admins.pluck(:id))
   end
   
   ### CLASS METHODS ###

@@ -255,10 +255,49 @@ namespace :db do
       ta.save
     end
 
+    desc "Sample Service Schedules and Types"
+    task service_schedules: :environment do
+      schedule_types = [
+          {name: ServiceScheduleType::WEEKLY_SCHEDULE },
+          {name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE }
+      ]
+
+      schedule_types.each do |t|
+        ServiceScheduleType.create(t)
+      end
+
+      service_schedules = [
+          {
+            service: Service.first,
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::WEEKLY_SCHEDULE),
+            name: "Weekly standard service"
+          },
+          {
+            service: Service.first,
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE),
+            name: "2022 Holidays",
+            start_date: Date.new(2022, 01, 01),
+            end_date: Date.new(2022, 12, 31)
+          }
+      ]
+
+      service_schedules.each do |s|
+        ServiceSchedule.create(s)
+      end
+    end
+
+    desc "Sample Landmark Sets"
+    task landmark_sets: :environment do
+      fake_sets = ['Tuber Sets', 'Vegetable Sets', 'Fruit Sets', 'Grain Sets']
+      fake_sets.each do |set|
+        LandmarkSet.create(name: set, agency_id: Agency.find_or_create_by(name: 'Rabbit').id)
+      end
+    end
+
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
                 :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agency_types, :agencies,:agency_types]
+                :agency_types, :agencies, :agency_types, :service_schedules, :landmark_sets]
 
   end
 end

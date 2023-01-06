@@ -1,0 +1,75 @@
+=content_for :title do
+  Standard Geographies:
+=content_for :header_form do
+  -# NOTE: the below form is for handling redirects based on the selected geography type
+  .wrapper__header-form
+    =simple_form_for :type,
+    url: admin_geographies_path,
+    html: {class: 'form-horizontal', id:'geography_type_form', multipart: true, method: :get },
+    authenticity_token: true do |f|
+      = f.input :type,
+        collection:  @geography_types,
+        include_blank: false,
+        label: false,
+        selected: params[:type]&.gsub('_',' ')&.titleize
+%section.container--two-col
+  %table.table.table-hover.datatable#geographies-table
+    %thead.thead-default
+      %tr
+        %th Name
+        %th State
+    %tbody
+      -@geographies.each do |geography|
+        %tr{style: "cursor: pointer", data: {geom: geography.geom_to_array}}
+          %td
+            = geography&.name
+          %td
+            PA
+            -#= geography&.state
+  %div#geographies-map{style: "height: 420px; margin-left: 10px"}
+%footer.footer__links
+  =link_to 'Return To Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return To Dashboard', admin_path, class: 'btn btn-default'
+
+:javascript
+    $(document).ready(function() {
+
+    // NOTE: this is for the eventual click handler for toggling geographies
+    // $('#geographies-table tbody tr').click(function() {
+    // });
+
+    /*
+      NOTE: the below onChange event listener redirects to geographies page but appends the geography type
+      as a query param(cleaned up a bit if there's spaces)
+    */
+    $('#type_type').change(function() {
+      const input = $(this).val()
+      window.location.assign('#{admin_geographies_path}' + '?type='+input.toLowerCase().replace(' ','_'))
+
+    })
+
+    // $.fn.DataTable.ext.pager.numbers_length = 5
+    $('.datatable').DataTable({});
+
+    var opts = {
+      viewCenter: [40.0024133,-75.2584558] // Philadelphia, PA
+    };
+    var map = M.setupMap('geographies-map', opts);
+
+    // Update map on row click
+    $("#geographies-table").on("click", "tbody tr", function() {
+      var geography_geom = $(this).data("geom");
+      // Clear previous geographies from map.
+      map.eachLayer(function (layer) {
+        if (M.tileLayerUrls.osm != layer._url) {map.removeLayer(layer)};
+      });
+      M.drawMaps(map, [
+        geography_geom
+      ]);
+      // Highlight clicked row.
+      var selected = $(this).hasClass("highlight");
+      $("#geographies-table tr").removeClass("highlight");
+      if(!selected)
+        $(this).addClass("highlight");
+    });
+  });

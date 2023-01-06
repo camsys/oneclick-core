@@ -14,11 +14,14 @@
   =render partial: 'transit_details', layout: '/layouts/panel', locals: locals_hide_footer
   =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Paratransit'
-  =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: locals_hide_footer
-  =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: locals_hide_footer
-  =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: locals_hide_footer
-  =render partial: 'paratransit_schedules', layout: '/layouts/panel', locals: locals_hide_footer
-  =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
+  -if Config.dashboard_mode == 'travel_patterns'
+    =render partial: 'travel_patterns', layout: '/layouts/panel', locals: locals_hide_footer
+  -else
+    =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_schedules', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
   =render partial: 'paratransit_booking', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Taxi'
   =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: locals_hide_footer

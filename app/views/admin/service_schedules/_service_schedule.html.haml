@@ -1,0 +1,21 @@
+%tr
+  %td
+    =service_schedule.agency
+  %td
+    =service_schedule.name
+  %td
+    =service_schedule.service_schedule_type.name
+  %td
+    =service_schedule.try(:start_date)
+  %td
+    =service_schedule.try(:end_date)
+  %td.text-right
+    %div
+      - if current_user.superuser? || current_user.oversight_admin? || current_user.transportation_admin?
+        =link_to edit_admin_service_schedule_path(id: service_schedule.id), class: "btn btn--no-bg", title: "Edit Service Schedule" do
+          %span.glyphicon.glyphicon-pencil
+        =link_to admin_service_schedule_path(service_schedule), method: :delete, class: "btn text-danger btn--no-bg", title: "Delete Service Schedule", data: {confirm: 'Warning: This will delete the service schedule. Press "OK" to confirm.'} do
+          %span.glyphicon.glyphicon-trash
+      - elsif current_user.oversight_staff? || current_user.transportation_staff?
+        =link_to admin_service_schedule_path(service_schedule), class: "btn btn--no-bg", title: "View Service Schedule" do
+          %span.glyphicon.glyphicon-eye-open

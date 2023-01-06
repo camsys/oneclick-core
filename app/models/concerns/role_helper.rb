@@ -24,6 +24,7 @@ module RoleHelper
     base.scope :registered, -> { base.where.not(GuestUserHelper.new.query_str) }
     base.scope :registered_travelers, -> { base.travelers.registered }
     base.scope :except_user, -> (user) { where.not(id: user.id) }
+    base.scope :partner_staff, -> { base.staff_for_any(Agency.partner_agencies) }
     base.scope :transportation_staff, -> { base.staff_for_any(Agency.transportation_agencies) }
 
     # NOTE: the :any_role scope is probably using Rolify wrong, but seems to work so not touching it
@@ -40,7 +41,7 @@ module RoleHelper
     base.scope :staff_for_any, -> (agencies) { base.with_role_for_instances(:staff, agencies) }
 
     # SCOPES FOR LOOKING UP ADMINS
-    base.scope :admins, -> { base.querify(base.with_role_for_instances_or_none(:admin, Agency.all)) }
+    base.scope :admins, -> { base.querify(base.with_role_for_instances(:admin, Agency.all)) }
     base.scope :admin_for, -> (agency) { base.with_role_for_instance(:admin, agency) }
     base.scope :admin_for_any, -> (agencies) { base.with_role_for_instances(:admin, agencies) }
 
@@ -147,6 +148,10 @@ module RoleHelper
     oversight_admin? || oversight_staff?
   end
 
+  def transportation_user?
+    transportation_admin? || transportation_staff?
+  end
+
   def unaffiliated_user?
     (admin? || staff?) && roles.length == 1 && roles.first.resource.nil?
   end
@@ -193,7 +198,7 @@ module RoleHelper
 
   # Returns a list of users who are staff for any of the agencies this user is staff for
   def fellow_staff
-    User.staff_for_any(agencies)
+    User.any_staff_admin_for_agencies(agencies)
   end
 
   # Returns a list of the staff that the user has permissions to access
@@ -233,10 +238,13 @@ module RoleHelper
 
   def travelers_for_current_agency
     if self.currently_oversight?
+      # if oversight, then grab all transportation agencies associated with the oversight agency and return the travelers
+      # for those agencies
       ta_ids = self.staff_agency.agency_oversight_agency.map { |aoa| aoa.transportation_agency.id}
       travelers_for_agency(ta_ids)
-    else
-      travelers_for_agency(self.current_agency.id)
+      # otherwise, they're probably emulating as a transportation agency and so just grab the travelers for a transportation agency
+    elsif self.oversight_admin? || self.oversight_staff?
+      travelers_for_agency(self.current_agency&.id || self.staff_agency&.id)
     end
   end
 
@@ -261,6 +269,7 @@ module RoleHelper
     if !agency && !role
       raise "Expecting values for role and agency"
     end
+    # Add role with an agency if applicable
     if role == "superuser"
       self.add_role(role)
     elsif agency == ""|| agency.nil?
@@ -387,6 +396,21 @@ module RoleHelper
                 .select('agency_oversight_agencies.transportation_agency_id').pluck(:transportation_agency_id)
     Service.left_joins(:service_oversight_agency)
            .where('service_oversight_agencies.oversight_agency_id = ? OR services.agency_id in (?)', self.current_agency&.id, tas)
+  end
+
+  def get_geographies_for_user
+    if self.superuser?
+      CustomGeography.all.order(:name)
+    elsif self.transportation_staff? || self.transportation_admin?
+      CustomGeography.where(agency_id: self.staff_agency.id).order(:name)
+    elsif self.currently_oversight?
+      tas = self.staff_agency.agency_oversight_agency.map {|aoa| aoa.transportation_agency.id}
+      CustomGeography.where(agency_id: tas).order(:name)
+    elsif self.currently_transportation?
+      CustomGeography.where(agency_id: self.current_agency.id).order(:name)
+    elsif self.staff_agency.oversight? && self.current_agency.nil?
+      CustomGeography.where(agency_id: nil).order(:name)
+    end
   end
 
 end

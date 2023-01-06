@@ -1,0 +1,76 @@
+=content_for :title do
+  Custom Geographies
+%section.container--two-col
+  %table.table.table-hover.datatable#geographies-table
+    %thead.thead-default
+      %tr
+        %th Name
+        %th State
+        %th{aria:{label: 'Actions available'}}
+    %tbody
+      -@geographies.each do |geography|
+        %tr{style: "cursor: pointer", data: {geom: geography.geom_to_array}}
+          %td
+            = geography&.name
+          %td
+            PA
+          %td.text-right
+            =link_to admin_custom_geography_path(geography.id),
+              method: :delete,
+              class: "btn text-danger btn--no-bg",
+              data: {confirm: "Are you sure?  This action cannot be undone!"} do
+              %span.glyphicon.glyphicon-trash{aria:{hidden:true}}
+  %div#geographies-map{style: "height: 420px; margin-left: 10px"}
+
+%div.text-center
+  - modalID = 'new-custom-geography'
+  - if can? :create, CustomGeography
+    - if @agency_map.length == 1
+      =link_to 'New Custom Geography', new_admin_custom_geography_path(agency_id: @agency_map.first[1]), class: 'btn btn-primary'
+    - elsif current_user&.currently_transportation?
+      =link_to 'New Custom Geography', new_admin_custom_geography_path(agency_id: current_user&.current_agency&.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New Custom Geography', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Custom Geography', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_custom_geography_path }
+
+:javascript
+    $(document).ready(function() {
+
+    // NOTE: if the user clicks the download/ delete button, we'll need to stop
+    // event bubbling so that the map doesn't try to change along with the redirect
+    // Might be overkill but it'd result in a bit of a cleaner experience
+
+    // Configure DataTable so that the button thing can't be sorted
+    $('.datatable#geographies-table').DataTable({
+      columns: [
+        {orderable: true},
+        {orderable: true},
+        {orderable: false}
+    ]});
+
+    var opts = {
+      viewCenter: [40.0024133,-75.2584558] // Philadelphia, PA
+    };
+    var map = M.setupMap('geographies-map', opts);
+
+    // Update map on row click
+    $("#geographies-table").on("click", "tbody tr", function() {
+      var geography_geom = $(this).data("geom");
+      // Clear previous geographies from map.
+      map.eachLayer(function (layer) {
+        if (M.tileLayerUrls.osm != layer._url) {map.removeLayer(layer)};
+      });
+      M.drawMaps(map, [
+        geography_geom
+      ]);
+      // Highlight clicked row.
+      var selected = $(this).hasClass("highlight");
+      $("#geographies-table tr").removeClass("highlight");
+      if(!selected)
+        $(this).addClass("highlight");
+    });
+  });

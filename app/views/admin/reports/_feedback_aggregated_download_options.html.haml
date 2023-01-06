@@ -1,7 +1,7 @@
 -# TRIP PLANNED DATE RANGE
 =f.input :trip_time_from_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today - 1.month},
   as: :string, label: "From Date"
 =f.input :trip_time_to_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today},
   as: :string, label: "To Date"
