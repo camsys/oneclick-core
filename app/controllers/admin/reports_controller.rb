@@ -103,23 +103,21 @@ class Admin::ReportsController < Admin::AdminController
   
   def trips_table
     # Get trips for the current user's agency and role
-    @trips = current_user.get_trips_for_staff_user
+    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
 
-    if @trip_only_created_in_1click
-      non_1click_trips = @trips.joins(itineraries: :booking)
-                     .where(itineraries:{trip_type: 'paratransit'})
-                     .where(bookings:{created_in_1click: false}).select(:id)
-      @trips = @trips.where.not(id:non_1click_trips)
-    end
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    @trips = @trips.with_purpose(@purposes) unless @purposes.empty?
+    @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
     @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
     @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-    @trips = @trips.partner_agency_in(@partner_agency) unless @partner_agency.blank?
+    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+    if @trip_only_created_in_1click
+      @trips = @trips.joins(itineraries: :booking)
+                     .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
+    end
     @trips = @trips.order(:trip_time)
     respond_to do |format|
-      format.csv { send_data @trips.to_csv }
+      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
     end
   end
 
@@ -169,7 +167,7 @@ class Admin::ReportsController < Admin::AdminController
     @requests = RequestLog.from_date(@request_from_date).to_date(@request_to_date)
     
     respond_to do |format|
-      format.csv { send_data @requests.to_csv }
+      format.csv { send_data @requests.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
     end
   end
   
@@ -191,7 +189,7 @@ class Admin::ReportsController < Admin::AdminController
     @purposes = parse_id_list(params[:purposes])
     @trip_origin_region = Region.build(recipe: params[:trip_origin_recipe]) 
     @trip_destination_region = Region.build(recipe: params[:trip_destination_recipe])
-    @partner_agency = params[:partner_agency].blank? ? nil : PartnerAgency.find(params[:partner_agency])
+    @oversight_agency = params[:oversight_agency].blank? ? nil : OversightAgency.find(params[:oversight_agency])
     @trip_only_created_in_1click = parse_bool(params[:trip_only_created_in_1click])
     # USER FILTERS
     @include_guests = parse_bool(params[:include_guests])
@@ -233,7 +231,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
-      :partner_agency,
+      :oversight_agency,
       
       # USER FILTERS
       :include_guests,

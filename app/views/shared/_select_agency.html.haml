@@ -1,0 +1,9 @@
+=form_tag form_url, method: :get do
+  .text-center
+    =label :agency_id, 'Agency: ' 
+    =select_tag :agency_id, options_for_select(@agency_map), class: 'form-control'
+
+  .modal-footer
+    .text-center
+      =link_to 'Cancel', '', class: 'btn btn-danger', data: {dismiss: 'modal'}
+      =submit_tag 'OK', class: 'btn btn-primary'

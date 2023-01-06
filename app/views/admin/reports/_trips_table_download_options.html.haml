@@ -1,9 +1,9 @@
 -# TRIP PLANNED DATE RANGE
 =f.input :trip_time_from_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today - 1.month},
   as: :string, label: "From Date"
 =f.input :trip_time_to_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today},
   as: :string, label: "To Date"
 
 -# FILTER OUT TRIPS NOT CREATED IN ONE CLICK
@@ -12,17 +12,23 @@
   label: 'Only Show Trips Created In 1Click:'
   
 -# TRIP PURPOSES
-= f.input :purposes, required: false,
-    collection: Purpose.all, 
-    as: :check_boxes, 
-    value_method: :id,
-    label: "Trip Purpose"
+- unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
+  .purposes-filter
+    - if Config.dashboard_mode == "travel_patterns" && (current_user.transportation_user? || current_user.currently_transportation?)
+      - purposes_collection = Purpose.for_user(current_user).map{|p| ["#{p[:name]}", p[:id]]}.sort_by { |p| p[0].downcase }
+    - else
+      - purposes_collection = Purpose.all.map{|p| ["#{p[:name]}", p[:id]]}.sort_by { |p| p[0].downcase }
+    = f.input :purposes, required: false,
+        collection: purposes_collection,
+        as: :check_boxes,
+        label: "Trip Purpose"
 
--# Partner Agency
-= f.input :partner_agency, required: false,
-    collection: PartnerAgency.all,
-    value_method: :id,
-    label: "Planned By"
+-# Oversight Agency
+- unless Config.dashboard_mode == "travel_patterns"
+  = f.input :oversight_agency, required: false,
+      collection: OversightAgency.all,
+      value_method: :id,
+      label: "Planned By"
 
 -# TRIP ORIGIN REGION BUILDER
 =render partial: 'admin/services/region_builder',
@@ -35,6 +41,8 @@
   locals: { wrapper_id: 'trip-destination-recipe', label_text: "Destination"}
 =f.input :trip_destination_recipe, as: :hidden,
   input_html: { value: '[]'}
+
+= "NOTE: Reports will be limited to #{CSVWriter::DEFAULT_RECORD_LIMIT} records."
 
 
 

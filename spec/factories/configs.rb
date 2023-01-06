@@ -1,7 +1,6 @@
 FactoryBot.define do
   factory :config do
     initialize_with { Config.find_or_create_by(key: key) }
-
     key "test_config"
     value "test"
 
@@ -64,6 +63,11 @@ FactoryBot.define do
     factory :trapeze_token_config do
       key "trapeze_token"
       value "token"
+    end
+
+    factory :dashboard_mode_config do
+      key "dashboard_mode"
+      value "default"
     end
     
   end

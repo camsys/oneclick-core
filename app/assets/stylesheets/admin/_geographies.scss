@@ -1,0 +1,35 @@
+header.header--two-col > .wrapper__header-form {
+  min-width: 250px;
+}
+
+form#geography_type_form {
+  > .form-group {
+    margin-bottom: 0;
+  }
+  select#type_type {
+    height: 40px;
+  }
+
+  label {
+    text-align: left;
+  }
+}
+
+form#geographies {
+  label {
+    text-align: left;
+  }
+  & textarea {
+    resize: vertical;
+  }
+}
+
+.centered-form {
+  margin: 0 auto;
+  max-width: 640px;
+}
+
+.centered-form.extra-wide {
+  margin: 0 auto;
+  max-width: 840px;
+}

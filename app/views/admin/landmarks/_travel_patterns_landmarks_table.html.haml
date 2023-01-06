@@ -1,0 +1,18 @@
+%table.table.table-hover.datatable#landmark-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th Lat
+      %th Lng
+
+  -@landmarks.each do |landmark|
+    %tr{style: "cursor: pointer", data: {url: edit_admin_landmark_path(landmark)}}
+      %td
+        =landmark&.agency&.name
+      %td
+        =landmark.long_name
+      %td
+        =landmark.lat
+      %td
+        =landmark.lng

@@ -9,6 +9,7 @@ FactoryBot.define do
     published true
     association :start_or_end_area, factory: :region
     association :trip_within_area, factory: :big_region
+    association :agency, factory: :transportation_agency
 
     factory :different_service, class: 'Service' do
       name "Test Service 2"
@@ -20,9 +21,11 @@ FactoryBot.define do
       association :trip_within_area, factory: :big_region
     end
 
+
     factory :paratransit_service, parent: :service, class: 'Paratransit' do
       name "Test Paratransit Service"
       type "Paratransit"
+
 
       trait :no_geography do
         after(:create) do |s|

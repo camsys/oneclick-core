@@ -163,7 +163,7 @@ module BookingHelpers
     # Configure including class
     def self.included(base)
       base.has_one :booking
-      base.scope :booked_or_cancelled, -> { joins(:booking) }
+      base.scope :booked_or_canceled, -> { joins(:booking) }
     end
     
     # Initializes a BookingAmbassador object of the appropriate type

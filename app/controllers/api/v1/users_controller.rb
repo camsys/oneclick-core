@@ -153,7 +153,7 @@ module Api
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
-          purpose =  booking.itinerary.trip.external_purpose
+          purpose = booking.itinerary.trip.external_purpose
           if purpose and not purpose.in? top_purposes
             top_purposes << purpose
           end

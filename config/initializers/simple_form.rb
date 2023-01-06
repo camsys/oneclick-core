@@ -145,6 +145,20 @@ SimpleForm.setup do |config|
     end
   end
 
+  config.wrappers :travel_patterns_input_group, tag: 'div', class: 'flex-inner', error_class: 'has-error' do |b|
+    b.use :html5
+    b.use :placeholder
+    b.use :label, class: 'control-label'
+
+    b.wrapper tag: 'div', class: 'grow-1' do |ba|
+      ba.wrapper tag: 'div', class: 'input-group' do |append|
+        append.use :input, class: 'form-control'
+      end
+      ba.use :error, wrap_with: { tag: 'span', class: 'help-block' }
+      ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block' }
+    end
+  end
+
   # The default wrapper to be used by the FormBuilder.
   config.default_wrapper = :horizontal_input_group
 

@@ -86,17 +86,21 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    # Find all the services that are available for your time and locations
-    @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+    # Apply remaining filters if not in travel patterns mode.
+    # Services using travel patterns are checked through travel patterns API.
+    if Config.dashboard_mode != 'travel_patterns'
+      # Find all the services that are available for your time and locations
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-    # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-    @relevant_accommodations = Accommodation.all.ordered_by_rank
+      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
 
-    # Now finish filtering by purpose, eligibility, and accommodation
-    @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    end
+
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
 
@@ -112,7 +116,14 @@ class TripPlanner
   
   # Builds itineraries for all trip types
   def build_all_itineraries
-    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+    trip_itineraries = @trip_types.flat_map {|t| build_itineraries(t)}
+    new_itineraries = trip_itineraries.reject(&:persisted?)
+    old_itineraries = trip_itineraries.select(&:persisted?)
+
+    Itinerary.transaction do
+      old_itineraries.each(&:save!)
+      @trip.itineraries += new_itineraries
+    end
   end
 
   # Additional sanity checks can be applied here.
@@ -177,31 +188,43 @@ class TripPlanner
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
     itineraries = @available_services[:paratransit].map do |svc|
-      
+
+      # Should not be able to use the paratransit service if booking API is not set up.
+      Rails.logger.info("Checking service id: #{svc&.id}")
+      if svc.booking_api != "ecolane"
+        next nil
+      end
       #TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
       if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
-        next
-      end 
-      Itinerary.new(
-        service: svc,
-        trip_type: :paratransit,
-        cost: svc.fare_for(@trip, router: @router),
-        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
-      )
+        next nil
+      end
 
+      # Look for an existing itinerary
+      # But ones that don't have a booking attached
+      # Otherwise, create a new itinerary
+      itinerary = Itinerary.left_joins(:booking)
+                            .where(bookings: { id: nil })
+                            .find_or_initialize_by(
+                              service_id: svc.id,
+                              trip_type: :paratransit,
+                              trip_id: @trip.id,
+                            )
+
+      # Whether an itinerary was found, or initialized, we need to update it
+      itinerary.assign_attributes({
+        assistant: @options[:assistant],
+        companions: @options[:companions],
+        cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+      })
+
+      itinerary
     end
 
     # Get rid of nil itineraries caused by skipping Ecolane Services
-    itineraries.delete(nil)
-
-    if itineraries.blank? 
-      return []
-    else 
-      return itineraries 
-    end
-
+    itineraries.compact
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response

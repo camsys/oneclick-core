@@ -24,6 +24,7 @@ class User < ApplicationRecord
   scope :with_accommodations, -> (accommodation_ids) do
     joins(:accommodations).where(accommodations: { id: accommodation_ids })
   end
+
   scope :with_eligibilities, -> (eligibility_ids) do
     joins(:confirmed_eligibilities).where(eligibilities: { id: eligibility_ids })
   end
@@ -32,6 +33,7 @@ class User < ApplicationRecord
   scope :active_since, -> (date) do
     joins(:trips).merge(Trip.from_date(date))
   end
+
   scope :active_until, -> (date) do
     joins(:trips).merge(Trip.to_date(date))
   end
@@ -42,6 +44,7 @@ class User < ApplicationRecord
 
   ### Associations ###
   has_one :traveler_transit_agency, dependent: :destroy
+  has_one :transportation_agency, through: :traveler_transit_agency
   belongs_to :current_agency, class_name:'Agency', foreign_key: :current_agency_id
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
@@ -56,7 +59,6 @@ class User < ApplicationRecord
   has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
   has_many :user_booking_profiles
-
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
@@ -112,12 +114,21 @@ class User < ApplicationRecord
     self.subscribed_to_emails
   end
 
-  def return_county_if_ecolane_email
+  def county_name_if_ecolane_email
     regex = /ecolane_user\.com$/
+
     if regex.match(email)
-      # Ecolane fake email has format: 9999_@ecolane.com so split from the @, then split from the _
-      county = email.split('@').first&.split('_').last
-      County.find_by(name: county&.capitalize)
+      email.split('@').first&.split('_').last&.downcase&.capitalize
+    else
+      nil
+    end
+  end
+
+  def return_county_if_ecolane_email
+    county = county_name_if_ecolane_email
+
+    if county
+      County.find_by(name: county)
     end
   end
 
@@ -181,6 +192,53 @@ class User < ApplicationRecord
                 .compact.uniq
                 .select { |elig| !self.eligibilities.include?(elig) }
     self.eligibilities << eligs
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def get_services
+    # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
+    Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
+            .merge( TravelerTransitAgency.where(user_id: id) )
+            .with_home_county(county_name_if_ecolane_email)
+            .paratransit_services
+            .published
+            .is_ecolane
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
+  def current_service
+    get_services.first
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def get_funding_data(service=nil)
+    funding_hash = {}
+    profile = service ? booking_profile_for(service) : booking_profile
+    return funding_hash unless profile
+
+    get_funding = true
+    customer = profile.booking_ambassador
+                      .fetch_customer_information(get_funding)
+                      .fetch('customer', {})
+    funding_options = [
+      customer.fetch('funding', {})
+              .fetch('funding_source', {})
+    ].flatten
+    
+    funding_options.each do |funding_source|
+      allowed_purposes = [funding_source['allowed']].flatten
+      allowed_purposes.each do |allowed_purpose|
+        purpose = allowed_purpose['purpose'].strip
+        funding_hash[purpose] ||= []
+        funding_hash[purpose].push(funding_source['name'].strip)
+      end
+    end
+
+    funding_hash
   end
 
   protected

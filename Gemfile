@@ -46,7 +46,7 @@ gem 'lograge-sql'
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
-gem 'bootstrap-sass', '3.2.0.4'
+gem 'bootstrap-sass', '~> 3.3.6'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
@@ -56,6 +56,10 @@ gem 'phony_rails' # For normalizing phone numbers
 gem 'jquery-datatables-rails', '~> 3.4.0'
 ############################################
 
+### PAGINATION #############################
+# gem 'kaminari', '~> 1.2.2'
+gem 'pagy', '~> 5.10.1'
+############################################
 
 ### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
@@ -98,6 +102,7 @@ gem 'rgeo'
 gem "rgeo-proj4"
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
+gem 'geospatial-kml'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps
@@ -140,7 +145,9 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
-  gem 'factory_bot_rails'
+
+  # Factory_bot 5.0 no longer allows static attributes. We should change our factories if we want to upgrade
+  gem 'factory_bot_rails', '~> 4.11'
   ##########################################
 end
 
@@ -158,6 +165,7 @@ group :development do
   gem "letter_opener"
 
   gem 'rb-readline'
+  gem "rdoc", "~> 6.3.0"
 end
 
 

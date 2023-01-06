@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe UserMailer, type: :mailer do
   let(:agency) { create(:partner_agency, :with_staff) }
-  let(:admin) { create(:admin) }
+  let(:admin) { create(:transportation_admin) }
   
   it { should respond_to :agency_setup_reminder}
   

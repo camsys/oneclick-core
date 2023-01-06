@@ -47,7 +47,6 @@ module Api
         end
         
       end
-      
 
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.

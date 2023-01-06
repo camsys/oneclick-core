@@ -1,0 +1,96 @@
+@import 'mixins';
+@import 'variables';
+@import 'bootstrap_extensions';
+
+.cntr-root {
+  display: flex;
+  height: 325px;
+  justify-content: center;
+  align-items: center;
+}
+
+.cntr-root > img {
+  height: auto;
+  max-width: 100%;
+}
+.cntr-secondary {
+  display: flex;
+  width: 300px;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.cntr-travelpattern {
+  display: flex;
+  width: 200px;
+  height: 100%;
+  padding: 0;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.subcntr {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center
+}
+
+.cntr-travelpattern > .subcntr {
+  height: 138px;
+  justify-content: flex-start;
+}
+
+.subcntr.arr {
+  justify-content: space-around;
+}
+
+.subcntr > a, .cntr-travelpattern > a {
+  box-sizing: content-box;
+  width: 164px;
+  padding: 14px;
+}
+
+.btn.schedule-container {
+
+  @include unit-box($brand-primary-pastel);
+
+  .delete-schedule {
+    @include custom-btn-link($brand-primary);
+  }
+
+  label {
+    margin-left: 8px;
+  }
+
+}
+
+.well.schedule-container {
+  padding-bottom: 0;
+}
+
+.add-schedule {
+  @include dashed-unit-box($gray-paler);
+
+  height: 48px;
+  padding: 6px;
+
+  span + span {
+    margin-left: 10px;
+  }
+
+  .schedule-input {
+    padding: 0;
+
+    input {
+      height: 34px;
+      @include subtle-input
+    }
+  }
+}
+
+.label-container {
+  margin-bottom: 5px;
+}

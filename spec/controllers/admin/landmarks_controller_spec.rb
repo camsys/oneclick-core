@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Admin::LandmarksController, type: :controller do
 
-  let(:admin) { create(:admin) }
+  let(:superuser) { create(:superuser) }
   let(:staff) { create(:staff_user) }
   let(:traveler) { create(:user) }
   let(:work) { create(:landmark) }
@@ -10,9 +10,9 @@ RSpec.describe Admin::LandmarksController, type: :controller do
   let(:invalid_landmark_params_one) {{lat: 30, lng: 30}}
   let(:invalid_landmark_params_two) {{name: "new landmark", lat: 2000, lng: 30}}
 
-  context "while signed in as an admin" do
+  context "while signed in as a superuser" do
 
-    before(:each) { sign_in admin }
+    before(:each) { sign_in superuser }
 
     it 'updates the landmarks' do
       params = {landmarks: {file: 'spec/files/good_landmarks.csv'}}

@@ -11,6 +11,7 @@ function FormHandler(form) {
 
   // Callbacks
   this.onResetCallback = false;
+  this.onAjaxSuccessCallbacks = [];
 
   // Set up form on initialization
   this.clean(); // Form has not yet been altered from its original state
@@ -19,7 +20,8 @@ function FormHandler(form) {
 
 FormHandler.prototype = {
   addHandlers: function() {
-    var fh = this;
+    let fh = this;
+    let onAjaxSuccessCallbacks = this.onAjaxSuccessCallbacks;
     
     // On submit button click, submit form.
     this.submitButton.click(function(e) {
@@ -41,14 +43,14 @@ FormHandler.prototype = {
     // On Successful Form Submit, Replace form with response HTML.
     this.form.on("ajax:success", function(evt, data, status, xhr) {
       fh.formContainer.replaceWith(xhr.responseText);
-      new FormHandler($(this)); // Reset form with new handlers
+      let newfh = new FormHandler($(fh.form.selector)); // Reset form with new handlers
+      newfh.now(...onAjaxSuccessCallbacks);
     });
-
   },
 
   // Watch for change on passed elements
   watch: function(elements) {
-    var fh = this;
+    let fh = this;
 
     elements.on("change keypress", function() {
       fh.dirty();
@@ -84,6 +86,17 @@ FormHandler.prototype = {
   // Set onReset Callback
   onReset: function(callback) {
     this.onResetCallback = callback;
-  }
+  },
 
+  // Add callbacks for Ajax Success
+  onAjaxSuccess: function (...callbacks) {
+    this.onAjaxSuccessCallbacks.push(...callbacks);
+  },
+
+  // Calls functions immediately and adds again on Ajax Success
+  now: function(...callbacks) {
+    let fh = this;
+    callbacks.forEach(callback => callback(fh));
+    fh.onAjaxSuccess(...callbacks);
+  }
 }
