@@ -38,3 +38,7 @@ end
 Config.find_or_create_by(key: "bike_reluctance") do |config|
   config.value = 5
 end
+
+if Rails.env == 'test'
+  Config.find_or_create_by(key: "dashboard_mode", value: 'travel_patterns')
+end

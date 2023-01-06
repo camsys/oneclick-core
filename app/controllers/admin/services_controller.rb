@@ -222,6 +222,7 @@ class Admin::ServicesController < Admin::AdminController
 
   def paratransit_params
     [
+      :gtfs_agency_id,
       :fare_structure,
       :booking_api,
       :max_age,

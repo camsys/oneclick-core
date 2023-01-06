@@ -317,9 +317,9 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.string    "site_name"
     t.text      "description"
     t.geography "latlngg",                 limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-    t.string   "refernet_service_id"
-    t.string   "refernet_location_id"
-    t.string   "refernet_servicesite_id"
+    t.string    "refernet_service_id"
+    t.string    "refernet_location_id"
+    t.string    "refernet_servicesite_id"
     t.text      "location_details"
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
     t.index ["latlngg"], name: "index_oneclick_refernet_services_on_latlngg", using: :gist
@@ -349,9 +349,9 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   create_table "oneclick_refernet_sub_sub_categories", force: :cascade do |t|
     t.string   "name"
     t.integer  "sub_category_id"
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
-    t.boolean  "confirmed",       default: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.boolean  "confirmed",            default: false
     t.string   "code"
     t.string   "taxonomy_code"
     t.string   "refernet_category_id"
