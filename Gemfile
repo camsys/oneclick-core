@@ -90,7 +90,7 @@ gem 'savon'
 
 
 ### FILE UPLOAD ############################
-gem 'carrierwave-aws', '~> 1.1'
+gem 'carrierwave-aws', '~> 1.5'
 gem 'mini_magick' # For resizing images
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
 gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations json
