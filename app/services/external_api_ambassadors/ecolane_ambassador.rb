@@ -761,6 +761,13 @@ class EcolaneAmbassador < BookingAmbassador
         profile.user = user
         # do not try to sync user here - reenters ecolane_ambassador ctor
       end
+      # Update the user's booking profile with the user's county from login info.
+      if @booking_profile&.details
+        @booking_profile.details[:county] = @county
+      else
+        @booking_profile.details = {county: @county}
+      end
+      @booking_profile.save
 
       # Update the user's name
       user = @booking_profile.user 
