@@ -200,10 +200,12 @@ class EcolaneAmbassador < BookingAmbassador
         booking
       else
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        self.booking.update(created_in_1click: true)
         nil
       end
     rescue REXML::ParseException
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+      self.booking.update(created_in_1click: true)
       nil
     end
   end
