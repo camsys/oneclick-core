@@ -202,7 +202,7 @@ class User < ApplicationRecord
       # County name may be null if user has set email to a non-Ecolane email address.
       # Search for county that user logged in as from most recent user booking profile.
       # User booking profile is updated with county at login.
-      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").first&.details
+      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first&.details
       if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
         county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
       end
