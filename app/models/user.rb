@@ -204,7 +204,7 @@ class User < ApplicationRecord
       # User booking profile is updated with county at login.
       most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").first&.details
       if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
-        county = most_recent_booking_profile_details[:county]
+        county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
       end
     end
     # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
