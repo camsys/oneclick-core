@@ -200,10 +200,12 @@ class EcolaneAmbassador < BookingAmbassador
         booking
       else
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        self.booking.update(created_in_1click: true)
         nil
       end
     rescue REXML::ParseException
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+      self.booking.update(created_in_1click: true)
       nil
     end
   end
@@ -759,6 +761,13 @@ class EcolaneAmbassador < BookingAmbassador
         profile.user = user
         # do not try to sync user here - reenters ecolane_ambassador ctor
       end
+      # Update the user's booking profile with the user's county from login info.
+      if @booking_profile&.details
+        @booking_profile.details[:county] = @county
+      else
+        @booking_profile.details = {county: @county}
+      end
+      @booking_profile.save
 
       # Update the user's name
       user = @booking_profile.user 
