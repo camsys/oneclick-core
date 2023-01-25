@@ -122,6 +122,8 @@ Rails.application.routes.draw do
 
       # Refernet
       if ENV["ONECLICK_REFERNET"]
+        post 'oneclick_refernet/create_find_services_history' => 'refernet/services#create_find_services_history'
+        post 'oneclick_refernet/update_find_services_history_trip_id' => 'refernet/services#update_find_services_history_trip_id'
         get 'oneclick_refernet/services' => 'refernet/services#index'
         post 'oneclick_refernet/email' => 'refernet/services#email'
         post 'oneclick_refernet/sms' => 'refernet/services#sms'
@@ -213,6 +215,7 @@ Rails.application.routes.draw do
         get 'requests_table'
         get 'feedback_table'
         get 'feedback_aggregated_table'
+        get 'find_services_table'
 
       end
     end

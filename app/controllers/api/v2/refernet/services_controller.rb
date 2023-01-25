@@ -2,6 +2,7 @@ module Api
   module V2
     module Refernet
       class ServicesController < ApiController
+        before_action :ensure_traveler, only: [:collect_history] #If @traveler is not set, then create a guest user account
 
         include ActionView::Helpers::NumberHelper
         # Endpoint is: /api/v2/oneclick_refernet/services
@@ -64,6 +65,63 @@ module Api
             render(fail_response(status: 400, message: "Invalid Request"))
           end
 
+        end
+
+        # API call to create find services history records from Find Services workflow.
+        def create_find_services_history
+          # User starting location e.g. "Ventura, CA"
+          formatted_address = params[:formatted_address]
+          lat = params[:lat]
+          lng = params[:lng]
+          # Service sub-sub-category e.g. "Congregate Meal/Nutrition Sites"
+          sub_sub_category_name = params[:sub_sub_category_name]
+
+          # Create history record
+          @find_services_history = FindServicesHistory.new
+          @find_services_history.user_starting_location = formatted_address
+          @find_services_history.user_starting_lat = lat
+          @find_services_history.user_starting_lng = lng
+          @find_services_history.service_sub_sub_category = sub_sub_category_name
+          success = @find_services_history.save
+
+          if success
+            # Add user information
+            @find_services_history.user = @traveler
+            @find_services_history.user_ip = @traveler.current_sign_in_ip
+            if !@find_services_history.save
+              Rails.logger.debug "Unable to update find_services_history user"
+            end
+            render(success_response(@find_services_history, serializer_opts: {include: ['*.*.*']}))
+          else
+            Rails.logger.debug "Unable to create find_services_history"
+          end
+        end
+
+        # API call to update find services history records from Find Services workflow.
+        # Modify history record to add associated trip id for trip planned through services.
+        def update_find_services_history_trip_id
+          find_services_history_id = params[:find_services_history_id]
+          trip_id = params[:trip_id]
+          # Find existing history record to update.
+          @find_services_history = FindServicesHistory.find(find_services_history_id)
+          if @find_services_history
+            if @find_services_history.trip_id.nil?
+              # Add trip id for the planned trip.
+              if !@find_services_history.update(trip_id: trip_id)
+                Rails.logger.debug "Unable to update find_services_history trip_id"
+              end
+            else
+              # Trip id has already been set.
+              # Copy the find services record for the re-planned trip.
+              @find_services_history = @find_services_history.dup
+              @find_services_history.trip_id = trip_id
+              if !@find_services_history.save
+                Rails.logger.debug "Unable to copy find_services_history"
+              end
+            end
+          end
+
+          render(success_response(@find_services_history, serializer_opts: {include: ['*.*.*']}))
         end
 
         protected

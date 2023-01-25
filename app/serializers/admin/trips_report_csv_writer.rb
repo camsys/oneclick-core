@@ -1,14 +1,18 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    columns :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
+    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
             :selected_trip_type, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
     associations :origin, :destination, :user, :selected_itinerary
 
+    def trip_id
+      @record.id
+    end
+
     def traveler
-      @record.user && @record.user.email
+      @record.user && @record.user&.email
     end
 
     def user_type
