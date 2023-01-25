@@ -69,6 +69,12 @@ FactoryBot.define do
       key { "dashboard_mode" }
       value { "default" }
     end
+
+    # TODO We'll have to set up two contexts of tests for this...
+    # factory :dashboard_mode_config do
+    #   key { "dashboard_mode" }
+    #   value { "travel_patterns" }
+    # end
     
   end
   

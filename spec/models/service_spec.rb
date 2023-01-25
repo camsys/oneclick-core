@@ -54,6 +54,12 @@ RSpec.describe Service, type: :model do
   
   ### CHARACTERISTICS ###
   describe "characteristics" do
+    # TODO We need to make 2 contexts. One for travel patterns, and one for non travel patterns
+    before do
+      # Config.create(key: "dashboard_mode", value: "travel_patterns")
+      # allow(Service).to receive(:purposes) ...
+      # allow(Config).to receive(:dashboard_mode)
+    end
     
     let!(:jacuzzi) { FactoryBot.create :jacuzzi }
     let!(:wheelchair) { FactoryBot.create :wheelchair }
@@ -61,7 +67,12 @@ RSpec.describe Service, type: :model do
     
     it { should have_and_belong_to_many :accommodations }
     it { should have_and_belong_to_many :eligibilities }
-    it { should have_many :purposes }
+
+    if (Config.dashboard_mode == "travel_patterns")
+      it { should have_many :purposes }
+    else
+      it { should have_and_belong_to_many :purposes }
+    end
     
     # For Purposes Testing
     let(:medical_service) { create(:paratransit_service, :medical_only, :no_geography) }

@@ -31,12 +31,15 @@ class Service < ApplicationRecord
   # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
-  # only add this association after the db is loaded so we can check config
+
+  # Only add this association after the db is loaded so we can check config
+  # Changes to this config will require a serer restart... not ideal, maybe move it into a custom class method?
   if ActiveRecord::Base.connection.table_exists?(:configs) && Config.dashboard_mode == "travel_patterns"
     has_many :purposes, through: :travel_patterns
   else
     has_and_belongs_to_many :purposes
   end
+
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
   belongs_to :agency

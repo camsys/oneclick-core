@@ -29,7 +29,9 @@ class Config < ApplicationRecord
     config = Config.find_by(key: key)
     return config.value unless config.nil?
     return Rails.application.config.send(key) if Rails.application.config.respond_to?(key)
-    return nil
+    
+    Rails.logger.warn("Warning: Config #{key} was not found in the database or the application configuration, defaulting to environment")
+    return ENV[key.to_s] if ENV[key.to_s]
   end
   
   # Sets a config variable if possible

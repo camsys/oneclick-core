@@ -99,6 +99,18 @@ class TripPlanner
 
       # Now finish filtering by purpose, eligibility, and accommodation
       @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    else
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      options = {}
+      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
+      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
+      options[:date] = @trip.trip_time.to_date if @trip.trip_time
+      
+      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
     end
 
     # Now convert into a hash grouped by type

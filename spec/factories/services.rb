@@ -21,7 +21,6 @@ FactoryBot.define do
       association :trip_within_area, factory: :big_region
     end
 
-
     factory :paratransit_service, parent: :service, class: 'Paratransit' do
       name { "Test Paratransit Service" }
       type { "Paratransit" }
@@ -70,7 +69,11 @@ FactoryBot.define do
 
       trait :medical_only do
         after(:create) do |s|
-          s.travel_patterns << create(:travel_pattern, :with_empty_service_schedule)
+          if Config.dashboard_mode == "travel_patterns"
+            s.travel_patterns << create(:travel_pattern, :with_empty_service_schedule)
+          else
+            s.purposes << create(:purpose, code: "medical")
+          end
         end
       end
 

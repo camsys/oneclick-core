@@ -535,8 +535,6 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.text     "value"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
-    t.index ["locale_id"], name: "index_translations_on_locale_id", using: :btree
-    t.index ["translation_key_id"], name: "index_translations_on_translation_key_id", using: :btree
   end
 
   create_table "travel_pattern_funding_sources", force: :cascade do |t|
@@ -631,10 +629,10 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer  "purpose_id"
     t.integer  "previous_trip_id"
     t.string   "external_purpose"
-    t.integer  "user_age"
-    t.inet     "user_ip"
     t.text     "details"
     t.string   "disposition_status",    default: "Unknown Disposition"
+    t.integer  "user_age"
+    t.inet     "user_ip"
     t.index ["arrive_by"], name: "index_trips_on_arrive_by", using: :btree
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["details"], name: "index_trips_on_details", using: :btree
@@ -715,9 +713,9 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
+    t.integer  "current_agency_id"
     t.string   "county"
     t.string   "paratransit_id"
-    t.integer  "current_agency_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
