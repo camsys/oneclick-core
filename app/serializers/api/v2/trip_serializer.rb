@@ -42,11 +42,11 @@ module Api
       end
 
       def all_accommodations
-        Accommodation.all
+        Accommodation.all.order(:rank)
       end
 
       def all_eligibilities
-        Eligibility.all
+        Eligibility.all.order(:rank)
       end
       
     end
