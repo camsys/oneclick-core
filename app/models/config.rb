@@ -12,8 +12,14 @@ class Config < ApplicationRecord
     :user_profile_update_emails,
     :get_ride_pilot_purposes,
     :feedback_reminders,
-    :purge_unused_guests
+    :purge_unused_guests,
+    :sync_all_ecolane_users_3_days,
+    :send_fixed_trip_reminders,
+    :add_notification_preferences
   ].freeze
+
+  # Default notification preferences for users, freezing for now
+  DEFAULT_NOTIFICATION_PREFS = [7,3,1].freeze
 
   # Returns the value of a setting when you say Config.<key>
   def self.method_missing(key, *args, &blk)
@@ -23,7 +29,9 @@ class Config < ApplicationRecord
     config = Config.find_by(key: key)
     return config.value unless config.nil?
     return Rails.application.config.send(key) if Rails.application.config.respond_to?(key)
-    return nil
+    
+    Rails.logger.warn("Warning: Config #{key} was not found in the database or the application configuration, defaulting to environment")
+    return ENV[key.to_s] if ENV[key.to_s]
   end
   
   # Sets a config variable if possible

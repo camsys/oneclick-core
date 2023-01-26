@@ -1,0 +1,37 @@
+=simple_form_for(@landmark_set, url: form_url, authenticity_token: true, html: {id: form_id,class: "flex-outer", method: mode == "new" ? :post : :put}) do |form|
+  .form-group
+    =form.input :agency, collection: [[@landmark_set.agency.name, @landmark_set.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
+    =form.input :name, placeholder: "Enter name of POI Set", disabled: mode == "view", input_html: { value: landmark_set[:name] }, wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :description, placeholder: "Enter description of POI Set", disabled: mode == "view", wrapper: :travel_patterns_input_group
+  #poi-data.hidden
+    #removed-pois
+      =form.simple_fields_for :landmark_set_landmarks, @landmark_set.landmark_set_landmarks.where(landmark_id: @removed_pois) do |landmark_form|
+        -object = landmark_form.object
+        %div{id: "poi-#{object.landmark_id}"}
+          =landmark_form.hidden_field :id, value: object.id
+          =landmark_form.hidden_field :landmark_id, value: object.landmark_id
+          =landmark_form.hidden_field :_destroy, value: true
+    #added-pois
+      =form.simple_fields_for :landmark_set_landmarks, @added_pois do |landmark_form|
+        -poi = landmark_form.object
+        %div{id: "poi-#{poi.landmark_id}"}
+          =landmark_form.hidden_field :landmark_id, value: poi.landmark_id
+
+#poi-ui
+  =render partial: "system_pois"
+  =render partial: "selected_pois"
+
+.form-group.text-center
+  =link_to "Cancel", admin_landmark_sets_path, class: "btn btn-danger"
+  %input.btn.btn-default{type: "submit", name: "button", value: "Apply Changes", form: form_id}
+  %input.btn.btn-primary{type: "submit", name: "button", value: "Save", form: form_id}
+
+:javascript
+  $(document).ready(function () {
+    let systemPoisForm = new FormHandler("#system-pois-search");
+    systemPoisForm.now(addSystemPoiHandlers);
+
+    let selectedPoisForm = new FormHandler("#selected-pois-search");
+    selectedPoisForm.now(addSelectedPoiHandlers);
+  });

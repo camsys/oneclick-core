@@ -1,6 +1,6 @@
 -# GUEST USERS FILTER
 =f.input :include_guests, required: false,
-  wrapper: :checkbox_wrapper,
+  wrapper: :boolean_wrapper,
   as: :boolean, label: "Include Guest Users?"
 
 -# ACCOMMODATIONS
@@ -19,8 +19,8 @@
 
 -# TRIP PLANNED DURING DATE RANGE
 =f.input :user_active_from_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today - 1.month},
   as: :string, label: "Planned Trips After"
 =f.input :user_active_to_date, required: false,
-  input_html: {class: 'datepicker'}, 
+  input_html: {class: 'datepicker', value: Date.today},
   as: :string, label: "Planned Trips Before"

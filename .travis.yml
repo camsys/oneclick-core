@@ -1,21 +1,26 @@
 language: ruby
 rvm:
-  - 2.4.0
+  - 2.6.9
+
+# https://docs.travis-ci.com/user/database-setup/#using-postgis
+services:
+- postgresql
+addons:
+  postgresql: 10
+  apt:
+    packages:
+      - postgresql-10-postgis-2.4
+
+before_install:
+- curl ifconfig.co #print IP address
+- openssl aes-256-cbc -K $encrypted_ee5f58ad4bd6_key -iv $encrypted_ee5f58ad4bd6_iv -in cpta_aws.pem.enc -out cpta_aws.pem -d
+- chmod 600 cpta_aws.pem
 
 before_script:
 - pwd
 - ls -a
 - mv config/database.yml.travis config/database.yml
 - mv config/local_env.yml.travis config/local_env.yml
-###############################################################
-## Done because travis stopped playing nice with postgis
-## From: https://github.com/travis-ci/travis-ci/issues/7048
-## Maybe remove these 4 lines eventually.
-- sudo apt-get update
-- sudo apt-get autoremove postgis*
-- sudo apt-get autoremove postgresql*
-- sudo apt-get install postgresql-9.3-postgis-2.1
-###############################################################
 
 - psql -U postgres -c "create extension postgis"
 
@@ -36,3 +41,12 @@ notifications:
 branches:
   only:
   - master
+  - develop
+  - lydia-hopelink-new
+
+deploy:
+  provider: script
+  script: bash travis_deploy.sh
+  skip_cleanup: true
+  on:
+    branch: develop

@@ -30,8 +30,20 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
-            
             <% if current_user%>
+              <li class="menu-item agency">
+                <!-- Only show agency emulation drop-down on list views. -->
+                <% if action_name.in?(["index", "root", "staff", "travelers"]) &&
+                  (current_user.oversight_staff? || current_user.oversight_admin? && @agency_map.count > 0) %>
+                  <%= form_tag change_agency_admin_users_path do %>
+                  <%= select("agency",
+                             "id",
+                             options_for_select(@agency_map, selected = (current_user&.current_agency&.id)), {:include_blank => false},
+                             :onchange => "form.submit();") %>
+                  <%= hidden_field_tag "come_from", request.fullpath %>
+                  <% end %>
+                <% end %>
+              </li>
               <li>
                 <%= link_to("Welcome #{current_user.full_name}", edit_admin_user_path(current_user), :method => :get) %> 
               </li>
@@ -71,17 +83,22 @@
     <!-- NAV MENU -->
 
     <!-- PAGE BODY -->
-    <div class="container">
-      <div class="row">
+    <div class="container-fluid">
+      <header class="row app-header__title <%= content_for?(:title) && content_for?(:header_form) ? 'header--two-col' : ''%>" >
         <div class="col-sm-12">
-          <h1 class="text-center">
+          <% if content_for?(:title) %>
+          <h1 class="text-center header__title">
             <%= yield(:title)%>
           </h1>
+          <% end %>
+          <% if content_for?(:last_updated) %>
           <p class="text-center">
             <%= yield(:last_updated)%>
           </p>
+          <% end %>
         </div>
-      </div>
+        <%= yield(:header_form) %>
+      </header>
       <div class="row">
         <%= render :partial => 'shared/flash' %>
         <div class="col-md-1"></div>
@@ -97,7 +114,10 @@
   </body>
   <footer>
     <div class="text-muted">
-      <%= "OneclickCore " + OneclickCore::Application.config.version.to_s %>
+      <%= "OneclickCore " + OneclickCore::Application.config.version.to_s + (ENV['AWS_BUCKET'] == 'occ-pa-dev' ? " (#{`git rev-parse --short HEAD`.chomp})" : '') %>
     </div>
   </footer>
+  <script defer>
+    $.fn.DataTable.ext.pager.numbers_length=5
+  </script>
 </html>

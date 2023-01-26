@@ -56,11 +56,10 @@ module Api
           @trip.user_age = @trip.user.age
           @trip.user_ip = @trip.user.current_sign_in_ip
           @trip.save
-          render success_response(@trip, serializer_opts: {include: ['*.*.*']})
+          render success_response(@trip, {serializer_opts: {include: ['*.*.*']}, errors: @trip_planner.errors})
         end
         
       end
-      
 
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.

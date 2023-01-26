@@ -26,18 +26,32 @@ class Service < ApplicationRecord
       where(id: old_schedules).destroy_all if build_consolidated.all?(&:save)
     end
   end
+
+  has_one :service_oversight_agency, dependent: :destroy
   # has_many :feedbacks, as: :feedbackable
+  has_many :travel_pattern_services, dependent: :destroy
+  has_many :travel_patterns, through: :travel_pattern_services
+
+  # Only add this association after the db is loaded so we can check config
+  # Changes to this config will require a serer restart... not ideal, maybe move it into a custom class method?
+  if ActiveRecord::Base.connection.table_exists?(:configs) && Config.dashboard_mode == "travel_patterns"
+    has_many :purposes, through: :travel_patterns
+  else
+    has_and_belongs_to_many :purposes
+  end
+
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
-  has_and_belongs_to_many :purposes, -> { distinct }
   belongs_to :agency
   belongs_to :start_area, class_name: 'Region', foreign_key: :start_area_id, dependent: :destroy
   belongs_to :end_area, class_name: 'Region', foreign_key: :end_area_id, dependent: :destroy
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
+  accepts_nested_attributes_for :travel_pattern_services, allow_destroy: true, reject_if: :all_blank
+
   ### VALIDATIONS & CALLBACKS ###
-  validates_presence_of :name, :type
+  validates_presence_of :name, :type, :agency
   validates_with FareValidator # For validating fare_structure and fare_details
   contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
@@ -59,6 +73,33 @@ class Service < ApplicationRecord
     where(type: trip_types.map { |tt| tt.to_s.classify })
   end
 
+  scope :no_agency, -> do
+    where(agency_id: nil)
+  end
+
+  scope :no_oversight_agency, -> do
+    left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null')
+  end
+
+  # Find Services with no Oversight Agency and no Transportation Agency
+  scope :no_agencies_assigned, -> do
+    left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null and services.agency_id is null')
+  end
+
+  scope :with_any_oversight_agency, -> do
+    joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is not null')
+  end
+
+  # pass in the whole agency record
+  scope :with_oversight_agency, -> (agency) do
+    joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': agency.id)
+  end
+
+  # This is a hack, we should change booking_details from a serialized string to an hstore to do proper searches
+  scope :with_home_county, -> (county) do
+    where('booking_details ~* ?', ".*home_counties:.*#{county}[ ]*(,|\n|\z).*")
+  end
+
   # Filter by age
   # These are filters, that make people ineligible.
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
@@ -71,6 +112,8 @@ class Service < ApplicationRecord
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
   ]
+
+  TAXI_SERVICES = %w[ Taxi Uber Lyft ]
 
   ### MASTER AVAILABILITY SCOPE ###
   # Returns all services available for the given trip.
@@ -217,6 +260,32 @@ class Service < ApplicationRecord
   ####################
   # INSTANCE METHODS #
   ####################
+
+  def ada_funding_source_names
+    booking_detail_to_array(:ada_funding_sources)
+  end
+
+  def banned_purpose_names
+    booking_detail_to_array(:banned_purposes)
+  end
+
+  def banned_customer_ids
+    booking_detail_to_array(:banned_users)
+  end
+
+  def home_county_names
+    booking_detail_to_array(:home_counties).map { |county_name| 
+      county_name.downcase.capitalize
+    }
+  end
+
+  def preferred_sponsor_names
+    booking_detail_to_array(:preferred_sponsors)
+  end
+
+  def preferred_funding_source_names
+    booking_detail_to_array(:preferred_funding_sources)
+  end
   
   def to_s
     name
@@ -263,6 +332,12 @@ class Service < ApplicationRecord
   # Consolidates schedules automatically after save
   def consolidate_schedules
     schedules.consolidate
+  end
+
+  def booking_detail_to_array(key)
+    booking_details.fetch(key, '')
+                    .split(',')
+                    .map(&:strip)
   end
 
 

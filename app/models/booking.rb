@@ -24,12 +24,14 @@ class Booking < ApplicationRecord
   # By default, returns true if the Booking object exists.
   # TODO: Method should be overwritten in subclass
   def booked?
+    raise "You are calling the abstact Booking class's booked? method directly instead of implementing it in a subclass."
     true
   end
   
   # By default, returns false.
   # TODO: Method should be overwritten in subclass
   def canceled?
+    raise "You are calling the abstact Booking class's canceled? method directly instead of implementing it in a subclass."
     false
   end
   
@@ -37,6 +39,10 @@ class Booking < ApplicationRecord
   def type_code
     BOOKING_TYPES.key(type)
   end
-  
+
+  # Returns a friendly response hash of itself
+  def to_h
+    self.attributes
+  end
   
 end

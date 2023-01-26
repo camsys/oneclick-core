@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe Region, type: :model do
 
   let!(:geographies) { [
-    County.find_by(name: "Essex", state: "MA"),
-    City.find_by(name: "Boston", state: "MA"),
+    County.find_by(name: "Essex"),
+    City.find_by(name: "Boston"),
     Zipcode.find_by(name: "02139")
   ] }
   let!(:region) { create(:combined_region) }

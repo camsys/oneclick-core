@@ -137,12 +137,14 @@ module Api
 
         #If the user is registered with a service, use his/her trip purposes
         trip_purposes  = []
+        trip_purposes_hash = []
         booking_profile = @traveler.booking_profiles.first
         if @traveler and booking_profile
           begin
-            trip_purposes = booking_profile.booking_ambassador.get_trip_purposes
+            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes
           rescue Exception=>e
             trip_purposes = []
+            trip_purposes_hash = []
           end
         end
         purposes = trip_purposes.sort
@@ -151,7 +153,7 @@ module Api
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
-          purpose =  booking.itinerary.trip.external_purpose
+          purpose = booking.itinerary.trip.external_purpose
           if purpose and not purpose.in? top_purposes
             top_purposes << purpose
           end
@@ -180,12 +182,28 @@ module Api
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
-          purposes_hash << {name: p, code: p, sort_order: i}
+          # Select the earliest purpose date range.
+          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
+          valid_from = nil
+          valid_until = nil
+          if trip_purpose_hash
+            valid_from = trip_purpose_hash[:valid_from]
+            valid_until = trip_purpose_hash[:valid_until]
+          end
+          purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
 
         top_purposes_hash = []
         top_purposes.each_with_index do |p, i|
-          top_purposes_hash << {name: p, code: p, sort_order: i}
+          # Select the earliest purpose date range.
+          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
+          valid_from = nil
+          valid_until = nil
+          if trip_purpose_hash
+            valid_from = trip_purpose_hash[:valid_from]
+            valid_until = trip_purpose_hash[:valid_until]
+          end
+          top_purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
 
         hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}

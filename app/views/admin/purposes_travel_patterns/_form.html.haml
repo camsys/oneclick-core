@@ -1,0 +1,19 @@
+= simple_form_for purpose,
+  url: form_url,
+  authenticity_token: true,
+  data: {type: 'html'},
+  html: {class: 'flex-outer', id: 'form_id_from_path', multipart: true, method: mode == "new" ? :post : :put} do |form|
+
+  .form-group
+    =form.input :agency, collection: [[purpose.agency.name, purpose.agency_id]], include_blank: false, disabled: true, wrapper: :travel_patterns_input_group
+    =form.hidden_field :agency_id
+    =form.input :name, placeholder: 'Enter name of trip purpose', disabled: mode == 'view', required: true, input_html: { value: purpose[:name] }, wrapper: :travel_patterns_input_group
+  .form-group
+    =form.input :description, placeholder: 'Enter description of trip purpose', disabled: mode == 'view', wrapper: :travel_patterns_input_group
+
+  .text-center
+    - if mode == 'view'
+      =link_to 'Done', admin_trip_purposes_path, class: 'btn btn-danger'
+    -else
+      =link_to 'Cancel', admin_trip_purposes_path, class: 'btn btn-danger'
+      =form.submit class: 'btn btn-primary'

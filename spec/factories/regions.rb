@@ -15,15 +15,15 @@ FactoryBot.define do
 
     factory :big_region do
       recipe do
-        GeoRecipe.new([City.find_by(name: "Cambridge", state: "MA").to_geo])
+        GeoRecipe.new([City.find_by(name: "Cambridge").to_geo])
       end
     end
 
     factory :combined_region do
       recipe do
         GeoRecipe.new([
-          County.find_by(name: "Essex", state: "MA").to_geo,
-          City.find_by(name: "Boston", state: "MA").to_geo,
+          County.find_by(name: "Essex").to_geo,
+          City.find_by(name: "Boston").to_geo,
           Zipcode.find_by(name: "02139").to_geo
         ])
       end

@@ -1,34 +1,43 @@
+- can_update = (can? :update, @service)
+- locals_hide_footer = { hide_footer: !can_update }
 =content_for :title do
-  = "Editing #{@service.type} Service: #{@service.name}"
-
+  = "#{can_update ? "Editing" : "Viewing"} #{@service.type} Service: #{@service.name}"
 =content_for :last_updated do
   = "Last Updated: #{@service.updated_at.strftime('%b %e, %Y at %I:%M %p')}"
 
-=render partial: 'service_general_info', layout: '/layouts/panel'
-=render partial: 'service_description', layout: '/layouts/panel'
+=render partial: 'service_general_info', layout: '/layouts/panel', locals: locals_hide_footer
+=render partial: 'service_agency_info', layout: '/layouts/panel', locals: locals_hide_footer
+=render partial: 'service_description', layout: '/layouts/panel', locals: locals_hide_footer
 
 -case @service.type
 -when 'Transit'
-  =render partial: 'transit_details', layout: '/layouts/panel'
-  =render partial: 'service_fares', layout: '/layouts/panel'
+  =render partial: 'transit_details', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Paratransit'
-  =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel'
-  =render partial: 'paratransit_purposes', layout: '/layouts/panel'
-  =render partial: 'paratransit_service_areas', layout: '/layouts/panel'
-  =render partial: 'paratransit_schedules', layout: '/layouts/panel'
-  =render partial: 'service_fares', layout: '/layouts/panel'
-  =render partial: 'paratransit_booking', layout: '/layouts/panel'
+  -if Config.dashboard_mode == 'travel_patterns'
+    =render partial: 'travel_patterns', layout: '/layouts/panel', locals: locals_hide_footer
+  -else
+    // paratransit are loaded via gtfs in OTP v2 and can have transit details
+    - if Config.open_trip_planner_version == 'v2'
+      =render partial: 'transit_details', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'paratransit_schedules', layout: '/layouts/panel', locals: locals_hide_footer
+    =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'paratransit_booking', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Taxi'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel'
-  =render partial: 'taxi_service_area', layout: '/layouts/panel'
-  =render partial: 'service_fares', layout: '/layouts/panel'
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'taxi_service_area', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'service_fares', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Uber'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel'
-  =render partial: 'uber_service_area', layout: '/layouts/panel'
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'uber_service_area', layout: '/layouts/panel', locals: locals_hide_footer
 -when 'Lyft'
-  =render partial: 'taxi_accommodations', layout: '/layouts/panel'
-  =render partial: 'lyft_service_area', layout: '/layouts/panel'
-  
-=render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }
+  =render partial: 'taxi_accommodations', layout: '/layouts/panel', locals: locals_hide_footer
+  =render partial: 'lyft_service_area', layout: '/layouts/panel', locals: locals_hide_footer
+-if can? :update, @service
+  =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_delete: (cannot? :delete, @service), hide_footer: true }
+
 
 =back_link admin_services_path, label: "All Services"

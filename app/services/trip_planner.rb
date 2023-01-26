@@ -49,7 +49,17 @@ class TripPlanner
     build_all_itineraries
 
     # Run through post-planning filters
-    filter_itineraries 
+    filter_itineraries
+    no_transit = true
+    no_paratransit = true
+    @trip.itineraries.each do |itin|
+      if itin.trip_type == "transit"
+        no_transit = false
+      elsif itin.trip_type == "paratransit"
+        no_paratransit = false
+      end
+    end
+    @trip.no_valid_services = no_paratransit && no_transit
     @trip.save
   end
 
@@ -71,40 +81,37 @@ class TripPlanner
     # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
 
-    # Filter out servies where the age REQUIREMENTS are not met (NOTE: age requirements are different than age eligibilities)
+    # Only select services that your age makes you eligible for
     if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    # Find all the services that are available for your time and locations
-    @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+    # Apply remaining filters if not in travel patterns mode.
+    # Services using travel patterns are checked through travel patterns API.
+    if Config.dashboard_mode != 'travel_patterns'
+      # Find all the services that are available for your time and locations
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-    # Pull out the relevant purposes, eligbilities, and accommodations of these services
-    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-    @relevant_accommodations = Accommodation.all.ordered_by_rank
+      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
 
-    # Now finish filtering by purposes, eligible ages, eligibility booleans, and accommodations
-    ### Split off services that are available by age    
-    @eligible_by_age = @available_services.none
-    if @trip.user and @trip.user.age 
-      @eligible_by_age = (@available_services.by_eligible_max_age(@trip.user.age) + @available_services.by_eligible_min_age(@trip.user.age)).uniq
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    else
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      options = {}
+      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
+      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
+      options[:date] = @trip.trip_time.to_date if @trip.trip_time
+      
+      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
     end
-
-    # Pull out services that are not eligible by age, but MAY be eligible by other criteria
-    @not_eligible_by_age = @available_services.where.not(id: @eligible_by_age)
-
-    #Convert the Arrays to Relations
-    @eligible_by_age = @master_service_scope.published.where(id: @eligible_by_age)
-    
-    #Filter age eligible and not age eligible separately and then join them back together
-    @not_eligible_by_age =  @not_eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    @eligible_by_age =  @eligible_by_age.available_for(@trip, only_by: (@filters & [:purpose, :accommodation]))
-
-    @available_services = (@eligible_by_age + @not_eligible_by_age).uniq
-    
-    # Convert this Array back to a relation OPTIMIZE this
-    @available_services = @master_service_scope.published.where(id: @available_services.pluck(:id))
 
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
@@ -121,16 +128,23 @@ class TripPlanner
   
   # Builds itineraries for all trip types
   def build_all_itineraries
-    @trip.itineraries += @trip_types.flat_map {|t| build_itineraries(t)}
+    trip_itineraries = @trip_types.flat_map {|t| build_itineraries(t)}
+    new_itineraries = trip_itineraries.reject(&:persisted?)
+    old_itineraries = trip_itineraries.select(&:persisted?)
+
+    Itinerary.transaction do
+      old_itineraries.each(&:save!)
+      @trip.itineraries += new_itineraries
+    end
   end
 
   # Additional sanity checks can be applied here.
   def filter_itineraries
     walk_seen = false
+    max_walk_minutes = Config.max_walk_minutes || 45
     itineraries = @trip.itineraries.map do |itin|
 
       ## Test: Make sure we never exceed the maximium walk time
-      max_walk_minutes = Config.max_walk_minutes || 45
       if itin.walk_time and itin.walk_time > max_walk_minutes*60
         next
       end
@@ -148,6 +162,7 @@ class TripPlanner
       itin 
     end
     itineraries.delete(nil)
+
     @trip.itineraries = itineraries
   end
 
@@ -185,30 +200,66 @@ class TripPlanner
   def build_paratransit_itineraries
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
-    itineraries = @available_services[:paratransit].map do |svc|
-      
-      #TODO: this is a hack and needs to be replaced.
-      # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
-      # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
-      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
-        next
-      end 
-      Itinerary.new(
-        service: svc,
-        trip_type: :paratransit,
-        cost: svc.fare_for(@trip, router: @router),
-        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier,
-      )
+    # gtfs flex can load paratransit itineraries but not all otp instances have flex
+    if Config.open_trip_planner_version == 'v2'
+      otp_itineraries = build_fixed_itineraries(:paratransit)
+      paratransit_service_ids = @available_services[:paratransit].pluck(:id)
+      # paratransit itineraries can return just transit since we also look for a mixed
+      # filter these out
+      # then set itineraries that are a mix of paratransit and transit mixed
+      router_paratransit_itineraries = otp_itineraries.map{|itin|
+        no_paratransit = true
+        has_transit = false
+        itin.legs.each do |leg|
+          no_paratransit = false if leg['mode'].include?('FLEX') && paratransit_service_ids.include?(leg['serviceId'])
+          has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
+        end
+        if no_paratransit
+          next nil
+        end
+        itin.trip_type = 'paratransit_mixed' if has_transit
+        itin
+      }.compact
+      return router_paratransit_itineraries
+    else
+      itineraries = @available_services[:paratransit].map do |svc|
 
-    end
-
-    # Get rid of nil itineraries caused by skipping Ecolane Services
-    itineraries.delete(nil)
-
-    if itineraries.blank? 
-      return []
-    else 
-      return itineraries 
+        # Should not be able to use the paratransit service if booking API is not set up.
+        Rails.logger.info("Checking service id: #{svc&.id}")
+        if svc.booking_api != "ecolane"
+          next nil
+        end
+        #TODO: this is a hack and needs to be replaced.
+        # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
+        # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
+        if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
+          next nil
+        end
+  
+        # Look for an existing itinerary
+        # But ones that don't have a booking attached
+        # Otherwise, create a new itinerary
+        itinerary = Itinerary.left_joins(:booking)
+                              .where(bookings: { id: nil })
+                              .find_or_initialize_by(
+                                service_id: svc.id,
+                                trip_type: :paratransit,
+                                trip_id: @trip.id,
+                              )
+  
+        # Whether an itinerary was found, or initialized, we need to update it
+        itinerary.assign_attributes({
+          assistant: @options[:assistant],
+          companions: @options[:companions],
+          cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
+          transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+        })
+  
+        itinerary
+      end
+  
+      # Get rid of nil itineraries caused by skipping Ecolane Services
+      itineraries.compact
     end
 
   end

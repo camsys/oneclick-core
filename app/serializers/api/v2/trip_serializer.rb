@@ -30,11 +30,13 @@ module Api
       end
 
       def all_trip_types
+        # most clients should have trip types loaded under the global translations but some might not
+        translation_prefix = TranslationKey.find_by(name: "global.mode_#{Trip::TRIP_TYPES[0]}_name").nil? ? "mode" : "global.mode"
         Trip::TRIP_TYPES.map {
             |trip_type|
           {
               code: trip_type,
-              name: SimpleTranslationEngine.translate(locale, "mode_#{trip_type}_name")
+              name: SimpleTranslationEngine.translate(locale, "#{translation_prefix}_#{trip_type}_name")
           }
         }
       end

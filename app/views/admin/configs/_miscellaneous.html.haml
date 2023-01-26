@@ -11,6 +11,14 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  = f.input :dashboard_mode, require: true,
+    label: "Dashboard Mode",
+    include_blank: false,
+    name_method: :name,
+    value_method: :value,
+    collection: build_dashboard_mode_collection,
+    selected: Config.find_by(key: :dashboard_mode).try(:value) || :default
+
   = f.input :feedback_overdue_days, required: true,
     label: "Days before sending feedback reminders",
     input_html: {value: (Config.find_by(key: :feedback_overdue_days).try(:value) || 5)},
@@ -30,7 +38,24 @@
     label: "Max walk minutes",
     input_html: {value: (Config.find_by(key: :max_walk_minutes).try(:value) || "45")},
     as: :integer
-    
+  
+  - if Config.open_trip_planner_version == 'v2'
+    = f.input :walk_reluctance, require: true,
+      label: "Walk reluctance",
+      input_html: {value: (Config.find_by(key: :walk_reluctance).try(:value) || "10")},
+      as: :integer
+
+    = f.input :bike_reluctance, require: true,
+      label: "Bike reluctance",
+      input_html: {value: (Config.find_by(key: :bike_reluctance).try(:value) || "5")},
+      as: :integer
+
+  = f.input :maximum_booking_notice, require: true,
+    label: "Maximum Booking Notice (Days)",
+    input_html: {value: (Config.find_by(key: :maximum_booking_notice).try(:value) || "30")},
+    as: :integer
+
+
 :javascript
   $(document).ready(function() {    
     new FormHandler($('#{form_selector_from_id}'));

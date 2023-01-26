@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Admin::AlertsController, type: :controller do
-  
-  let(:admin) { create(:admin) }
+
+  let(:superuser) { create(:superuser) }
 
   let!(:alert) { create(:alert) }
   let!(:expired_alert) { create(:expired_alert) }
@@ -34,14 +34,14 @@ RSpec.describe Admin::AlertsController, type: :controller do
       expiration: "2017-09-15",
       audience: "specific_users",
       audience_details: {
-         user_emails: "#{admin.email},bad@email.com"
+         user_emails: "#{superuser.email},bad@email.com"
       }
     }
   }}
 
-  context "while signed in as an admin" do
+  context "while signed in as a superuser" do
   
-	  before(:each) { sign_in admin }
+	  before(:each) { sign_in superuser }
 	  
 	  it 'gets a list of all active alerts' do    
 	    get :index
@@ -73,7 +73,7 @@ RSpec.describe Admin::AlertsController, type: :controller do
       expect(Alert.count).to eq(count + 1)
       expect(Alert.last.en_subject).to eq('english subject 1')
       expect(Alert.last.audience).to eq('specific_users')
-      expect(Alert.last.audience_details[:user_emails]).to eq(admin.email)
+      expect(Alert.last.audience_details[:user_emails]).to eq(superuser.email)
     
       delete :destroy, params: {id: Alert.last.id}, format: :js
       expect(Alert.count).to eq(count)
@@ -93,7 +93,7 @@ RSpec.describe Admin::AlertsController, type: :controller do
       expect(Alert.count).to eq(count + 1)
       expect(Alert.last.en_subject).to eq('english subject 1')
       expect(Alert.last.audience).to eq('specific_users')
-      expect(Alert.last.audience_details[:user_emails]).to eq(admin.email)
+      expect(Alert.last.audience_details[:user_emails]).to eq(superuser.email)
 
       delete :destroy, params: {id: Alert.last.id}, format: :js
       expect(Alert.count).to eq(count)

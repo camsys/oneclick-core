@@ -7,6 +7,78 @@ div.radio {
   padding-left: 15px;
 }
 
+.nav.navbar-right.navbar-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline
+}
+
+// Fixes strange checkbox alignment in User Reports Download component
+.boolean-wrapper > .col-sm-9 > .input-group.col-sm-12 {
+  margin-left: 20px;
+}
+header.app-header__title {
+  margin-bottom: 16px;
+}
+// NOTE: The two column header isn't responsive so the admin console will not reflow
+// well on any screens smaller than a tablet in landscape mode
+header.header--two-col {
+  display: flex;
+  margin: 20px 0 10px 0;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  > * {
+    max-width: 40vw;
+    height: 100%;
+  }
+  > div > h1 {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+.container--two-col {
+  display: flex;
+  > *:first-child {
+    min-width: 55%;
+    height: 100%;
+  }
+  > *:last-child {
+    min-width: 45%;
+    height: 100%;
+  }
+}
+footer.footer__links {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 36px;
+
+  & *:not(:last-child) {
+    margin-right: 16px;
+  }
+}
+
+.btn.btn--no-bg {
+  border: none;
+  background:transparent;
+  line-height: 1;
+}
+
+.flex-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.input-wrapper--no-padding {
+  padding: 0;
+  & div, & label:not(:last-child) {
+    padding-right: 0;
+    padding-left: 8px;
+  }
+}
 .sk-circle {
   margin: 100px auto;
   width: 40px;

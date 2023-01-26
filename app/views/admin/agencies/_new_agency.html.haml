@@ -2,4 +2,64 @@
   = "Create a New Agency"
 
 = f.input :name, required: true, as: :string
-= f.input :type, required: true, collection: Agency::AGENCY_TYPES, include_blank: "Select an Agency Type"
+= f.input :agency_type_id,
+  selected: !current_user.superuser? && @agency_types.first&.id,
+  disabled: !current_user.superuser?,
+  required: true,
+  collection: @agency_types,
+  include_blank: "Select an Agency Type"
+= f.input :agency_type_id,
+  as: :hidden,
+  disabled: current_user.superuser?,
+  required: true,
+  collection: @agency_types,
+  include_blank: "Select an Agency Type",
+  input_html: {id: 'hidden_agency_type_id',
+    value: @agency_types.first&.id}
+=simple_form_for :oversight do |foa|
+  -# Automatically assign the new agency to the current user's oversight agency
+    if they are an oversight agency admin
+    - transportation staff doesn't need to be accounted for as they cannot make new agencies
+  - if current_user.staff_agency&.oversight?
+    = foa.input :oversight_agency_id,
+      disabled: true,
+      collection: [current_user.staff_agency],
+      include_blank: 'Select an Oversight Agency',
+      label_method: :name,
+      selected: current_user.staff_agency&.id,
+      class: 'hidden',
+      wrapper_html: {id: 'oversight_select'}
+    -# HIDDEN INPUT FOR OVERSIGHT AGENCY ID WHEN APPLICABLE,
+      SHOULD BE DISABLED IF SUPERUSER AS SUPERUSER CAN SELECT ALL OVERSIGHT AGENCIES
+    = foa.input :oversight_agency_id,
+      as: :hidden,
+      name: 'oversight[oversight_agency_id]',
+      label: 'Oversight Agency:',
+      input_html: {id: 'hidden_oversight_agency',
+        value: current_user.staff_agency&.id}
+  -# Otherwise, if they're a superuser, render a dropdown
+  - if current_user.superuser?
+    = foa.input :oversight_agency_id,
+      required: true,
+      collection: OversightAgency.all.order(:name),
+      include_blank: 'Select an Oversight Agency',
+      label_method: :name,
+      value_method: :id,
+      wrapper_html: {id: 'oversight_select'}
+
+:javascript
+  $(document).ready(function() {
+    const typeSelect = document.getElementById('agency_agency_type_id')
+    /** Register an event listener on the agency_type input
+      that toggles the display on the oversight select form depending
+      on the value they select
+    */
+    typeSelect.addEventListener('change', function(event) {
+      if (event.target.value !== "#{@agency_types.find_by(name:'TransportationAgency').id}") {
+        document.getElementById('oversight_select').style["display"] = "none"
+      } else {
+        document.getElementById('oversight_select').style["display"] = "block"
+
+      }
+    })
+  });

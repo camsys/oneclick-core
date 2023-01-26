@@ -1,3 +1,6 @@
+-# LOCALS:
+  hide_delete: if hide_delete=true, then hide the delete button
+
 =content_for :header do
   Danger Zone
 
@@ -16,11 +19,12 @@
       =link_to "Publish", admin_agency_path(id: @agency.id, agency: { published: true }),
           method: :patch,
           class: "btn btn-success"
-.row.form-group
-  .col-sm-9
-    %label Delete the Agency, permanently removing it from the database.
-  .col-sm-3
-    =link_to "Delete this Agency", admin_agency_path(@agency), 
-        method: :delete, 
-        class: "btn btn-danger", 
-        data: {confirm: "Are you sure?  This action cannot be undone!"}
+- unless hide_delete
+  .row.form-group
+    .col-sm-9
+      %label Delete the Agency, permanently removing it from the database.
+    .col-sm-3
+      =link_to "Delete this Agency", admin_agency_path(@agency),
+          method: :delete,
+          class: "btn btn-danger",
+          data: {confirm: "Are you sure?  This action cannot be undone!"}

@@ -1,0 +1,16 @@
+.btn.ingredient-container{style: 'height: 42px;' }
+  .col-sm-5
+    %label{style: 'display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis;' }
+  .col-sm-1
+    %button.btn.btn-link.delete-geography{type:"button", style: 'padding-top: 0;', disabled: local_assigns[:can_update] == false}
+      %span.glyphicon.glyphicon-remove
+  .col-sm-2
+    .form-check
+      %input.form-check-input{:name => "zone_buffer_checkbox", :type => "checkbox"}
+      Buffer:
+  .col-sm-3
+    %input.form-control.numeric{ type: 'number',
+          value: 0,
+          name: 'zone_buffer', style: 'vertical-align: middle;' }
+  .col-sm-1
+    ft.

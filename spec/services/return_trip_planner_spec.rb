@@ -29,8 +29,7 @@ RSpec.describe ReturnTripPlanner do
     
   end
   
-  it "plans return trip with only one itinerary based on outbound trip's selected service" do
-    
+  it "plans return trip with only one itinerary based on outbound trip's selected service" do    
     expect(rtp.outbound_trip.itineraries.count).to be > 1
     expect(rtp.trip.itineraries.count).to eq(0)
     

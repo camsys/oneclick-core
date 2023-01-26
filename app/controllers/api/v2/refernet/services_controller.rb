@@ -168,14 +168,14 @@ module Api
         def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
-          otp = OTP::OTPService.new(Config.open_trip_planner)
+          otp_version = Config.open_trip_planner_version || 'v1'
+          otp = OTP::OTPService.new(Config.open_trip_planner, otp_version)
             
           ### Build the requests
           requests = []
           services.each do |service|
             unless service.latlng.nil?
               ['TRANSIT,WALK', 'CAR'].each do |mode|
-              #['CAR'].each do |mode|
                 new_request = build_request(origin, service, mode)
                 unless new_request.nil? 
                   requests << new_request

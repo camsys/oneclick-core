@@ -1,10 +1,13 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, :purpose,
+    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
+            :disposition_status,
+            :selected_trip_type,
+            :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :selected_trip_type, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
     associations :origin, :destination, :user, :selected_itinerary
 
     def trip_id
@@ -33,65 +36,55 @@ module Admin
       @record.user && @record.user.county
     end
 
-    def traveler_paratransit_id
-      @record.user && @record.user.paratransit_id
+    def trip_time
+      @record.trip_time&.in_time_zone
+    end
+
+    def traveler
+      @record.user&.email
     end
 
     def purpose
-      @record.purpose && @record.purpose.code
+      puts
+      if @record.external_purpose
+        @record.external_purpose
+      elsif @record.purpose
+        @record.purpose.code
+      else
+        "N/A"
+      end
     end
     
     def orig_addr
-      @record.origin && @record.origin.address
+      @record.origin&.address
     end
-
-    def orig_county
-      @record.origin&.county
-    end
-
+    
     def orig_lat
-      @record.origin && @record.origin.lat
+      @record.origin&.lat
     end
     
     def orig_lng
-      @record.origin && @record.origin.lng
+      @record.origin&.lng
     end
     
     def dest_addr
-      @record.destination && @record.destination.address
-    end
-
-    def dest_county
-      @record.destination&.county
+      @record.destination&.address
     end
 
     def dest_lat
-      @record.destination && @record.destination.lat
+      @record.destination&.lat
     end
     
     def dest_lng
-      @record.destination && @record.destination.lng
+      @record.destination&.lng
     end
-
-    # 211 Ride/ OCC-IEUW SPECIFIC: pull trip types from the generated itineraries that are attached to a trip
+    
     def selected_trip_type
-      @record.itineraries.pluck(:trip_type).uniq.reduce('') {|string, trip_type| "#{string}#{trip_type}; "}
+      @record.selected_itinerary&.trip_type || (@record.details && @record.details[:trip_type]) || "N/A"
     end
 
-    def traveler_age
-      @record.user_age
-    end
-
-    def traveler_ip
-      @record.user_ip
-    end
-
-    def traveler_accommodations
-      @record.trip_accommodations.reduce('') {|string, acc_hash| "#{string}#{acc_hash&.accommodation&.code}; "}
-    end
-
-    def traveler_eligibilities
-      @record.trip_eligibilities.reduce('') {|string, elg_hash| "#{string}#{elg_hash&.eligibility&.code}; "}
+    def disposition_status
+      @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
     end
 
   end

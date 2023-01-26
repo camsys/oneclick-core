@@ -19,11 +19,14 @@ module Api
         hours = {}
         #if @traveler.is_visitor? or @traveler.is_api_guest? #Return a wide range of hours
         if not @traveler or not @traveler.registered?
-          (3..21).each do |n|
+          (0..30).each do |n|
             hours[(today + n).to_s] = {open: "07:00", close: "22:00"}
           end
 
         else # This is not a guest, check to see if the traveler is registered with a service
+
+          # NOTE(wilsonj806) For now this implementation does not let registered users
+          #...book trips on weekends. Eventually we want to change that so they can do so
 
           if @traveler.booking_profiles.count > 0 #This user is registered with a service
             booking_profile = @traveler.booking_profiles.first

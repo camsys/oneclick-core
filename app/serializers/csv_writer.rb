@@ -16,7 +16,10 @@ class CSVWriter
   # 5. In the controller's respond_to block, download the CSV with something like:
   #    `format.csv { send_data @records.to_csv }`
   ##################
-  
+
+  # Set a standard reference quantity for records written when using the write_file_with_limit method
+  DEFAULT_RECORD_LIMIT = 50000
+
   #################
   # CLASS METHODS #
   #################
@@ -96,6 +99,36 @@ class CSVWriter
       end
     end
     
+  end
+
+  # Writes a CSV file with a limited number of rows
+  def write_file_with_limit(opts={})
+    batches_of = opts[:batches_of] || 1000
+
+    CSV.generate(headers: true) do |csv|
+      csv << headers.values # Header row
+      row_count = 1
+
+      # Write rows for all records in the collection, in batches as defined.
+      self.records.in_batches(of: batches_of) do |batch|
+        # Terminates the loop if number of rows written exceeds the specified limit
+        if row_count > opts[:limit]
+          break
+        end
+        batch.all.each do |record, idx|
+          if row_count > opts[:limit]
+            break
+          else
+            @record = record  # Set record instance variable to the current record from the batch
+            csv << self.write_row
+            if row_count == opts[:limit]
+              csv << ["Records have been limited to #{opts[:limit]}."]
+            end
+          end
+          row_count += 1
+        end
+      end
+    end
   end
   
   protected

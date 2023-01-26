@@ -13,6 +13,7 @@ class Region < ApplicationRecord
 
   ### SCOPES ###
   scope :containing, -> (geom2) { where("ST_Contains(geom, ?)", geom2) }
+  scope :containing_point, -> (lng, lat) { where("ST_Contains(geom, ST_SetSRID(ST_Point(?, ?), 4326))", lng, lat) }
   scope :origin_for, -> (trip) { containing(trip.origin.geom) }
   scope :destination_for, -> (trip) { containing(trip.destination.geom) }
 
@@ -29,7 +30,7 @@ class Region < ApplicationRecord
   
   # Tests if the region contains an empty geometry (but not a nil geometry)
   def empty?
-    geom && geom.try(:is_empty?)
+    geom && geom.try(:empty?)
   end
   
   # Tests if the region contains the other geom object passed as an argument

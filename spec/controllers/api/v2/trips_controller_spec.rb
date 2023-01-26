@@ -1,28 +1,46 @@
 require 'rails_helper'
 
 RSpec.describe Api::V2::TripsController, type: :controller do
-  
+  let!(:user) { create(:user) }  
+  let!(:user_agency) { create(:transportation_agency, name: "User Agency") }
+  let(:user_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
+  let!(:weekly_pattern) { create(:travel_pattern, :with_weekly_pattern_schedule, agency: user_agency) }
+  let(:weekly_date) { (Date.current + 2.days).strftime('%Y-%m-%d') }
+
   # Create necessary configs, purposes, and characteristics
   before(:each) do
+    create(:traveler_transit_agency, transportation_agency: user_agency, user: user)
+
     create(:otp_config)
     create(:tff_config)
     create(:uber_token)
     create(:lyft_client_token)
-    3.times { |i| create(:purpose, code: "purpose_#{i}")}
+    3.times { |i| create(:purpose)}
+    create(:travel_pattern_purpose, travel_pattern: weekly_pattern, purpose: Purpose.first)
   end
-  
-  let!(:user) { create(:user) }  
-  let(:user_headers) { {"X-USER-EMAIL" => user.email, "X-USER-TOKEN" => user.authentication_token} }
-  
-  
+
+  let(:origin) { 
+    geom = weekly_pattern.origin_zone.region.geom
+    {
+      lat: geom.centroid.y,
+      lng: geom.centroid.x
+    }
+  }
+  let(:destination) { 
+    geom = weekly_pattern.destination_zone.region.geom
+    {
+      lat: geom.centroid.y,
+      lng: geom.centroid.x
+    }
+  }
   let(:plan_call_params) { 
     {
-      trip: { # create a trip with random attributes
-        origin_attributes: { lat: 28 + rand(10)/10.0, lng: -81 - rand(10)/10.0 },
-        destination_attributes: { lat: 28 + rand(10)/10.0, lng: -81 - rand(10)/10.0 },
+      trip: {
+        origin_attributes: origin,
+        destination_attributes: destination,
         arrive_by: (rand(2) == 1),
-        trip_time: (DateTime.now + rand(30).days + rand(24).hours + rand(60).minutes).iso8601,
-        purpose: Purpose.first.code.to_s
+        trip_time: (Date.current + 2.days + 12.hours).iso8601,
+        purpose: Purpose.first.name
       },
       trip_types: [:paratransit, :walk],
       only_filters: [:schedule, :eligibility, :purpose],
@@ -56,10 +74,10 @@ RSpec.describe Api::V2::TripsController, type: :controller do
       requested_trip = plan_call_params[:trip]
       created_trip = assigns(:trip)
       
-      expect(created_trip.origin.lat.to_f).to eq(requested_trip[:origin_attributes][:lat])
-      expect(created_trip.origin.lng.to_f).to eq(requested_trip[:origin_attributes][:lng])
-      expect(created_trip.destination.lat.to_f).to eq(requested_trip[:destination_attributes][:lat])
-      expect(created_trip.destination.lng.to_f).to eq(requested_trip[:destination_attributes][:lng])
+      expect(created_trip.origin.lat.to_f).to eq(requested_trip[:origin_attributes][:lat].round(6))
+      expect(created_trip.origin.lng.to_f).to eq(requested_trip[:origin_attributes][:lng].round(6))
+      expect(created_trip.destination.lat.to_f).to eq(requested_trip[:destination_attributes][:lat].round(6))
+      expect(created_trip.destination.lng.to_f).to eq(requested_trip[:destination_attributes][:lng].round(6))
       expect(created_trip.arrive_by).to eq(requested_trip[:arrive_by])
       expect(created_trip.trip_time).to eq(requested_trip[:trip_time])
       expect(created_trip.purpose).to eq(Purpose.find_by(code: requested_trip[:purpose]))

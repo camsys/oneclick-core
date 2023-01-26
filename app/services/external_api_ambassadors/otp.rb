@@ -9,9 +9,11 @@ module OTP
 
   class OTPService
     attr_accessor :base_url
+    attr_accessor :version
 
-    def initialize(base_url="")
+    def initialize(base_url="", version="v1")
       @base_url = base_url
+      @version = version
     end
 
     # Makes multiple OTP requests in parallel, and returns once they're all done.
@@ -23,7 +25,7 @@ module OTP
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
           url = plan_url(request)
-          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 60, inactivity_timeout: 60).get
+          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 60, inactivity_timeout: 60, tls: {verify_peer: true}).get
         end
 
         responses = nil
@@ -36,7 +38,6 @@ module OTP
       return responses
 
     end
-
 
     # Constructs an OTP request url
     def plan_url(request)
@@ -68,7 +69,7 @@ module OTP
       mode = options[:mode] || "TRANSIT,WALK"
       wheelchair = options[:wheelchair] || "false"
       walk_speed = options[:walk_speed] || 3.0 #walk_speed is defined in MPH and converted to m/s before going to OTP
-      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP
+      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP v1
       max_bicycle_distance = options[:max_bicycle_distance] || 5
       optimize = options[:optimize] || 'QUICK'
       num_itineraries = options[:num_itineraries] || 3
@@ -76,6 +77,10 @@ module OTP
       max_transfer_time = options[:max_transfer_time] || nil
       banned_routes = options[:banned_routes] || nil
       preferred_routes = options[:preferred_routes] || nil
+
+      walk_reluctance = options[:walk_reluctance] || Config.walk_reluctance
+      bike_reluctance = options[:bike_reluctance] || Config.bike_reluctance
+      wait_reluctance = options[:wait_reluctance]
 
       #Parameters
       time = trip_datetime.strftime("%-I:%M%p")
@@ -106,15 +111,33 @@ module OTP
         url_options += "&minTransferTime=" + min_transfer_time.to_s
       end
 
-      unless max_transfer_time.nil?
-        url_options += "&maxTransferTime=" + max_transfer_time.to_s
+      # v2 doesn't like max* fields in favor of *reluctance fields
+      # reluctance fields are also in v1 but we only use them in v2 here
+      if @version == 'v2'
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          unless bike_reluctance.nil?
+            url_options += "&bikeReluctance=" + bike_reluctance.to_s
+          end
+        else
+          unless walk_reluctance.nil?
+            url_options += "&walkReluctance=" + walk_reluctance.to_s
+          end
+        end
+      else
+        unless max_transfer_time.nil?
+          url_options += "&maxTransferTime=" + max_transfer_time.to_s
+        end
+
+        # If it's a bicycle trip, OTP uses walk distance as the bicycle distance
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
+        else
+          url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+        end
       end
 
-      #If it's a bicycle trip, OTP uses walk distance as the bicycle distance
-      if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
-        url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
-      else
-        url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+      unless wait_reluctance.nil?
+        url_options += "&waitReluctance=" + wait_reluctance.to_s
       end
 
       url_options += "&numItineraries=" + num_itineraries.to_s
@@ -176,8 +199,9 @@ module OTP
       'park_transit':'CAR_PARK,WALK,TRANSIT',
       'car_transit':'CAR,WALK,TRANSIT',
       'bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
-      'rail':'TRAINISH,WALK',
-      'bus':'BUSISH,WALK',
+      'paratransit':'TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT',
+      'rail':'TRAM,SUBWAY,RAIL,WALK',
+      'bus':'BUS,WALK',
       'walk':'WALK',
       'car':'CAR',
       'bicycle':'BICYCLE'}

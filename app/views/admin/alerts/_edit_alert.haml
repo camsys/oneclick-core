@@ -1,5 +1,5 @@
 =content_for :header do
-  ="Edit Alert"
+  ="#{(can? :update, @alert) ? "Editing" : "Viewing"} Alert"
   =render partial: "shared/published_badge", locals: {object: @alert}
 
 -audience_details = @alert.audience_details || {}
@@ -15,14 +15,30 @@
     -I18n.available_locales.each do |locale|
       %h3.text-center
         =locale
-      = tf.input "#{locale}_subject", label:"Subject", :as => :string, input_html: {value: @alert.send("#{locale}_subject")}
-      = tf.input "#{locale}_message", label:"Message", :as => :text, input_html: {value: @alert.send("#{locale}_message")}
+      = tf.input "#{locale}_subject",
+        label:"Subject",
+        :as => :string,
+        input_html: {value: @alert.send("#{locale}_subject")},
+        readonly: (cannot? :update, @alert)
+      = tf.input "#{locale}_message",
+        label:"Message",
+        :as => :text,
+        input_html: {value: @alert.send("#{locale}_message")},
+        readonly: (cannot? :update, @alert)
 
   %hr
-  =f.input :expiration, required: false,
-    input_html: {class: 'datepicker', value: @alert.expiration.strftime("%Y-%m-%d")}, 
+  =f.input :expiration,
+    required: false,
+    readonly: (cannot? :update, @alert),
+    input_html: {class: 'datepicker',
+    value: @alert.expiration.strftime("%Y-%m-%d")},
     as: :string, label: "Expires"
-  =f.input :audience, input_html: {id: 'audience-type'}, include_blank: false, collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+  =f.input :audience,
+    input_html: {id: 'audience-type'},
+    readonly: (cannot? :update, @alert),
+    include_blank: false,
+    collection: Alert::AUDIENCE_TYPES.map {|a_t| [a_t.to_s.titleize, a_t]}
+
 
   .audience-inputs.specific_users.hidden
     =f.fields_for :audience_details do |ad|

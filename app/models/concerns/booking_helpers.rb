@@ -22,15 +22,29 @@ module BookingHelpers
     def booking_profile_for(service)
       booking_profiles.find_by(service_id: service.try(:id))
     end
+
+    def verify_default_booking_presence
+      booking_profiles.find_or_create_by(service_id:nil) do |profile|
+        # Return if profile.details is present
+        return nil unless profile.details.nil?
+        # Otherwise, create default profile details with notification preferences
+        profile.details = {
+          notification_preferences: {
+            fixed_route: Config::DEFAULT_NOTIFICATION_PREFS
+          }
+        }
+        puts "created default booking profile for #{self.email}"
+      end
+    end
     
     # Returns true if the user has a booking_profile for the given service
     def has_booking_profile_for?(service) 
       booking_profile_for(service).present? and booking_profile_for(service).authenticate?
     end
 
-    def sync
-      booking_profiles.each do |bp|
-        bp.booking_ambassador.sync
+    def sync days_ago=1
+      booking_profiles.valid_service.each do |bp|
+        bp.booking_ambassador.sync(days_ago)
       end
     end
     
@@ -149,7 +163,7 @@ module BookingHelpers
     # Configure including class
     def self.included(base)
       base.has_one :booking
-      base.scope :booked_or_cancelled, -> { joins(:booking) }
+      base.scope :booked_or_canceled, -> { joins(:booking) }
     end
     
     # Initializes a BookingAmbassador object of the appropriate type

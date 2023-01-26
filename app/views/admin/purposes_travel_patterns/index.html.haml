@@ -1,0 +1,41 @@
+=content_for :title do
+  Trip Purposes
+
+%table.table.table-hover.datatable#purpose-travel-patterns-table
+  %thead.thead-default
+    %tr
+      %th Agency
+      %th Name
+      %th
+      
+  -@purposes.each do |purpose|
+    %tr
+      %td
+        =purpose.agency.name
+      %td
+        =purpose[:name]
+      %td.text-right
+        - if can? :update, Purpose
+          =link_to edit_admin_trip_purpose_path(purpose), class: "btn btn--no-bg" do
+            %span.glyphicon.glyphicon-pencil
+        - else
+          =link_to admin_trip_purpose_path(purpose), class: "btn btn--no-bg" do
+            %span.glyphicon.glyphicon-eye-open
+        - if can? :delete, Purpose
+          =link_to admin_trip_purpose_path(purpose), class: "btn text-danger btn--no-bg", method: :delete, data: {confirm: 'Warning: This will delete the trip purpose. Press "OK" to confirm.'} do
+            %span.glyphicon.glyphicon-trash
+
+%div.text-center
+  - modalID = 'new-trip-purpose'
+  - if can? :create, Purpose
+    - if @agency_map.length == 1
+      =link_to 'New Trip Purpose', new_admin_trip_purpose_path(agency_id: @agency_map.first[1]), class: 'btn btn-primary'
+    - elsif current_user&.currently_transportation?
+      =link_to 'New Trip Purpose', new_admin_trip_purpose_path(agency_id: current_user&.current_agency&.id), class: 'btn btn-primary'
+    -else
+      =link_to 'New Trip Purpose', '#' + modalID, class: 'btn btn-primary', 'data-toggle' => 'modal'
+  =link_to 'Return to Travel Patterns', root_admin_travel_patterns_path, class: 'btn btn-default'
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+=render layout: '/layouts/modal', locals: { title: 'Select Agency for New Trip Purpose', modalID: modalID } do
+  =render partial: '/shared/select_agency', locals: { form_url: new_admin_trip_purpose_path }

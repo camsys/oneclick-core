@@ -138,7 +138,7 @@ namespace :db do
           url: "http://www.mbta.com",
           accommodations: Accommodation.all,
           eligibilities: Eligibility.all,
-          purposes: Purpose.all,
+          #purposes: Purpose.all, # moved to TravelPattern
           published: true
         },
         {
@@ -173,7 +173,7 @@ namespace :db do
         }
       ].each do |svc|
         puts "Creating #{svc[:type]} Service: #{svc[:name]}"
-        Service.find_or_create_by(type: svc[:type], name: svc[:name])
+        Service.find_or_create_by!(type: svc[:type], name: svc[:name], agency_id: TransportationAgency.first.id)
                .update_attributes(svc)
       end
 
@@ -181,7 +181,7 @@ namespace :db do
 
     desc "Set Default Config Values"
     task config: :environment do
-      Config.find_or_create_by(key: "open_trip_planner").update_attributes(value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default")
+      Config.find_or_create_by!(key: "open_trip_planner").update_attributes(value: "http://otp-ma.camsys-apps.com:8080/otp/routers/default")
     end
 
     desc "Test Samples"
@@ -210,8 +210,8 @@ namespace :db do
 
     desc "Feedback Samples"
     task feedback: :environment do
-      Feedback.create(rating: 3, review: "OCC is meh", user: User.first)
-      Feedback.create(rating: 5, review: "OCC is GREAT!!!", user: User.first)
+      Feedback.create!(rating: 3, review: "OCC is meh", user: User.first)
+      Feedback.create!(rating: 5, review: "OCC is GREAT!!!", user: User.first)
     end
 
     desc "Stomping Grounds"
@@ -229,29 +229,74 @@ namespace :db do
         StompingGround.where(name: place[:name], user: u).first_or_create!(place)
       end
     end
+
+    desc "Sample Agency Types"
+    task agency_types: :environment do
+      %w[TransportationAgency OversightAgency PartnerAgency].each do |at|
+        AgencyType.find_or_create_by!(name: at)
+      end
+    end
     
     desc "Sample Agencies"
     task agencies: :environment do      
-      pa = PartnerAgency.find_or_create_by(name: "Test Partner Agency", 
+      pa = PartnerAgency.find_or_create_by!(name: "Test Partner Agency", 
           email: "test_partner_agency@oneclick.com", 
-          published: true)
-      ta = TransportationAgency.find_or_create_by(name: "Test Transportation Agency", 
+          published: true,
+          agency_type: AgencyType.find_by(name: 'PartnerAgency'))
+      ta = TransportationAgency.find_or_create_by!(name: "Test Transportation Agency", 
           email: "test_transportation_agency@oneclick.com", 
-          published: true)
-      ta.services << Service.first
-      ta.services << Service.last
+          published: true,
+          agency_type: AgencyType.find_by(name: 'TransportationAgency'))
           
       pa.add_staff(User.registered.last)
       ta.add_staff(User.registered.first)
+      TravelerTransitAgency.find_or_create_by!(user_id: User.registered.first.id, transportation_agency_id: ta.id)
       
-      pa.save
-      ta.save
+      pa.save!
+      ta.save!
+    end
+
+    desc "Sample Service Schedules and Types"
+    task service_schedules: :environment do
+      schedule_types = [
+          {name: ServiceScheduleType::WEEKLY_SCHEDULE },
+          {name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE }
+      ]
+
+      schedule_types.each do |t|
+        ServiceScheduleType.create!(t)
+      end
+
+      service_schedules = [
+          {
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::WEEKLY_SCHEDULE),
+            name: "Weekly standard service"
+          },
+          {
+            service_schedule_type: ServiceScheduleType.find_by(name: ServiceScheduleType::CALENDAR_DATE_SCHEDULE),
+            name: "2022 Holidays",
+            start_date: Date.new(2022, 01, 01),
+            end_date: Date.new(2022, 12, 31)
+          }
+      ]
+
+      service_schedules.each do |s|
+        ServiceSchedule.create!(s)
+      end
+    end
+
+    desc "Sample Landmark Sets"
+    task landmark_sets: :environment do
+      fake_sets = ['Tuber Sets', 'Vegetable Sets', 'Fruit Sets', 'Grain Sets']
+      fake_sets.each do |set|
+        LandmarkSet.create!(name: set, agency_id: TransportationAgency.first.id)
+      end
     end
 
     #Load all sample data
     task all: [ :landmarks, :eligibilities, :accommodations, :purposes,
-                :services, :config, :test_geographies, :feedback, :stomping_grounds,
-                :agencies]
+                :config, :test_geographies, :feedback, :stomping_grounds,
+                :agency_types, :agencies, :services, :landmark_sets]
 
   end
 end

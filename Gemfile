@@ -1,5 +1,4 @@
 source 'http://rubygems.org'
-ruby "~> 2.4.0"
 
 git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
@@ -12,7 +11,7 @@ gem 'rails', '~> 5.0.1'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 0.18'
 # Use Puma as the app server
-gem 'puma', '~> 3.0'
+gem 'puma'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -30,14 +29,24 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
+
+### PRODUCTION APP RELATED #################
+# Support for application.yml on AWS
+gem 'figaro'
+# Replacement for Heroku Scheduler on AWS
+gem 'whenever', require: false
 ############################################
 
+### LOGGING RELATED #######################
+gem 'lograge'
+gem 'lograge-sql'
+############################################
 
 ### VIEWS & FORMATTING #####################
 gem 'awesome_print'
 gem 'haml-rails'
 gem 'simple_form'
-gem 'bootstrap-sass', '3.2.0.4'
+gem 'bootstrap-sass', '~> 3.3.6'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
 gem 'bootstrap-datepicker-rails'
@@ -47,6 +56,10 @@ gem 'phony_rails' # For normalizing phone numbers
 gem 'jquery-datatables-rails', '~> 3.4.0'
 ############################################
 
+### PAGINATION #############################
+# gem 'kaminari', '~> 1.2.2'
+gem 'pagy', '~> 5.10.1'
+############################################
 
 ### API & SERIALIZING ######################
 # ActiveModel Serializers for serving JSON via the API
@@ -76,9 +89,8 @@ gem 'savon'
 
 
 ### FILE UPLOAD ############################
-gem 'carrierwave', '~> 1.0'
+gem 'carrierwave-aws', '~> 1.5'
 gem 'mini_magick' # For resizing images
-gem 'fog'
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
 gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations json
 ############################################
@@ -89,6 +101,7 @@ gem 'rgeo'
 gem "rgeo-proj4"
 gem 'activerecord-postgis-adapter'
 gem 'rgeo-shapefile'
+gem 'geospatial-kml'
 gem 'dbf'
 gem 'rubyzip' # For unzipping shapefiles
 gem 'leaflet-rails' # For embedding maps
@@ -115,9 +128,7 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # e.g. ` gem 'some_engine', require: !!ENV["SOME_ENGINE"] `
 
 # Download the oneclick_refernet gem, but only require it if env var is set
-gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure' #, ref: '2a8dfd23983229d4598149f32ef8b77b297cb528',
-                         #require: !!ENV["ONECLICK_REFERNET"] 
-#gem 'oneclick_refernet', path: '../oneclick_refernet'
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure'
 ############################################
 
 
@@ -132,6 +143,7 @@ group :development, :test do
   gem 'rspec-rails', '~> 3.5'
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
+
   gem 'factory_bot_rails'
   ##########################################
 end
@@ -150,6 +162,7 @@ group :development do
   gem "letter_opener"
 
   gem 'rb-readline'
+  gem "rdoc", "~> 6.3.0"
 end
 
 

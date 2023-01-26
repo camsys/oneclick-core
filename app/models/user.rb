@@ -4,6 +4,7 @@ class User < ApplicationRecord
   rolify  # user may be an admin, staff, traveler, ...
   include BookingHelpers::UserHelpers #has_many :booking_profiles, etc.
   include Contactable
+  include RolifyAddons
   include RoleHelper
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
@@ -23,6 +24,7 @@ class User < ApplicationRecord
   scope :with_accommodations, -> (accommodation_ids) do
     joins(:accommodations).where(accommodations: { id: accommodation_ids })
   end
+
   scope :with_eligibilities, -> (eligibility_ids) do
     joins(:confirmed_eligibilities).where(eligibilities: { id: eligibility_ids })
   end
@@ -31,6 +33,7 @@ class User < ApplicationRecord
   scope :active_since, -> (date) do
     joins(:trips).merge(Trip.from_date(date))
   end
+
   scope :active_until, -> (date) do
     joins(:trips).merge(Trip.to_date(date))
   end
@@ -40,6 +43,9 @@ class User < ApplicationRecord
 
 
   ### Associations ###
+  has_one :traveler_transit_agency, dependent: :destroy
+  has_one :transportation_agency, through: :traveler_transit_agency
+  belongs_to :current_agency, class_name:'Agency', foreign_key: :current_agency_id
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
   has_many :origins, through: :trips
@@ -52,7 +58,7 @@ class User < ApplicationRecord
   has_many :stomping_grounds
   has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
-
+  has_many :user_booking_profiles
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
@@ -66,9 +72,18 @@ class User < ApplicationRecord
   validates :password_confirmation, presence: true, on: :create
   before_save :downcase_email
   validate :password_complexity
-  
+
+  ### Attribute Accessors ###
+  attr_accessor :county
+
   ### Instance Methods ###
-  
+  # Custom initializer with instance variable instantiation
+  def initialize(attributes={})
+    super
+    @county ||= return_county_if_ecolane_email
+  end
+
+
   # To String prints out user's email address
   def to_s
     email
@@ -99,6 +114,24 @@ class User < ApplicationRecord
     self.subscribed_to_emails
   end
 
+  def county_name_if_ecolane_email
+    regex = /ecolane_user\.com$/
+
+    if regex.match(email)
+      email.split('@').first&.split('_').last&.downcase&.capitalize
+    else
+      nil
+    end
+  end
+
+  def return_county_if_ecolane_email
+    county = county_name_if_ecolane_email
+
+    if county
+      County.find_by(name: county)
+    end
+  end
+
   # Check to see if this user owns the object
   def owns? object
     case object.class.name
@@ -113,7 +146,7 @@ class User < ApplicationRecord
 
   # Returns the user's (count) past trips, in descending order of trip time
   def past_trips(count=nil)
-    trips.selected.past.limit(count)
+    trips.selected.past.past_14_days.limit(count)
   end
 
   # Returns the user's (count) future trips, in descending order of trip time
@@ -159,6 +192,63 @@ class User < ApplicationRecord
                 .compact.uniq
                 .select { |elig| !self.eligibilities.include?(elig) }
     self.eligibilities << eligs
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def get_services
+    county = county_name_if_ecolane_email
+    if county.nil?
+      # County name may be null if user has set email to a non-Ecolane email address.
+      # Search for county that user logged in as from most recent user booking profile.
+      # User booking profile is updated with county at login.
+      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first&.details
+      if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
+        county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
+      end
+    end
+    # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
+    Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
+            .merge( TravelerTransitAgency.where(user_id: id) )
+            .with_home_county(county)
+            .paratransit_services
+            .published
+            .is_ecolane
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
+  def current_service
+    get_services.first
+  end
+
+  ##
+  # TODO(Drew) write documentation comment
+  def get_funding_data(service=nil)
+    funding_hash = {}
+    profile = service ? booking_profile_for(service) : booking_profile
+    return funding_hash unless profile
+
+    get_funding = true
+    customer = profile.booking_ambassador
+                      .fetch_customer_information(get_funding)
+                      .fetch('customer', {})
+    funding_options = [
+      customer.fetch('funding', {})
+              .fetch('funding_source', {})
+    ].flatten
+    
+    funding_options.each do |funding_source|
+      allowed_purposes = [funding_source['allowed']].flatten
+      allowed_purposes.each do |allowed_purpose|
+        purpose = allowed_purpose['purpose'].strip
+        funding_hash[purpose] ||= []
+        funding_hash[purpose].push(funding_source['name'].strip)
+      end
+    end
+
+    funding_hash
   end
 
   # Set Require Confirmation to be true
