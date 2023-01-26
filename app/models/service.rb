@@ -298,6 +298,37 @@ class Service < ApplicationRecord
     nil
   end
 
+  # If a Service is using a travel_pattern, then they've set a schedule for that pattern.
+  # Their operating hours are the sum of all those schedules. 
+  # We should look at replacing this code later.
+  # - Drew 01/26/2022
+  def business_days
+    # Preloading all the travel_patterns and thir schedules to avoid n+1 queries
+    # Fewer queries means more performance
+    travel_patterns_with_schedules = self.travel_patterns.includes(
+      travel_pattern_service_schedules: {
+        service_schedule: [:service_schedule_type, :service_sub_schedules]
+      }
+    )
+
+    # Get the travel_patttern's calendar, get rid of any dates without operating hours,
+    # then add all remaining days into a set.
+    travel_pattern_dates = travel_patterns_with_schedules.map { |travel_pattern|
+      travel_pattern.to_calendar(localtime.to_date).select { |date, business_hours|
+        business_hours[:start_time]&.>(0) && business_hours[:end_time]&.>(1)
+      }.keys
+    }
+    
+    Set.new(travel_pattern_dates.flatten)
+  end
+
+  # Our client is in Pennsylvania. Currently servers are in the same time zone, but I don't want
+  # to break things if our servers move. If we gain other clients, we should add a timezone field.
+  def localtime
+    service_time_zone = "-05:00"
+    Time.now.localtime(service_time_zone)
+  end
+
   # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
