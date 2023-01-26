@@ -35,6 +35,10 @@ module Admin
     def traveler_county
       @record.user && @record.user.county
     end
+    
+    def traveler_paratransit_id
+      @record.user && @record.user.paratransit_id
+    end
 
     def trip_time
       @record.trip_time&.in_time_zone
@@ -58,6 +62,10 @@ module Admin
     def orig_addr
       @record.origin&.address
     end
+
+    def orig_county
+      @record.origin&.county
+    end
     
     def orig_lat
       @record.origin&.lat
@@ -71,6 +79,10 @@ module Admin
       @record.destination&.address
     end
 
+    def dest_county
+      @record.destination&.county
+    end
+
     def dest_lat
       @record.destination&.lat
     end
@@ -81,6 +93,22 @@ module Admin
     
     def selected_trip_type
       @record.selected_itinerary&.trip_type || (@record.details && @record.details[:trip_type]) || "N/A"
+    end
+
+    def traveler_age
+      @record.user_age
+    end
+
+    def traveler_ip
+      @record.user_ip
+    end
+
+    def traveler_accommodations
+      @record.trip_accommodations.reduce('') {|string, acc_hash| "#{string}#{acc_hash&.accommodation&.code}; "}
+    end
+
+    def traveler_eligibilities
+      @record.trip_eligibilities.reduce('') {|string, elg_hash| "#{string}#{elg_hash&.eligibility&.code}; "}
     end
 
     def disposition_status
