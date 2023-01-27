@@ -97,6 +97,7 @@ class Service < ApplicationRecord
     joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id': agency.id)
   end
 
+  # TODO Add unit tests
   # This is a hack, we should change booking_details from a serialized string to an hstore to do proper searches
   scope :with_home_county, -> (county) do
     where('booking_details ~* ?', ".*home_counties:.*#{county}[ ]*(,|\n|\z).*")

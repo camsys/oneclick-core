@@ -43,7 +43,7 @@ module BookingHelpers
     end
 
     def sync days_ago=1
-      booking_profiles.valid_service.each do |bp|
+      booking_profiles.with_valid_service.each do |bp|
         bp.booking_ambassador.sync(days_ago)
       end
     end
@@ -60,7 +60,7 @@ module BookingHelpers
 
     # Configure including class
     def self.included(base)
-      base.scope :is_ecolane, -> { where(booking_api: "ecolane") }
+      base.scope :with_ecolane_api, -> { where(booking_api: "ecolane") }
       base.serialize :booking_details
     end
     

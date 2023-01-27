@@ -14,7 +14,8 @@ class UserBookingProfile < ApplicationRecord
   validates :user_id, presence: true
 
   ### SCOPES ###
-  scope :valid_service, -> {where.not(service_id: nil)}
+  scope :with_valid_service, -> { where.not(service_id: nil) }
+  scope :with_ecolane_api, -> { where(booking_api: "ecolane") }
 
   ### INSTANCE METHODS ###
   

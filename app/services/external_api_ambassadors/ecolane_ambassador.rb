@@ -15,6 +15,8 @@ class EcolaneAmbassador < BookingAmbassador
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
+    # TODO (Drew) replace county map with:
+    # @possible_services = Service.published.with_ecolane_api.paratransit_services.with_home_county(county)
     @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
@@ -710,7 +712,7 @@ class EcolaneAmbassador < BookingAmbassador
       return false, {}
     end
 
-    iso_dob = iso8601ify(@dob)
+    iso_dob = @dob && iso8601ify(@dob)
     if iso_dob.nil?
       return false, {}
     end
@@ -748,14 +750,19 @@ class EcolaneAmbassador < BookingAmbassador
     valid_passenger, passenger = validate_passenger
     if valid_passenger
       user = nil
-      @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
-        random = SecureRandom.hex(8)
+      @booking_profile = UserBookingProfile.with_valid_service
+                                            .with_ecolane_api
+                                            .joins(:service)
+                                            .where(service: @service, external_user_id: @customer_number)
+                                            .first_or_create do |profile|
+        random = "A8" + SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
+        # TODO (Drew) Add Authorized Accounts and Identities
         user = User.create!(
-            email: "#{email}_#{@county}@ecolane_user.com", 
-            password: random, 
-            password_confirmation: random,            
-          )
+          email: "#{email}_#{@county}@ecolane_user.com", 
+          password: random, 
+          password_confirmation: random,            
+        )
         profile.details = {customer_id: passenger["id"]}
         profile.booking_api = "ecolane"
         profile.user = user
@@ -769,6 +776,7 @@ class EcolaneAmbassador < BookingAmbassador
       end
       @booking_profile.save
 
+      # TODO (Drew) only update the profile, the name we get from esec (but only works with FMR...)
       # Update the user's name
       user = @booking_profile.user 
       user.first_name = passenger["first_name"]
@@ -848,7 +856,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   ### County Mapping ###
   def county_map
-    services = Service.is_ecolane.published
+    services = Service.with_ecolane_api.published.paratransit_services
     mapping = {}
     services.each do |service|
       counties = service.home_county_names

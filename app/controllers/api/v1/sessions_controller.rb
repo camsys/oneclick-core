@@ -1,6 +1,7 @@
 module Api
   module V1
     class SessionsController < Devise::SessionsController
+      # TODO (Drew) remove
       # acts_as_token_authentication_handler_for User, fallback: :none
       skip_before_action :verify_signed_out_user
       prepend_before_filter :require_no_authentication, :only => [:create ]

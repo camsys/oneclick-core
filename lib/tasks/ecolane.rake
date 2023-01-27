@@ -11,7 +11,7 @@ namespace :ecolane do
     # Order from oldest to newest.
     systems = []
     services  = []
-    Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
+    Service.paratransit_services.published.with_ecolane_api.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
         not service.booking_details[:external_id].in? systems and
         not service.booking_details[:token].blank? and

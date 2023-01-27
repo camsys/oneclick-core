@@ -76,7 +76,6 @@ Rails.application.routes.draw do
 
     end #v1
 
-
     ### API V2 ###
     namespace :v2 do
 
@@ -136,6 +135,15 @@ Rails.application.routes.draw do
 
     end #v2
 
+    namespace :v3 do
+      get 'sso/authorize' => 'single_sign_on#authorize' # Redirects to Cognito for the login form, stores a callback url
+      get 'sso/token' => 'single_sign_on#token' # Cognito returns auth code which we redeem for a JWT
+      post 'sso/login' => 'single_sign_on#login' # Uses provided code and JWT from the session to find a specific user and log them in
+      post 'sso/account_setup' => 'single_sign_on#account_setup'
+      get 'sso/logout' => 'single_sign_on#logout'
+      get 'sso/admin' => 'single_sign_on#admin'
+      post 'sso/link' => 'single_sign_on#link'
+    end
 
     ### MISC REQUEST HANDLING ###
 
@@ -147,7 +155,6 @@ Rails.application.routes.draw do
     match '*a', via: :all, controller: 'api', action: 'no_route'
 
   end #api
-
 
   ### ADMIN INTERFACE ###
   root "admin/admin#index"
@@ -249,7 +256,6 @@ Rails.application.routes.draw do
     resources :services, :only => [:index, :destroy, :create, :show, :update] do
     end
 
-
     resources :service_schedules, :only => [:index, :create, :new, :destroy, :show, :edit, :update]
 
     resources :travel_patterns, :only => [:index, :create, :new, :destroy, :show, :edit, :update] do
@@ -257,7 +263,6 @@ Rails.application.routes.draw do
         get 'root' => 'travel_patterns#root'
       end
     end
-
 
     # Users
     resources :users, :only => [:index, :create, :destroy, :edit, :update] do
@@ -271,6 +276,5 @@ Rails.application.routes.draw do
   end #Admin
 
   mount SimpleTranslationEngine::Engine => "/admin/simple_translation_engine"
-
 
 end #draw

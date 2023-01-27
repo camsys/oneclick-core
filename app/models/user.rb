@@ -59,6 +59,7 @@ class User < ApplicationRecord
   has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
   has_many :user_booking_profiles
+  has_many :authenticated_accounts
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'
@@ -214,7 +215,7 @@ class User < ApplicationRecord
             .with_home_county(county)
             .paratransit_services
             .published
-            .is_ecolane
+            .with_ecolane_api
   end
 
   ##

@@ -76,6 +76,7 @@ gem 'simple_token_authentication', '~> 1.0' # For API Token Auth
 gem 'cancancan'
 gem 'rolify'
 gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external user booking password on UserBookingProfile
+gem 'jwt', "~> 2.7"
 ############################################
 
 
