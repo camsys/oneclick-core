@@ -137,6 +137,23 @@ RSpec.describe TripPlanner do
     Config.find_or_create_by!(key: 'open_trip_planner_version').update_attributes!(value: 'v1')
   end
 
+  it "builds paratransit services using v1 (Service database) and otp v2" do
+    Config.find_or_create_by!(key: 'open_trip_planner_version').update_attributes!(value: 'v2')
+
+    # create paratransit service outside otp
+    outside_service = create(:paratransit_service, name: 'Outside Service', gtfs_agency_id: nil)
+    paratransit_tp.prepare_ambassadors
+    paratransit_tp.set_available_services
+    itins = paratransit_tp.build_paratransit_itineraries
+    expect(itins).to be_an(Array)
+    # tests relevant to what's in otp_response_paratransit.json + outside service
+    expect(itins.count).to eq(4)
+    expect(itins.map{|itin| itin.service_id}).to include(outside_service.id)
+
+    # unset v2
+    Config.find_or_create_by!(key: 'open_trip_planner_version').update_attributes!(value: 'v1')
+  end
+
   it 'builds taxi itineraries' do
     taxi_tp.prepare_ambassadors
     itins = taxi_tp.build_taxi_itineraries
