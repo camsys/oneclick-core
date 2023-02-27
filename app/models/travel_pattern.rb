@@ -153,13 +153,14 @@ class TravelPattern < ApplicationRecord
   # TODO: verify whether the presence of a service schedule is good enough, or if it has to be a specific kind of schedule.
   validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :travel_pattern_funding_sources, :travel_pattern_purposes, :travel_pattern_service_schedules
 
-  def to_api_response
+  def to_api_response(start_date, end_date)
     travel_pattern_opts = { 
-      only: [:id, :agency_id, :name, :description],
-      methods: :to_calendar
+      only: [:id, :agency_id, :name, :description]
     }
 
-    self.as_json(travel_pattern_opts)
+    self.as_json(travel_pattern_opts).merge({
+      "to_calendar" => self.to_calendar(start_date, end_date)
+    })
   end
 
   def self.for_user(user)
@@ -208,7 +209,22 @@ class TravelPattern < ApplicationRecord
     return schedules_by_type
   end
 
-  def to_calendar
+  ##
+  # This method aggregates all of a +TravelPattern+'s service schedules and aggregates them to
+  # produce a hash showing the valid times for this pattern the next 60 days. This does not
+  # take into account constraints from the Booking Window. For that you should pass in the
+  # +start_date+ and +calendar_length+ with the relevant information.
+  # 
+  # @param [Integer] start_date Optional. The first day that the calendar wil calculate the
+  #   +start_time+ and +end_time+ for. (Use the timezone of the +Service+)
+  # @param [Integer] end_date Optional. The last day that the calendar will calculate the
+  #   +start_time+ and +end_time+ for. (Use the timezone of the +Service+)
+  # 
+  # Default options are:
+  #   :calendar_length => +start_date+ + 59.days
+  # 
+  # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
+  def to_calendar(start_date, end_date = start_date + 59.days)
     travel_pattern_service_schedules = schedules_by_type
 
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
@@ -216,16 +232,15 @@ class TravelPattern < ApplicationRecord
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
 
     calendar = {}
-    date = booking_window.earliest_booking.to_date
-    end_date = booking_window.latest_booking.to_date
-    
+    date = start_date
+
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = {}
 
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
         next unless valid_start && valid_end
         
         sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
@@ -235,7 +250,8 @@ class TravelPattern < ApplicationRecord
         break(sub_schedule) if sub_schedule
       end
 
-      # Reduced schedules overwrite all other schedules so we can skip the rest of this iteration
+      # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
+      # Highlander voice: There can only be one!
       if reduced_sub_schedule
         calendar[date_string][:start_time] = reduced_sub_schedule.start_time
         calendar[date_string][:end_time] = reduced_sub_schedule.end_time
@@ -316,16 +332,41 @@ class TravelPattern < ApplicationRecord
     travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
   end
 
-  def self.to_api_response(travel_patterns)
+  def self.to_api_response(travel_patterns, service)
+    business_days = service.business_days
+
     # Filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
     # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
-    travel_patterns.map(&:to_api_response)
-                    .select { |travel_pattern|
-                      dates = travel_pattern['to_calendar'].values
-                      dates.detect { |date|
-                        (date[:start_time] || -1) >= 0 && (date[:end_time] || -1) >= 1
-                      }
-                    }
+    travel_patterns.map { |travel_pattern|
+      booking_window = travel_pattern.booking_window
+      additional_notice = service.localtime.hour >= booking_window.minimum_notice_cutoff_hour
+      date = service.localtime.to_date
+      start_date = date
+      end_date = date + 60.days
+
+      days_notice = (business_days.include?(date.strftime('%Y-%m-%d')) && !additional_notice) ? 0 : -1
+      while (days_notice < booking_window.minimum_days_notice && date < end_date) do
+        date += 1.day
+        days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+      end
+
+      start_date = date
+
+      while (days_notice < booking_window.maximum_days_notice && date < end_date) do
+        date += 1.day
+        days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+      end
+      
+      end_date = date
+
+      travel_pattern.to_api_response(start_date, end_date)
+    }
+    .select { |travel_pattern|
+      calendar_business_hours = travel_pattern["to_calendar"].values
+      calendar_business_hours.detect { |business_hours|
+        (business_hours[:start_time] || -1) >= 0 && (business_hours[:end_time] || -1) >= 1
+      }
+    }
   end
 
   # This method should be the first time we call the database, before this we were only constructing the query
