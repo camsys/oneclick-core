@@ -201,17 +201,18 @@ class TripPlanner
     return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
 
     # gtfs flex can load paratransit itineraries but not all otp instances have flex
+    router_paratransit_itineraries = []
     if Config.open_trip_planner_version == 'v2'
       otp_itineraries = build_fixed_itineraries(:paratransit)
-      paratransit_service_ids = @available_services[:paratransit].pluck(:id)
+      
       # paratransit itineraries can return just transit since we also look for a mixed
       # filter these out
       # then set itineraries that are a mix of paratransit and transit mixed
-      router_paratransit_itineraries = otp_itineraries.map{|itin|
+      router_paratransit_itineraries += otp_itineraries.map{|itin|
         no_paratransit = true
         has_transit = false
         itin.legs.each do |leg|
-          no_paratransit = false if leg['mode'].include?('FLEX') && paratransit_service_ids.include?(leg['serviceId'])
+          no_paratransit = false if leg['mode'].include?('FLEX') 
           has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
         end
         if no_paratransit
@@ -220,53 +221,52 @@ class TripPlanner
         itin.trip_type = 'paratransit_mixed' if has_transit
         itin
       }.compact
-      return router_paratransit_itineraries
-    else
-      itineraries = @available_services[:paratransit].map do |svc|
-        Rails.logger.info("Checking service id: #{svc&.id}")
-
-        # Should not be able to use the paratransit service if booking API is not set up.
-        # TODO: we should look into dealing with this another way. Like deleting services with
-        # invalid APIs, or unpublishing them, or something.
-        allowed_api = Config.booking_api
-        if allowed_api != "all"
-          next nil if allowed_api == "none"
-          next nil if allowed_api != svc.booking_api
-        end
-
-        #TODO: this is a hack and needs to be replaced.
-        # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
-        # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
-        if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
-          next nil
-        end
-  
-        # Look for an existing itinerary
-        # But ones that don't have a booking attached
-        # Otherwise, create a new itinerary
-        itinerary = Itinerary.left_joins(:booking)
-                              .where(bookings: { id: nil })
-                              .find_or_initialize_by(
-                                service_id: svc.id,
-                                trip_type: :paratransit,
-                                trip_id: @trip.id,
-                              )
-  
-        # Whether an itinerary was found, or initialized, we need to update it
-        itinerary.assign_attributes({
-          assistant: @options[:assistant],
-          companions: @options[:companions],
-          cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
-          transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
-        })
-  
-        itinerary
-      end
-  
-      # Get rid of nil itineraries caused by skipping Ecolane Services
-      itineraries.compact
     end
 
+    paratransit_services = @available_services[:paratransit].where(gtfs_agency_id: ["", nil])
+
+    # Should not be able to use the paratransit service if booking API is not set up.
+    # TODO: we should look into dealing with this another way. Like deleting services with
+    # invalid APIs, or unpublishing them, or something.
+    allowed_api = Config.booking_api
+    return router_paratransit_itineraries if allowed_api == "none"
+    unless allowed_api == "all"
+      paratransit_services = paratransit_services.where(booking_api: allowed_api)
+    end
+
+    itineraries = paratransit_services.map { |svc|
+      Rails.logger.info("Checking service id: #{svc&.id}")
+
+      #TODO: this is a hack and needs to be replaced.
+      # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
+      # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
+      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
+        next nil
+      end
+
+      # Look for an existing itinerary
+      # But ones that don't have a booking attached
+      # Otherwise, create a new itinerary
+      itinerary = Itinerary.left_joins(:booking)
+                            .where(bookings: { id: nil })
+                            .find_or_initialize_by(
+                              service_id: svc.id,
+                              trip_type: :paratransit,
+                              trip_id: @trip.id,
+                            )
+
+      # Whether an itinerary was found, or initialized, we need to update it
+      itinerary.assign_attributes({
+        assistant: @options[:assistant],
+        companions: @options[:companions],
+        cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
+        transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
+      })
+
+      itinerary
+    }.compact
+
+    router_paratransit_itineraries + itineraries
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response
