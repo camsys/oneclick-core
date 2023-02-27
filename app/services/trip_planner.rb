@@ -223,15 +223,19 @@ class TripPlanner
       }.compact
     end
 
-    itineraries = @available_services[:paratransit].where(gtfs_agency_id: ["", nil]).map{ |svc|
+    paratransit_services = @available_services[:paratransit].where(gtfs_agency_id: ["", nil])
 
-      #### ------- Commented out ---------
-      ### OTP v2 won't work with the below till THIS GETS FIXED
-      # Should not be able to use the paratransit service if booking API is not set up.
-      # Rails.logger.info("Checking service id: #{svc&.id}")
-      # if svc.booking_api != "ecolane"
-      #   next nil
-      # end
+    # Should not be able to use the paratransit service if booking API is not set up.
+    # TODO: we should look into dealing with this another way. Like deleting services with
+    # invalid APIs, or unpublishing them, or something.
+    allowed_api = Config.booking_api
+    return router_paratransit_itineraries if allowed_api == "none"
+    unless allowed_api == "all"
+      paratransit_services = paratransit_services.where(booking_api: allowed_api)
+    end
+
+    itineraries = paratransit_services.map { |svc|
+      Rails.logger.info("Checking service id: #{svc&.id}")
 
       #TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
@@ -260,7 +264,7 @@ class TripPlanner
       })
 
       itinerary
-    }.compact # Get rid of nil itineraries caused by skipping Ecolane Services
+    }.compact
 
     router_paratransit_itineraries + itineraries
   end
