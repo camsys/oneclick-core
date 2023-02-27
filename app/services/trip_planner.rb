@@ -223,12 +223,17 @@ class TripPlanner
       return router_paratransit_itineraries
     else
       itineraries = @available_services[:paratransit].map do |svc|
+        Rails.logger.info("Checking service id: #{svc&.id}")
 
         # Should not be able to use the paratransit service if booking API is not set up.
-        Rails.logger.info("Checking service id: #{svc&.id}")
-        if svc.booking_api != "ecolane"
-          next nil
+        # TODO: we should look into dealing with this another way. Like deleting services with
+        # invalid APIs, or unpublishing them, or something.
+        allowed_api = Config.booking_api
+        if allowed_api != "all"
+          next nil if allowed_api == "none"
+          next nil if allowed_api != svc.booking_api
         end
+
         #TODO: this is a hack and needs to be replaced.
         # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
         # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.

@@ -77,6 +77,7 @@ class OTPAmbassador
     return extract_distance(itineraries[0]) if itineraries[0]
   end
 
+  # Dead Code? - Drew 02/16/2023
   def get_request_url(request_type)
     @otp.plan_url(format_trip_as_otp_request(request_type))
   end

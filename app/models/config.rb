@@ -21,6 +21,17 @@ class Config < ApplicationRecord
   # Default notification preferences for users, freezing for now
   DEFAULT_NOTIFICATION_PREFS = [7,3,1].freeze
 
+  ##
+  # The booking_api configuration sets which Booking APIs the TripPlanner is allowed to use when
+  # creating Itineraries. Its default value is "all" which will allow any Booking API to be used.
+  # It may also be set to "none" to disallow any Booking API or to the name of a specific API.
+  # At this time lists of names are not supported.
+  def self.booking_api(*args)
+    booking_api = method_missing(:booking_api, *args)
+    return "all" if booking_api.nil?
+    return booking_api
+  end
+
   # Returns the value of a setting when you say Config.<key>
   def self.method_missing(key, *args, &blk)
     # If the method ends in '=', set the config variable
