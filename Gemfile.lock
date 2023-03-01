@@ -463,7 +463,7 @@ DEPENDENCIES
   mini_magick
   oneclick_refernet!
   pagy (~> 5.10.1)
-  pg (~> 0.18)
+  pg (~> 0.21)
   phony_rails
   puma
   rack-cors
@@ -495,4 +495,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-   2.3.10
+   2.3.20

@@ -29,8 +29,15 @@ class OTPAmbassador
     @http_request_bundler = http_request_bundler
     @services = services
 
-    @request_types = @trip_types.map { |tt| TRIP_TYPE_DICTIONARY[tt] }.uniq
     otp_version = Config.open_trip_planner_version || 'v1'
+    @request_types = @trip_types.map { |tt|
+      if otp_version != 'v2' && tt == :paratransit
+        # Version 1 of OTP does not support all the different modes in paratransit.
+        TRIP_TYPE_DICTIONARY[:car]
+      else
+        TRIP_TYPE_DICTIONARY[tt]
+      end
+    }.uniq
     @otp = OTPService.new(Config.open_trip_planner, otp_version)
 
     # add http calls to bundler based on trip and modes

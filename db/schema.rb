@@ -15,7 +15,6 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
-  enable_extension "pg_stat_statements"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",                     null: false
@@ -204,6 +203,19 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.string   "phone"
     t.index ["feedbackable_type", "feedbackable_id"], name: "index_feedbacks_on_feedbackable_type_and_feedbackable_id", using: :btree
     t.index ["user_id"], name: "index_feedbacks_on_user_id", using: :btree
+  end
+
+  create_table "find_services_histories", force: :cascade do |t|
+    t.integer  "user_id"
+    t.inet     "user_ip"
+    t.string   "user_starting_location"
+    t.decimal  "user_starting_lat",        precision: 10, scale: 6
+    t.decimal  "user_starting_lng",        precision: 10, scale: 6
+    t.string   "service_sub_sub_category"
+    t.integer  "trip_id"
+    t.datetime "created_at",                                        null: false
+    t.datetime "updated_at",                                        null: false
+    t.index ["user_id"], name: "index_find_services_histories_on_user_id", using: :btree
   end
 
   create_table "funding_sources", force: :cascade do |t|
@@ -771,6 +783,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "custom_geographies", "agencies"
+  add_foreign_key "find_services_histories", "users"
   add_foreign_key "funding_sources", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
