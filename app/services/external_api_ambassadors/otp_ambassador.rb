@@ -33,7 +33,7 @@ class OTPAmbassador
     @request_types = @trip_types.map { |tt|
       if otp_version != 'v2' && tt == :paratransit
         # Version 1 of OTP does not support all the different modes in paratransit.
-        TRIP_TYPE_DICTIONARY[:car]
+        { label: :otp_paratransit, modes: TRIP_TYPE_DICTIONARY[:car][:modes] }
       else
         TRIP_TYPE_DICTIONARY[tt]
       end
