@@ -41,7 +41,16 @@ class Trip < ApplicationRecord
 
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+  TRIP_TYPES = [
+    :transit, 
+    :paratransit,
+    :taxi,
+    :walk,
+    :car,
+    :bicycle,
+    # :uber, # commenting out since API has changed
+    # :lyft # commenting out since API has changed
+  ]
   DEFAULT_TRIP_DETAILS = { notification_preferences: nil}
 
   # Constant list of bad cities and the correct city
@@ -89,11 +98,12 @@ class Trip < ApplicationRecord
   scope :selected, -> { where.not(selected_itinerary_id: nil) }
 
   # Geographic scopes return trips that start or end in the passed geom
+  # The geom parameter does not always serialize correctly to the geometry type, so converting to text.
   scope :origin_in, -> (geom) do
-    where(id: joins(:origin).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+    where(id: joins(:origin).where('ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))', geom.as_text).pluck(:id))
   end
   scope :destination_in, -> (geom) do
-    where(id: joins(:destination).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+    where(id: joins(:destination).where('ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))', geom.as_text).pluck(:id))
   end
   
   # Returns trip that have any of the given purposes

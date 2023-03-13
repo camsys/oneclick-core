@@ -166,7 +166,7 @@ module RoleHelper
 
   # Returns the agencies that the user is staff for
   def agencies
-    Agency.where(id: transportation_agencies.pluck(:id) + oversight_agencies.pluck(:id))
+    Agency.where(id: transportation_agencies.pluck(:id) + oversight_agencies.pluck(:id) + partner_agencies.pluck(:id))
   end
 
   # Returns the last of the user's staffing agencies (of which there are hopefully just one)

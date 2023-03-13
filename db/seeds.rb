@@ -30,3 +30,15 @@ Rake::Task['simple_translation_engine:update'].invoke
 Config.find_or_create_by(key: "maximum_booking_notice") do |config|
   config.value = 30
 end
+
+# Initialize reluctance configs
+Config.find_or_create_by(key: "walk_reluctance") do |config|
+  config.value = 10
+end
+Config.find_or_create_by(key: "bike_reluctance") do |config|
+  config.value = 5
+end
+
+if Rails.env == 'test'
+  Config.find_or_create_by(key: "dashboard_mode", value: 'travel_patterns')
+end

@@ -251,16 +251,16 @@ class User < ApplicationRecord
     funding_hash
   end
 
+  # Set Require Confirmation to be true
+  def confirmation_required?
+    Config.require_user_confirmation || false
+  end
+
   protected
 
   #All Emails are Lower Case
   def downcase_email
     self.email.downcase!
-  end
-  
-  # Set Require Confirmation to be true
-  def confirmation_required?
-    Config.require_user_confirmation || false
   end
 
   def password_complexity

@@ -222,13 +222,18 @@ class Admin::ServicesController < Admin::AdminController
 
   def paratransit_params
     [
+      :gtfs_agency_id,
       :fare_structure,
       :booking_api,
       :max_age,
       :min_age,
+      :eligible_max_age,
+      :eligible_min_age,
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},
+      start_area_attributes: [:recipe],
+      end_area_attributes: [:recipe],
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]

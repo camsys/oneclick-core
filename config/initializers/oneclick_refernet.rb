@@ -2,7 +2,12 @@
 # Only run this code if OneclickRefernet module is included
 if ENV["ONECLICK_REFERNET"]  
   # Set the refernet API token
-  OneclickRefernet.api_token = 'KIXUUKWX'
+  # TODO: Make this configurable per client
+  OneclickRefernet.api_token = 'c343522686964c72aa96b0c15180c5da'
+   
+  # Set the default radius for finding nearby services
+  OneclickRefernet.default_radius_meters = (ENV['REFERNET_RADIUS_METERS'] || 48280.3).to_f 
+
   
   # Sets the base controller for OneclickRefernet Controllers
   OneclickRefernet.base_controller = Api::ApiController

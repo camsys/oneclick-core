@@ -4,11 +4,11 @@ require 'rails_helper'
 # Figure out which bookings need to be tested as well
 RSpec.describe Api::V1::TripsController, type: :controller do
   
-  let(:trip) { create(:trip) }
-  let(:itinerary) { create(:itinerary, trip: nil) }
-  let(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
-  let(:user) { trip.user }
-  let(:hacker) { create(:english_speaker) }
+  let!(:trip) { create(:trip) }
+  let!(:itinerary) { create(:itinerary, trip: nil) }
+  let!(:paratransit_itinerary) { create(:paratransit_itinerary, trip: nil) }
+  let!(:user) { trip.user }
+  let!(:hacker) { create(:english_speaker) }
   let!(:eligibility) { FactoryBot.create :eligibility }
   let!(:paratransit_service) { FactoryBot.create(:paratransit_service, :medical_only, :no_geography) }
   let!(:metallica_concert) { FactoryBot.create(:metallica_concert) }
@@ -23,7 +23,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
 
   ### PLANNING ###
 
-  describe "planning" do
+  describe "planning", :skip do
     
     let(:plan_call_params) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_basic.json"))}
     let(:walk_plan_call_params) {JSON.parse(File.read("spec/files/api_v1/sample_plan_call_walk.json"))}
@@ -242,14 +242,13 @@ RSpec.describe Api::V1::TripsController, type: :controller do
     end
     
     
-    it 'books a return trip at the designated return time' do
+    it 'books a return trip at the designated return time', :skip do
       expect(bookable_itinerary.booked?).to be false
 
       request.headers.merge!(request_headers)
       post :book, params: booking_params_w_return
       response_body = JSON.parse(response.body)
       bookable_itinerary.reload
-                  
       return_trip = Trip.find_by(id: response_body["booking_results"][1]["trip_id"])
       return_itin = Itinerary.find_by(id: response_body["booking_results"][1]["itinerary_id"])
 

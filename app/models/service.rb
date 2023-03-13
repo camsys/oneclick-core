@@ -31,10 +31,20 @@ class Service < ApplicationRecord
   # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
-  has_many :purposes, through: :travel_patterns
+
+  # Only add this association after the db is loaded so we can check config
+  # Changes to this config will require a serer restart... not ideal, maybe move it into a custom class method?
+  if ActiveRecord::Base.connection.table_exists?(:configs) && Config.dashboard_mode == "travel_patterns"
+    has_many :purposes, through: :travel_patterns
+  else
+    has_and_belongs_to_many :purposes
+  end
+
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
   belongs_to :agency
+  belongs_to :start_area, class_name: 'Region', foreign_key: :start_area_id, dependent: :destroy
+  belongs_to :end_area, class_name: 'Region', foreign_key: :end_area_id, dependent: :destroy
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
@@ -91,8 +101,13 @@ class Service < ApplicationRecord
   end
 
   # Filter by age
+  # These are filters, that make people ineligible.
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
+
+  # These are filters, that make people eligible
+  scope :by_eligible_min_age, -> (age) { where("eligible_min_age < ?", age+1) }
+  scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
@@ -159,7 +174,9 @@ class Service < ApplicationRecord
   end
   
   scope :available_by_geography_for, -> (trip) do
-    available_by_start_or_end_area_for(trip)
+    available_by_start_area_for(trip)
+    .available_by_end_area_for(trip)
+    .available_by_start_or_end_area_for(trip)
     .available_by_trip_within_area_for(trip)
   end
   
@@ -298,6 +315,37 @@ class Service < ApplicationRecord
     nil
   end
 
+  # If a Service is using a travel_pattern, then they've set a schedule for that pattern.
+  # Their operating hours are the sum of all those schedules. 
+  # We should look at replacing this code later.
+  # - Drew 01/26/2022
+  def business_days
+    # Preloading all the travel_patterns and thir schedules to avoid n+1 queries
+    # Fewer queries means more performance
+    travel_patterns_with_schedules = self.travel_patterns.includes(
+      travel_pattern_service_schedules: {
+        service_schedule: [:service_schedule_type, :service_sub_schedules]
+      }
+    )
+
+    # Get the travel_patttern's calendar, get rid of any dates without operating hours,
+    # then add all remaining days into a set.
+    travel_pattern_dates = travel_patterns_with_schedules.map { |travel_pattern|
+      travel_pattern.to_calendar(localtime.to_date).select { |date, business_hours|
+        business_hours[:start_time]&.>(0) && business_hours[:end_time]&.>(1)
+      }.keys
+    }
+    
+    Set.new(travel_pattern_dates.flatten)
+  end
+
+  # Our client is in Pennsylvania. Currently servers are in the same time zone, but I don't want
+  # to break things if our servers move. If we gain other clients, we should add a timezone field.
+  def localtime
+    service_time_zone = "-05:00"
+    Time.now.localtime(service_time_zone)
+  end
+
   # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
@@ -327,6 +375,14 @@ class Service < ApplicationRecord
   ### SCOPE HELPER METHODS ###
 
   # available_by_geography_for scopes
+  scope :available_by_start_area_for, -> (trip) do
+    # no start_area contains origin
+    where( id: no_region(:start_area) | with_containing_start_area(trip) )
+  end
+  scope :available_by_end_area_for, -> (trip) do
+    # no end_area contains destination
+    where( id: no_region(:end_area) | with_containing_end_area(trip) )
+  end
   scope :available_by_start_or_end_area_for, -> (trip) do
     # no start_or_end_area, or start_or_end_area contains origin OR destination
     where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
@@ -382,6 +438,20 @@ class Service < ApplicationRecord
   # Returns IDs of Services with no region of given association type
   def self.no_region(region_type)
     includes(region_type).where(regions: { id: nil }).pluck(:id)
+  end
+
+  # Returns IDs of Services with a start_area that is EMPTY or containing trip origin
+  def self.with_containing_start_area(trip)
+    joins(:start_area).empty_region(:start_area)
+    .or(joins(:start_area).region_contains(trip.origin.geom))
+    .pluck(:id)
+  end
+
+  # Returns IDs of Services with a end_area that is EMPTY or containing trip destination
+  def self.with_containing_end_area(trip)
+    joins(:end_area).empty_region(:end_area)
+    .or(joins(:end_area).region_contains(trip.destination.geom))
+    .pluck(:id)
   end
 
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination

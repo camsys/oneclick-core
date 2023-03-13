@@ -23,7 +23,7 @@ module Api
           Rails.logger.info("Found the following matching Travel Patterns: #{ travel_patterns.map{|t| t['id']} }")
           render status: :ok, json: { 
             status: "success", 
-            data: TravelPattern.to_api_response(travel_patterns)
+            data: TravelPattern.to_api_response(travel_patterns, service)
           }
         else
           Rails.logger.info("No matching Travel Patterns found")

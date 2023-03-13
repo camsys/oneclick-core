@@ -1,6 +1,6 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback', 'Feedback Aggregated']
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback', 'Feedback Aggregated', 'Find Services']
   DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
@@ -18,7 +18,8 @@ class Admin::ReportsController < Admin::AdminController
     :services_table,
     :requests_table,
     :feedback_table,
-    :feedback_aggregated_table
+    :feedback_aggregated_table,
+    :find_services_table
   ]  
 
   before_action :authorize_reports
@@ -136,6 +137,15 @@ class Admin::ReportsController < Admin::AdminController
     end
   end
 
+  def find_services_table
+    @find_services_histories = FindServicesHistory.all
+    @find_services_histories = @find_services_histories.from_date(@created_at_from_date).to_date(@created_at_to_date)
+    @find_services_histories = @find_services_histories.origin_in(@find_services_origin_recipe.geom) unless @find_services_origin_recipe.empty?
+    respond_to do |format|
+      format.csv { send_data @find_services_histories.to_csv }
+    end
+  end
+
   def services_table
     always_unaffiliated_services = Service.where(type: [:Uber,:Lyft,:Taxi])
     if current_user.superuser?
@@ -207,6 +217,11 @@ class Admin::ReportsController < Admin::AdminController
     # REQUEST FILTERS
     @request_from_date = parse_date_param(params[:request_from_date])
     @request_to_date = parse_date_param(params[:request_to_date])
+
+    # FIND SERVICES FILTERS
+    @created_at_from_date = parse_date_param(params[:created_at_from_date])
+    @created_at_to_date = parse_date_param(params[:created_at_to_date])
+    @find_services_origin_recipe = Region.build(recipe: params[:find_services_origin_recipe])
     
   end
   
@@ -248,8 +263,12 @@ class Admin::ReportsController < Admin::AdminController
       
       # REQUEST FILTERS
       :request_from_date,
-      :request_to_date
-      
+      :request_to_date,
+
+      # FIND SERVICES FILTERS
+      :created_at_from_date,
+      :created_at_to_date,
+      :find_services_origin_recipe
     )
   end
   

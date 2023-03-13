@@ -38,6 +38,17 @@
     label: "Max walk minutes",
     input_html: {value: (Config.find_by(key: :max_walk_minutes).try(:value) || "45")},
     as: :integer
+  
+  - if Config.open_trip_planner_version == 'v2'
+    = f.input :walk_reluctance, require: true,
+      label: "Walk reluctance",
+      input_html: {value: (Config.find_by(key: :walk_reluctance).try(:value) || "10")},
+      as: :integer
+
+    = f.input :bike_reluctance, require: true,
+      label: "Bike reluctance",
+      input_html: {value: (Config.find_by(key: :bike_reluctance).try(:value) || "5")},
+      as: :integer
 
   = f.input :maximum_booking_notice, require: true,
     label: "Maximum Booking Notice (Days)",

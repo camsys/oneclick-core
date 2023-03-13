@@ -2,9 +2,11 @@ module Api
   module V2
     module Refernet
       class ServicesController < ApiController
+        before_action :ensure_traveler, only: [:collect_history] #If @traveler is not set, then create a guest user account
 
         include ActionView::Helpers::NumberHelper
-
+        # Endpoint is: /api/v2/oneclick_refernet/services
+        # - plus any query params attached to the request
         # Overwrite the services index call in refernet so that we can add transportation info
         def index
           duration_hash = {}
@@ -16,7 +18,7 @@ module Api
           services = OneclickRefernet::Service.confirmed.where(id: sub_sub_category_services.pluck(:id).uniq)
           
           lat, lng = params[:lat], params[:lng]
-          meters = params[:meters].to_f
+          meters = (params[:meters] || OneclickRefernet.try(:default_radius_meters)).to_f
           limit = params[:limit] || 10
           
           if lat && lng
@@ -24,7 +26,8 @@ module Api
             
             services = services.closest(lat, lng)
                                .within_x_meters(lat, lng, meters)
-                               .limit(limit)                  
+                               .limit(limit)
+            # This is where OTP is called to get trip duration by public transit and by vehicle
             duration_hash = build_duration_hash(params, services)
           else
             services = services.limit(limit)
@@ -62,6 +65,63 @@ module Api
             render(fail_response(status: 400, message: "Invalid Request"))
           end
 
+        end
+
+        # API call to create find services history records from Find Services workflow.
+        def create_find_services_history
+          # User starting location e.g. "Ventura, CA"
+          formatted_address = params[:formatted_address]
+          lat = params[:lat]
+          lng = params[:lng]
+          # Service sub-sub-category e.g. "Congregate Meal/Nutrition Sites"
+          sub_sub_category_name = params[:sub_sub_category_name]
+
+          # Create history record
+          @find_services_history = FindServicesHistory.new
+          @find_services_history.user_starting_location = formatted_address
+          @find_services_history.user_starting_lat = lat
+          @find_services_history.user_starting_lng = lng
+          @find_services_history.service_sub_sub_category = sub_sub_category_name
+          success = @find_services_history.save
+
+          if success
+            # Add user information
+            @find_services_history.user = @traveler
+            @find_services_history.user_ip = @traveler.current_sign_in_ip
+            if !@find_services_history.save
+              Rails.logger.debug "Unable to update find_services_history user"
+            end
+            render(success_response(@find_services_history, serializer_opts: {include: ['*.*.*']}))
+          else
+            Rails.logger.debug "Unable to create find_services_history"
+          end
+        end
+
+        # API call to update find services history records from Find Services workflow.
+        # Modify history record to add associated trip id for trip planned through services.
+        def update_find_services_history_trip_id
+          find_services_history_id = params[:find_services_history_id]
+          trip_id = params[:trip_id]
+          # Find existing history record to update.
+          @find_services_history = FindServicesHistory.find(find_services_history_id)
+          if @find_services_history
+            if @find_services_history.trip_id.nil?
+              # Add trip id for the planned trip.
+              if !@find_services_history.update(trip_id: trip_id)
+                Rails.logger.debug "Unable to update find_services_history trip_id"
+              end
+            else
+              # Trip id has already been set.
+              # Copy the find services record for the re-planned trip.
+              @find_services_history = @find_services_history.dup
+              @find_services_history.trip_id = trip_id
+              if !@find_services_history.save
+                Rails.logger.debug "Unable to copy find_services_history"
+              end
+            end
+          end
+
+          render(success_response(@find_services_history, serializer_opts: {include: ['*.*.*']}))
         end
 
         protected
@@ -108,7 +168,8 @@ module Api
         def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
-          otp = OTP::OTPService.new(Config.open_trip_planner)
+          otp_version = Config.open_trip_planner_version || 'v1'
+          otp = OTP::OTPService.new(Config.open_trip_planner, otp_version)
             
           ### Build the requests
           requests = []
@@ -123,17 +184,39 @@ module Api
             end
           end 
 
+          # If there are no requests to make, return an emptry duration hash.
+          if requests.count == 0
+            return {}
+          end
+
           ### Make the Call
-          plans = otp.multi_plan([requests])
+          successful_plans = {}
+          [1,2,3,4,5].each do |i|
+            puts "Calling OTP with #{requests.count} requests. This is attempt #{i}"
+
+            plans = otp.multi_plan([requests])
+
+            # Check to see if we had any successes? 
+            if plans and plans[:callback]
+              successful_plans.merge! plans[:callback]
+            end
+
+            # Check to see if we had any failures. OTP Can get overwhelmed sometimes, and we have to try again.
+            failures = plans[:errback].keys 
+            if failures.nil? or failures.count == 0
+              break
+            end
+            sleep 1
+            requests = requests.select{ |req| req[:label].in? failures }
+          end
 
           ### Unack the requests and build a hash of durations
-          unless plans.nil? or plans[:callback].nil?
-            plans[:callback].each do |label, plan|
-              response = otp.unpack(plan.response)
-              itinerary = response.extract_itineraries.first
-              duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
-            end
+          successful_plans.each do |label, plan| 
+            response = otp.unpack(plan.response)
+            itinerary = response.extract_itineraries.first
+            duration_hash[label] = itinerary.nil? ? nil : itinerary.itinerary["duration"]
           end
+
           return duration_hash
         end
 

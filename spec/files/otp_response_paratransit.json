@@ -1,0 +1,984 @@
+{
+    "requestParameters": {
+      "mode": "TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT",
+      "date": "2022-12-07",
+      "wheelchair": "false",
+      "arriveBy": "false",
+      "walkSpeed": "1.34112",
+      "showIntermediateStops": "true",
+      "fromPlace": "47.761341,-122.310291",
+      "showNextFromDeparture": "true",
+      "showStopTimes": "true",
+      "toPlace": "47.771553,-122.336224",
+      "time": "6:40AM",
+      "numItineraries": "3"
+    },
+    "plan": {
+      "date": 1670424000000,
+      "from": {
+        "name": "Origin",
+        "stopId": "soundgenerations-wa-us:area_873",
+        "lon": -122.310291,
+        "lat": 47.761341,
+        "vertexType": "TRANSIT"
+      },
+      "to": {
+        "name": "Destination",
+        "stopId": "soundgenerations-wa-us:area_873",
+        "lon": -122.336224,
+        "lat": 47.771553,
+        "vertexType": "TRANSIT"
+      },
+      "itineraries": [
+        {
+          "duration": 538,
+          "startTime": 1670425200000,
+          "endTime": 1670425738000,
+          "walkTime": 0,
+          "transitTime": 538,
+          "waitingTime": 0,
+          "walkDistance": 0,
+          "walkLimitExceeded": false,
+          "generalizedCost": 1138,
+          "elevationLost": 0,
+          "elevationGained": 0,
+          "transfers": 0,
+          "fare": {
+            "fare": {},
+            "details": {}
+          },
+          "legs": [
+            {
+              "startTime": 1670425200000,
+              "endTime": 1670425738000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 3371,
+              "generalizedCost": 1138,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "route": "Volunteer Transportation",
+              "agencyName": "Test Paratransit Service",
+              "agencyUrl": "https://soundgenerations.org/our-programs/transportation/",
+              "agencyTimeZoneOffset": -28800000,
+              "routeColor": "5f298b",
+              "routeType": 3,
+              "routeId": "soundgenerations-wa-us:74828",
+              "routeTextColor": "FFFFFF",
+              "interlineWithPreviousLeg": false,
+              "agencyId": "soundgenerations-wa-us:2291",
+              "tripId": "soundgenerations-wa-us:t_5415177_b_33663_tn_0",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "Origin",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.310291,
+                "lat": 47.761341,
+                "departure": 1670425200000,
+                "stopIndex": 0,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "Destination",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.336224,
+                "lat": 47.771553,
+                "arrival": 1670425738000,
+                "stopIndex": 1,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [],
+              "legGeometry": {
+                "points": "ijobH`xoiVs@bAY^_@r@e@z@y@tAGZE^sAt@KFyAjAgB~@kBz@wAZAj@GRMNYXw@v@c@f@Yh@M^I`@Cf@?l@Db@Np@^dArAvCFd@Dv@ApB?rA?L?NItN?R~A?pF?P?CjCAdA?dACz@?vD?pBMKoBkA[IY?{IH{A@qA@qB@a@@yB@ItOqDDiDBIxOEtOMvM?v@?PsADO@?P@hFgEF",
+                "length": 69
+              },
+              "steps": [],
+              "routeLongName": "Volunteer Transportation",
+              "boardRule": "mustPhone",
+              "alightRule": "mustPhone",
+              "pickupBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "dropOffBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "duration": 538
+            }
+          ],
+          "tooSloped": false,
+          "arrivedAtDestinationWithRentedBicycle": false
+        },
+        {
+          "duration": 1055,
+          "startTime": 1670426040000,
+          "endTime": 1670427095000,
+          "walkTime": 206,
+          "transitTime": 729,
+          "waitingTime": 120,
+          "walkDistance": 267.46,
+          "walkLimitExceeded": false,
+          "generalizedCost": 2453,
+          "elevationLost": 0,
+          "elevationGained": 0,
+          "transfers": 1,
+          "fare": {
+            "fare": {
+              "regular": {
+                "cents": -1,
+                "currency": {
+                  "currency": "USD",
+                  "defaultFractionDigits": 2,
+                  "currencyCode": "USD",
+                  "symbol": "$"
+                }
+              }
+            },
+            "details": {
+              "regular": [
+                {
+                  "fareId": "kcm:300",
+                  "price": {
+                    "cents": 0,
+                    "currency": {
+                      "currency": "USD",
+                      "defaultFractionDigits": 2,
+                      "currencyCode": "USD",
+                      "symbol": "$"
+                    }
+                  },
+                  "routes": [
+                    "kcm:100204"
+                  ]
+                }
+              ]
+            }
+          },
+          "legs": [
+            {
+              "startTime": 1670426040000,
+              "endTime": 1670426221000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 234.24,
+              "generalizedCost": 353,
+              "pathway": false,
+              "mode": "WALK",
+              "transitLeg": false,
+              "route": "",
+              "agencyTimeZoneOffset": -28800000,
+              "interlineWithPreviousLeg": false,
+              "from": {
+                "name": "Origin",
+                "lon": -122.310291,
+                "lat": 47.761341,
+                "departure": 1670426040000,
+                "vertexType": "NORMAL"
+              },
+              "to": {
+                "name": "15th Ave NE & 24th Ave NE",
+                "stopId": "kcm:77920",
+                "stopCode": "77920",
+                "lon": -122.312546,
+                "lat": 47.7627182,
+                "arrival": 1670426221000,
+                "departure": 1670426221000,
+                "zoneId": "18",
+                "vertexType": "TRANSIT"
+              },
+              "legGeometry": {
+                "points": "ijobH`xoiVs@bAY^_@r@e@z@y@tAGZE^sAt@CO",
+                "length": 10
+              },
+              "steps": [
+                {
+                  "distance": 183.52,
+                  "relativeDirection": "DEPART",
+                  "streetName": "24th Avenue Northeast",
+                  "absoluteDirection": "NORTHWEST",
+                  "stayOn": false,
+                  "area": false,
+                  "bogusName": false,
+                  "lon": -122.3105671,
+                  "lat": 47.761179,
+                  "elevation": "",
+                  "walkingBike": false
+                },
+                {
+                  "distance": 50.73,
+                  "relativeDirection": "RIGHT",
+                  "streetName": "15th Avenue Northeast",
+                  "absoluteDirection": "NORTHWEST",
+                  "stayOn": false,
+                  "area": false,
+                  "bogusName": false,
+                  "lon": -122.312359,
+                  "lat": 47.7622756,
+                  "elevation": "",
+                  "walkingBike": false
+                }
+              ],
+              "rentedBike": false,
+              "walkingBike": false,
+              "duration": 181
+            },
+            {
+              "startTime": 1670426221000,
+              "endTime": 1670426520000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 1769.17,
+              "generalizedCost": 899,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "agencyName": "Metro Transit",
+              "agencyUrl": "http://metro.kingcounty.gov",
+              "agencyTimeZoneOffset": -28800000,
+              "routeType": 3,
+              "routeId": "kcm:100204",
+              "interlineWithPreviousLeg": false,
+              "tripShortName": "LOCAL",
+              "tripBlockId": "6620392",
+              "headsign": "Mountlake Terrace Ridgecrest",
+              "agencyId": "kcm:1",
+              "tripId": "kcm:571998062",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "15th Ave NE & 24th Ave NE",
+                "stopId": "kcm:77920",
+                "stopCode": "77920",
+                "lon": -122.312546,
+                "lat": 47.7627182,
+                "arrival": 1670426221000,
+                "departure": 1670426221000,
+                "zoneId": "18",
+                "stopIndex": 32,
+                "stopSequence": 134,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "NE 205th St & 15th Ave NE",
+                "stopId": "kcm:81980",
+                "stopCode": "81980",
+                "lon": -122.31263,
+                "lat": 47.7775154,
+                "arrival": 1670426520000,
+                "departure": 1670426640000,
+                "zoneId": "17",
+                "stopIndex": 38,
+                "stopSequence": 208,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [
+                {
+                  "name": "15th Ave NE & NE Perkins Way",
+                  "stopId": "kcm:77930",
+                  "stopCode": "77930",
+                  "lon": -122.313774,
+                  "lat": 47.7655869,
+                  "arrival": 1670426279000,
+                  "departure": 1670426279000,
+                  "zoneId": "18",
+                  "stopIndex": 33,
+                  "stopSequence": 151,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "15th Ave NE & NE 192nd St",
+                  "stopId": "kcm:77939",
+                  "stopCode": "77939",
+                  "lon": -122.314499,
+                  "lat": 47.7682419,
+                  "arrival": 1670426330000,
+                  "departure": 1670426330000,
+                  "zoneId": "18",
+                  "stopIndex": 34,
+                  "stopSequence": 167,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "15th Ave NE & NE 196th St",
+                  "stopId": "kcm:77950",
+                  "stopCode": "77950",
+                  "lon": -122.313354,
+                  "lat": 47.7709808,
+                  "arrival": 1670426385000,
+                  "departure": 1670426385000,
+                  "zoneId": "18",
+                  "stopIndex": 35,
+                  "stopSequence": 190,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "15th Ave NE & Forest Park Dr NE",
+                  "stopId": "kcm:77960",
+                  "stopCode": "77960",
+                  "lon": -122.313515,
+                  "lat": 47.7748184,
+                  "arrival": 1670426457000,
+                  "departure": 1670426457000,
+                  "zoneId": "18",
+                  "stopIndex": 36,
+                  "stopSequence": 193,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "15th Ave NE & Ballinger Way NE",
+                  "stopId": "kcm:77970",
+                  "stopCode": "77970",
+                  "lon": -122.313599,
+                  "lat": 47.7764359,
+                  "arrival": 1670426487000,
+                  "departure": 1670426487000,
+                  "zoneId": "18",
+                  "stopIndex": 37,
+                  "stopSequence": 196,
+                  "vertexType": "TRANSIT"
+                }
+              ],
+              "legGeometry": {
+                "points": "wsobH|dpiVURg@^a@^e@V}@`@sAp@g@T[J[D]H_@@WAc@?W?W@W@GB??I@YFOHUHq@b@c@RUJOFUFIBUDc@Bm@@WByCHUB??U?c@Em@MsAm@SSUQ_@[YWUOQKQIMIMGKAGCMCYGOAM?S?Y?c@@??}PVsA@mBD??wBDoCD{@@??yBFS?U?OAWYMQGMCOAO?S@iB?C",
+                "length": 79
+              },
+              "steps": [],
+              "routeShortName": "347",
+              "duration": 299
+            },
+            {
+              "startTime": 1670426640000,
+              "endTime": 1670426665000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 33.22,
+              "generalizedCost": 50,
+              "pathway": false,
+              "mode": "WALK",
+              "transitLeg": false,
+              "route": "",
+              "agencyTimeZoneOffset": -28800000,
+              "interlineWithPreviousLeg": false,
+              "from": {
+                "name": "NE 205th St & 15th Ave NE",
+                "stopId": "kcm:81980",
+                "stopCode": "81980",
+                "lon": -122.31263,
+                "lat": 47.7775154,
+                "arrival": 1670426520000,
+                "departure": 1670426640000,
+                "zoneId": "17",
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "service road",
+                "lon": -122.3129034,
+                "lat": 47.7773587,
+                "arrival": 1670426665000,
+                "departure": 1670426665000,
+                "vertexType": "NORMAL"
+              },
+              "legGeometry": {
+                "points": "mprbH|dpiV?FN?Ad@PH",
+                "length": 5
+              },
+              "steps": [
+                {
+                  "distance": 33.22,
+                  "relativeDirection": "DEPART",
+                  "streetName": "service road",
+                  "absoluteDirection": "SOUTHWEST",
+                  "stayOn": false,
+                  "area": false,
+                  "bogusName": true,
+                  "lon": -122.3126615,
+                  "lat": 47.7775158,
+                  "elevation": "",
+                  "walkingBike": false
+                }
+              ],
+              "rentedBike": false,
+              "walkingBike": false,
+              "duration": 25
+            },
+            {
+              "startTime": 1670426665000,
+              "endTime": 1670427095000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 2844,
+              "generalizedCost": 1030,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "route": "Volunteer Transportation",
+              "agencyName": "Test Paratransit Service",
+              "agencyUrl": "https://soundgenerations.org/our-programs/transportation/",
+              "agencyTimeZoneOffset": -28800000,
+              "routeColor": "5f298b",
+              "routeType": 3,
+              "routeId": "soundgenerations-wa-us:74828",
+              "routeTextColor": "FFFFFF",
+              "interlineWithPreviousLeg": false,
+              "agencyId": "soundgenerations-wa-us:2291",
+              "tripId": "soundgenerations-wa-us:t_5415177_b_33663_tn_0",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "service road",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.3129034,
+                "lat": 47.7773587,
+                "arrival": 1670426665000,
+                "departure": 1670426665000,
+                "stopIndex": 0,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "Destination",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.336224,
+                "lat": 47.771553,
+                "arrival": 1670427095000,
+                "stopIndex": 1,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [],
+              "legGeometry": {
+                "points": "morbHtfpiVCn@q@B?NEh@BPDLDJFHBH@H@J?JAVOx@It@GrAC~B@fG?bBA~B?n@@zF?RAjDAhCAvCAbD?~B?`A?dBJj@hEEpIGlMKjMKKxOdBAIxOEtOMvM?v@?PsADO@?P@hFgEF",
+                "length": 48
+              },
+              "steps": [],
+              "routeLongName": "Volunteer Transportation",
+              "boardRule": "mustPhone",
+              "alightRule": "mustPhone",
+              "pickupBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "dropOffBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "duration": 430
+            }
+          ],
+          "tooSloped": false,
+          "arrivedAtDestinationWithRentedBicycle": false
+        },
+        {
+          "duration": 1143,
+          "startTime": 1670426323000,
+          "endTime": 1670427466000,
+          "walkTime": 3,
+          "transitTime": 900,
+          "waitingTime": 240,
+          "walkDistance": 3.4,
+          "walkLimitExceeded": false,
+          "generalizedCost": 2947,
+          "elevationLost": 0,
+          "elevationGained": 0,
+          "transfers": 2,
+          "fare": {
+            "fare": {
+              "regular": {
+                "cents": -1,
+                "currency": {
+                  "currency": "USD",
+                  "defaultFractionDigits": 2,
+                  "currencyCode": "USD",
+                  "symbol": "$"
+                }
+              }
+            },
+            "details": {
+              "regular": [
+                {
+                  "fareId": "kcm:300",
+                  "price": {
+                    "cents": 0,
+                    "currency": {
+                      "currency": "USD",
+                      "defaultFractionDigits": 2,
+                      "currencyCode": "USD",
+                      "symbol": "$"
+                    }
+                  },
+                  "routes": [
+                    "kcm:100205"
+                  ]
+                }
+              ]
+            }
+          },
+          "legs": [
+            {
+              "startTime": 1670426323000,
+              "endTime": 1670426625000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 1737,
+              "generalizedCost": 902,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "route": "Volunteer Transportation",
+              "agencyName": "Test Paratransit Service",
+              "agencyUrl": "https://soundgenerations.org/our-programs/transportation/",
+              "agencyTimeZoneOffset": -28800000,
+              "routeColor": "5f298b",
+              "routeType": 3,
+              "routeId": "soundgenerations-wa-us:74828",
+              "routeTextColor": "FFFFFF",
+              "interlineWithPreviousLeg": false,
+              "agencyId": "soundgenerations-wa-us:2291",
+              "tripId": "soundgenerations-wa-us:t_5415177_b_33663_tn_0",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "Origin",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.310291,
+                "lat": 47.761341,
+                "departure": 1670426323000,
+                "stopIndex": 0,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "corner of path and 3rd Avenue Northeast",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.3269425,
+                "lat": 47.7633167,
+                "arrival": 1670426625000,
+                "departure": 1670426625000,
+                "stopIndex": 1,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [],
+              "legGeometry": {
+                "points": "ijobH`xoiVs@bAY^_@r@e@z@y@tAGZE^sAt@KFyAjAgB~@kBz@wAZAj@GRMNYXw@v@c@f@Yh@M^I`@Cf@?l@Db@Np@^dArAvCFd@Dv@ApB?rA?L?NItN?R~A?pF?P?CjCAdA?dACz@?vD?pB?pB?L?`@@`A?tEM?",
+                "length": 52
+              },
+              "steps": [],
+              "routeLongName": "Volunteer Transportation",
+              "boardRule": "mustPhone",
+              "alightRule": "mustPhone",
+              "pickupBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "dropOffBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "duration": 302
+            },
+            {
+              "startTime": 1670426625000,
+              "endTime": 1670426628000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 3.4,
+              "generalizedCost": 6,
+              "pathway": false,
+              "mode": "WALK",
+              "transitLeg": false,
+              "route": "",
+              "agencyTimeZoneOffset": -28800000,
+              "interlineWithPreviousLeg": false,
+              "from": {
+                "name": "corner of path and 3rd Avenue Northeast",
+                "lon": -122.3269425,
+                "lat": 47.7633167,
+                "arrival": 1670426625000,
+                "departure": 1670426625000,
+                "vertexType": "NORMAL"
+              },
+              "to": {
+                "name": "NE 185th St & 3rd Ave NE",
+                "stopId": "kcm:81322",
+                "stopCode": "81322",
+                "lon": -122.326988,
+                "lat": 47.7633133,
+                "arrival": 1670426628000,
+                "departure": 1670426748000,
+                "zoneId": "18",
+                "vertexType": "TRANSIT"
+              },
+              "legGeometry": {
+                "points": "uwobHl~riV?F??",
+                "length": 3
+              },
+              "steps": [
+                {
+                  "distance": 3.4,
+                  "relativeDirection": "DEPART",
+                  "streetName": "path",
+                  "absoluteDirection": "WEST",
+                  "stayOn": false,
+                  "area": false,
+                  "bogusName": true,
+                  "lon": -122.3269425,
+                  "lat": 47.7633167,
+                  "elevation": "",
+                  "walkingBike": false
+                }
+              ],
+              "rentedBike": false,
+              "walkingBike": false,
+              "duration": 3
+            },
+            {
+              "startTime": 1670426748000,
+              "endTime": 1670426940000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 1488.44,
+              "generalizedCost": 912,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "agencyName": "Metro Transit",
+              "agencyUrl": "http://metro.kingcounty.gov",
+              "agencyTimeZoneOffset": -28800000,
+              "routeType": 3,
+              "routeId": "kcm:100205",
+              "interlineWithPreviousLeg": false,
+              "tripShortName": "LOCAL",
+              "tripBlockId": "6620390",
+              "headsign": "Richmond Beach North City",
+              "agencyId": "kcm:1",
+              "tripId": "kcm:571997892",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "NE 185th St & 3rd Ave NE",
+                "stopId": "kcm:81322",
+                "stopCode": "81322",
+                "lon": -122.326988,
+                "lat": 47.7633133,
+                "arrival": 1670426628000,
+                "departure": 1670426748000,
+                "zoneId": "18",
+                "stopIndex": 24,
+                "stopSequence": 118,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "N 185th St & Aurora Ave N",
+                "stopId": "kcm:75909",
+                "stopCode": "75909",
+                "lon": -122.346901,
+                "lat": 47.763298,
+                "arrival": 1670426940000,
+                "departure": 1670427060000,
+                "zoneId": "18",
+                "stopIndex": 30,
+                "stopSequence": 139,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [
+                {
+                  "name": "NE 185th St & 1st Ave NE",
+                  "stopId": "kcm:81321",
+                  "stopCode": "81321",
+                  "lon": -122.329514,
+                  "lat": 47.7633209,
+                  "arrival": 1670426772000,
+                  "departure": 1670426772000,
+                  "zoneId": "18",
+                  "stopIndex": 25,
+                  "stopSequence": 120,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "N 185th St & Corliss Ave N",
+                  "stopId": "kcm:81326",
+                  "stopCode": "81326",
+                  "lon": -122.332054,
+                  "lat": 47.7633286,
+                  "arrival": 1670426797000,
+                  "departure": 1670426797000,
+                  "zoneId": "18",
+                  "stopIndex": 26,
+                  "stopSequence": 122,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "N 185th St & Meridian Ave N",
+                  "stopId": "kcm:75902",
+                  "stopCode": "75902",
+                  "lon": -122.335495,
+                  "lat": 47.76334,
+                  "arrival": 1670426830000,
+                  "departure": 1670426830000,
+                  "zoneId": "18",
+                  "stopIndex": 27,
+                  "stopSequence": 126,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "N 185th St & Wallingford Ave N",
+                  "stopId": "kcm:75904",
+                  "stopCode": "75904",
+                  "lon": -122.338081,
+                  "lat": 47.7633286,
+                  "arrival": 1670426855000,
+                  "departure": 1670426855000,
+                  "zoneId": "18",
+                  "stopIndex": 28,
+                  "stopSequence": 129,
+                  "vertexType": "TRANSIT"
+                },
+                {
+                  "name": "N 185th St & Ashworth Ave N",
+                  "stopId": "kcm:75906",
+                  "stopCode": "75906",
+                  "lon": -122.340828,
+                  "lat": 47.7633209,
+                  "arrival": 1670426881000,
+                  "departure": 1670426881000,
+                  "zoneId": "18",
+                  "stopIndex": 29,
+                  "stopSequence": 132,
+                  "vertexType": "TRANSIT"
+                }
+              ],
+              "legGeometry": {
+                "points": "ewobHt~riVAbG?tF???VCdN???r@AfL?rB?|A??@vD?`G?jA??@jE?hG?lA??@xG?rD?pD?dE@pD?^@fD",
+                "length": 27
+              },
+              "steps": [],
+              "routeShortName": "348",
+              "duration": 192
+            },
+            {
+              "startTime": 1670427060000,
+              "endTime": 1670427060000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 0,
+              "generalizedCost": 1,
+              "pathway": false,
+              "mode": "WALK",
+              "transitLeg": false,
+              "route": "",
+              "agencyTimeZoneOffset": -28800000,
+              "interlineWithPreviousLeg": false,
+              "from": {
+                "name": "N 185th St & Aurora Ave N",
+                "stopId": "kcm:75909",
+                "stopCode": "75909",
+                "lon": -122.346901,
+                "lat": 47.763298,
+                "arrival": 1670426940000,
+                "departure": 1670427060000,
+                "zoneId": "18",
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "North 185th Street",
+                "lon": -122.3468998,
+                "lat": 47.7632614,
+                "arrival": 1670427060000,
+                "departure": 1670427060000,
+                "vertexType": "NORMAL"
+              },
+              "legGeometry": {
+                "points": "qwobHd{viVDA",
+                "length": 2
+              },
+              "legElevation": "",
+              "steps": [],
+              "rentedBike": false,
+              "walkingBike": false,
+              "duration": 0
+            },
+            {
+              "startTime": 1670427060000,
+              "endTime": 1670427466000,
+              "departureDelay": 0,
+              "arrivalDelay": 0,
+              "realTime": false,
+              "distance": 1948,
+              "generalizedCost": 1006,
+              "pathway": false,
+              "mode": "BUS",
+              "transitLeg": true,
+              "route": "Volunteer Transportation",
+              "agencyName": "Test Paratransit Service",
+              "agencyUrl": "https://soundgenerations.org/our-programs/transportation/",
+              "agencyTimeZoneOffset": -28800000,
+              "routeColor": "5f298b",
+              "routeType": 3,
+              "routeId": "soundgenerations-wa-us:74828",
+              "routeTextColor": "FFFFFF",
+              "interlineWithPreviousLeg": false,
+              "agencyId": "soundgenerations-wa-us:2291",
+              "tripId": "soundgenerations-wa-us:t_5415177_b_33663_tn_0",
+              "serviceDate": "2022-12-07",
+              "from": {
+                "name": "North 185th Street",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.3468998,
+                "lat": 47.7632614,
+                "arrival": 1670427060000,
+                "departure": 1670427060000,
+                "stopIndex": 0,
+                "vertexType": "TRANSIT"
+              },
+              "to": {
+                "name": "Destination",
+                "stopId": "soundgenerations-wa-us:area_873",
+                "lon": -122.336224,
+                "lat": 47.771553,
+                "arrival": 1670427466000,
+                "stopIndex": 1,
+                "vertexType": "TRANSIT"
+              },
+              "intermediateStops": [],
+              "legGeometry": {
+                "points": "kwobHb{viV@bB?z@?bA?|@J`@Ba@?e@?iD?SAmC?o@?_@Ae@O?WAu@?}A?sAAmDAq@Ai@?iAAoDAM?[?}@A[??U?eC?mB?cB?aA?O?U@]?gEAgJAiDAsD?{C?e@?uGaPDgEF",
+                "length": 45
+              },
+              "steps": [],
+              "routeLongName": "Volunteer Transportation",
+              "boardRule": "mustPhone",
+              "alightRule": "mustPhone",
+              "pickupBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "dropOffBookingInfo": {
+                "contactInfo": {
+                  "phoneNumber": "206-448-5740",
+                  "infoUrl": "https://soundgenerations.org/our-programs/transportation/volunteer-transportation/"
+                },
+                "earliestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 0
+                },
+                "latestBookingTime": {
+                  "time": 0,
+                  "daysPrior": 6
+                },
+                "message": "Sound Generation’s Volunteer Driver program provides door-to-door transportation to essential healthcare appointments. The program is open to King County residents ages 60 and over. All rides are subject to volunteer driver availability. To schedule a ride, call 206-448-5740 the week before your scheduled appointment."
+              },
+              "duration": 406
+            }
+          ],
+          "tooSloped": false,
+          "arrivedAtDestinationWithRentedBicycle": false
+        }
+      ]
+    },
+    "metadata": {
+      "searchWindowUsed": 3000,
+      "nextDateTime": 1670427000000,
+      "prevDateTime": 1670421000000
+    },
+    "previousPageCursor": "rO0ABXc1AQANUFJFVklPVVNfUEFHRQWEuQiAAAAAAAALuAAXU1RSRUVUX0FORF9BUlJJVkFMX1RJTUU=",
+    "nextPageCursor": "rO0ABXcxAQAJTkVYVF9QQUdFBYTQeIAAAAAAAAu4ABdTVFJFRVRfQU5EX0FSUklWQUxfVElNRQ==",
+    "debugOutput": {
+      "precalculationTime": 77492,
+      "directStreetRouterTime": 5492310,
+      "transitRouterTime": 5073626884,
+      "filteringTime": 1996567,
+      "renderingTime": 666700,
+      "totalTime": 5078022600,
+      "transitRouterTimes": {
+        "tripPatternFilterTime": 10623091,
+        "accessEgressTime": 3917012363,
+        "raptorSearchTime": 1143622628,
+        "itineraryCreationTime": 2364309
+      }
+    },
+    "elevationMetadata": {
+      "ellipsoidToGeoidDifference": -16.375239747832612,
+      "geoidElevation": false
+    }
+  }
