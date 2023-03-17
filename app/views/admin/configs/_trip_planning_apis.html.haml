@@ -15,6 +15,16 @@
     label: "URL of the Open Trip Planner Server",
     input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
     as: :string
+
+  = f.input :otp_itinerary_quantity, required: true,
+    label: "The number of Itineraries we request from OTP per transit type. This may be different from the number of Itineraries that are shown",
+    input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
+    as: :integer
+
+  -# = f.input :otp_max_itineraries_shown, required: true,
+  -#   label: "The maximum number of requested Itineraries that we show per transit type.",
+  -#   input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
+  -#   as: :integer
     
   =f.input :tff_api_key, required: false,
     label: "API Key for Taxi Fare Finder",

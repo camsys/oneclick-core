@@ -141,7 +141,7 @@ class TripPlanner
   # Additional sanity checks can be applied here.
   def filter_itineraries
     walk_seen = false
-    max_walk_minutes = Config.max_walk_minutes || 45
+    max_walk_minutes = Config.max_walk_minutes
     itineraries = @trip.itineraries.map do |itin|
 
       ## Test: Make sure we never exceed the maximium walk time

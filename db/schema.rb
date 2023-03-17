@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20221230211336) do
+ActiveRecord::Schema.define(version: 20230130085256) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -42,6 +42,16 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer "accommodation_id", null: false
     t.index ["accommodation_id"], name: "index_accommodations_users_on_accommodation_id", using: :btree
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
+  end
+
+  create_table "account_identities", force: :cascade do |t|
+    t.integer  "authenticated_account_id", null: false
+    t.string   "identity",                 null: false
+    t.string   "provider",                 null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+    t.index ["authenticated_account_id"], name: "index_account_identities_on_authenticated_account_id", using: :btree
+    t.index ["identity", "provider"], name: "index_account_identities_on_identity_and_provider", using: :btree
   end
 
   create_table "agencies", force: :cascade do |t|
@@ -77,6 +87,17 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.text     "audience_details"
     t.datetime "created_at",                            null: false
     t.datetime "updated_at",                            null: false
+  end
+
+  create_table "authenticated_accounts", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "subject_uuid", null: false
+    t.string   "email",        null: false
+    t.string   "account_type", null: false
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.index ["subject_uuid"], name: "index_authenticated_accounts_on_subject_uuid", using: :btree
+    t.index ["user_id"], name: "index_authenticated_accounts_on_user_id", using: :btree
   end
 
   create_table "booking_windows", force: :cascade do |t|
@@ -775,9 +796,11 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
+  add_foreign_key "account_identities", "authenticated_accounts"
   add_foreign_key "agencies", "agency_types"
   add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
+  add_foreign_key "authenticated_accounts", "users"
   add_foreign_key "booking_windows", "agencies"
   add_foreign_key "booking_windows", "travel_patterns"
   add_foreign_key "bookings", "itineraries"

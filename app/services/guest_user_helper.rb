@@ -30,7 +30,7 @@ class GuestUserHelper
   
   # Email domain name to user for guest users
   def email_domain
-    Config.guest_user_email_domain || "example.com"
+    Config.guest_user_email_domain
   end
   
   # Check if a string includes the guest user email domain

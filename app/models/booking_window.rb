@@ -36,7 +36,7 @@ class BookingWindow < ApplicationRecord
   private
 
   def valid_booking_notice
-    max_notice = Config.maximum_booking_notice || 30
+    max_notice = Config.maximum_booking_notice
     [:minimum_days_notice, :maximum_days_notice].each do |attribute|
       if self[attribute].present?
         self.errors.add(attribute, "must be less than or equal to #{max_notice}") unless self[attribute] <= max_notice

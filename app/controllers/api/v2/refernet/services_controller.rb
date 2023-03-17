@@ -168,14 +168,17 @@ module Api
         def build_duration_hash(params, services)
           duration_hash ={}
           origin = [params[:lat], params[:lng]]
-          otp_version = Config.open_trip_planner_version || 'v1'
+          otp_version = Config.open_trip_planner_version
           otp = OTP::OTPService.new(Config.open_trip_planner, otp_version)
             
           ### Build the requests
           requests = []
+          otp_v1_modes = ['TRANSIT,WALK', 'CAR'] 
+          otp_v2_modes = ['TRANSIT,WALK', 'CAR_PARK,TRANSIT', 'CAR']
+          modes = otp_version ? otp_v1_modes : otp_v2_modes
           services.each do |service|
             unless service.latlng.nil?
-              ['TRANSIT,WALK', 'CAR'].each do |mode|
+              modes.each do |mode|
                 new_request = build_request(origin, service, mode)
                 unless new_request.nil? 
                   requests << new_request
@@ -206,7 +209,7 @@ module Api
             if failures.nil? or failures.count == 0
               break
             end
-            sleep 1
+            sleep 1 # Sleep is a blocking operation. We should think of a way to do this on another thread.
             requests = requests.select{ |req| req[:label].in? failures }
           end
 
