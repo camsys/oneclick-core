@@ -31,7 +31,7 @@
 
   = f.input :require_user_confirmation, require: true, include_blank: false,
     label: "Require users to confirm email addresses",
-    input_html: {value: Config.require_user_confirmation,
+    input_html: {value: Config.require_user_confirmation},
     as: :select
 
   = f.input :max_walk_minutes, require: true,
