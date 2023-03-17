@@ -74,7 +74,7 @@ class Config < ApplicationRecord
     return Rails.application.config.send(key) if Rails.application.config.respond_to?(key)
     
     Rails.logger.warn("Warning: Config #{key} was not found in the database or the application configuration, defaulting to environment")
-    return ENV[key.to_s] if ENV[key.to_s]
+    return ENV[key.to_s] if ENV[key.to_s].present?
     return DEFAULT_CONFIGS[key.to_sym]
   end
   
