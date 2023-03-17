@@ -72,7 +72,7 @@ module OTP
       max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP v1
       max_bicycle_distance = options[:max_bicycle_distance] || 5
       optimize = options[:optimize] || 'QUICK'
-      num_itineraries = options[:num_itineraries] || 3
+      num_itineraries = options[:num_itineraries] || Config.otp_itinerary_quantity
       min_transfer_time = options[:min_transfer_time] || nil
       max_transfer_time = options[:max_transfer_time] || nil
       banned_routes = options[:banned_routes] || nil

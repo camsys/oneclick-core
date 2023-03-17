@@ -253,7 +253,7 @@ class User < ApplicationRecord
 
   # Set Require Confirmation to be true
   def confirmation_required?
-    Config.require_user_confirmation || false
+    Config.require_user_confirmation
   end
 
   protected

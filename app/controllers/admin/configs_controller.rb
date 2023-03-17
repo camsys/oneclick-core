@@ -15,6 +15,8 @@ class Admin::ConfigsController < Admin::AdminController
   PERMITTED_CONFIGS = [
     :open_trip_planner,
     :open_trip_planner_version,
+    :otp_itinerary_quantity,
+    # :otp_max_itineraries_shown,
     :tff_api_key,
     :uber_token,
     :lyft_client_token,

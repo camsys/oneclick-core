@@ -6,7 +6,18 @@ class OTPAmbassador
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
     transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
-    paratransit:  { label: :otp_paratransit,    modes: "TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT" },
+    paratransit:  { label: :otp_paratransit,    modes: "CAR" },
+    taxi:         { label: :otp_car,    modes: "CAR" },
+    walk:         { label: :otp_walk,     modes: "WALK"},
+    car:          { label: :otp_car,    modes: "CAR"},
+    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"},
+    uber:         { label: :otp_car,    modes: "CAR"},
+    lyft:         { label: :otp_car,    modes: "CAR"}
+  }
+
+  TRIP_TYPE_DICTIONARY_V2 = {
+    transit:      { label: :otp_transit,  modes: "CAR_PARK,TRANSIT,WALK" },
+    paratransit:  { label: :otp_paratransit,    modes: "CAR_PARK,TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT" },
     taxi:         { label: :otp_car,    modes: "CAR" },
     walk:         { label: :otp_walk,     modes: "WALK"},
     car:          { label: :otp_car,    modes: "CAR"},
@@ -21,7 +32,7 @@ class OTPAmbassador
       trip, 
       trip_types=TRIP_TYPE_DICTIONARY.keys, 
       http_request_bundler=HTTPRequestBundler.new, 
-      services=Transit.published
+      services=Transit.published.available_for(trip, {only_filters: [:eligibility, :accommodation]})
     )
     
     @trip = trip
@@ -29,15 +40,11 @@ class OTPAmbassador
     @http_request_bundler = http_request_bundler
     @services = services
 
-    otp_version = Config.open_trip_planner_version || 'v1'
+    otp_version = Config.open_trip_planner_version
+    @trip_type_dictionary = otp_version == 'v1' ? TRIP_TYPE_DICTIONARY : TRIP_TYPE_DICTIONARY_V2
     @request_types = @trip_types.map { |tt|
-      if otp_version != 'v2' && tt == :paratransit
-        # Version 1 of OTP does not support all the different modes in paratransit.
-        { label: :otp_paratransit, modes: TRIP_TYPE_DICTIONARY[:car][:modes] }
-      else
-        TRIP_TYPE_DICTIONARY[tt]
-      end
-    }.uniq
+      @trip_type_dictionary[tt]
+    }.compact.uniq
     @otp = OTPService.new(Config.open_trip_planner, otp_version)
 
     # add http calls to bundler based on trip and modes
@@ -117,7 +124,7 @@ class OTPAmbassador
   # Fetches responses from the HTTP Request Bundler, and packages
   # them in an OTPResponse object
   def ensure_response(trip_type)
-    trip_type_label = TRIP_TYPE_DICTIONARY[trip_type][:label]
+    trip_type_label = @trip_type_dictionary[trip_type][:label]
     response = @http_request_bundler.response(trip_type_label)
     status_code = @http_request_bundler.response_status_code(trip_type_label)
     

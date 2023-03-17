@@ -22,7 +22,7 @@ class Feedback < ApplicationRecord
   scope :service, -> { where(feedbackable_type: Service) }
 
   #TODO: MAKE DEFAULT FEEDBACK TIME A CONFIG
-  scope :needs_reminding, -> { where('acknowledged = ? and created_at < ?', false, Time.now - (Config.feedback_overdue_days || 5).days).newest_first }
+  scope :needs_reminding, -> { where('acknowledged = ? and created_at < ?', false, Time.now - Config.feedback_overdue_days.days).newest_first }
     
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('feedbacks.created_at >= ?', datetime) : all }
