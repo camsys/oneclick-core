@@ -21,6 +21,11 @@
     input_html: {value: Config.otp_itinerary_quantity},
     as: :integer
 
+  = f.input :otp_paratransit_quantity, required: true,
+    label: "The number of Itineraries we request from OTP specifically for paratransit trips. This may be different from the number of Itineraries that are shown",
+    input_html: {value: Config.otp_paratransit_quantity},
+    as: :integer
+
   -# = f.input :otp_max_itineraries_shown, required: true,
   -#   label: "The maximum number of requested Itineraries that we show per transit type.",
   -#   input_html: {value: Config.open_trip_planner},

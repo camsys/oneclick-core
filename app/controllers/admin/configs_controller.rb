@@ -16,6 +16,7 @@ class Admin::ConfigsController < Admin::AdminController
     :open_trip_planner,
     :open_trip_planner_version,
     :otp_itinerary_quantity,
+    :otp_paratransit_quantity,
     # :otp_max_itineraries_shown,
     :tff_api_key,
     :uber_token,

@@ -32,7 +32,7 @@ class OTPAmbassador
       trip, 
       trip_types=TRIP_TYPE_DICTIONARY.keys, 
       http_request_bundler=HTTPRequestBundler.new, 
-      services=Transit.published.available_for(trip, {only_filters: [:eligibility, :accommodation]})
+      services=Service.published.available_for(trip, {only_filters: [:eligibility, :accommodation]})
     )
     
     @trip = trip
@@ -74,7 +74,7 @@ class OTPAmbassador
   def get_itineraries(trip_type)
     return [] if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
-    return itineraries.map {|i| convert_itinerary(i, trip_type)}
+    return itineraries.map {|i| convert_itinerary(i, trip_type)}.compact
   end
 
   # Extracts a trip duration from the OTP response.
@@ -92,9 +92,9 @@ class OTPAmbassador
   end
 
   # Dead Code? - Drew 02/16/2023
-  def get_request_url(request_type)
-    @otp.plan_url(format_trip_as_otp_request(request_type))
-  end
+  # def get_request_url(request_type)
+  #   @otp.plan_url(format_trip_as_otp_request(request_type))
+  # end
 
   private
 
@@ -111,13 +111,17 @@ class OTPAmbassador
 
   # Formats the trip as an OTP request based on trip_type
   def format_trip_as_otp_request(trip_type)
+    num_itineraries = trip_type[:label] == :otp_paratransit ? Config.otp_paratransit_quantity : Config.otp_itinerary_quantity
     {
       from: [@trip.origin.lat, @trip.origin.lng],
       to: [@trip.destination.lat, @trip.destination.lng],
       trip_time: @trip.trip_time,
       arrive_by: @trip.arrive_by,
       label: trip_type[:label],
-      options: { mode: trip_type[:modes] }
+      options: { 
+        mode: trip_type[:modes],
+        num_itineraries: num_itineraries
+      }
     }
   end
 
@@ -139,34 +143,47 @@ class OTPAmbassador
   def convert_itinerary(otp_itin, trip_type)
     associate_legs_with_services(otp_itin)
     service_id = otp_itin.legs.first('serviceId')
-    return {
-      start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
-      end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
-      transit_time: get_transit_time(otp_itin, trip_type),
-      walk_time: get_walk_time(otp_itin, trip_type),
-      wait_time: get_wait_time(otp_itin),
-      walk_distance: get_walk_distance(otp_itin),
-      cost: extract_cost(otp_itin, trip_type),
-      legs: otp_itin.legs.to_a,
-      trip_type: trip_type, #TODO: Make this smarter
-      service_id: service_id
-    }
+
+    # Reject paratransit itineraries unless we recognize the service it belongs to.
+    # This is because unknown paratransit services may have eligibility requirements or lack accommodations.
+    if service_id || trip_type.to_sym != :paratransit
+      return {
+        start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
+        end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
+        transit_time: get_transit_time(otp_itin, trip_type),
+        walk_time: get_walk_time(otp_itin, trip_type),
+        wait_time: get_wait_time(otp_itin),
+        walk_distance: get_walk_distance(otp_itin),
+        cost: extract_cost(otp_itin, trip_type),
+        legs: otp_itin.legs.to_a,
+        trip_type: trip_type, #TODO: Make this smarter
+        service_id: service_id
+      }
+    else
+      return nil
+    end
   end
 
   # Modifies OTP Itin's legs, inserting information about 1-Click services
   def associate_legs_with_services(otp_itin)
-    
     otp_itin.legs = otp_itin.legs.map do |leg|
       svc = get_associated_service_for(leg)
+
       # double check if its paratransit but not set to that mode
       if !leg['mode'].include?('FLEX') && leg['boardRule'] == 'mustPhone'
         leg['mode'] = 'FLEX_ACCESS'
       end
-      leg['serviceId'] = svc ? svc.id : nil
-      leg['serviceName'] = svc ? svc.name : (leg['agencyName'] || leg['agencyId'])
-      leg['serviceFareInfo'] = svc ? svc.url : nil  # Should point to service's fare_info_url, but we don't have that yet
-      leg['serviceLogoUrl'] = svc ? svc.full_logo_url : nil
-      leg['serviceFullLogoUrl'] = svc ? svc.full_logo_url(nil) : nil # actual size
+
+      if svc
+        leg['serviceId'] = svc.id
+        leg['serviceName'] = svc.name
+        leg['serviceFareInfo'] = svc.url  # Should point to service's fare_info_url, but we don't have that yet
+        leg['serviceLogoUrl'] = svc.full_logo_url
+        leg['serviceFullLogoUrl'] = svc.full_logo_url(nil) # actual size
+      else
+        leg['serviceName'] = (leg['agencyName'] || leg['agencyId'])
+      end
+
       leg
     end
   end
@@ -177,8 +194,8 @@ class OTPAmbassador
     gtfs_agency_name = leg['agencyName']
 
     # Search for service by gtfs attributes only if they're not nil
-    svc ||= Service.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
-    svc ||= Service.find_by(name: gtfs_agency_name) if gtfs_agency_name
+    svc ||= @services.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
+    svc ||= @services.find_by(name: gtfs_agency_name) if gtfs_agency_name
     return svc
   end
 
