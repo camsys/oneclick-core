@@ -32,7 +32,7 @@ class OTPAmbassador
       trip, 
       trip_types=TRIP_TYPE_DICTIONARY.keys, 
       http_request_bundler=HTTPRequestBundler.new, 
-      services=Service.published.available_for(trip, {only_filters: [:eligibility, :accommodation]})
+      services=Service.published
     )
     
     @trip = trip
@@ -142,30 +142,27 @@ class OTPAmbassador
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
   def convert_itinerary(otp_itin, trip_type)
     associate_legs_with_services(otp_itin)
-    service_id = otp_itin.legs.first('serviceId')
+    service_id = otp_itin.legs
+                          .detect{|leg| leg['serviceId'].present? }
+                          &.fetch('serviceId', nil)
 
-    # Reject paratransit itineraries unless we recognize the service it belongs to.
-    # This is because unknown paratransit services may have eligibility requirements or lack accommodations.
-    if service_id || trip_type.to_sym != :paratransit
-      return {
-        start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
-        end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
-        transit_time: get_transit_time(otp_itin, trip_type),
-        walk_time: get_walk_time(otp_itin, trip_type),
-        wait_time: get_wait_time(otp_itin),
-        walk_distance: get_walk_distance(otp_itin),
-        cost: extract_cost(otp_itin, trip_type),
-        legs: otp_itin.legs.to_a,
-        trip_type: trip_type, #TODO: Make this smarter
-        service_id: service_id
-      }
-    else
-      return nil
-    end
+    return {
+      start_time: Time.at(otp_itin["startTime"].to_i/1000).in_time_zone,
+      end_time: Time.at(otp_itin["endTime"].to_i/1000).in_time_zone,
+      transit_time: get_transit_time(otp_itin, trip_type),
+      walk_time: get_walk_time(otp_itin, trip_type),
+      wait_time: get_wait_time(otp_itin),
+      walk_distance: get_walk_distance(otp_itin),
+      cost: extract_cost(otp_itin, trip_type),
+      legs: otp_itin.legs.to_a,
+      trip_type: trip_type, #TODO: Make this smarter
+      service_id: service_id
+    }
   end
 
   # Modifies OTP Itin's legs, inserting information about 1-Click services
   def associate_legs_with_services(otp_itin)
+    otp_itin.legs ||= []
     otp_itin.legs = otp_itin.legs.map do |leg|
       svc = get_associated_service_for(leg)
 
@@ -190,6 +187,7 @@ class OTPAmbassador
 
   def get_associated_service_for(leg)
     svc = nil
+    leg ||= {}
     gtfs_agency_id = leg['agencyId']
     gtfs_agency_name = leg['agencyName']
 

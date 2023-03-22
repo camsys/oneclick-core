@@ -312,11 +312,9 @@ module OTP
       @legs.each &block
     end
     
-    # Returns first instance of an attribute from the legs, or the first leg if
-    # no attribute is passed
-    def first(attribute=nil)
-      return self.pluck(attribute).first if attribute
-      @legs.first || {}
+    # Returns first instance of an attribute from the legs
+    def detect &block
+      @legs.detect &block
     end
     
     # Returns an array of all non-nil instances of the given value in the legs
