@@ -44,6 +44,7 @@ class Trip < ApplicationRecord
   TRIP_TYPES = [
     :transit, 
     :paratransit,
+    # :car_park, # This trip type is not selectable. Instead, it is automatically included when both :car and :transit are selected
     :taxi,
     :walk,
     :car,

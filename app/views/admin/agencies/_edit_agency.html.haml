@@ -34,7 +34,7 @@
       - if !current_user.superuser?
         = foa.input :oversight_agency_id,
           disabled: !current_user.superuser?,
-          collection: [@agency.agency_oversight_agency.oversight_agency],
+          collection: [@agency.agency_oversight_agency&.oversight_agency].compact,
           label_method: :name,
           value_method: :id,
           include_blank: false,

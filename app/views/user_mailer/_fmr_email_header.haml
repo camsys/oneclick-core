@@ -1,5 +1,5 @@
 %h1{style: 'text-align:left'}
-  ="You have booked the following trip(s) via FindMyRidePA:"
+  =["You have booked the following trip(s)", Config.application_title.present? ? "via #{Config.application_title}" : nil].compact.join(" ") + ":"
 
 %p{style: 'text-align: left'}
   %span{style: 'font-weight: 700'}

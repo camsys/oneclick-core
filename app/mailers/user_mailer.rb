@@ -48,17 +48,16 @@ class UserMailer < ApplicationMailer
     @trip = trip
     @traveler = trip.user
     @locale = @traveler.locale.try(:name)
-    subject = "FindMyRidePA Trip Details sent to you by traveler's request"
+    subject = [application_title, "Trip Details sent to you by traveler's request"].compact.join(" ")
     @itinerary = itinerary || @trip.selected_itinerary
     unless @itinerary
       return
     end
-    if @itinerary.service and @itinerary.service.logo.url
-      attachments.inline['service_logo.png'] = open(ActionController::Base.helpers.asset_path(@itinerary.service.logo.thumb.url.to_s), 'rb').read
-    end
-    map_image = MapService.new(@itinerary).create_static_map
-    attachments.inline[@itinerary.id.to_s + ".png"] = open(map_image, 'rb').read
+
+    attach_service_logo
+    attach_map_image
     attach_standard_icons #TODO: Don't attach all icons by default.  Attach them as needed.
+
     mail(to: addresses, subject: subject)
   end
 
@@ -112,7 +111,7 @@ class UserMailer < ApplicationMailer
 
   def ecolane_trip_email(addresses, bookings)
     @decorated_bookings = bookings   # form [[booking, trip_hash],...]
-    subject = "FindMyRidePA Trip Details sent to you by traveler's request"
+    subject = [application_title, "Trip Details sent to you by traveler's request"].compact.join(" ")
     mail(to: addresses, subject: subject)
   end
 
@@ -121,17 +120,16 @@ class UserMailer < ApplicationMailer
     @trip = trip
     @traveler = @trip.user
     @locale = @traveler.locale.try(:name)
-    subject = "FindMyRidePA Trip Reminder!"
+    subject = [application_title, "Trip Reminder!"].compact.join(" ")
     @itinerary = @trip.selected_itinerary
     unless @itinerary
       return
     end
-    if @itinerary.service and @itinerary.service.logo.url
-      attachments.inline['service_logo.png'] = open(ActionController::Base.helpers.asset_path(@itinerary.service.logo.thumb.url.to_s), 'rb').read
-    end
-    map_image = MapService.new(@itinerary).create_static_map
-    attachments.inline[@itinerary.id.to_s + ".png"] = open(map_image, 'rb').read
+    
+    attach_service_logo
+    attach_map_image
     attach_standard_icons #TODO: Don't attach all icons by default.  Attach them as needed.
+    
     mail(to: addresses, subject: subject)
   end
 
@@ -145,6 +143,31 @@ class UserMailer < ApplicationMailer
     end
   end
 
+  def attach_service_logo
+    if @itinerary.service and @itinerary.service.logo.url.present?
+      begin
+        attachments.inline['service_logo.png'] = open(ActionController::Base.helpers.asset_path(@itinerary.service.logo.thumb.url.to_s), 'rb').read
+      rescue Errno::ENOENT
+        Rails.logger.error "Failure to attach logo to email: '#{@itinerary.service.logo.thumb.url.to_s}' is not a valid path for a logo."
+      rescue StandardError => e
+        Rails.logger.error e
+      end
+    end
+  end
 
+  def attach_map_image
+    if ENV['GOOGLE_API_KEY'].present?
+      begin
+        map_image = MapService.new(@itinerary).create_static_map
+        attachments.inline[@itinerary.id.to_s + ".png"] = open(map_image, 'rb').read
+      rescue StandardError => e
+        Rails.logger.error e
+      end
+    end
+  end
+
+  def application_title
+    Config.application_title.present? ? Config.application_title : nil
+  end
   
 end

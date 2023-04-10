@@ -353,25 +353,25 @@ module RoleHelper
 
   def get_trips_for_staff_user
     # Conditional statement flow:
-    # If current user is a traveler => return nil
-    # If current user is a superuser => return all Trips
-    # If current user is a transportation agency staff => return Trips associated with the agency
-    # If current user is viewing as oversight staff => return Trips associated with all agencies under the oversight agency
-    # If current user is viewing as transportation agency staff => return Trips associated with the current transportation agency
-    # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
+
     if self.superuser?
+      # If current user is a superuser => return all Trips
       Trip.all
     elsif self.transportation_admin? || self.transportation_staff?
+      # If current user is a transportation agency staff or admin => return Trips associated with the agency
       Trip.with_transportation_agency(self.staff_agency.id)
     elsif self.currently_oversight?
+      # If current user is viewing as oversight staff or admin => return Trips associated with all agencies under the oversight agency
       tas = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
       Trip.with_transportation_agency(tas)
     elsif self.currently_transportation?
-       Trip.with_transportation_agency(self.current_agency.id)
+      # If current user is viewing as transportation agency staff or admin => return Trips associated with the current transportation agency
+      Trip.with_transportation_agency(self.current_agency.id)
     elsif self.staff_agency&.oversight? && self.current_agency.nil?
+      # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
       Trip.with_no_transportation_agency
-      # Fallback just in case an edge case is missed
     else
+      # If current user is a traveler => return nil
       nil
     end
   end

@@ -11,6 +11,11 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  = f.input :application_title, required: true,
+      label: "Application Title",
+      input_html: {value: Config.application_title},
+      as: :string
+
   = f.input :dashboard_mode, require: true,
     label: "Dashboard Mode",
     include_blank: false,

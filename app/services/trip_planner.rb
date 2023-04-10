@@ -18,6 +18,8 @@ class TripPlanner
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
+    @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
+
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
     @master_service_scope = options[:available_services] || Service.all # Allow pre-filtering of available services
@@ -183,6 +185,10 @@ class TripPlanner
     build_fixed_itineraries :transit
   end
 
+  def build_car_park_itineraries
+    build_fixed_itineraries :car_park
+  end
+
   # Builds walk itineraries, using OTP by default
   def build_walk_itineraries
     build_fixed_itineraries :walk
@@ -256,7 +262,7 @@ class TripPlanner
                             .find_or_initialize_by(
                               service_id: svc.id,
                               trip_type: :paratransit,
-                              trip_id: @trip.id,
+                              trip_id: @trip.id
                             )
 
       # Whether an itinerary was found, or initialized, we need to update it

@@ -5,25 +5,27 @@ class OTPAmbassador
 
   # Translates 1-click trip_types into OTP mode requests
   TRIP_TYPE_DICTIONARY = {
-    transit:      { label: :otp_transit,  modes: "TRANSIT,WALK" },
-    paratransit:  { label: :otp_paratransit,    modes: "CAR" },
-    taxi:         { label: :otp_car,    modes: "CAR" },
-    walk:         { label: :otp_walk,     modes: "WALK"},
-    car:          { label: :otp_car,    modes: "CAR"},
-    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"},
-    uber:         { label: :otp_car,    modes: "CAR"},
-    lyft:         { label: :otp_car,    modes: "CAR"}
+    transit:      { label: :otp_transit, modes: "TRANSIT,WALK" },
+    paratransit:  { label: :otp_paratransit, modes: "CAR" },
+    car_park:     { label: :otp_car_park, modes: "" },
+    taxi:         { label: :otp_car, modes: "CAR" },
+    walk:         { label: :otp_walk, modes: "WALK" },
+    car:          { label: :otp_car, modes: "CAR" },
+    bicycle:      { label: :otp_bicycle, modes: "BICYCLE" },
+    uber:         { label: :otp_car, modes: "CAR" },
+    lyft:         { label: :otp_car, modes: "CAR" }
   }
 
   TRIP_TYPE_DICTIONARY_V2 = {
-    transit:      { label: :otp_transit,  modes: "CAR_PARK,TRANSIT,WALK" },
-    paratransit:  { label: :otp_paratransit,    modes: "CAR_PARK,TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT" },
-    taxi:         { label: :otp_car,    modes: "CAR" },
-    walk:         { label: :otp_walk,     modes: "WALK"},
-    car:          { label: :otp_car,    modes: "CAR"},
-    bicycle:      { label: :otp_bicycle,  modes: "BICYCLE"},
-    uber:         { label: :otp_car,    modes: "CAR"},
-    lyft:         { label: :otp_car,    modes: "CAR"}
+    transit:      { label: :otp_transit, modes: "TRANSIT,WALK" },
+    paratransit:  { label: :otp_paratransit, modes: "TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT" },
+    car_park:     { label: :otp_car_park, modes: "CAR_PARK,TRANSIT,WALK" },
+    taxi:         { label: :otp_car, modes: "CAR" },
+    walk:         { label: :otp_walk, modes: "WALK" },
+    car:          { label: :otp_car, modes: "CAR" },
+    bicycle:      { label: :otp_bicycle, modes: "BICYCLE" },
+    uber:         { label: :otp_car, modes: "CAR" },
+    lyft:         { label: :otp_car, modes: "CAR" }
   }
 
   # Initialize with a trip, an array of trip trips, an HTTP Request Bundler object, 
@@ -82,6 +84,7 @@ class OTPAmbassador
     return 0 if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
     return itineraries[0]["duration"] if itineraries[0]
+    0
   end
 
   # Extracts a trip distance from the OTP response.
@@ -89,6 +92,20 @@ class OTPAmbassador
     return 0 if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
     return extract_distance(itineraries[0]) if itineraries[0]
+    0
+  end
+
+  def max_itineraries(trip_type_label)
+    quantity_config = {
+      otp_car: Config.otp_itinerary_quantity,
+      otp_walk: Config.otp_itinerary_quantity,
+      otp_bicycle: Config.otp_itinerary_quantity,
+      otp_car_park: Config.otp_car_park_quantity,
+      otp_transit: Config.otp_transit_quantity,
+      otp_paratransit: Config.otp_paratransit_quantity
+    }
+
+    quantity_config[trip_type_label]
   end
 
   # Dead Code? - Drew 02/16/2023
@@ -111,7 +128,7 @@ class OTPAmbassador
 
   # Formats the trip as an OTP request based on trip_type
   def format_trip_as_otp_request(trip_type)
-    num_itineraries = trip_type[:label] == :otp_paratransit ? Config.otp_paratransit_quantity : Config.otp_itinerary_quantity
+    num_itineraries = max_itineraries(trip_type[:label])
     {
       from: [@trip.origin.lat, @trip.origin.lng],
       to: [@trip.destination.lat, @trip.destination.lng],
@@ -142,8 +159,13 @@ class OTPAmbassador
   # Converts an OTP itinerary hash into a set of 1-Click itinerary attributes
   def convert_itinerary(otp_itin, trip_type)
     associate_legs_with_services(otp_itin)
+    itin_has_invalid_leg = otp_itin.legs.detect{ |leg| 
+      leg['serviceName'] && leg['serviceId'].nil?
+    }
+    return nil if itin_has_invalid_leg
+
     service_id = otp_itin.legs
-                          .detect{|leg| leg['serviceId'].present? }
+                          .detect{ |leg| leg['serviceId'].present? }
                           &.fetch('serviceId', nil)
 
     return {

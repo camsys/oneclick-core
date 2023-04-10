@@ -22,8 +22,9 @@ class Config < ApplicationRecord
   DEFAULT_NOTIFICATION_PREFS = [7,3,1].freeze
 
   DEFAULT_CONFIGS = {
+    application_title: "", # (String) The title of the application. Mostly used in emails.
     bike_reluctance: 5, # (Integer) ???
-    booking_api: 'all', # (String) Declares which booking apis services may use. Other values include "none" and the name of an api.
+    booking_api: "all", # (String) Declares which booking apis services may use. Other values include "none" and the name of an api.
     daily_scheduled_tasks: [],
     dashboard_mode: "default", # (String) Set to "travel_patterns" to enable the travel pattern workflow.
     dashboard_reports: [], # (Array<???>) ???
@@ -34,8 +35,10 @@ class Config < ApplicationRecord
     maximum_booking_notice: 30, # (Integer) The maximum number of days into the future a user is allowed to book.
     max_walk_minutes: 45, # (Integer) The maximum number of minutes a traveler is expected to walk when planing a trip.
     open_trip_planner: "", # (String) OTP's base url.
-    open_trip_planner_version: 'v1', # (String) Which version of OTP to use. The other option is "v2".
+    open_trip_planner_version: "v1", # (String) Which version of OTP to use. The other option is "v2".
     otp_itinerary_quantity: 3,
+    otp_car_park_quantity: 3,
+    otp_transit_quantity: 3,
     otp_paratransit_quantity: 3,
     # otp_max_itineraries_shown: 3,
     require_user_confirmation: false, # (Boolean) Requires user to confirm their email address within a certain timeframe.

@@ -193,20 +193,21 @@ module OTP
       return JSON.parse(resp.body)
     end
 
-    def get_otp_mode trip_type
-      hash = {'transit': 'TRANSIT,WALK',
-      'bicycle_transit': 'TRANSIT,BICYCLE',
-      'park_transit':'CAR_PARK,WALK,TRANSIT',
-      'car_transit':'CAR,WALK,TRANSIT',
-      'bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
-      'paratransit':'TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT',
-      'rail':'TRAM,SUBWAY,RAIL,WALK',
-      'bus':'BUS,WALK',
-      'walk':'WALK',
-      'car':'CAR',
-      'bicycle':'BICYCLE'}
-      hash[trip_type.to_sym]
-    end
+    # Dead code? Drew Teter - 4/7/2023
+    # def get_otp_mode trip_type
+    #   hash = {'transit': 'TRANSIT,WALK',
+    #   'bicycle_transit': 'TRANSIT,BICYCLE',
+    #   'park_transit': 'CAR_PARK,WALK,TRANSIT',
+    #   'car_transit': 'CAR,WALK,TRANSIT',
+    #   'bike_park_transit': 'BICYCLE_PARK,WALK,TRANSIT',
+    #   'paratransit': 'TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT',
+    #   'rail': 'TRAM,SUBWAY,RAIL,WALK',
+    #   'bus': 'BUS,WALK',
+    #   'walk': 'WALK',
+    #   'car': 'CAR',
+    #   'bicycle': 'BICYCLE'}
+    #   hash[trip_type.to_sym]
+    # end
 
     # Wraps a response body in an OTPResponse object for easy inspection and manipulation
     def unpack(response)

@@ -7,7 +7,7 @@ RSpec.describe TripPlanner do
   before(:each) { create(:tff_config) }
   before(:each) { create(:uber_token) }
   before(:each) { create(:lyft_client_token) }
-  let(:trip) {create :trip}
+  let(:trip) { create(:trip) }
   let(:accommodating_trip) { create(:trip, user: create(:user, :needs_accommodation)) }
   let!(:paratransit) { create(:paratransit_service, :medical_only, :ecolane_bookable) }
   let!(:taxi) { create(:taxi_service) }
@@ -19,6 +19,11 @@ RSpec.describe TripPlanner do
 
   # TODO We need to make 2 contexts. One for travel patterns, and one for non travel patterns
   before do
+    otp_paratransit_1 = Service.find_by(gtfs_agency_id: "soundgenerations-wa-us:2291")
+    create(:paratransit_service, gtfs_agency_id: "soundgenerations-wa-us:2291") unless otp_paratransit_1
+
+    otp_paratransit_2 = Service.find_by(gtfs_agency_id: "kcm:1")
+    create(:paratransit_service, gtfs_agency_id: "kcm:1") unless otp_paratransit_2
     # Config.create(key: "dashboard_mode", value: "travel_patterns")
     # allow(Service).to receive(:purposes) ...
     # allow(Config).to receive(:dashboard_mode)
@@ -111,7 +116,7 @@ RSpec.describe TripPlanner do
     end
     itins = paratransit_tp.build_paratransit_itineraries
     expect(itins).to be_an(Array)
-    expect(itins.count).to eq(Paratransit.published.available_for(paratransit_tp.trip).count)
+    expect(itins.count).to eq(Paratransit.where(booking_api: nil).published.available_for(paratransit_tp.trip).count)
     expect(itins[0]).to be_an(Itinerary)
   end
 
