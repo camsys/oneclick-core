@@ -142,7 +142,7 @@ class Admin::ServicesController < Admin::AdminController
       # otherwise the current user is probably transportation staff
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
-      Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
+      Service.where(agency_id: nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
       Service.where(agency_id: current_user.staff_agency.id)
     end

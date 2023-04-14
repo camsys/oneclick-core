@@ -80,6 +80,7 @@ class Admin::ReportsController < Admin::AdminController
     }.merge(filters))
   end
   
+  # TODO (Drew) Array addition is slow, plus we're sending multiple queries. This can be improved.
   def users_table
     if current_user.superuser?
       @users = User.all
@@ -91,6 +92,7 @@ class Admin::ReportsController < Admin::AdminController
     else
       @users = current_user.travelers_for_none
     end
+    
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?

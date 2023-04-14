@@ -303,8 +303,7 @@ RSpec.describe Api::V1::TripsController, type: :controller do
       trip.selected_itinerary = paratransit_itinerary
       trip.save
       post :email, params: params
-      #todo: update factories for itineraries with enough info so that this succeeds
-      expect(response.code).to eq("500")
+      expect(response.code).to eq("200")
     end
 
   end

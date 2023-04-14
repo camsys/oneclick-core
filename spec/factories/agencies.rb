@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :agency do
-    name { "Test Transportation Agency" }
+    sequence(:name) { |n| "Test Agency #{n}" }
     logo { Rails.root.join("spec/files/mbta.png").open }
     email { "test_transportation_agency@oneclick.com" }    
     phone { "(555)555-5555" }
@@ -11,18 +11,19 @@ FactoryBot.define do
     association :agency_type
     
     factory :transportation_agency, class: "TransportationAgency" do
-      name { "Test Transportation Agency" }
+      sequence(:name) { |n| "Test Transportation Agency #{n}" }
       type { "TransportationAgency" }
       association :agency_type, factory: :transportation_type
     end
+
     factory :oversight_agency, class: "OversightAgency" do
-      name { "Test Oversight Agency" }
+      sequence(:name) { |n| "Test Oversight Agency #{n}" }
       type { "OversightAgency" }
       association :agency_type, factory: :oversight_type
     end
     
     factory :partner_agency, class: "PartnerAgency" do
-      name { "Test Partner Agency" }
+      sequence(:name) { |n| "Test Partner Agency #{n}" }
       logo { Rails.root.join("spec/files/parrot.gif").open }
       email { "test_partner_agency@oneclick.com" }    
       phone { "(555)555-5555" }
