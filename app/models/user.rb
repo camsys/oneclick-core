@@ -8,6 +8,7 @@ class User < ApplicationRecord
   include RoleHelper
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
+  include PasswordChangeable # This includes the PasswordChangeable module in the User class, allowing the user's account to be unlocked when their password is changed.
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
          :lockable, :confirmable
