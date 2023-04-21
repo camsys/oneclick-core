@@ -61,8 +61,6 @@ RSpec.describe User, type: :model do
     expect(traveler.access_locked?).to eq(false)
   end
   
-  
-
   it 'will not update the password if the password_confirmation does not match' do
     params = {password: "welcome_test_test1", password_confirmation: "blahblah3"}
     expect{traveler.update_basic_attributes params}.to raise_error(ActiveRecord::RecordInvalid)
