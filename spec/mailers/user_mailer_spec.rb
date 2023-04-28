@@ -17,6 +17,8 @@ RSpec.describe UserMailer, type: :mailer do
     expect(email.to - to_addresses).to eq([])
   end
 
+  ## User trip email tests
+  # Added this to make sure the added translations were working // Jalen FMRPA-71
   it "includes correct header in user trip email" do
     email = UserMailer.user_trip_email([user.email], trip, itinerary)  
     expect(email.body.encoded).to include(I18n.t('api_v1.emails.user_trip_header.automated_message'))
