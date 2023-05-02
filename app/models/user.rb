@@ -8,6 +8,7 @@ class User < ApplicationRecord
   include RoleHelper
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
+
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
          :lockable, :confirmable
@@ -15,7 +16,6 @@ class User < ApplicationRecord
 
   # acts_as_token_authenticatable unless it's a guest user
   before_save :ensure_authentication_token, unless: :guest_user?
-
 
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
@@ -71,6 +71,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validates :password_confirmation, presence: true, on: :create
   before_save :downcase_email
+  before_save :check_password_change, if: -> { encrypted_password_changed? && access_locked? }
   validate :password_complexity
 
   ### Attribute Accessors ###
@@ -256,6 +257,10 @@ class User < ApplicationRecord
     Config.require_user_confirmation
   end
 
+  def check_password_change
+    unlock_access! if encrypted_password_changed? && access_locked?
+  end
+  
   protected
 
   #All Emails are Lower Case
