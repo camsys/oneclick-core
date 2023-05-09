@@ -7,11 +7,8 @@
   as: :string, label: "To Date"
 
 -# FILTER OUT TRIPS NOT CREATED IN ONE CLICK
-= f.input :trip_only_created_in_1click, required: false,
-  as: :boolean,
-  input_html: { checked: 'checked', style: 'display:none;' },
-  label: false   
-
+=f.hidden_field :trip_only_created_in_1click, value: true
+  
 -# TRIP PURPOSES
 - unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
   .purposes-filter
