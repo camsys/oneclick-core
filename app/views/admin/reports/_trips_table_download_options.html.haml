@@ -13,7 +13,7 @@
     label: 'Only Show Trips Created In 1Click:'
 - else
   =f.hidden_field :trip_only_created_in_1click, value: false
-  
+
 -# TRIP PURPOSES
 - unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
   .purposes-filter
