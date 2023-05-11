@@ -106,11 +106,12 @@
         readonly: should_be_readonly,
         label: "Banned Users",
         input_html: {value: booking_details[:banned_users]}
-      =bd.input :trusted_users,
-        as: :text,
-        readonly: should_be_readonly,
-        label: "Trusted Users",
-        input_html: {value: booking_details[:trusted_users]}
+      -# Temporarily disabling this since it was not working - FMRPA-77
+      -# =bd.input :trusted_users,
+      -#   as: :text,
+      -#   readonly: should_be_readonly,
+      -#   label: "Trusted Users",
+      -#   input_html: {value: booking_details[:trusted_users]}
       =bd.input :require_selfservice_validation,
         collection: [false, true],
         readonly: should_be_readonly,
