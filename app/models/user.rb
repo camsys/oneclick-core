@@ -268,10 +268,28 @@ class User < ApplicationRecord
     self.email.downcase!
   end
 
-  def password_complexity
-    if password.present? and not password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
+##
+# Validates the complexity of the password.
+# This method checks if the password meets the specified complexity requirements.
+# If the password is not present or does not meet the requirements, it adds the
+# appropriate error messages to the `errors` object.
+def password_complexity
+  if password.present?
+    if !password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
       errors.add :password, "must include at least one letter and one digit"
+    elsif password.length < User.min_password_length
+      errors.add :password, "must be at least #{User.min_password_length} characters long"
     end
   end
+end
+
+## 
+# Returns the minimum password length.
+# This method retrieves the minimum password length from the configuration or
+# fallbacks to the default value provided by Devise.
+def self.min_password_length
+  Config.find_by(key: 'password_min_length')&.value || Devise.password_length.min
+end
+
 
 end

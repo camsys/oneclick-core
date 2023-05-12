@@ -288,4 +288,55 @@ RSpec.describe User, type: :model do
     
   end
 
+  describe "password complexity validation" do
+    let(:user) { build(:user) }
+  
+    # Test the default password length configuration.
+    it "has a default value" do
+      default_min_length = Devise.password_length.min
+      expect(User.min_password_length).to eq(default_min_length)
+    end
+  
+    # Tests the password length validation with the default password length.
+    context "with default password length" do
+      # This test checks if a user with a password shorter than the minimum default length is invalid.
+      it "is invalid with a shorter password" do
+        user.password = "ps1"
+        user.password_confirmation = "ps1"
+        expect(user).to_not be_valid
+      end
+  
+      # This test checks if a user with a password of the minimum default length is valid.
+      it "is valid with a password of minimum length" do
+        user.password = "passwrd1"
+        user.password_confirmation = "passwrd1"
+        expect(user).to be_valid
+      end
+    end
+  
+    # Tests the password length validation with a custom password_min_length.
+    context "with custom password_min_length" do
+      let(:custom_min_length) { 9 }
+  
+      # Create a Config record with a custom minimum password length.
+      before do
+        Config.create(key: 'password_min_length', value: custom_min_length)
+      end
+  
+      # This test checks if a user with a password shorter than the custom minimum length is invalid.
+      it "is invalid with a shorter password" do
+        user.password = "passwrd1"
+        user.password_confirmation = "passwrd1"
+        expect(user).to_not be_valid
+      end
+  
+      # This test checks if a user with a password of the custom minimum length is valid.
+      it "is valid with a password of minimum length" do
+        user.password = "password1"
+        user.password_confirmation = "password1"
+        expect(user).to be_valid
+      end
+    end
+  end
+
 end
