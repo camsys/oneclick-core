@@ -275,21 +275,17 @@ class User < ApplicationRecord
 # appropriate error messages to the `errors` object.
 def password_complexity
   if password.present?
-    if !password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
+    uppercase_complexity = Config.password_required_uppercase <= password.gsub(/([^A-Z])/, '').length
+    lowercase_complexity = Config.password_required_lowercase <= password.gsub(/([^a-z])/, '').length
+    numerical_complexity = Config.password_required_numerical <= password.gsub(/([^0-9])/, '').length
+    special_complexity = Config.password_required_special <= password.gsub(/([^\!\@\#\$\%\^\&\*\(\)\-\=\_\+\;\:\<\>\?\~])/, '').length
+
+    password_is_complex = uppercase_complexity && lowercase_complexity && numerical_complexity && special_complexity
+    
+    unless password_is_complex
       errors.add :password, "must include at least one letter and one digit"
-    elsif password.length < User.min_password_length
-      errors.add :password, "must be at least #{User.min_password_length} characters long"
     end
   end
 end
-
-## 
-# Returns the minimum password length.
-# This method retrieves the minimum password length from the configuration or
-# fallbacks to the default value provided by Devise.
-def self.min_password_length
-  Config.find_by(key: 'password_min_length')&.value || Devise.password_length.min
-end
-
 
 end

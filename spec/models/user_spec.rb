@@ -313,30 +313,7 @@ RSpec.describe User, type: :model do
         expect(user).to be_valid
       end
     end
-  
-    # Tests the password length validation with a custom password_min_length.
-    context "with custom password_min_length" do
-      let(:custom_min_length) { 9 }
-  
-      # Create a Config record with a custom minimum password length.
-      before do
-        Config.create(key: 'password_min_length', value: custom_min_length)
-      end
-  
-      # This test checks if a user with a password shorter than the custom minimum length is invalid.
-      it "is invalid with a shorter password" do
-        user.password = "passwrd1"
-        user.password_confirmation = "passwrd1"
-        expect(user).to_not be_valid
-      end
-  
-      # This test checks if a user with a password of the custom minimum length is valid.
-      it "is valid with a password of minimum length" do
-        user.password = "password1"
-        user.password_confirmation = "password1"
-        expect(user).to be_valid
-      end
-    end
+
   end
 
 end
