@@ -154,8 +154,10 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length.
-  config.password_length = (Config.password_minimum..Config.password_maximum)
-
+  min_length = ENV.fetch('PASSWORD_MIN_LENGTH', 8).to_i
+  max_length = ENV.fetch('PASSWORD_MAX_LENGTH', 128).to_i
+  config.password_length = min_length..max_length
+  
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly
   # to give user feedback and not to assert the e-mail validity.

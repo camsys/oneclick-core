@@ -278,7 +278,7 @@ def password_complexity
     uppercase_complexity = Config.password_required_uppercase <= password.gsub(/([^A-Z])/, '').length
     lowercase_complexity = Config.password_required_lowercase <= password.gsub(/([^a-z])/, '').length
     numerical_complexity = Config.password_required_numerical <= password.gsub(/([^0-9])/, '').length
-    special_complexity = Config.password_required_special <= password.gsub(/[^a-zA-Z0-9\s]/, '').length
+    special_complexity = Config.password_required_special <= password.gsub(/[a-zA-Z0-9\s]/, '').length
 
     password_is_complex = uppercase_complexity && lowercase_complexity && numerical_complexity && special_complexity
     

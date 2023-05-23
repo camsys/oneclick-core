@@ -40,8 +40,6 @@ class Config < ApplicationRecord
     otp_car_park_quantity: 3,
     otp_transit_quantity: 3,
     otp_paratransit_quantity: 3,
-    password_minimum: 8,
-    password_maximum: 128,
     password_required_letters: 0,
     password_required_uppercase: 0,
     password_required_lowercase: 0,
