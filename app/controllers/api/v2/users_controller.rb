@@ -140,14 +140,13 @@ module Api
       # Signs out a user based on email and auth token headers
       # DELETE /sign_out
       def end_session
-        
         if @traveler && @traveler.reset_authentication_token
           sign_out(@user)
+          redirect_to(api_v3_sso_logout_path) and return if Config.sso_provider.present?
           render(success_response(message: "User #{@traveler.email} successfully signed out."))
         else
           render(fail_response)
         end
-        
       end
 
       # Placeholder for possible future destroy user call

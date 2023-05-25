@@ -49,3 +49,6 @@
 
 # Compiled assets
 /public/assets/*
+
+localhost-key.pem
+localhost.pem

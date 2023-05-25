@@ -49,7 +49,6 @@ module Admin
     end
 
     def purpose
-      puts
       if @record.external_purpose
         @record.external_purpose
       elsif @record.purpose

@@ -45,6 +45,7 @@ module Api
         redirect_to(client_callback + "?" + {status: 200, code: code}.to_query)
       end
 
+      # TODO (Drew) redirect to /admin?jwt=... if account is admin?
       def login
         code = params.require(:code)
 
@@ -55,7 +56,7 @@ module Api
         jwt = JSON.parse(resp.body)["id_token"]
         id_token, id_signature = JWT.decode(jwt, nil, false, { :algorithm => 'RS256' })
 
-        account = AuthenticatedAccount.find_or_create_by(subject_uuid: id_token["sub"]) do |new_account|
+        account = AuthenticatedAccount.find_or_create_by!(subject_uuid: id_token["sub"]) do |new_account|
           new_account.email = id_token["email"]
           new_account.account_type = AuthenticatedAccount.get_type_from_userDN(id_token["custom:userDN"])
         end
@@ -123,17 +124,22 @@ module Api
             dob: dob
           }.select{ |k,v| v.present? }
 
+          # TODO (Drew) Check for user with existing email
+          # if user exists, check for existing booking_profile
+          # as long as the email's user and the booking_profile's
+          # don't conflict, add the email's user to the params
           ambassador = EcolaneAmbassador.new(ecolane_params)
           @user = ambassador.user
         end
 
         render(status: :not_found, json: { error: "user could not be found" }) and return unless @user
-        render(status: :conflict, json: { error: "user is already registered to another login" }) and return if @user.authenticated_accounts.any?
+        render(status: :conflict, json: { error: "user is already registered to another login" }) and return if @user.authenticated_accounts.any? && @user != account.user
 
         @user.ensure_authentication_token
         booking_profile = @user.booking_profiles
                                 .with_valid_service
                                 .with_ecolane_api
+                                .where(external_user_id: shared_ride_id)
                                 .first
         last_trip = @user.trips.order('created_at').last
 
@@ -165,52 +171,54 @@ module Api
         # These params are required by AWS
         cognito_params = {
           response_type: "CODE",
-          client_id: CLIENT_ID
+          client_id: CLIENT_ID,
+          logout_uri: "https://dhuzeppkjleng.cloudfront.net/" # Or Config.ui_url for production
         }
-        
+
+        reset_session
         redirect_to(LOGOUT_URL + "?" + cognito_params.to_query)
       end
 
-      # make post route
-      def admin
-        @jwt = params.require("jwt");
-        id_token, id_signature = JWT.decode(@jwt, nil, false, { :algorithm => 'RS256' })
-
-        account = AuthenticatedAccount.last #find_by!(subject_uuid: id_token["sub"])
-        @user = account.user
-
-        if @user
-          sign_in(:user, @user)
-          @user.ensure_authentication_token
-          redirect_to admin_path
-        else
-          @user = User.new
-          session[:jwt] = @jwt
-          render
-        end
+      def test
+        debugger
+        cookies["server-cookie"] = "test"
+        render status: 200, json: {}
       end
 
-      def link
-        # @jwt = params[:user][:jwt]
-        # id_token, id_signature = JWT.decode(@jwt, nil, false, { :algorithm => 'RS256' })
-        account = AuthenticatedAccount.last # find_by!(subject_uuid: id_token["sub"])
-        @user = user.find_by(email: params[:user][:email])
-        
-        if @user.valid_password?(password)
-          sign_in(:user, @user)
-          @user.ensure_authentication_token
-          AuthenticatedAccount.update(user: user)
-          redirect_to admin_path
+      # TODO (Drew) Rename
+      def admin
+        user_params = params.require(:user).permit(:jwt, :email, :password)
+        @jwt = user_params.require(:jwt)
+        email = user_params[:email]
+        password = user_params[:password]
+
+        id_token, id_signature = JWT.decode(@jwt, nil, false, { :algorithm => 'RS256' })
+        account = AuthenticatedAccount.find_by(subject_uuid: id_token["sub"])
+
+        if (email || password)
+          user = User.find_by(email: email)
+          render :admin, status: :not_found and return unless user
+          render :admin, status: :not_found and return unless user.valid_password?(password)
+          render :admin, status: :not_found and return unless user.authenticated_accounts.empty?
+          render :admin, status: :not_found and return unless account.user.nil?
+
+          account.update(user: user)
         else
-          # error
+          user = account.user
+          render :admin, status: :not_found and return unless user
         end
+
+
+        sign_in(:user, user)
+        user.ensure_authentication_token
+        redirect_to admin_path
       end
 
       private
 
       # --- Params ---
       def registration_params
-        params.require(:esec).permit(:confirmationMethod, :county, :serviceId, :dob, :sharedRideId, :phoneNumber)
+        params.require(:esec).permit(:confirmationMethod, :county, :serviceId, :dob, :sharedRideId)
       end
 
       # --- Before Actions ---
@@ -258,41 +266,3 @@ module Api
     end
   end
 end
-
-        # [
-        #   {
-        #     "at_hash"=>"IEWelAmmX6pkbMw22u_bnw",
-        #     "sub"=>"25e643fa-5905-4739-b3f2-99ff53d794b4",
-        #     "cognito:groups"=>[
-        #       "us-west-1_0sKs3yy6v_PD-FMRScheduling"
-        #     ],
-        #     "email_verified"=>false,
-        #     "iss"=>"https://cognito-idp.us-west-1.amazonaws.com/us-west-1_0sKs3yy6v",
-        #     "cognito:username"=>"pd-fmrscheduling_pdtstfmrssystusr01",
-        #     "preferred_username"=>"pdtstfmrssystusr01",
-        #     "nonce"=>"u3ZTBN5hA6td5yci2R1Iz8cfJKw_VtEZhb4eTl_UfWIR0tHzmHr7J7xYCtMKPTHfBB1X5X6aTmbca6VzFfRdmg7KVnqgkoCEu2Q_HqZO0UBUzqmsk5v_mpUBjhOKdM_sBvwxpQoaXa4LiiIZ0ShCC1h6DJXQ3GJ7R5warjpsk10",
-        #     "origin_jti"=>"77a2a1b0-e0db-4084-b663-0ed8e6125b88",
-        #     "aud"=>"4fju6ojpi99e4jef1ue65nlu9l",
-        #     "identities"=> [
-        #       {
-        #         "userId"=>"pdtstfmrssystusr01",
-        #           "providerName"=>"PD-FMRScheduling",
-        #           "providerType"=>"SAML",
-        #           "issuer"=>"PD-FMRScheduling",
-        #           "primary"=>"true",
-        #           "dateCreated"=>"1666106834831"
-        #         }
-        #     ],
-        #     "token_use"=>"id",
-        #     "auth_time"=>1683143017,
-        #     "exp"=>1683143317, 
-        #     "iat"=>1683143017, 
-        #     "custom:userDN"=>"CN=pdtstfmrssystusr01,OU=USERS,OU=TEST,OU=PD,OU=CWOPA,DC=PA-STGLAB,DC=LCL", 
-        #     "jti"=>"a9f4161e-51aa-4317-8642-8870f24adbd4", 
-        #     "email"=>"pdtsteseci2@pa.gov"
-        #   }, 
-        #   {
-        #     "kid"=>"NW8PjFL7/uya5zFiimBrrPH8vb2sPIjbSKRqu3JcD3A=", 
-        #     "alg"=>"RS256"
-        #   }
-        # ]

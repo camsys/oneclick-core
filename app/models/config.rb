@@ -52,6 +52,7 @@ class Config < ApplicationRecord
     trapeze_token: "",
     trapeze_url: "",
     trapeze_user: "", # (String) ???
+    sso_provider: "",
     uber_token: "",
     ui_url: "", # (String) The url for the frontend.
     walk_reluctance: 10 # (Integer) ???

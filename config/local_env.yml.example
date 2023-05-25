@@ -28,3 +28,15 @@
 
 ### Travel Patterns ###
 dashboard_mode: travel_patterns # The default behavior and the behavior used for running RSPEC tests
+
+### SSL ###
+# Paths to local SSL certificates, I reccomend using mkcert to create valid certificates
+ssl_key: localhost-key.pem
+ssl_cert: localhost.pem
+
+### SSO ###
+sso_provider: esec # aka Keystone Login
+
+### Misc ###
+RAILS_LOG_TO_STDOUT: "true"
+LANG: "en"

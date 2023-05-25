@@ -142,7 +142,9 @@ Rails.application.routes.draw do
       post 'sso/account_setup' => 'single_sign_on#account_setup'
       get 'sso/logout' => 'single_sign_on#logout'
       get 'sso/admin' => 'single_sign_on#admin'
-      post 'sso/link' => 'single_sign_on#link'
+      post 'sso/admin' => 'single_sign_on#admin'
+
+      get 'sso/test' => 'single_sign_on#test' # For debugging CORs requests with credentials
     end
 
     ### MISC REQUEST HANDLING ###

@@ -23,6 +23,12 @@
     value_method: :value,
     collection: build_dashboard_mode_collection,
     selected: Config.dashboard_mode
+  
+  = f.input :sso_provider, require: true,
+    label: "Single Sign On Provider",
+    include_blank: true,
+    collection: [["ESEC- Keystone Login", "esec"]],
+    selected: Config.sso_provider
 
   = f.input :feedback_overdue_days, required: true,
     label: "Days before sending feedback reminders",

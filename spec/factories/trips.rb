@@ -38,7 +38,6 @@ FactoryBot.define do
     end
 
     trait :weekday_day do
-      # puts "TIME ZONE: ", Time.zone.to_s
       trip_time { DateTime.new(2020, 7, 14, 17) } # Tuesday, 12pm EST
     end
 

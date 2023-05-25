@@ -34,15 +34,18 @@ module OneclickCore
     # Set default CORS settings
     config.middleware.insert_before 0, Rack::Cors do
       allow do
-        origins '*' # /http:\/\/localhost:(\d*)/
+        origins { |source, env|
+          env['HTTP_ORIGIN']
+        }
+        
         resource '*',
-          # headers: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept',
-          #   'Authorization', 'X-User-Token', 'X-User-Email',
-          #   'Access-Control-Request-Headers', 'Access-Control-Request-Method'
-          # ],
           headers: :any, # fixes CORS errors on OPTIONS requests
-          methods: [:get, :post, :put, :delete, :options]
-        end
+          methods: [:get, :post, :put, :delete, :options],
+          expose: 'X-Requested-With',
+          vary: '*',
+          credentials: true,
+          if: Proc.new { true }
+      end
     end
     # Likely needed to allow forwarding when a CNAME DNS is not used.
     config.action_dispatch.default_headers = {

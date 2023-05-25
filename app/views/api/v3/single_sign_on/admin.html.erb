@@ -2,26 +2,28 @@
 
 <p>Login here to finish linking your Oneclick Admin account to your keystone account</p>
 
-<form class="new_user" id="new_user" action="/api/v3/sso/link" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓">
-<input type="hidden" name="jwt" value="<% @jwt %>">
+<form class="new_user" id="new_user" action="/api/v3/sso/admin" accept-charset="UTF-8" method="post">
+  <input type="hidden" name="user[jwt]" value="<%= @jwt %>" />
 
   <div class="field">
-    <label for="user_email">Email</label><br>
-    <input autofocus="autofocus" autocomplete="email" type="email" value="" name="user[email]" id="user_email">
+    <label for="user_email">Email</label><br />
+    <input autofocus="autofocus" autocomplete="email" type="email" value="" name="user[email]" id="user_email" />
   </div>
 
   <div class="field">
-    <label for="user_password">Password</label><br>
-    <input autocomplete="current-password" type="password" name="user[password]" id="user_password">
+    <label for="user_password">Password</label><br />
+    <input autocomplete="current-password" type="password" name="user[password]" id="user_password" />
   </div>
 
   <div class="field">
-    <input name="user[remember_me]" type="hidden" value="0"><input type="checkbox" value="1" name="user[remember_me]" id="user_remember_me">
+    <input name="user[remember_me]" type="hidden" value="0" />
+    <input type="checkbox" value="1" name="user[remember_me]" id="user_remember_me" />
     <label for="user_remember_me">Remember me</label>
   </div>
 
   <div class="actions">
-    <input type="submit" name="commit" value="Log in" data-disable-with="Log in">
+    <input type="submit" name="commit" value="Complete Registration" data-disable-with="Complete Registration" />
+    <%= button_to("Log Out", api_v3_sso_logout_path, { method: :get }) %>
   </div>
 </form>
 

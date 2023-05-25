@@ -15,6 +15,15 @@ port        ENV.fetch("PORT") { 3000 }
 #
 environment ENV.fetch("RAILS_ENV") { "development" }
 
+if ENV["RAILS_ENV"] == "development"
+  # @options can still be overridden using the -b flag when calling rails server
+  ssl_key = ENV["ssl_key"]
+  ssl_cert = ENV["ssl_cert"]
+  if ssl_key.present? && ssl_cert.present?
+    @options[:binds] = ["ssl://127.0.0.1:3000?key=#{ssl_key}&cert=#{ssl_cert}"]
+  end
+end
+
 # Specifies the number of `workers` to boot in clustered mode.
 # Workers are forked webserver processes. If using threads and workers together
 # the concurrency of the application would be max `threads` * `workers`.

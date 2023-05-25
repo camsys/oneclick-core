@@ -27,6 +27,6 @@ class AuthenticatedAccount < ApplicationRecord
 
     return "BUSINESS_PARTNER" if is_business_partner
     return "CWOPA" if is_cwopa
-    return "Citizen"
+    return "CITIZEN"
   end
 end

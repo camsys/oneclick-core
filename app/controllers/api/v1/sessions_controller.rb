@@ -1,8 +1,6 @@
 module Api
   module V1
     class SessionsController < Devise::SessionsController
-      # TODO (Drew) remove
-      # acts_as_token_authentication_handler_for User, fallback: :none
       skip_before_action :verify_signed_out_user
       prepend_before_filter :require_no_authentication, :only => [:create ]
       include Devise::Controllers::Helpers
@@ -81,6 +79,8 @@ module Api
         if @user
           @user.update_attributes(authentication_token: nil)
           sign_out(@user)
+
+          redirect_to(api_v3_sso_logout_path) and return if Config.sso_provider.present?
           render status: 200, json: { message: 'User successfully signed out.'}
         else
           render status: 401,
