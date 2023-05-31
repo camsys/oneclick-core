@@ -17,7 +17,10 @@ module Api
                                     }
           external_array += county_services
         end
-        render status: 200, json: {county_services: external_array}
+        render status: 200, json: {
+          county_services: external_array,
+          service_ids: external_array.map{|county_service| county_service[:countyName] }
+        }
       end
 
       # For Ecolane
