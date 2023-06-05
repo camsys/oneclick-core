@@ -1,0 +1,33 @@
+:css
+  .center-buttons {
+    text-align: center;
+  }
+
+=content_for :title do
+  Booking Profiles
+
+%table.table.table-hover.datatable#booking-profiles-table
+  %thead.thead-default
+    %tr
+      %th Booking ID
+      %th First Name
+      %th Last Name
+      %th Email
+      %th County
+      %th Service
+      %th
+      
+  =render partial: 'booking_profile', collection: @booking_profiles
+
+%div.text-center
+  =link_to 'Return to Dashboard', admin_path, class: 'btn btn-default'
+
+:javascript
+  document.addEventListener('turbolinks:load', function() {
+      $('#booking-profiles-table').on('click', 'tbody tr', function () {
+          window.location.href = this.dataset.href;
+      });
+
+      $('#booking-profiles-table').DataTable();
+  });
+

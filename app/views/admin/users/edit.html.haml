@@ -3,6 +3,9 @@
   -# Add local var, disable submit, make it run off of can? :update, User
 =render partial: 'edit_user', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @user)}
 
+- if @user.user_booking_profiles.present?
+  =render partial: 'booking_profiles', layout: '/layouts/panel', locals: {hide_footer: (cannot? :update, @user)}
+
 -# If the user is not the current user and can manage the selected user
 -if @user != current_user && can?(:manage, Role)
   =render partial: 'danger_zone', layout: '/layouts/panel', locals: { panel_style: "danger", hide_footer: true }

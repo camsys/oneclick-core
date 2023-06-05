@@ -1,0 +1,21 @@
+%table.table.table-hover.datatable#booking-profiles-table
+  %thead.thead-default
+    %tr
+      %th Booking ID
+      %th First Name
+      %th Last Name
+      %th Email
+      %th County
+      %th Service
+      %th
+
+  %tbody
+    - @user.user_booking_profiles.each do |booking_profile|
+      %tr{data: {href: edit_admin_user_path(booking_profile.user)}}
+        %td= booking_profile.external_user_id
+        %td= booking_profile.user.first_name
+        %td= booking_profile.user.last_name
+        %td= booking_profile.user.email
+        %td= booking_profile.user.county
+        %td= booking_profile.service
+        %td
