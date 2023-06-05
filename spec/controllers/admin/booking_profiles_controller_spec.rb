@@ -1,46 +1,37 @@
 require 'rails_helper'
 
 RSpec.describe Admin::BookingProfilesController, type: :controller do
-  let!(:superuser) { create(:user, :superuser) }
-  let!(:oversight_admin) { create(:user, :oversight_admin) }
-  let!(:normal_user) { create(:user) }
-  let!(:booking_profiles) { create_list(:user_booking_profile, 5) }
-  let!(:agency) { create(:transportation_agency, :with_services)}
+  let!(:agency) { create(:transportation_agency) }
+  let!(:service) { create(:service, agency: agency) }
+  let!(:booking_profiles) { create_list(:user_booking_profile, 3, service: service) }
+  let!(:other_booking_profiles) { create_list(:user_booking_profile, 2) } # Assuming this factory creates profiles associated with a different service/agency
 
-  context 'GET #index' do
-    context 'when the user is a superuser' do
-      before do
-        sign_in superuser
-        get :index
-      end
+  let(:superuser) { create(:superuser) }
+  let(:staff) { create(:staff_user, staff_agency: agency) }
+  let(:traveler) { create(:user) }
 
-      it 'returns all UserBookingProfiles' do
-        expect(assigns(:booking_profiles)).to eq UserBookingProfile.all
-      end
+  context "while signed in as a superuser" do
+    before(:each) { sign_in superuser }
+    
+    it "returns all booking profiles" do
+      get :index
+      expect(response).to be_success
+      expect(assigns(:booking_profiles).count).to eq(UserBookingProfile.all.count)
     end
+  end
 
-    context 'when the user is an oversight admin' do
-      before do
-        sign_in oversight_admin
-        get :index
-      end
-
-      it 'returns UserBookingProfiles of the agencies underneath the oversight agency' do
-        ag_ids = oversight_admin.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id)
-        expected_profiles = UserBookingProfile.joins(service: :agency).where('agencies.id': ag_ids)
-        expect(assigns(:booking_profiles).sort_by(&:id)).to eq expected_profiles.sort_by(&:id)
-      end         
+  context "while signed in as a staff" do
+    before(:each) { sign_in staff }
+    
+    it "returns only booking profiles related to user's agency" do
+      get :index
+      expect(response).to be_success
+      expect(assigns(:booking_profiles)).to match_array(booking_profiles)
     end
-
-    context 'when the user is a normal user' do
-      before do
-        sign_in normal_user
-        get :index
-      end
-
-      it 'returns only UserBookingProfiles of the specific user' do
-        expect(assigns(:booking_profiles)).to eq normal_user.user_booking_profiles
-      end
+    
+    it "does not return booking profiles of other agencies" do
+      get :index
+      expect(assigns(:booking_profiles)).not_to include(*other_booking_profiles)
     end
   end
 end

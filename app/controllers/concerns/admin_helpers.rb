@@ -32,7 +32,8 @@ module AdminHelpers
     mode = Config.dashboard_mode.to_sym
     if mode == :travel_patterns
       [
-        { label: "Travel Patterns", url: urls.root_admin_travel_patterns_path, show: can?(:read, TravelPattern) }
+        { label: "Travel Patterns", url: urls.root_admin_travel_patterns_path, show: can?(:read, TravelPattern) },
+        { label: "Booking Profiles", url: urls.admin_booking_profiles_path, show: can?(:read, UserBookingProfile) }
       ]
     else
       [
