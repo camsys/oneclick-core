@@ -19,8 +19,16 @@ module Api
         end
         render status: 200, json: {
           county_services: external_array,
-          service_ids: external_array.map{|county_service| county_service[:countyName] }
+          service_ids: external_array.map{ |county_service|
+            county_service[:countyName]
+          }
         }
+
+        # external_id_array = []
+        # Service.paratransit_services.published.with_ecolane_api.each do |service|
+        #   external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
+        # end
+        # render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
       end
 
       # For Ecolane
