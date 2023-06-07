@@ -1,0 +1,34 @@
+- panel_style = local_assigns[:panel_style] || "default"
+- hide_footer = local_assigns[:hide_footer] || false
+
+.panel.form-container{class: "panel-#{panel_style}"}
+  .panel-heading
+    %h4
+      =yield_content :header
+  .panel-body
+    - if content_for?(:body)
+      =yield_content :body
+    - else
+      %table.table.table-hover.datatable#booking-profiles-table
+        %thead.thead-default
+          %tr
+            %th Booking ID
+            %th First Name
+            %th Last Name
+            %th County
+            %th Service
+            %th
+        %tbody
+          - @user.user_booking_profiles.each do |booking_profile|
+            %tr{data: {href: edit_admin_user_path(booking_profile.user)}}
+              %td= booking_profile.external_user_id
+              %td= booking_profile.user.first_name
+              %td= booking_profile.user.last_name
+              %td= booking_profile.details['county']
+              %td= booking_profile.service.name if booking_profile.service.present?
+              %td
+  -unless hide_footer
+    .panel-footer
+      %center
+        - if content_for?(:footer)
+          =yield_content :footer

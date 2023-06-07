@@ -101,6 +101,12 @@ FactoryBot.define do
       end
     end
 
+    trait :oversight_admin do
+      sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
+      admin
+    end
+    
     trait :eligible do
       after(:create) do |u|
         u.user_eligibilities << create(:user_eligibility, :confirmed, user: u)
