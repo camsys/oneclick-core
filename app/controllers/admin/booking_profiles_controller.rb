@@ -1,20 +1,22 @@
 class Admin::BookingProfilesController < ApplicationController
   include AdminHelpers
+  before_action :get_admin_pages
   before_action :ensure_travel_patterns_mode
 
-  def index
-    get_admin_pages
 
-    @booking_profiles = if current_user.superuser? || current_user.admin?
-                          UserBookingProfile.all
-                        elsif current_user.has_role? :oversight_agency
-                          current_user.oversight_agency.services.map(&:user_booking_profiles).flatten
-                        elsif current_user.has_role? :agency
-                          current_user.current_agency.services.map(&:user_booking_profiles).flatten
-                        else
-                          current_user.user_booking_profiles
-                        end
-  end
+  def index
+    if current_user.superuser?
+      @booking_profiles = UserBookingProfile.all
+    elsif current_user.oversight_admin? || current_user.oversight_staff?
+      ag_ids = @agency_map.map {|name, id| id} # Get agency ids from the agency map
+      @booking_profiles = UserBookingProfile.joins(service: :agency).where('agencies.id': ag_ids)
+    elsif current_user.transportation_admin? || current_user.transportation_staff? || current_user.staff? || current_user.partner_staff? || current_user.partner_admin?
+      ag_ids = @agency_map.map {|name, id| id} # Get agency ids from the agency map
+      @booking_profiles = UserBookingProfile.joins(service: :agency).where('agencies.id': ag_ids)
+    else
+      @booking_profiles = current_user.user_booking_profiles
+    end
+  end  
 
   private
 
@@ -23,5 +25,4 @@ class Admin::BookingProfilesController < ApplicationController
       redirect_to root_path, alert: 'Access to Booking Profiles is only allowed in travel patterns mode.'
     end
   end
-
 end
