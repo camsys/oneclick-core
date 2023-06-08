@@ -212,12 +212,18 @@ class OTPAmbassador
     leg ||= {}
     gtfs_agency_id = leg['agencyId']
     gtfs_agency_name = leg['agencyName']
-
-    # Search for service by gtfs attributes only if they're not nil
-    svc ||= @services.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
-    svc ||= @services.find_by(name: gtfs_agency_name) if gtfs_agency_name
-    return svc
-  end
+  
+    # If gtfs_agency_id is not nil, first attempt to find the service by its GTFS agency ID.
+    svc ||= Service.find_by(gtfs_agency_id: gtfs_agency_id) if gtfs_agency_id
+  
+    if svc
+      # If a service is found by ID, we need to check if it's within the list of permitted services.
+      return @services.detect { |s| s.id == svc.id }
+    else
+      # If we didn't find a service by its ID, and if gtfs_agency_name is not nil, then we try to find a service by its GTFS agency name.
+      return @services.find_by(name: gtfs_agency_name) if gtfs_agency_name
+    end
+  end  
 
   # OTP Lists Car and Walk as having 0 transit time
   def get_transit_time(otp_itin, trip_type)
