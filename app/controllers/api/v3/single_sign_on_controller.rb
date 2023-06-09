@@ -85,6 +85,7 @@ module Api
 
           render status: 200, json: json_response.merge({
             authentication_token: @user.authentication_token,
+            user_email: @user.email,
             email: account.email,
             first_name: @user.first_name,
             last_name: @user.last_name,
@@ -157,6 +158,7 @@ module Api
           id_token: jwt,
           account_type: account.account_type,
           authentication_token: @user.authentication_token,
+          user_email: @user.email,
           email: account.email,
           first_name: @user.first_name,
           last_name: @user.last_name,
