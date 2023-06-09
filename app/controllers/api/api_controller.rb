@@ -72,7 +72,9 @@ module Api
     # Sets registered traveler based on complete auth headers
     def set_registered_traveler
       return nil unless auth_headers.present? && auth_headers[:email] && auth_headers[:authentication_token]
+
       @traveler = current_api_user || @traveler
+      @traveler
     end
     
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
@@ -147,7 +149,7 @@ module Api
     # Renders a failed user auth response
     def render_failed_auth_response
       render status: 401,
-        json: json_response(:fail, data: {user: "Valid user email and token must be present. #{auth_headers[:email]} #{auth_headers[:authentication_token]} #{Config.sso_provider} #{@traveler}"})
+        json: json_response(:fail, data: {user: "Valid user email and token must be present. #{auth_headers[:email]} #{auth_headers[:authentication_token]} #{Config.sso_provider} |  #{@traveler}  |  #{current_api_user}"})
     end
 
     # Returns true if authentication of a registered traveler (not a guest) has successfully completed
