@@ -131,7 +131,6 @@ module Api
           authentication_token: auth_headers[:authentication_token],
           authenticated_accounts: {email: auth_headers[:email]}
         ).first || User.find_by(auth_headers)
-
       else
         User.find_by(auth_headers)
       end
@@ -148,7 +147,7 @@ module Api
     # Renders a failed user auth response
     def render_failed_auth_response
       render status: 401,
-        json: json_response(:fail, data: {user: "Valid user email and token must be present."})
+        json: json_response(:fail, data: {user: "Valid user email and token must be present. #{auth_headers[:email]} #{auth_headers[:authentication_token]} #{Config.sso_provider} #{@traveler}"})
     end
 
     # Returns true if authentication of a registered traveler (not a guest) has successfully completed

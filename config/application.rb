@@ -104,7 +104,5 @@ module OneclickCore
 
 
     config.time_zone = ENV['TIME_ZONE'] || 'Eastern Time (US & Canada)'
-
-
   end
 end
