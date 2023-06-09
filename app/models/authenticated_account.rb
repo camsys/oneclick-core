@@ -6,7 +6,7 @@ class AuthenticatedAccount < ApplicationRecord
 
   # For now Users to AuthenticatedAccounts is a has_one relationship
   # Therefore, the user_id should be unique 
-  validates_uniqueness_of :subject_uuid, :user_id
+  validates_uniqueness_of :subject_uuid, :user_id, allow_blank: true
   validates_presence_of :subject_uuid
   validates :account_type, 
             inclusion: { in: ACCOUNT_TYPES, message: "%{value} is not a valid account type" }
