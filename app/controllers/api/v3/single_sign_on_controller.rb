@@ -146,8 +146,8 @@ module Api
 
         AuthenticatedAccount.transaction do
           account.update!(user: @user)
-          # @user.email = email
-          # @user.save!
+          @user.active_booking_profile_id = profile_id
+          @user.save!
           booking_profile.details[:dob] = dob if dob
           booking_profile.details[:county] = county if county
           booking_profile.details[:esec] = true
@@ -157,15 +157,16 @@ module Api
         render status: 200, json: {
           id_token: jwt,
           account_type: account.account_type,
+          active_booking_profile: @user.active_booking_profile_id,
           authentication_token: @user.authentication_token,
-          user_email: @user.email,
+          county: booking_profile&.details&.fetch(:county),
           email: account.email,
+          user_email: @user.email, # Not displayed to user, only used in access headers
           first_name: @user.first_name,
           last_name: @user.last_name,
           last_origin: last_trip&.origin&.google_place_hash,
           last_destination: last_trip&.destination&.google_place_hash,
-          sharedRideId: booking_profile&.details&.fetch(:customer_id),
-          county: booking_profile&.details&.fetch(:county)
+          sharedRideId: booking_profile&.details&.fetch(:customer_id)
         }
       end
 

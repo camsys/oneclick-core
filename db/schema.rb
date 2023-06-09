@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20230322101725) do
+ActiveRecord::Schema.define(version: 20230609190929) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -726,34 +726,36 @@ ActiveRecord::Schema.define(version: 20230322101725) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
-    t.string   "email",                             default: "",   null: false
-    t.string   "encrypted_password",                default: "",   null: false
+    t.datetime "created_at",                                          null: false
+    t.datetime "updated_at",                                          null: false
+    t.string   "email",                                default: "",   null: false
+    t.string   "encrypted_password",                   default: "",   null: false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
-    t.integer  "sign_in_count",                     default: 0,    null: false
+    t.integer  "sign_in_count",                        default: 0,    null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
     t.inet     "current_sign_in_ip"
     t.inet     "last_sign_in_ip"
-    t.string   "authentication_token",   limit: 30
+    t.string   "authentication_token",      limit: 30
     t.string   "first_name"
     t.string   "last_name"
     t.integer  "preferred_locale_id"
     t.text     "preferred_trip_types"
-    t.integer  "failed_attempts",                   default: 0,    null: false
+    t.integer  "failed_attempts",                      default: 0,    null: false
     t.string   "unlock_token"
     t.datetime "locked_at"
     t.string   "confirmation_token"
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
-    t.boolean  "subscribed_to_emails",              default: true
+    t.boolean  "subscribed_to_emails",                 default: true
     t.integer  "age"
     t.integer  "current_agency_id"
     t.string   "county"
     t.string   "paratransit_id"
+    t.integer  "active_booking_profile_id"
+    t.index ["active_booking_profile_id"], name: "index_users_on_active_booking_profile_id", using: :btree
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
@@ -858,4 +860,5 @@ ActiveRecord::Schema.define(version: 20230322101725) do
   add_foreign_key "user_eligibilities", "users"
   add_foreign_key "users", "agencies", column: "current_agency_id"
   add_foreign_key "users", "locales", column: "preferred_locale_id"
+  add_foreign_key "users", "user_booking_profiles", column: "active_booking_profile_id"
 end

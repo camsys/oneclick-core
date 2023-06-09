@@ -5,11 +5,21 @@ class Api::V3::UserBookingProfilesController < Api::ApiController
   before_action :require_authentication
 
   def index
+    profiles = @traveler.user_booking_profiles
+                        .with_valid_service
+                        .map { |profile|
+                          {
+                            id: profile.id,
+                            service: profile.service.name,
+                            external_user_id: profile.external_user_id,
+                            county: profile.details["county"]
+                          }
+                        }
     render status: 200, json: @traveler.user_booking_profiles.with_valid_service.as_json
   end
 
   def create
-    
+
   end
 
   def select

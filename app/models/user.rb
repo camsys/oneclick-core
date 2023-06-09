@@ -46,6 +46,7 @@ class User < ApplicationRecord
   has_one :traveler_transit_agency, dependent: :destroy
   has_one :transportation_agency, through: :traveler_transit_agency
   has_one :authenticated_account
+  belongs_to :active_booking_profile, class_name: 'UserBookingProfile', foreign_key: :active_booking_profile_id
   belongs_to :current_agency, class_name:'Agency', foreign_key: :current_agency_id
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
