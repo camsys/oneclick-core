@@ -45,6 +45,7 @@ class User < ApplicationRecord
   ### Associations ###
   has_one :traveler_transit_agency, dependent: :destroy
   has_one :transportation_agency, through: :traveler_transit_agency
+  has_one :authenticated_account
   belongs_to :current_agency, class_name:'Agency', foreign_key: :current_agency_id
   has_many :trips, dependent: :nullify
   has_many :itineraries, through: :trips
@@ -59,7 +60,6 @@ class User < ApplicationRecord
   has_many :user_alerts, dependent: :destroy
   has_many :alerts, through: :user_alerts
   has_many :user_booking_profiles
-  has_many :authenticated_accounts
 
   # These associations allow us to pull just the confirmed or just the denied eligibilities (e.g. ones with true or false values)
   has_many :confirmed_user_eligibilities, -> { confirmed }, class_name: 'UserEligibility'

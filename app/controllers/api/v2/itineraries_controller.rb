@@ -9,5 +9,4 @@ class Api::V2::ItinerariesController < ApplicationController
     render json: {result: 200}
   end
 
-
 end

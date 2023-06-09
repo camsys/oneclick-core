@@ -72,9 +72,7 @@ module Api
     # Sets registered traveler based on complete auth headers
     def set_registered_traveler
       return nil unless auth_headers.present? && auth_headers[:email] && auth_headers[:authentication_token]
-      @traveler = User.find_by(email: auth_headers[:email], 
-                               authentication_token: auth_headers[:authentication_token]) ||
-                  @traveler
+      @traveler = current_api_user || @traveler
     end
     
     # Allows requests with "OPTIONS" method--pulled from old oneclick.
@@ -126,7 +124,17 @@ module Api
 
     # Finds the User associated with auth headers.
     def current_api_user
-      User.find_by(auth_headers) if auth_headers.present? 
+      return nil unless auth_headers.present?
+
+      if Config.sso_provider.present?
+        User.joins(:authenticated_account).where(
+          authentication_token: auth_headers[:authentication_token],
+          authenticated_accounts: {email: auth_headers[:email]}
+        ).first || User.find_by(auth_headers)
+
+      else
+        User.find_by(auth_headers)
+      end
     end
 
     # Returns a hash of authentication headers, or an empty hash if not present

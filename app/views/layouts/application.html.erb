@@ -69,7 +69,7 @@
                     <%= link_to('My Profile', edit_admin_user_path(current_user), :method => :get) %>  
                   </li>
                   <li>
-                    <%- if (Config.sso_provider.present?) %>
+                    <%- if (Config.sso_provider.present? && true) %>
                       <%= link_to('Logout', api_v3_sso_logout_path, :method => :get) %>
                     <%- else %>
                       <%= link_to('Logout', destroy_user_session_path, :method => :delete) %>

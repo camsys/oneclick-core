@@ -19,7 +19,7 @@ module Api
         # Store these untill AWS calls the callback endpoint
         reset_session
         session[:client_callback] = params.require(:clientCallback)
-        session[:expires_at] = (Time.current + 10.minutes).httpdate
+        session[:expires_at] = (Time.current + 15.minutes).httpdate
 
         # These params are required by AWS
         cognito_params = {
@@ -85,7 +85,7 @@ module Api
 
           render status: 200, json: json_response.merge({
             authentication_token: @user.authentication_token,
-            email: @user.email,
+            email: account.email,
             first_name: @user.first_name,
             last_name: @user.last_name,
             last_origin: last_trip&.origin&.google_place_hash,
@@ -133,7 +133,7 @@ module Api
         end
 
         render(status: :not_found, json: { error: "user could not be found" }) and return unless @user
-        render(status: :conflict, json: { error: "user is already registered to another login" }) and return if @user.authenticated_accounts.any? && @user != account.user
+        render(status: :conflict, json: { error: "user is already registered to another login" }) and return if @user.authenticated_account.present? && @user != account.user
 
         @user.ensure_authentication_token
         booking_profile = @user.booking_profiles
@@ -145,8 +145,8 @@ module Api
 
         AuthenticatedAccount.transaction do
           account.update!(user: @user)
-          @user.email = email
-          @user.save!
+          # @user.email = email
+          # @user.save!
           booking_profile.details[:dob] = dob if dob
           booking_profile.details[:county] = county if county
           booking_profile.details[:esec] = true
@@ -157,7 +157,7 @@ module Api
           id_token: jwt,
           account_type: account.account_type,
           authentication_token: @user.authentication_token,
-          email: @user.email,
+          email: account.email,
           first_name: @user.first_name,
           last_name: @user.last_name,
           last_origin: last_trip&.origin&.google_place_hash,
@@ -174,6 +174,7 @@ module Api
           client_id: CLIENT_ID,
           logout_uri: "https://dhuzeppkjleng.cloudfront.net/" # Or Config.ui_url for production
         }
+
 
         reset_session
         redirect_to(LOGOUT_URL + "?" + cognito_params.to_query)
@@ -199,7 +200,7 @@ module Api
           user = User.find_by(email: email)
           render :admin, status: :not_found and return unless user
           render :admin, status: :not_found and return unless user.valid_password?(password)
-          render :admin, status: :not_found and return unless user.authenticated_accounts.empty?
+          render :admin, status: :not_found and return unless user.authenticated_account.nil?
           render :admin, status: :not_found and return unless account.user.nil?
 
           account.update(user: user)
@@ -226,10 +227,11 @@ module Api
       def check_session_expiration
         current_time = Time.current
         expiration_time = Time.parse(session[:expires_at])
+        client_callback = session[:client_callback]
 
         if (current_time >= expiration_time)
           reset_session
-          render status: :unauthorized, json: json_response(:error, message: "It's been too long since the authentication process began.")
+          redirect_to(client_callback + "?" + {status: 401, message: "It's been too long since the authentication process began. Please try again."}.to_query)
         end
       end
 

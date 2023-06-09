@@ -12,6 +12,7 @@ class UserBookingProfile < ApplicationRecord
   
   ### VALIDATIONS ###
   validates :user_id, presence: true
+  validates_uniqueness_of :external_user_id, scope: :service_id
 
   ### SCOPES ###
   scope :with_valid_service, -> { where.not(service_id: nil) }

@@ -110,7 +110,7 @@ Rails.application.routes.draw do
       end
 
       # Users
-      resource :users, only: [:show, :update, :create, :destroy] do
+      resources :users, only: [:show, :update, :create, :destroy] do
         collection do
           post 'reset_password'
           post 'resend_email_confirmation'
@@ -143,6 +143,8 @@ Rails.application.routes.draw do
       get 'sso/logout' => 'single_sign_on#logout'
       get 'sso/admin' => 'single_sign_on#admin'
       post 'sso/admin' => 'single_sign_on#admin'
+
+      resources :user_booking_profiles, only: [:index, :create, :destroy]
 
       get 'sso/test' => 'single_sign_on#test' # For debugging CORs requests with credentials
     end
