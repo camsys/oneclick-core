@@ -256,5 +256,34 @@ RSpec.describe Admin::ServicesController, type: :controller do
     
   end
 
+  it 'creates a taxi service with maximum custom region options' do
+    # Create regions for start, end, start_or_end, and trip_within areas
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    end_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    start_or_end_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    trip_within_area = Region.create(recipe: attributes_for(:region)[:recipe])
+  
+    # Expect the Taxi count to increase by 1 when creating a new Taxi service
+    expect {
+      Taxi.create(
+        name: 'test taxi',
+        agency: agency,
+        start_area: start_area,
+        end_area: end_area,
+        start_or_end_area: start_or_end_area,
+        trip_within_area: trip_within_area
+      )
+    }.to change(Taxi, :count).by(1)
+  
+    # Retrieve the last created Taxi service
+    created_taxi = Taxi.last
+  
+    # Expect the attributes of the created Taxi service to match the provided values
+    expect(created_taxi.name).to eq('test taxi')
+    expect(created_taxi.start_area).to eq(start_area)
+    expect(created_taxi.end_area).to eq(end_area)
+    expect(created_taxi.start_or_end_area).to eq(start_or_end_area)
+    expect(created_taxi.trip_within_area).to eq(trip_within_area)
+  end
 
 end
