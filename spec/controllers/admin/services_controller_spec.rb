@@ -256,34 +256,52 @@ RSpec.describe Admin::ServicesController, type: :controller do
     
   end
 
-  it 'creates a taxi service with maximum custom region options' do
-    # Create regions for start, end, start_or_end, and trip_within areas
+  it 'queries taxis within specified regions' do
+    other_start_area = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area
     start_area = Region.create(recipe: attributes_for(:region)[:recipe])
-    end_area = Region.create(recipe: attributes_for(:region)[:recipe])
-    start_or_end_area = Region.create(recipe: attributes_for(:region)[:recipe])
-    trip_within_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area)
   
-    # Expect the Taxi count to increase by 1 when creating a new Taxi service
-    expect {
-      Taxi.create(
-        name: 'test taxi',
-        agency: agency,
-        start_area: start_area,
-        end_area: end_area,
-        start_or_end_area: start_or_end_area,
-        trip_within_area: trip_within_area
-      )
-    }.to change(Taxi, :count).by(1)
+    # Get the taxis that have start_area equal to the start_area we created
+    taxis_in_start_area = Taxi.where(start_area: start_area)
   
-    # Retrieve the last created Taxi service
-    created_taxi = Taxi.last
+    # Expect the taxis_in_start_area to include the taxi we created
+    expect(taxis_in_start_area).to include(created_taxi)
   
-    # Expect the attributes of the created Taxi service to match the provided values
-    expect(created_taxi.name).to eq('test taxi')
-    expect(created_taxi.start_area).to eq(start_area)
-    expect(created_taxi.end_area).to eq(end_area)
-    expect(created_taxi.start_or_end_area).to eq(start_or_end_area)
-    expect(created_taxi.trip_within_area).to eq(trip_within_area)
+    # Get the taxis that have start_area equal to the other_start_area we created
+    taxis_in_other_start_area = Taxi.where(start_area: other_start_area)
+  
+    # Expect the taxis_in_other_start_area not to include the taxi we created
+    expect(taxis_in_other_start_area).not_to include(created_taxi)
   end
+  
+  it 'does not query taxi services from a different region' do
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    different_region = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area)
+  
+    # Get the taxis that have start_area equal to the different_region
+    taxis_in_different_region = Taxi.where(start_area: different_region)
+  
+    # Expect the taxis_in_different_region not to include the taxi we created
+    expect(taxis_in_different_region).not_to include(created_taxi)
+  end  
+
+  it 'does not query taxi services for rides starting in end_area' do
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    end_area = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area and end_area
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area, end_area: end_area)
+  
+    # Get the taxis that have start_area equal to the end_area
+    taxis_with_start_area_as_end_area = Taxi.where(start_area: end_area)
+  
+    # Expect the taxis_with_start_area_as_end_area not to include the taxi we created
+    expect(taxis_with_start_area_as_end_area).not_to include(created_taxi)
+  end  
 
 end

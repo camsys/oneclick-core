@@ -40,6 +40,11 @@ class Config < ApplicationRecord
     otp_car_park_quantity: 3,
     otp_transit_quantity: 3,
     otp_paratransit_quantity: 3,
+    password_required_letters: 0,
+    password_required_uppercase: 0,
+    password_required_lowercase: 0,
+    password_required_numerical: 0,
+    password_required_special: 0,    
     # otp_max_itineraries_shown: 3,
     require_user_confirmation: false, # (Boolean) Requires user to confirm their email address within a certain timeframe.
     ride_pilot_purposes: {}, # (Hash<String, String>) A Hash of key value pairs containing the names and codes of purposes for Ride Pilot.

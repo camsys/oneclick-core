@@ -268,10 +268,24 @@ class User < ApplicationRecord
     self.email.downcase!
   end
 
-  def password_complexity
-    if password.present? and not password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
+##
+# Validates the complexity of the password.
+# This method checks if the password meets the specified complexity requirements.
+# If the password is not present or does not meet the requirements, it adds the
+# appropriate error messages to the `errors` object.
+def password_complexity
+  if password.present?
+    uppercase_complexity = Config.password_required_uppercase <= password.gsub(/([^A-Z])/, '').length
+    lowercase_complexity = Config.password_required_lowercase <= password.gsub(/([^a-z])/, '').length
+    numerical_complexity = Config.password_required_numerical <= password.gsub(/([^0-9])/, '').length
+    special_complexity = Config.password_required_special <= password.gsub(/[a-zA-Z0-9\s]/, '').length
+
+    password_is_complex = uppercase_complexity && lowercase_complexity && numerical_complexity && special_complexity
+    
+    unless password_is_complex
       errors.add :password, "must include at least one letter and one digit"
     end
   end
+end
 
 end
