@@ -246,6 +246,9 @@ class Admin::ServicesController < Admin::AdminController
     [
       :fare_structure,
       {accommodation_ids: []},
+      start_area_attributes: [:recipe],
+      end_area_attributes: [:recipe],
+      start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe]
     ] + FareParamPermitter.new(params[:service]).permit
   end

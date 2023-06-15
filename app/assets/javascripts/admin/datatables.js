@@ -1,5 +1,9 @@
 $(document).on('turbolinks:load', function() {
-  const tableSelectors = '#purpose-travel-patterns-table, #funding-sources-table';
+  const tableSelectors = '#purpose-travel-patterns-table, #funding-sources-table, #booking-profiles-table';
+
+  if ($.fn.DataTable.isDataTable(tableSelectors)) {
+    $(tableSelectors).DataTable().destroy();
+  }
 
   let dataTable = $(tableSelectors).DataTable({
     "columnDefs": [ {
@@ -9,9 +13,9 @@ $(document).on('turbolinks:load', function() {
   });
 
   document.addEventListener("turbolinks:before-cache", function() {
-    if (dataTable !== null) {
-     dataTable.destroy();
-     dataTable = null;
+    if ($.fn.DataTable.isDataTable(tableSelectors)) {
+      dataTable.destroy();
+      dataTable = null;
     }
   });
 });
