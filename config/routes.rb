@@ -267,6 +267,8 @@ Rails.application.routes.draw do
           post "change_agency"
         end
     end
+    
+    resources :booking_profiles, only: [:index]
 
   end #Admin
 

@@ -28,6 +28,10 @@ FactoryBot.define do
       after(:create) {|u| u.add_role("superuser")}
     end
 
+    trait :superuser do
+      after(:create) {|u| u.add_role("superuser")}
+    end
+
     factory :transportation_admin do
       sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
       staff_agency {create(:transportation_agency)}
@@ -101,6 +105,12 @@ FactoryBot.define do
       end
     end
 
+    trait :oversight_admin do
+      sequence(:email) {|i| "admin_user_#{i}@camsys.com" }
+      staff_agency { create(:oversight_agency) }
+      admin
+    end
+    
     trait :eligible do
       after(:create) do |u|
         u.user_eligibilities << create(:user_eligibility, :confirmed, user: u)
