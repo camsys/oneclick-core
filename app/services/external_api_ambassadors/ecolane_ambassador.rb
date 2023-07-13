@@ -821,6 +821,7 @@ class EcolaneAmbassador < BookingAmbassador
       pu_hash = {location: build_location_hash(trip.origin), note: @note}
     end
     pu_hash
+    puts "Note: #{@note}"
   end
 
   #Build the hash for the drop off request
