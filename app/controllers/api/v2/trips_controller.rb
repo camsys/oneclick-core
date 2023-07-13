@@ -81,7 +81,8 @@ module Api
           :trip_time,
           :arrive_by,
           :user_id,
-          :purpose_id
+          :purpose_id,
+          :note,
         )
       end
 

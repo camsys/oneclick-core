@@ -23,6 +23,7 @@ class EcolaneAmbassador < BookingAmbassador
     get_booking_profile
     check_travelers_transit_agency
     add_missing_attributes
+    @note = opts[:note] if opts[:note]
     
     # Funding Rules Shortcuts
     # nil is added to the ada_funding_sources, and the sponsors because, occasionally, a purpose will
@@ -821,8 +822,8 @@ class EcolaneAmbassador < BookingAmbassador
       pu_hash = {location: build_location_hash(trip.origin), note: @note}
     end
     pu_hash
-    puts "Note: #{@note}"
   end
+
 
   #Build the hash for the drop off request
   def build_do_hash

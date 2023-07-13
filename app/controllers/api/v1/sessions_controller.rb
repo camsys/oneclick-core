@@ -21,7 +21,7 @@ module Api
 
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
-          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
+          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id, note: params[:note]})
           @user = ecolane_ambassador.user
           if @user
             #Last Trip
