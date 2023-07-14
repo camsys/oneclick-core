@@ -75,19 +75,22 @@ class OTPAmbassador
   # Returns an array of 1-Click-ready itinerary hashes.
   def get_itineraries(trip_type)
     return [] if errors(trip_type)
-    itineraries = ensure_response(trip_type).itineraries
     
-    # Check if walking is not selected as an option
-    if !@trip_types.include?(:walk)
-      # Only keep the itineraries where no walking leg exceeds the maximum walk distance
-      itineraries = itineraries.reject do |itinerary|
-        itinerary.legs&.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
-      end
-    end
+    itineraries = ensure_response(trip_type).itineraries
+    itineraries = filter_itineraries_by_walk_distance(itineraries)
     
     return itineraries.map { |i| convert_itinerary(i, trip_type) }.compact
   end
 
+
+  # Filters out itineraries where any walking leg exceeds the maximum walk distance
+  def filter_itineraries_by_walk_distance(itineraries)
+    return itineraries if @trip_types.include?(:walk)
+    
+    itineraries.reject do |itinerary|
+      itinerary.legs&.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+    end
+  end
 
   # Extracts a trip duration from the OTP response.
   def get_duration(trip_type)
