@@ -81,7 +81,7 @@ class OTPAmbassador
     if !@trip_types.include?(:walk)
       # Only keep the itineraries where no walking leg exceeds the maximum walk distance
       itineraries = itineraries.reject do |itinerary|
-        itinerary.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+        itinerary.legs&.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
       end
     end
     
