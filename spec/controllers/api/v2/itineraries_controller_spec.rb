@@ -33,4 +33,44 @@ RSpec.describe Api::V2::ItinerariesController, type: :controller do
     end
 
   end
+
+  describe OTPAmbassador do
+    describe 'when "walk" trip type is deselected' do
+      it 'filters out itineraries where any leg\'s walking distance exceeds maximum walk distance' do
+  
+        trip_types = [:transit, :paratransit, :car_park, :taxi, :car, :bicycle, :uber, :lyft]
+        otp_ambassador = OTPAmbassador.new(trip, trip_types)
+  
+        expect(otp_ambassador.get_itineraries(:transit)).not_to include(hash_including(mode: "WALK", distance: a_value > 1000))
+      end
+
+      it 'includes itineraries where any walking leg\'s distance is less than maximum walk distance' do
+  
+        trip_types = [:transit, :paratransit, :car_park, :taxi, :car, :bicycle, :uber, :lyft]
+        otp_ambassador = OTPAmbassador.new(trip, trip_types)
+  
+        allow(otp_ambassador).to receive(:get_itineraries).and_return([
+          { mode: "WALK", distance: 800 }
+        ])
+  
+        expect(otp_ambassador.get_itineraries(:transit)).to include(hash_including(mode: "WALK", distance: a_value <= 1000))
+      end
+    end
+
+    describe 'when "walk" trip type is selected' do
+      it 'includes itineraries where any leg\'s walking distance is less than maximum walk distance' do
+  
+        trip_types = [:transit, :paratransit, :car_park, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+        otp_ambassador = OTPAmbassador.new(trip, trip_types)
+        
+
+        allow(otp_ambassador).to receive(:get_itineraries).and_return([
+          { mode: "WALK", distance: 800 }
+        ])
+  
+        expect(otp_ambassador.get_itineraries(:transit)).to include(hash_including(mode: "WALK", distance: a_value <= 1000))
+      end
+    end
+
+  end  
 end

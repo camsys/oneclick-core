@@ -33,6 +33,7 @@ class Config < ApplicationRecord
     guest_user_email_domain: "example.com", # (String) The domain used to create guest emails.
     lyft_client_token: "", # (String) The application's client token for booking Lyft rides.
     maximum_booking_notice: 30, # (Integer) The maximum number of days into the future a user is allowed to book.
+    max_walk_distance: 1000, # default max walk distance
     max_walk_minutes: 45, # (Integer) The maximum number of minutes a traveler is expected to walk when planing a trip.
     open_trip_planner: "", # (String) OTP's base url.
     open_trip_planner_version: "v1", # (String) Which version of OTP to use. The other option is "v2".

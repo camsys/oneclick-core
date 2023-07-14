@@ -81,12 +81,12 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days, :max_walk_minutes, :walk_reluctance, :bike_reluctance, :maximum_booking_notice
+    when :feedback_overdue_days, :max_walk_minutes, :walk_reluctance, :bike_reluctance, :maximum_booking_notice, :max_walk_distance
       return value.to_i
     when :require_user_confirmation
       return (value == "true")
     when :trapeze_ada_funding_sources
-      return value.delete(' ').split(',')
+      return value.delete(' ').split(',')   
     else
       return value
     end

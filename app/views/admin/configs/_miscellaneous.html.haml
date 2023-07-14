@@ -60,6 +60,10 @@
     input_html: {value: Config.maximum_booking_notice},
     as: :integer
 
+  = f.input :max_walk_distance, require: true,
+    label: "Max walk distance",
+    input_html: {value: Config.max_walk_distance},
+    as: :integer
 
 :javascript
   $(document).ready(function() {    
