@@ -88,9 +88,13 @@ class OTPAmbassador
     return itineraries if @trip_types.include?(:walk)
     
     itineraries.reject do |itinerary|
-      itinerary.legs&.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+      if itinerary.legs.kind_of?(Array)
+        itinerary.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+      else
+        false
+      end
     end
-  end
+  end  
 
   # Extracts a trip duration from the OTP response.
   def get_duration(trip_type)
