@@ -76,12 +76,12 @@ class OTPAmbassador
   def get_itineraries(trip_type)
     return [] if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
-    itineraries = filter_itineraries_by_walk_distance(itineraries)
+    itineraries = filter_itineraries_by_walk_distance(itineraries, trip_type)
     return itineraries.map {|i| convert_itinerary(i, trip_type)}.compact
   end  
   
   # Filters out itineraries where any walking leg exceeds the maximum walk distance
-  def filter_itineraries_by_walk_distance(itineraries)
+  def filter_itineraries_by_walk_distance(itineraries, trip_type)
     return itineraries if trip_type == :walk
 
     itineraries.reject do |itinerary|
