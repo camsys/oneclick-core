@@ -144,6 +144,7 @@ class TripPlanner
   def filter_itineraries
     walk_seen = false
     max_walk_minutes = Config.max_walk_minutes
+    max_walk_distance = Config.max_walk_distance
     itineraries = @trip.itineraries.map do |itin|
 
       ## Test: Make sure we never exceed the maximium walk time
@@ -158,6 +159,11 @@ class TripPlanner
         else 
           walk_seen = true 
         end
+      end
+
+      ## Test: Filter out itineraries where any walking leg exceeds the maximum walk distance
+      if itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+        next
       end
 
       ## We've passed all the tests
