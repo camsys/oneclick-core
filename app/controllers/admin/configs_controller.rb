@@ -37,6 +37,7 @@ class Admin::ConfigsController < Admin::AdminController
     :ui_url,
     :require_user_confirmation,
     :max_walk_minutes,
+    :max_walk_distance,
     :walk_reluctance,
     :bike_reluctance,
     :dashboard_mode,
@@ -86,7 +87,7 @@ class Admin::ConfigsController < Admin::AdminController
     when :require_user_confirmation
       return (value == "true")
     when :trapeze_ada_funding_sources
-      return value.delete(' ').split(',')   
+      return value.delete(' ').split(',')
     else
       return value
     end
