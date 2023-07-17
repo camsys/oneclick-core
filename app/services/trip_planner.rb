@@ -162,7 +162,7 @@ class TripPlanner
       end
 
       ## Test: Filter out itineraries where any walking leg exceeds the maximum walk distance
-      if @trip.trip_types.exclude?(:walk) && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+      if @trip.trip_type != 'walk' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
 
