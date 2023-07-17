@@ -81,13 +81,17 @@ class OTPAmbassador
   end
   
   # Filters out itineraries where any walking leg exceeds the maximum walk distance
-  def filter_itineraries_by_walk_distance(itineraries, trip_type)
+  def filter_itineraries_by_walk_distance(itineraries)
     return itineraries if trip_type == :walk
-  
+
     itineraries.reject do |itinerary|
-      itinerary.legs&.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+      if itinerary.legs
+        itinerary.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > Config.max_walk_distance }
+      else
+        false
+      end
     end
-  end  
+  end
 
   # Extracts a trip duration from the OTP response.
   def get_duration(trip_type)
