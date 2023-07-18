@@ -161,16 +161,11 @@ class TripPlanner
         end
       end
 
-      # Test: If walk is selected as a trip type, all walking itineraries are included.
-      if itin.trip_type == 'walk'
-        itin
+      # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
+      if itin.trip_type.include?('transit') && !itin.trip_type.include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
 
-      # Test: If transit is selected, but walking is not, filter out transit itineraries where any walking leg exceeds the maximum walk distance.
-      if itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
-        next
-      end 
 
       ## We've passed all the tests
       itin 
