@@ -162,8 +162,6 @@ class TripPlanner
       end
 
       # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
-      walk_trip_type_exists = @trip.itineraries.any? { |itin| itin.trip_type == 'walk' }
-
       if itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
