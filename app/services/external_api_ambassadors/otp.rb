@@ -9,9 +9,11 @@ module OTP
 
   class OTPService
     attr_accessor :base_url
+    attr_accessor :version
 
-    def initialize(base_url="")
+    def initialize(base_url="", version="v1")
       @base_url = base_url
+      @version = version
     end
 
     # Makes multiple OTP requests in parallel, and returns once they're all done.
@@ -23,13 +25,13 @@ module OTP
         multi = EM::MultiRequest.new
         requests.each_with_index do |request, i|
           url = plan_url(request)
-          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 3, inactivity_timeout: 3).get
+          multi.add (request[:label] || "req#{i}".to_sym), EM::HttpRequest.new(url, connect_timeout: 60, inactivity_timeout: 60, tls: {verify_peer: true}).get
         end
 
         responses = nil
         multi.callback do
           EM.stop
-          responses = multi.responses
+          responses = multi.responses 
         end
       end
 
@@ -67,14 +69,18 @@ module OTP
       mode = options[:mode] || "TRANSIT,WALK"
       wheelchair = options[:wheelchair] || "false"
       walk_speed = options[:walk_speed] || 3.0 #walk_speed is defined in MPH and converted to m/s before going to OTP
-      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP
+      max_walk_distance = options[:max_walk_distance] || 2 #max_walk_distance is defined in miles and converted to meters before going to OTP v1
       max_bicycle_distance = options[:max_bicycle_distance] || 5
       optimize = options[:optimize] || 'QUICK'
-      num_itineraries = options[:num_itineraries] || 3
+      num_itineraries = options[:num_itineraries] || Config.otp_itinerary_quantity
       min_transfer_time = options[:min_transfer_time] || nil
       max_transfer_time = options[:max_transfer_time] || nil
       banned_routes = options[:banned_routes] || nil
       preferred_routes = options[:preferred_routes] || nil
+
+      walk_reluctance = options[:walk_reluctance] || Config.walk_reluctance
+      bike_reluctance = options[:bike_reluctance] || Config.bike_reluctance
+      wait_reluctance = options[:wait_reluctance]
 
       #Parameters
       time = trip_datetime.strftime("%-I:%M%p")
@@ -105,15 +111,33 @@ module OTP
         url_options += "&minTransferTime=" + min_transfer_time.to_s
       end
 
-      unless max_transfer_time.nil?
-        url_options += "&maxTransferTime=" + max_transfer_time.to_s
+      # v2 doesn't like max* fields in favor of *reluctance fields
+      # reluctance fields are also in v1 but we only use them in v2 here
+      if @version == 'v2'
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          unless bike_reluctance.nil?
+            url_options += "&bikeReluctance=" + bike_reluctance.to_s
+          end
+        else
+          unless walk_reluctance.nil?
+            url_options += "&walkReluctance=" + walk_reluctance.to_s
+          end
+        end
+      else
+        unless max_transfer_time.nil?
+          url_options += "&maxTransferTime=" + max_transfer_time.to_s
+        end
+
+        # If it's a bicycle trip, OTP uses walk distance as the bicycle distance
+        if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
+          url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
+        else
+          url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+        end
       end
 
-      #If it's a bicycle trip, OTP uses walk distance as the bicycle distance
-      if mode == "TRANSIT,BICYCLE" or mode == "BICYCLE"
-        url_options += "&maxWalkDistance=" + (1609.34*(max_bicycle_distance || 5.0)).to_s
-      else
-        url_options += "&maxWalkDistance=" + (1609.34*max_walk_distance).to_s
+      unless wait_reluctance.nil?
+        url_options += "&waitReluctance=" + wait_reluctance.to_s
       end
 
       url_options += "&numItineraries=" + num_itineraries.to_s
@@ -169,19 +193,21 @@ module OTP
       return JSON.parse(resp.body)
     end
 
-    def get_otp_mode trip_type
-      hash = {'transit': 'TRANSIT,WALK',
-      'bicycle_transit': 'TRANSIT,BICYCLE',
-      'park_transit':'CAR_PARK,WALK,TRANSIT',
-      'car_transit':'CAR,WALK,TRANSIT',
-      'bike_park_transit':'BICYCLE_PARK,WALK,TRANSIT',
-      'rail':'TRAINISH,WALK',
-      'bus':'BUSISH,WALK',
-      'walk':'WALK',
-      'car':'CAR',
-      'bicycle':'BICYCLE'}
-      hash[trip_type.to_sym]
-    end
+    # Dead code? Drew Teter - 4/7/2023
+    # def get_otp_mode trip_type
+    #   hash = {'transit': 'TRANSIT,WALK',
+    #   'bicycle_transit': 'TRANSIT,BICYCLE',
+    #   'park_transit': 'CAR_PARK,WALK,TRANSIT',
+    #   'car_transit': 'CAR,WALK,TRANSIT',
+    #   'bike_park_transit': 'BICYCLE_PARK,WALK,TRANSIT',
+    #   'paratransit': 'TRANSIT,WALK,FLEX_ACCESS,FLEX_EGRESS,FLEX_DIRECT',
+    #   'rail': 'TRAM,SUBWAY,RAIL,WALK',
+    #   'bus': 'BUS,WALK',
+    #   'walk': 'WALK',
+    #   'car': 'CAR',
+    #   'bicycle': 'BICYCLE'}
+    #   hash[trip_type.to_sym]
+    # end
 
     # Wraps a response body in an OTPResponse object for easy inspection and manipulation
     def unpack(response)
@@ -287,11 +313,9 @@ module OTP
       @legs.each &block
     end
     
-    # Returns first instance of an attribute from the legs, or the first leg if
-    # no attribute is passed
-    def first(attribute=nil)
-      return self.pluck(attribute).first if attribute
-      @legs.first || {}
+    # Returns first instance of an attribute from the legs
+    def detect &block
+      @legs.detect &block
     end
     
     # Returns an array of all non-nil instances of the given value in the legs

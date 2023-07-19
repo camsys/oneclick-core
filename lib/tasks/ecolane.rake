@@ -3,6 +3,22 @@ namespace :ecolane do
   desc "Update Ecolane POIs"
   task :update_pois => :environment do
 
+    # Check to see if another instance is already running
+    is_already_running = false
+    task_run_state = Config.find_or_create_by key: 'ecolane_task_is_running'
+    task_run_state.with_lock do
+      task_run_state.reload
+      is_already_running = task_run_state.value
+      if is_already_running
+        puts "Another task instance is already running. Exiting."
+        exit
+      else
+        task_run_state.value = true
+        task_run_state.save!
+        puts "Running this instance."
+      end
+    end
+    
     messages = []
     global_error = false
     local_error = false
@@ -25,7 +41,10 @@ namespace :ecolane do
     puts "starting sync"
     # Get the current POIs and mark them as old
     Landmark.update_all(old: true)
+    poi_processed_count = 0
     poi_with_no_city = 0
+    new_poi_names_set = Set.new
+    
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
@@ -45,25 +64,21 @@ namespace :ecolane do
           next
         end
 
+        puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
         # Import named pois before unnamed locations
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
-
-          if Landmark.is_new.where('lower(name) = ?', hash[:name].downcase).count > 0
-            new_poi_duplicate_count += 1
-            puts 'DUPLICATE '
-            puts hash.ai
-            next
-          end
-
+          poi_processed_count += 1
+          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
+          
           new_poi = Landmark.new hash
           new_poi.old = false
           new_poi.agency_id = agency_id
           # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.name.blank? or new_poi.name.downcase == 'home'
-            if new_poi.city == nil || new_poi.city == ""
+            if new_poi.city.blank?
               puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
               puts hash.ai
               poi_with_no_city += 1
@@ -71,6 +86,13 @@ namespace :ecolane do
             end
             new_poi.name = [new_poi.street_number, new_poi.route, new_poi.city].join(" ")
           end
+
+          if new_poi_names_set.add?(new_poi.name).nil?
+            new_poi_duplicate_count += 1
+            puts "Duplicate name: #{new_poi.name}"
+            next
+          end
+          
           if !new_poi.save
             puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
             puts "#{new_poi}"
@@ -109,6 +131,8 @@ namespace :ecolane do
       puts messages.to_s
     end
 
+  ensure
+    task_run_state.update(value: false) unless is_already_running
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this

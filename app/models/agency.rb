@@ -14,7 +14,7 @@ class Agency < ApplicationRecord
   
   ### SCOPES, CONSTANTS, & VALIDATIONS ###
   
-  validates :name, presence: true
+  validates :name, presence: true, uniqueness: true
   validates :agency_type_id, presence: true
   contact_fields email: :email, phone: :phone, url: :url
     
@@ -29,7 +29,7 @@ class Agency < ApplicationRecord
   has_many :funding_sources, dependent: :destroy
   has_many :travel_patterns
   # this is to help access the Agency index page, although it's a bit redundant
-  has_one :agency_oversight_agency,foreign_key:"transportation_agency_id", dependent: :destroy
+  has_one :agency_oversight_agency, foreign_key: "transportation_agency_id", dependent: :destroy
   belongs_to :agency_type
 
   AGENCY_TYPE_MAP = {

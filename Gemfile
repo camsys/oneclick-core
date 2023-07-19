@@ -9,9 +9,9 @@ end
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.1'
 # Use postgresql as the database for Active Record
-gem 'pg', '~> 0.18'
+gem 'pg', '~> 0.21'
 # Use Puma as the app server
-gem 'puma', '~> 3.0'
+gem 'puma'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -82,15 +82,14 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 ### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', 
-      github: 'camsys/simple_translation_engine'
-
+      github: 'camsys/simple_translation_engine', branch: 'lydia_translation_engine'
 ### SOAP Support ###########################
 gem 'savon'
 ############################################
 
 
 ### FILE UPLOAD ############################
-gem 'carrierwave-aws', '~> 1.1'
+gem 'carrierwave-aws', '~> 1.5'
 gem 'mini_magick' # For resizing images
 gem 'remotipart', '~> 1.3', '>= 1.3.1'
 gem 'aws-sdk-s3' # For uploading files to AWS S3 bucket, e.g. for translations json
@@ -129,8 +128,7 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # e.g. ` gem 'some_engine', require: !!ENV["SOME_ENGINE"] `
 
 # Download the oneclick_refernet gem, but only require it if env var is set
-gem 'oneclick_refernet', github: 'camsys/oneclick_refernet',
-                         require: !!ENV["ONECLICK_REFERNET"]
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure'
 ############################################
 
 
@@ -146,8 +144,7 @@ group :development, :test do
   gem 'rails-controller-testing'
   gem 'shoulda-matchers', require: false
 
-  # Factory_bot 5.0 no longer allows static attributes. We should change our factories if we want to upgrade
-  gem 'factory_bot_rails', '~> 4.11'
+  gem 'factory_bot_rails'
   ##########################################
 end
 

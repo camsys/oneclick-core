@@ -18,6 +18,8 @@ class TripPlanner
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
+    @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
+
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
     @master_service_scope = options[:available_services] || Service.all # Allow pre-filtering of available services
@@ -66,7 +68,7 @@ class TripPlanner
   # Set up external API ambassadors
   def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
-    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
+    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
     @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
@@ -99,6 +101,18 @@ class TripPlanner
 
       # Now finish filtering by purpose, eligibility, and accommodation
       @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    else
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      options = {}
+      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
+      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
+      options[:date] = @trip.trip_time.to_date if @trip.trip_time
+      
+      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
     end
 
     # Now convert into a hash grouped by type
@@ -129,7 +143,8 @@ class TripPlanner
   # Additional sanity checks can be applied here.
   def filter_itineraries
     walk_seen = false
-    max_walk_minutes = Config.max_walk_minutes || 45
+    max_walk_minutes = Config.max_walk_minutes
+    max_walk_distance = Config.max_walk_distance
     itineraries = @trip.itineraries.map do |itin|
 
       ## Test: Make sure we never exceed the maximium walk time
@@ -146,10 +161,16 @@ class TripPlanner
         end
       end
 
+      # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
+      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+        next
+      end
+
       ## We've passed all the tests
       itin 
     end
     itineraries.delete(nil)
+
     @trip.itineraries = itineraries
   end
 
@@ -170,6 +191,10 @@ class TripPlanner
     build_fixed_itineraries :transit
   end
 
+  def build_car_park_itineraries
+    build_fixed_itineraries :car_park
+  end
+
   # Builds walk itineraries, using OTP by default
   def build_walk_itineraries
     build_fixed_itineraries :walk
@@ -185,15 +210,49 @@ class TripPlanner
 
   # Builds paratransit itineraries for each service, populates transit_time based on OTP response
   def build_paratransit_itineraries
-    return [] unless @available_services[:paratransit] # Return an empty array if no paratransit services are available
+    return [] unless @available_services[:paratransit].present? # Return an empty array if no paratransit services are available
 
-    itineraries = @available_services[:paratransit].map do |svc|
+    # gtfs flex can load paratransit itineraries but not all otp instances have flex
+    router_paratransit_itineraries = []
+    if Config.open_trip_planner_version == 'v2'
+      # Paratransit itineraries must belong to a service
+      # This ensures we respect accomodations and eligibilities
+      otp_itineraries = build_fixed_itineraries(:paratransit).select{ |itin|
+        itin.service_id.present?
+      }
+      
+      # paratransit itineraries can return just transit since we also look for a mixed
+      # filter these out
+      # then set itineraries that are a mix of paratransit and transit mixed
+      router_paratransit_itineraries += otp_itineraries.map{ |itin|
+        no_paratransit = true
+        has_transit = false
+        itin.legs.each do |leg|
+          no_paratransit = false if leg['mode'].include?('FLEX') 
+          has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
+        end
+        if no_paratransit
+          next nil
+        end
+        itin.trip_type = 'paratransit_mixed' if has_transit
+        itin
+      }.compact
+    end
 
-      # Should not be able to use the paratransit service if booking API is not set up.
+    paratransit_services = @available_services[:paratransit].where(gtfs_agency_id: ["", nil])
+
+    # Should not be able to use the paratransit service if booking API is not set up.
+    # TODO: we should look into dealing with this another way. Like deleting services with
+    # invalid APIs, or unpublishing them, or something.
+    allowed_api = Config.booking_api
+    return router_paratransit_itineraries if allowed_api == "none"
+    unless allowed_api == "all"
+      paratransit_services = paratransit_services.where(booking_api: allowed_api)
+    end
+
+    itineraries = paratransit_services.map { |svc|
       Rails.logger.info("Checking service id: #{svc&.id}")
-      if svc.booking_api != "ecolane"
-        next nil
-      end
+
       #TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
@@ -209,7 +268,7 @@ class TripPlanner
                             .find_or_initialize_by(
                               service_id: svc.id,
                               trip_type: :paratransit,
-                              trip_id: @trip.id,
+                              trip_id: @trip.id
                             )
 
       # Whether an itinerary was found, or initialized, we need to update it
@@ -221,10 +280,9 @@ class TripPlanner
       })
 
       itinerary
-    end
+    }.compact
 
-    # Get rid of nil itineraries caused by skipping Ecolane Services
-    itineraries.compact
+    router_paratransit_itineraries + itineraries
   end
 
   # Builds taxi itineraries for each service, populates transit_time based on OTP response

@@ -4,6 +4,7 @@ class TravelPattern < ApplicationRecord
   scope :for_oversight_user, -> (user) {where(agency: user.current_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.current_agency.id]))}
   scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
+
   ## 
   # This scope returns only Travel Patterns related to the +Agency+ provided.
   # 
@@ -25,8 +26,8 @@ class TravelPattern < ApplicationRecord
   ## 
   # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
   # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
-  # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+
-  # is set to +true+ for that Travel Pattern.
+  # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+ is
+  # set to +true+ for that Travel Pattern.
   # 
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
   # @option origin [Number] :lat The latitude of the trip's starting point.
@@ -48,9 +49,9 @@ class TravelPattern < ApplicationRecord
 
   ##
   # This scope returns only Travel Patterns where the provided +destination+ is a valid ending 
-  # point for trips as determined by the Travel Pattern's +destination_zone+ and 
-  # +destination_zone+. The +origin_zone+ is considered a valid ending point if 
-  # +allow_reverse_sequence_trips+ is set to +true+ for that Travel Pattern.
+  # point for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+.
+  # The +origin_zone+ is considered a valid ending point if +allow_reverse_sequence_trips+ is
+  # set to +true+ for that Travel Pattern.
   # 
   # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
   # @option destination [Number] :lat The latitude of the trip's ending point.
@@ -77,20 +78,44 @@ class TravelPattern < ApplicationRecord
   # @param [Purpose] purpose The +Purpose+ used to select Travel Patterns.
   scope :with_purpose, -> (purpose) do
     raise TypeError.new("#{purpose.class} can't be coerced into Purpose") unless purpose.is_a?(Purpose)
-    joins(:travel_pattern_purposes).where(travel_pattern_purposes: {purpose_id: purpose.id})
+    joins(:travel_pattern_purposes).where(travel_pattern_purposes: {purpose_id: purpose.id}).distinct
   end
 
   ##
-  # This scope returns only Travel Patterns where the provided +FundingSource+ is included in the Travel
-  # Pattern's list of associated funding sources.
+  # This scope returns only Travel Patterns where the provided +purpose_id+ is included in the
+  # Travel Pattern's list of associated purposes.
   # 
-  # @param [FundingSource] funding_source The +FundingSource+ used to select Travel Patterns.
+  # @param [Number] purpose_id The +Purpose+ used to select Travel Patterns.
+  scope :with_purpose_id, -> (purpose_id) do
+    raise TypeError.new("#{purpose_id.class} can't be coerced into Integer") unless purpose_id.is_a?(Integer)
+    joins(:travel_pattern_purposes).where(travel_pattern_purposes: {purpose_id: purpose_id}).distinct
+  end
+
+  ##
+  # This scope returns only Travel Patterns where at least one provided +FundingSource+ is included
+  # in the Travel Pattern's list of associated funding sources.
+  # 
+  # @param funding_sources [ActiveRecord::Relation<FundingSource>] The +FundingSource+s used to
+  # select Travel Patterns.
   scope :with_funding_sources, -> (funding_sources) do
     unless funding_sources.is_a?(ActiveRecord::Relation) && funding_sources.model == FundingSource
       raise TypeError.new("#{funding_sources.class} can't be coerced into ActiveRecord::Relation<FundingSource>")
     end
 
     joins(:travel_pattern_funding_sources).where(travel_pattern_funding_sources: {funding_source: funding_sources}).distinct
+  end
+
+  ##
+  # This scope returns only Travel Patterns where at least one provided +funding_source_id+ is
+  # included in the Travel Pattern's list of associated funding sources.
+  # 
+  # @param funding_source_ids [Array<Number>] The +Id+s of +FundingSources+s.
+  scope :with_funding_source_ids, -> (funding_source_ids) do
+    unless funding_source_ids.is_a?(Array) && funding_source_ids.all? { |fsi| fsi.class == Integer }
+      raise TypeError.new("#{funding_source_ids.class} can't be coerced into Array<Integer>")
+    end
+
+    joins(:travel_pattern_funding_sources).where(travel_pattern_funding_sources: {funding_source_id: funding_source_ids}).distinct
   end
 
   ##
@@ -128,13 +153,14 @@ class TravelPattern < ApplicationRecord
   # TODO: verify whether the presence of a service schedule is good enough, or if it has to be a specific kind of schedule.
   validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :travel_pattern_funding_sources, :travel_pattern_purposes, :travel_pattern_service_schedules
 
-  def to_api_response
+  def to_api_response(start_date, end_date)
     travel_pattern_opts = { 
-      only: [:id, :agency_id, :name, :description],
-      methods: :to_calendar
+      only: [:id, :agency_id, :name, :description]
     }
 
-    self.as_json(travel_pattern_opts)
+    self.as_json(travel_pattern_opts).merge({
+      "to_calendar" => self.to_calendar(start_date, end_date)
+    })
   end
 
   def self.for_user(user)
@@ -183,7 +209,22 @@ class TravelPattern < ApplicationRecord
     return schedules_by_type
   end
 
-  def to_calendar
+  ##
+  # This method aggregates all of a +TravelPattern+'s service schedules and aggregates them to
+  # produce a hash showing the valid times for this pattern the next 60 days. This does not
+  # take into account constraints from the Booking Window. For that you should pass in the
+  # +start_date+ and +calendar_length+ with the relevant information.
+  # 
+  # @param [Integer] start_date Optional. The first day that the calendar wil calculate the
+  #   +start_time+ and +end_time+ for. (Use the timezone of the +Service+)
+  # @param [Integer] end_date Optional. The last day that the calendar will calculate the
+  #   +start_time+ and +end_time+ for. (Use the timezone of the +Service+)
+  # 
+  # Default options are:
+  #   :calendar_length => +start_date+ + 59.days
+  # 
+  # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
+  def to_calendar(start_date, end_date = start_date + 59.days)
     travel_pattern_service_schedules = schedules_by_type
 
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
@@ -191,16 +232,15 @@ class TravelPattern < ApplicationRecord
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
 
     calendar = {}
-    date = booking_window.earliest_booking.to_date
-    end_date = booking_window.latest_booking.to_date
-    
+    date = start_date
+
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = {}
 
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
         next unless valid_start && valid_end
         
         sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
@@ -210,7 +250,8 @@ class TravelPattern < ApplicationRecord
         break(sub_schedule) if sub_schedule
       end
 
-      # Reduced schedules overwrite all other schedules so we can skip the rest of this iteration
+      # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
+      # Highlander voice: There can only be one!
       if reduced_sub_schedule
         calendar[date_string][:start_time] = reduced_sub_schedule.start_time
         calendar[date_string][:end_time] = reduced_sub_schedule.end_time
@@ -269,7 +310,15 @@ class TravelPattern < ApplicationRecord
   # @option query_params [String, Integer] :start_time The starting time of a potential trip represented  as number of seconds since midnight.
   # @option query_params [String, Integer] :end_time The ending time of a potential trip represented  as number of seconds since midnight.
   def self.available_for(query_params)
-    filters = [:agency, :service, :origin, :destination, :purpose, :funding_sources, :date]
+    filters = [
+      :agency, 
+      :service, 
+      :origin,
+      :destination,
+      :purpose, :purpose_id, 
+      :funding_sources, :funding_source_ids, 
+      :date
+    ]
     query = self.all
 
     # First filter by all provided params
@@ -283,16 +332,41 @@ class TravelPattern < ApplicationRecord
     travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
   end
 
-  def self.to_api_response(travel_patterns)
+  def self.to_api_response(travel_patterns, service)
+    business_days = service.business_days
+
     # Filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
     # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
-    travel_patterns.map(&:to_api_response)
-                    .select { |travel_pattern|
-                      dates = travel_pattern['to_calendar'].values
-                      dates.detect { |date|
-                        (date[:start_time] || -1) >= 0 && (date[:end_time] || -1) >= 1
-                      }
-                    }
+    travel_patterns.map { |travel_pattern|
+      booking_window = travel_pattern.booking_window
+      additional_notice = service.localtime.hour >= booking_window.minimum_notice_cutoff_hour
+      date = service.localtime.to_date
+      start_date = date
+      end_date = date + 60.days
+
+      days_notice = (business_days.include?(date.strftime('%Y-%m-%d')) && !additional_notice) ? 0 : -1
+      while (days_notice < booking_window.minimum_days_notice && date < end_date) do
+        date += 1.day
+        days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+      end
+
+      start_date = date
+
+      while (days_notice < booking_window.maximum_days_notice && date < end_date) do
+        date += 1.day
+        days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+      end
+      
+      end_date = date
+
+      travel_pattern.to_api_response(start_date, end_date)
+    }
+    .select { |travel_pattern|
+      calendar_business_hours = travel_pattern["to_calendar"].values
+      calendar_business_hours.detect { |business_hours|
+        (business_hours[:start_time] || -1) >= 0 && (business_hours[:end_time] || -1) >= 1
+      }
+    }
   end
 
   # This method should be the first time we call the database, before this we were only constructing the query

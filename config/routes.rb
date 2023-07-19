@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         collection do
           post 'find'
           get  'all'
+          get  'locales'
         end
       end
 
@@ -93,15 +94,21 @@ Rails.application.routes.draw do
       resources :stomping_grounds, only: [:index, :destroy, :create, :update]
 
       # Services
-      resources :services, only: [:index]
+      resources :services, only: [:index, :show]
 
       # Travel Patterns
       resources :travel_patterns, only: [:index]
 
       # Trips
-      resources :trips, only: [:create, :show]
+      resources :trips, only: [:new, :create, :show]
       post 'trips/plan' => 'trips#create'
       post 'trips/plan_multiday' => 'trips#plan_multiday'
+
+      resources :itineraries, only: [] do
+        collection do
+          post 'email'
+        end
+      end
 
       # Users
       resource :users, only: [:show, :update, :create, :destroy] do
@@ -115,9 +122,12 @@ Rails.application.routes.draw do
       post 'sign_up' => 'users#create'
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'
+      get 'counties' => 'users#counties'
 
       # Refernet
       if ENV["ONECLICK_REFERNET"]
+        post 'oneclick_refernet/create_find_services_history' => 'refernet/services#create_find_services_history'
+        post 'oneclick_refernet/update_find_services_history_trip_id' => 'refernet/services#update_find_services_history_trip_id'
         get 'oneclick_refernet/services' => 'refernet/services#index'
         post 'oneclick_refernet/email' => 'refernet/services#email'
         post 'oneclick_refernet/sms' => 'refernet/services#sms'
@@ -230,6 +240,7 @@ Rails.application.routes.draw do
         get 'requests_table'
         get 'feedback_table'
         get 'feedback_aggregated_table'
+        get 'find_services_table'
 
       end
     end
@@ -256,6 +267,8 @@ Rails.application.routes.draw do
           post "change_agency"
         end
     end
+    
+    resources :booking_profiles, only: [:index]
 
   end #Admin
 

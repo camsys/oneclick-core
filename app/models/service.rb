@@ -31,17 +31,29 @@ class Service < ApplicationRecord
   # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
-  has_many :purposes, through: :travel_patterns
+
+  # Only add this association after the db is loaded so we can check config
+  # Changes to this config will require a serer restart... not ideal, maybe move it into a custom class method?
+  if ActiveRecord::Base.connection.table_exists?(:configs) && Config.dashboard_mode == "travel_patterns"
+    has_many :purposes, -> { distinct }, through: :travel_patterns
+  else
+    has_and_belongs_to_many :purposes
+  end
+
   has_and_belongs_to_many :accommodations, -> { distinct }
   has_and_belongs_to_many :eligibilities, -> { distinct }
   belongs_to :agency
+  belongs_to :start_area, class_name: 'Region', foreign_key: :start_area_id, dependent: :destroy
+  belongs_to :end_area, class_name: 'Region', foreign_key: :end_area_id, dependent: :destroy
   belongs_to :start_or_end_area, class_name: 'Region', foreign_key: :start_or_end_area_id, dependent: :destroy
   belongs_to :trip_within_area, class_name: 'Region', foreign_key: :trip_within_area_id, dependent: :destroy
 
   accepts_nested_attributes_for :travel_pattern_services, allow_destroy: true, reject_if: :all_blank
 
   ### VALIDATIONS & CALLBACKS ###
-  validates_presence_of :name, :type, :agency
+  validates_presence_of :name, :type, :agency, :max_age, :min_age
+  validates_uniqueness_of :gtfs_agency_id, conditions: -> { where.not(archived: true, gtfs_agency_id: nil) }
+  validates :max_age, :min_age, :eligible_max_age, :eligible_min_age, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates_with FareValidator # For validating fare_structure and fare_details
   contact_fields phone: :phone, email: :email, url: :url
   validate :valid_booking_profile
@@ -91,8 +103,13 @@ class Service < ApplicationRecord
   end
 
   # Filter by age
+  # These are filters, that make people ineligible.
   scope :by_min_age, -> (age) { where("min_age < ?", age+1) }
   scope :by_max_age, -> (age) { where("max_age > ?", age-1) }
+
+  # These are filters, that make people eligible
+  scope :by_eligible_min_age, -> (age) { where("eligible_min_age < ?", age+1) }
+  scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
@@ -153,18 +170,31 @@ class Service < ApplicationRecord
 
   ## Secondary Availability Scopes ##
   
+  # Allowing the schedules' id to be nil includes services with no schedules set
   scope :available_by_schedule_for, -> (trip) do
-    # Either no schedules are set, or there is a schedule that includes the trip time
-    where( id: no_schedules | with_matching_schedule(trip) )
+    where(schedules: {id: nil})
+      .or(where(schedules: {
+        day: trip.wday,
+        start_time: 0..trip.secs,
+        end_time: trip.secs..DAY_LENGTH
+      }))
+      .left_joins(:schedules)
+      .distinct
   end
   
   scope :available_by_geography_for, -> (trip) do
-    available_by_start_or_end_area_for(trip)
-    .available_by_trip_within_area_for(trip)
+    available_by_start_area_for(trip)
+      .available_by_end_area_for(trip)
+      .available_by_start_or_end_area_for(trip)
+      .available_by_trip_within_area_for(trip)
   end
   
+  # Allowing the purposes' id to be nil includes services with no purposes selected
   scope :available_by_purpose_for, -> (trip) do
-    trip.purpose ? available_by_purpose(trip.purpose) : all
+    return self.all if trip.purpose_id.nil?
+    where(purposes: { id: [nil, trip.purpose_id] })
+      .left_joins(:purposes)
+      .distinct
   end
   
   scope :available_by_eligibility_for, -> (trip) do
@@ -185,16 +215,12 @@ class Service < ApplicationRecord
     end
   end
   
-  # Includes service if either it has no eligibility requirements, or the user
-  # meets at least one of its eligibility requirements
+  # Either no eligibilities are set, or the user meets an eligibility requirement
   scope :accepts_eligibility_of, -> (user) do
-    # Either no eligibilities are set, or the user meets an eligibility requirement
-    where( id: no_eligibilities | with_met_eligibilities(user) )
-  end
-
-  # find services available by a trips purpose
-  scope :available_by_purpose, -> (purpose) do
-    where(id: no_purposes | with_matching_purpose(purpose))
+    where(eligibilities: { 
+      id: [nil, *user.confirmed_user_eligibilities.pluck(:eligibility_id)] 
+    }).left_joins(:eligibilities)
+      .distinct
   end
 
   # Builds instance methods for determining if record falls within given scope
@@ -205,8 +231,7 @@ class Service < ApplicationRecord
       :available_by_accommodation_for,
       :available_by_eligibility_for,
       :accommodates,
-      :accepts_eligibility_of,
-      :available_by_purpose
+      :accepts_eligibility_of
     
   ## Other Scopes ##
   
@@ -214,9 +239,11 @@ class Service < ApplicationRecord
   scope :with_accommodations, -> (accommodation_ids) do
     where(id: joins(:accommodations).where(accommodations: {id: accommodation_ids}).pluck(:id).uniq)
   end
+
   scope :with_eligibilities, -> (eligibility_ids) do
     where(id: joins(:eligibilities).where(eligibilities: {id: eligibility_ids}).pluck(:id).uniq)
   end
+
   scope :with_purposes, -> (purpose_ids) do
     where(id: joins(:purposes).where(purposes: {id: purpose_ids}).pluck(:id).uniq)
   end
@@ -298,6 +325,37 @@ class Service < ApplicationRecord
     nil
   end
 
+  # If a Service is using a travel_pattern, then they've set a schedule for that pattern.
+  # Their operating hours are the sum of all those schedules. 
+  # We should look at replacing this code later.
+  # - Drew 01/26/2022
+  def business_days
+    # Preloading all the travel_patterns and thir schedules to avoid n+1 queries
+    # Fewer queries means more performance
+    travel_patterns_with_schedules = self.travel_patterns.includes(
+      travel_pattern_service_schedules: {
+        service_schedule: [:service_schedule_type, :service_sub_schedules]
+      }
+    )
+
+    # Get the travel_patttern's calendar, get rid of any dates without operating hours,
+    # then add all remaining days into a set.
+    travel_pattern_dates = travel_patterns_with_schedules.map { |travel_pattern|
+      travel_pattern.to_calendar(localtime.to_date).select { |date, business_hours|
+        business_hours[:start_time]&.>(0) && business_hours[:end_time]&.>(1)
+      }.keys
+    }
+    
+    Set.new(travel_pattern_dates.flatten)
+  end
+
+  # Our client is in Pennsylvania. Currently servers are in the same time zone, but I don't want
+  # to break things if our servers move. If we gain other clients, we should add a timezone field.
+  def localtime
+    service_time_zone = "-05:00"
+    Time.now.localtime(service_time_zone)
+  end
+
   # Silently filters out schedule params that don't meet criteria. Used in accepts_nested_attributes_for.
   def reject_schedule?(attrs)
     attrs['day'].blank? || attrs['start_time'].blank? || attrs['end_time'].blank?
@@ -327,6 +385,14 @@ class Service < ApplicationRecord
   ### SCOPE HELPER METHODS ###
 
   # available_by_geography_for scopes
+  scope :available_by_start_area_for, -> (trip) do
+    # no start_area contains origin
+    where( id: no_region(:start_area) | with_containing_start_area(trip) )
+  end
+  scope :available_by_end_area_for, -> (trip) do
+    # no end_area contains destination
+    where( id: no_region(:end_area) | with_containing_end_area(trip) )
+  end
   scope :available_by_start_or_end_area_for, -> (trip) do
     # no start_or_end_area, or start_or_end_area contains origin OR destination
     where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
@@ -334,16 +400,6 @@ class Service < ApplicationRecord
   scope :available_by_trip_within_area_for, -> (trip) do
     # no trip_within_area, or trip_within_area contains origin OR destination
     where( id: no_region(:trip_within_area) | with_containing_trip_within_area(trip) )
-  end
-
-  # Returns IDs of Services with no eligibility requirements
-  def self.no_eligibilities
-    includes(:eligibilities).where(eligibilities: {id: nil}).pluck(:id)
-  end
-
-  # Returns IDs of Services with at least one eligibility requirement met by user
-  def self.with_met_eligibilities(user)
-    joins(:eligibilities).where(eligibilities: {id: user.confirmed_eligibilities.pluck(:id)}).pluck(:id)
   end
 
   # Returns all services that provide a given accommodation
@@ -355,33 +411,23 @@ class Service < ApplicationRecord
     user.accommodations.map {|acc| Service.accommodates_accommodation(acc).pluck(:id)}.reduce(&:&)
   end
 
-  # Returns IDs of Services with no schedules set
-  def self.no_schedules
-    includes(:schedules).where(schedules: {id: nil}).pluck(:id)
-  end
-
-  # Returns IDs of Services with no purposes set
-  def self.no_purposes
-    includes(:purposes).where(purposes: {id: nil}).pluck(:id)
-  end
-
-  # Returns IDs of Services with a schedule that includes the trip time
-  def self.with_matching_schedule(trip)
-    joins(:schedules).where(schedules: {
-      day: trip.wday,
-      start_time: 0..trip.secs,
-      end_time: trip.secs..DAY_LENGTH
-    }).pluck(:id)
-  end
-
-  # Returns IDs of Services with a purpose that includes the trip's purpose
-  def self.with_matching_purpose(purpose)
-    joins(:purposes).where(purposes: {id: purpose.id}) #Surely we can do this without comparing codes
-  end
-
   # Returns IDs of Services with no region of given association type
   def self.no_region(region_type)
     includes(region_type).where(regions: { id: nil }).pluck(:id)
+  end
+
+  # Returns IDs of Services with a start_area that is EMPTY or containing trip origin
+  def self.with_containing_start_area(trip)
+    joins(:start_area).empty_region(:start_area)
+    .or(joins(:start_area).region_contains(trip.origin.geom))
+    .pluck(:id)
+  end
+
+  # Returns IDs of Services with a end_area that is EMPTY or containing trip destination
+  def self.with_containing_end_area(trip)
+    joins(:end_area).empty_region(:end_area)
+    .or(joins(:end_area).region_contains(trip.destination.geom))
+    .pluck(:id)
   end
 
   # Returns IDs of Services with a start_or_end_area that is EMPTY or containing trip origin OR destination

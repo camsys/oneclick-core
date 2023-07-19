@@ -1,16 +1,16 @@
 FactoryBot.define do
   factory :locale do
-    name "en"
+    name { "en" }
     
     factory :locale_en do
     end
     
     factory :locale_fr do
-      name "fr"
+      name { "fr" }
     end
     
     factory :locale_es do
-      name "es"
+      name { "es" }
     end
     
     initialize_with { Locale.find_or_create_by(name: name) }

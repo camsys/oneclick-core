@@ -6,7 +6,7 @@
 %br
 
 %h1{style: 'text-align:left'}
-  ="Your saved Find My Ride trip for #{@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")} is coming up in #{@days_away} days!"
+  =["Your saved", Config.application_title, "trip for #{@itinerary.start_time.in_time_zone.strftime("%A, %B %-d")} is coming up in #{@days_away} days!"].compact.join(" ")
 %h2{style: 'text-align:left'}
   ="Please see below for specific trip details:"
 %br

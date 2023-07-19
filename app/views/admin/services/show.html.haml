@@ -17,6 +17,9 @@
   -if Config.dashboard_mode == 'travel_patterns'
     =render partial: 'travel_patterns', layout: '/layouts/panel', locals: locals_hide_footer
   -else
+    // paratransit are loaded via gtfs in OTP v2 and can have transit details
+    - if Config.open_trip_planner_version == 'v2'
+      =render partial: 'transit_details', layout: '/layouts/panel', locals: locals_hide_footer
     =render partial: 'paratransit_accom_and_elig', layout: '/layouts/panel', locals: locals_hide_footer
     =render partial: 'paratransit_purposes', layout: '/layouts/panel', locals: locals_hide_footer
     =render partial: 'paratransit_service_areas', layout: '/layouts/panel', locals: locals_hide_footer

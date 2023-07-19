@@ -1,4 +1,13 @@
 =content_for :header do
   ="Create a New Purpose"
 
+= f.input :agency_id,
+  collection: current_user.accessible_agencies,
+  required:true,
+  include_blank: 'Select a Transportation Agency for the new Service',
+  label_method: :name,
+  label: "Transportation Agency",
+  selected: @default_agency&.id,
+  wrapper_html: {id: 'oversight_select'}
+  
 = f.input :code, required:true, as: :string

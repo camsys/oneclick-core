@@ -91,6 +91,10 @@ class HTTPRequestBundler
     make_multi_calls(requests_to_make)
   end
 
+  def response_status_code(label)
+    response_for(label).try(:response_header).try(:status).to_s
+  end
+
   private
   
   # Makes multiple EM HTTP Requests in parallel
@@ -119,7 +123,7 @@ class HTTPRequestBundler
   
   # Builds an EventMachine::HttpRequest object
   def build_http_request(request={})
-    EM::HttpRequest.new(request[:url]).send(request[:action], request[:opts])
+    EM::HttpRequest.new(request[:url], connect_timeout: 60, inactivity_timeout: 60, tls: {verify_peer: true}).send(request[:action], request[:opts])
 
     # The above line replaces the need for the following
     # DO NOT DELETE
@@ -137,7 +141,7 @@ class HTTPRequestBundler
   def ensure_response(label)
     make_calls unless (response_for(label) || !@requests.has_key?(label))
   end
-  
+
   # Retrieves response based on label from either successes or errors hash
   def response_for(label)
     @successes[label] || @errors[label]

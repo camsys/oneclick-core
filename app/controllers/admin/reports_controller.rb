@@ -1,6 +1,6 @@
 class Admin::ReportsController < Admin::AdminController
   
-  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback', 'Feedback Aggregated']
+  DOWNLOAD_TABLES = ['Trips', 'Users', 'Services', 'Requests', 'Feedback', 'Feedback Aggregated', 'Find Services']
   DASHBOARDS = ['Planned Trips', 'Unique Users', 'Popular Destinations']
   GROUPINGS = [:hour, :day, :week, :month, :quarter, :year, :day_of_week, :month_of_year]
   
@@ -18,7 +18,8 @@ class Admin::ReportsController < Admin::AdminController
     :services_table,
     :requests_table,
     :feedback_table,
-    :feedback_aggregated_table
+    :feedback_aggregated_table,
+    :find_services_table
   ]  
 
   before_action :authorize_reports
@@ -79,6 +80,7 @@ class Admin::ReportsController < Admin::AdminController
     }.merge(filters))
   end
   
+  # TODO (Drew) Array addition is slow, plus we're sending multiple queries. This can be improved.
   def users_table
     if current_user.superuser?
       @users = User.all
@@ -90,6 +92,7 @@ class Admin::ReportsController < Admin::AdminController
     else
       @users = current_user.travelers_for_none
     end
+    
     @users = @users.registered unless @include_guests
     @users = @users.with_accommodations(@accommodations) unless @accommodations.empty?
     @users = @users.with_eligibilities(@eligibilities) unless @eligibilities.empty?
@@ -133,6 +136,15 @@ class Admin::ReportsController < Admin::AdminController
   def feedback_aggregated_table   
     respond_to do |format|
       format.csv { send_data Feedback.aggregated_csv(@trip_time_from_date, @trip_time_to_date)}
+    end
+  end
+
+  def find_services_table
+    @find_services_histories = FindServicesHistory.all
+    @find_services_histories = @find_services_histories.from_date(@created_at_from_date).to_date(@created_at_to_date)
+    @find_services_histories = @find_services_histories.origin_in(@find_services_origin_recipe.geom) unless @find_services_origin_recipe.empty?
+    respond_to do |format|
+      format.csv { send_data @find_services_histories.to_csv }
     end
   end
 
@@ -207,6 +219,11 @@ class Admin::ReportsController < Admin::AdminController
     # REQUEST FILTERS
     @request_from_date = parse_date_param(params[:request_from_date])
     @request_to_date = parse_date_param(params[:request_to_date])
+
+    # FIND SERVICES FILTERS
+    @created_at_from_date = parse_date_param(params[:created_at_from_date])
+    @created_at_to_date = parse_date_param(params[:created_at_to_date])
+    @find_services_origin_recipe = Region.build(recipe: params[:find_services_origin_recipe])
     
   end
   
@@ -248,8 +265,12 @@ class Admin::ReportsController < Admin::AdminController
       
       # REQUEST FILTERS
       :request_from_date,
-      :request_to_date
-      
+      :request_to_date,
+
+      # FIND SERVICES FILTERS
+      :created_at_from_date,
+      :created_at_to_date,
+      :find_services_origin_recipe
     )
   end
   

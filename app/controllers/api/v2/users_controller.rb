@@ -1,8 +1,8 @@
 module Api
   module V2
     class UsersController < ApiController
-      # include Devise::Controllers::SignInOut
-      
+      include Devise::Controllers::SignInOut
+
       # before_action :require_authentication, except: [:create, :new_session, :reset_password]
       before_action :require_authentication, only: [:end_session, :destroy]
       before_action :attempt_authentication, only: [:show, :update]
@@ -43,6 +43,7 @@ module Api
         @user = User.new(user_params)
         
         if @user.save
+          sign_in(:user, @user)
           @user.ensure_authentication_token
           # UserMailer.new_traveler(@user).deliver_now
           render(success_response(message: "User Signed Up Successfully", session: session_hash(@user)))
@@ -62,10 +63,11 @@ module Api
         if @user.present?
           # checks if password is incorrect and user is locked, and unlocks if lock is expired
           if @user.valid_for_api_authentication?(user_params[:password])
+            sign_in(:user, @user)
             @user.ensure_authentication_token
           else
             # Otherwise, add some errors to the response depending on what went wrong.
-            if !@user.confirmed?
+            if !@user.confirmed? && @user.confirmation_required?
               @errors[:unconfirmed] = "You must confirm your account by clicking the link in the confirmation email that was sent."
             end
             
@@ -140,6 +142,7 @@ module Api
       def end_session
         
         if @traveler && @traveler.reset_authentication_token
+          sign_out(@user)
           render(success_response(message: "User #{@traveler.email} successfully signed out."))
         else
           render(fail_response)
@@ -174,6 +177,17 @@ module Api
           render(fail_response)
         end
       end
+
+      def counties
+        counties = County.all.map { |county| { name: county.name } }
+        render({
+          status: 200,
+          json: {
+            status: "success",
+            data: counties
+          }
+        })
+      end
       
       private
       
@@ -192,7 +206,9 @@ module Api
           :password_confirmation,
           :first_name,
           :last_name,
-          :age          
+          :age,
+          :county,
+          :paratransit_id          
         )
       end
 

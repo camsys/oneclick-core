@@ -1,42 +1,43 @@
 FactoryBot.define do
   factory :agency do
-    name "Test Transportation Agency"
-    logo Rails.root.join("spec/files/mbta.png").open
-    email "test_transportation_agency@oneclick.com"    
-    phone "(555)555-5555"
-    url "http://www.test-transportation-agency-url.gov"
-    type "TransportationAgency"    
+    sequence(:name) { |n| "Test Agency #{n}" }
+    logo { Rails.root.join("spec/files/mbta.png").open }
+    email { "test_transportation_agency@oneclick.com" }    
+    phone { "(555)555-5555" }
+    url { "http://www.test-transportation-agency-url.gov" }
+    type { "TransportationAgency" }    
     # description "Wow, what an agency this is! People just talk and talk about how great this agency is because it's the best agency in the world. I could go on and on about it but you're probably busy. Really though. What a cool agency!"
     published
     association :agency_type
     
     factory :transportation_agency, class: "TransportationAgency" do
-      name "Test Transportation Agency"
-      type "TransportationAgency"
+      sequence(:name) { |n| "Test Transportation Agency #{n}" }
+      type { "TransportationAgency" }
       association :agency_type, factory: :transportation_type
     end
+
     factory :oversight_agency, class: "OversightAgency" do
-      name "Test Oversight Agency"
-      type "OversightAgency"
+      sequence(:name) { |n| "Test Oversight Agency #{n}" }
+      type { "OversightAgency" }
       association :agency_type, factory: :oversight_type
     end
     
     factory :partner_agency, class: "PartnerAgency" do
-      name "Test Partner Agency"
-      logo Rails.root.join("spec/files/parrot.gif").open
-      email "test_partner_agency@oneclick.com"    
-      phone "(555)555-5555"
-      url "http://www.test-partner-agency-url.gov"
-      type "PartnerAgency"
+      sequence(:name) { |n| "Test Partner Agency #{n}" }
+      logo { Rails.root.join("spec/files/parrot.gif").open }
+      email { "test_partner_agency@oneclick.com" }    
+      phone { "(555)555-5555" }
+      url { "http://www.test-partner-agency-url.gov" }
+      type { "PartnerAgency" }
       association :agency_type, factory: :partner_type
     end
     
     trait :published do
-      published true
+      published { true }
     end
     
     trait :unpublished do
-      published false
+      published { false }
     end
     
     trait :with_services do
