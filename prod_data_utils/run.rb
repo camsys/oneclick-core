@@ -30,7 +30,7 @@ if version == Rails.application.config.version
   puts 'We are creating a db replica of production'
   # Create db replica and establish db connection to replica instance
   require_relative "db_replica_utils"
-  db_util = DbReplicaUtils.new(config, ENV['RAILS_ENV'], logger: logger)
+  db_util = DbReplicaUtils.new(config, env, logger: logger)
   db_util.run
 
   # re-connect to new db
