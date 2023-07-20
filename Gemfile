@@ -120,6 +120,7 @@ gem 'aws-sdk-sns'
 ### For creating db replicas and snapshots #
 group :development, :qa do 
   gem 'aws-sdk-rds'
+  gem 'aws-sdk-cloudwatch'
 end
 
 ### ONECLICK MODULES #######################
