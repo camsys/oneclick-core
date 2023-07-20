@@ -49,3 +49,5 @@
 
 # Compiled assets
 /public/assets/*
+TAGS
+*.log
