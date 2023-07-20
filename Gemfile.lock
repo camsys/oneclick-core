@@ -90,6 +90,9 @@ GEM
     aws-sdk-kms (1.61.0)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sigv4 (~> 1.1)
+    aws-sdk-rds (1.179.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-s3 (1.117.2)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sdk-kms (~> 1)
@@ -432,6 +435,7 @@ DEPENDENCIES
   attr_encrypted (~> 3.0.0)
   autoprefixer-rails
   awesome_print
+  aws-sdk-rds
   aws-sdk-s3
   aws-sdk-sns
   better_errors

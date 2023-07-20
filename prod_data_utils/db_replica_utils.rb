@@ -1,7 +1,7 @@
 require 'json'
 require 'zlib'
 require 'net/http'
-require 'aws-sdk'
+require 'aws-sdk-rds'
 require 'time'
 require 'logger'
 require 'fileutils'
