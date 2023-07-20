@@ -16,6 +16,7 @@ require 'logger'
 config = JSON.parse(File.read('prod_data_utils/config.json'))
 version = config['version'].strip
 app = config['app']['app']
+env = config['app']['env']
 
 # configure logger
 system("mkdir -p logs")
