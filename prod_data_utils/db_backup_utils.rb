@@ -2,10 +2,10 @@ class DbBackupUtils
 
   attr_reader :rds
 
-  def initialize(config = JSON.parse(File.read('prod_data_check/config.json')), version, environment, logger: nil)
+  def initialize(config = JSON.parse(File.read('prod_data_utils/config.json')), version, environment, logger: nil)
     # Logger
     @logger = logger
-    @logger = Logger.new('prod_data_check/logs/db_backup_utils.log', 'daily') unless @logger
+    @logger = Logger.new('prod_data_utils/logs/db_backup_utils.log', 'daily') unless @logger
     @logger.level = Logger::DEBUG
 
     @config = config
