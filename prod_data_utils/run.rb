@@ -4,7 +4,6 @@ require "rubygems"
 
 require 'json'
 require 'logger'
-require 'mysql2'
 
 # This script does following things:
 # 1. create a read replica off target database
