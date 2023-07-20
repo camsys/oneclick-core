@@ -96,6 +96,9 @@ GEM
     aws-sdk-rds (1.179.0)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sigv4 (~> 1.1)
+    aws-sdk-route53 (1.71.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-s3 (1.117.2)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sdk-kms (~> 1)
@@ -440,6 +443,7 @@ DEPENDENCIES
   awesome_print
   aws-sdk-cloudwatch
   aws-sdk-rds
+  aws-sdk-route53
   aws-sdk-s3
   aws-sdk-sns
   better_errors

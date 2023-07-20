@@ -121,6 +121,7 @@ gem 'aws-sdk-sns'
 group :development, :qa do 
   gem 'aws-sdk-rds'
   gem 'aws-sdk-cloudwatch'
+  gem 'aws-sdk-route53'
 end
 
 ### ONECLICK MODULES #######################
