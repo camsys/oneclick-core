@@ -103,8 +103,18 @@ class DbReplicaUtils
       modify_response = @rds.modify_db_instance({
                                                     db_instance_identifier: dest_id,
                                                     apply_immediately: true,
+                                                    db_subnet_group_name: @config['app']['subnet_group'],
                                                     db_instance_class: (@config['app'][app_env] || {})['db_instance_class'] || "db.m4.large"
                                                 })
+      check_status(dest_id, "available", 360) # Times out after 6hr
+
+      @logger.info "Set Correct Security Group"
+      modify_response = @rds.modify_db_instance({
+                                                    db_instance_identifier: dest_id,
+                                                    apply_immediately: true,
+                                                    vpc_security_group_ids: [ @config['app']['security_group'] ]
+                                                })
+      
       check_status(dest_id, "available", 360) # Times out after 6hr
 
     rescue Exception => e
