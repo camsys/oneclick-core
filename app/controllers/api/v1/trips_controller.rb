@@ -29,7 +29,6 @@ module Api
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
-        note = booking_request_params[:note]
 
         trips_params = {}
         if api_v1_params # This is doing it the old way
@@ -49,7 +48,8 @@ module Api
                 purpose_id: purpose ? purpose.id : nil,
                 external_purpose: external_purpose,
                 details: trip[:details],
-                note: trip[:note],
+                note: trip[:note]
+            }
             }))
           end
         elsif api_v2_params # This is doing it the right way
