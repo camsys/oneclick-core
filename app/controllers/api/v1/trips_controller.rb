@@ -113,7 +113,7 @@ module Api
                                   trip.destination.lng.to_f.round(6) == destination_place[:lng].to_f.round(6)
                                 }
             
-            existing_trip ? existing_trip : Trip.create!(trip_param)
+            existing_trip ? existing_trip : Trip.create!(trip_param.merge({note: booking_request[:note]}))
           end.sort_by{ |t| t.trip_time }
 
           # Now that trips have either been found or created, it's time to make sure they're up to date
@@ -384,7 +384,6 @@ module Api
           :user_id,
           :purpose_id,
           :external_purpose,
-          note: trip[:note]
         )
       end
 
