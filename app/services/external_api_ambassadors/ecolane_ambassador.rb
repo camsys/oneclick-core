@@ -664,7 +664,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination_negotiated = eco_trip.fetch(:dropoff, {})[:negotiated]
     destination_requested = eco_trip.fetch(:dropoff, {})[:requested]
     fare = eco_trip.fetch(:fare, {})[:client_copay].to_f/100 + eco_trip.fetch(:fare, {})[:additional_passenger].to_f/100
-    note = eco_trip.fetch(:note, nil)
+    note = eco_trip.fetch(:note, {}).try(:[], :text)
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
