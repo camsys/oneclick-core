@@ -636,6 +636,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     arrive_by = (not destination_requested.nil?)
+    note = eco_trip.try(:with_indifferent_access).try(:[], :note)
     # Save the trip_time in the database as UTC time for UTC data type.
     trip_time = origin_negotiated
     {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
@@ -663,6 +664,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination_negotiated = eco_trip.fetch(:dropoff, {})[:negotiated]
     destination_requested = eco_trip.fetch(:dropoff, {})[:requested]
     fare = eco_trip.fetch(:fare, {})[:client_copay].to_f/100 + eco_trip.fetch(:fare, {})[:additional_passenger].to_f/100
+    note = eco_trip.fetch(:note, nil)
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
@@ -674,7 +676,8 @@ class EcolaneAmbassador < BookingAmbassador
       transit_time: (start_time and end_time) ? (end_time - start_time).to_i : nil,
       cost: fare.to_f, 
       service: @service, 
-      trip_type: 'paratransit'
+      trip_type: 'paratransit',
+      note: note
     }
   end
 
@@ -815,7 +818,6 @@ class EcolaneAmbassador < BookingAmbassador
 
   #Build the hash for the pickup request
   def build_pu_hash
-    puts "Trip note: #{trip.note}"
     if !trip.arrive_by
       pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: trip.note}
     else

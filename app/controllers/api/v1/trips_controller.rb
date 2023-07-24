@@ -128,6 +128,7 @@ module Api
             # trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_saved] # Not sure if we should update the disposition or not
             trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_denied] if trip.no_valid_services
             trip.previous_trip = previous_trip
+            trip.note = trip_planner.note
             trip.save!
 
             previous_trip = trip
@@ -349,7 +350,7 @@ module Api
             :assistant,
             :companions,
             :children,
-            trip: [:note],
+            :note,
           )
         end
       end
@@ -503,6 +504,7 @@ module Api
             id: itinerary.id,
             json_legs: itinerary.legs,
             mode: itinerary.trip_type.nil? ? nil : remodeify(itinerary.trip_type),
+            note: itinerary.note,
             product_id: nil, #itinerary.product_id,
             status: itinerary.booking.try(:status) || "ordered", # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?
