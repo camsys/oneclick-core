@@ -38,6 +38,7 @@ module Api
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
+            note = params[:note]
             
             trip_params(ActionController::Parameters.new({
               trip: {
@@ -49,7 +50,7 @@ module Api
                 purpose_id: purpose ? purpose.id : nil,
                 external_purpose: external_purpose,
                 details: trip[:details],
-                note: trip[:note]
+                note: note
             }
             }))
           end
