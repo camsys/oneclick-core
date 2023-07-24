@@ -348,7 +348,7 @@ module Api
             :assistant,
             :companions,
             :children,
-            :note
+            trip: [:note],
           )
         end
       end
