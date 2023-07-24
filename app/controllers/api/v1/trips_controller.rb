@@ -384,6 +384,7 @@ module Api
           :user_id,
           :purpose_id,
           :external_purpose,
+          :note
         )
       end
 
