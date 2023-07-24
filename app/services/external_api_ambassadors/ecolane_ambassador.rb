@@ -676,7 +676,7 @@ class EcolaneAmbassador < BookingAmbassador
       cost: fare.to_f, 
       service: @service, 
       trip_type: 'paratransit',
-      note: trip.note
+      note: @trip.note
     }
   end
 
