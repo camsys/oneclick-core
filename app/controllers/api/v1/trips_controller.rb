@@ -128,7 +128,7 @@ module Api
             # trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_saved] # Not sure if we should update the disposition or not
             trip.disposition_status = Trip::DISPOSITION_STATUSES[:fixed_route_denied] if trip.no_valid_services
             trip.previous_trip = previous_trip
-            trip.note = trip_param[:note]
+            trip.note = trip.note || trip_planner.note
             trip.save!
 
             previous_trip = trip
