@@ -176,6 +176,9 @@ module Api
           itin.try(:select) # Select the itinerary so that the return trip can be built properly
           booking_request[:itinerary] = itin
           next booking_request unless itin
+
+          # If a note is included in the booking_request, update the itinerary
+          itin.update(note: booking_request[:note]) if booking_request[:note].present?
           
           # If a return_time param was passed, build a return itinerary
           return_time = booking_request.delete(:return_time).try(:to_datetime)
@@ -240,7 +243,7 @@ module Api
           itinerary = Itinerary.find_by(id: booking_request[:itinerary_id])
           itinerary.trip.update(note: booking_request[:note]) if itinerary
         end  
-        
+
       end
 
       # Method does batch updates to round trips
