@@ -26,6 +26,7 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
+        puts params.inspect
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
