@@ -2,7 +2,6 @@ class Trip < ApplicationRecord
 
   ### INSTANCE ATTRIBUTES ###
   attr_accessor :no_valid_services
-  attr_accessor :note
 
   ### INCLUDES ###
   include BookingHelpers::TripHelpers
