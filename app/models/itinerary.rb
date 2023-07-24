@@ -19,8 +19,6 @@ class Itinerary < ApplicationRecord
   scope :taxi_itineraries, -> { joins(:service).where('services.type = ?', 'Taxi') }
 
   before_save :calculate_start_and_end_time
-
-  attr_accessor :note
   
   ### INSTANCE METHODS ###
   
