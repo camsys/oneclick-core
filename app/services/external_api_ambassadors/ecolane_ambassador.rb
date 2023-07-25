@@ -196,7 +196,6 @@ class EcolaneAmbassador < BookingAmbassador
         booking.itinerary = itinerary
         booking.confirmation = confirmation
         booking.created_in_1click = true
-        update_pu_hash_with_note
         booking.save
         booking
       else
@@ -789,13 +788,14 @@ class EcolaneAmbassador < BookingAmbassador
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
-    
+    @booking_options[:note] ||= itin&.note
+
     order_hash = {
       assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
-      pickup: build_pu_hash,
+      pickup: pickup_hash,
       dropoff: build_do_hash
     }
 
@@ -814,14 +814,6 @@ class EcolaneAmbassador < BookingAmbassador
       order_hash.to_xml(root: 'order', :dasherize => false)
     rescue REXML::ParseException
       nil
-    end
-  end
-
-  def update_pu_hash_with_note
-    if @trip.note
-      order_hash = build_order
-      order_hash[:pickup][:note] = @trip.note
-      order_hash.to_xml(root: 'order', :dasherize => false)
     end
   end
   
