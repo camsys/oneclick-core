@@ -795,7 +795,7 @@ class EcolaneAmbassador < BookingAmbassador
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
-      pickup: pickup_hash,
+      pickup: build_pu_hash,
       dropoff: build_do_hash
     }
 
