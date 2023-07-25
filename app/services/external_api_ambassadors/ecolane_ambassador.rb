@@ -791,13 +791,15 @@ class EcolaneAmbassador < BookingAmbassador
     @booking_options[:note] ||= itin&.note
 
     @trip.reload
+    pickup_hash = build_pu_hash
+    pickup_hash[:note] = @booking_options[:note]
 
     order_hash = {
       assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
-      pickup: build_pu_hash,
+      pickup: pickup_hash,
       dropoff: build_do_hash
     }
 
