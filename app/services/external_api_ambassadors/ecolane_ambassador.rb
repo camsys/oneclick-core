@@ -790,6 +790,8 @@ class EcolaneAmbassador < BookingAmbassador
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
 
+    @trip.reload
+
     order_hash = {
       assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
