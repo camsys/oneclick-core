@@ -196,6 +196,7 @@ class EcolaneAmbassador < BookingAmbassador
         booking.itinerary = itinerary
         booking.confirmation = confirmation
         booking.created_in_1click = true
+        update_pu_hash_with_note
         booking.save
         booking
       else
@@ -816,6 +817,14 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
+  def update_pu_hash_with_note
+    if @trip.note
+      order_hash = build_order
+      order_hash[:pickup][:note] = @trip.note
+      order_hash.to_xml(root: 'order', :dasherize => false)
+    end
+  end
+  
   # Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
