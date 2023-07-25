@@ -636,7 +636,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     arrive_by = (not destination_requested.nil?)
-    note = eco_trip.try(:with_indifferent_access).try(:[], :note)
+    note = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
     # Save the trip_time in the database as UTC time for UTC data type.
     trip_time = origin_negotiated
     {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by, note: note}
@@ -664,7 +664,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination_negotiated = eco_trip.fetch(:dropoff, {})[:negotiated]
     destination_requested = eco_trip.fetch(:dropoff, {})[:requested]
     fare = eco_trip.fetch(:fare, {})[:client_copay].to_f/100 + eco_trip.fetch(:fare, {})[:additional_passenger].to_f/100
-    note = eco_trip.fetch(:note, {}).try(:[], :text)
+    note = eco_trip.fetch(:pickup, {})[:note]
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
