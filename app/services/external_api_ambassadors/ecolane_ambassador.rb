@@ -819,11 +819,11 @@ class EcolaneAmbassador < BookingAmbassador
   # Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: trip.note}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: @trip.note}
     else
-      pu_hash = {location: build_location_hash(trip.origin), note: trip.note}
+      pu_hash = {location: build_location_hash(trip.origin), note: @trip.note}
     end
-    Rails.logger.info "Trip id: #{trip.id}, pickup note is: #{trip.note.nil? ? 'nil' : trip.note}"
+    Rails.logger.info "Trip id: #{trip.id}, pickup note is: #{@trip.note.nil? ? 'nil' : @trip.note}"
     pu_hash
   end
 
