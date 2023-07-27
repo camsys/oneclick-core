@@ -20,6 +20,7 @@ class Itinerary < ApplicationRecord
 
   before_save :calculate_start_and_end_time
   
+  
   ### INSTANCE METHODS ###
   
   # Returns the legs array, with each leg translated into the given locale

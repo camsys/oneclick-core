@@ -828,7 +828,6 @@ class EcolaneAmbassador < BookingAmbassador
     else
       pu_hash = {location: build_location_hash(trip.origin), note: @trip.note}
     end
-    Rails.logger.info "Trip id: #{trip.id}, pickup note is: #{@trip.note.nil? ? 'nil' : @trip.note}"
     pu_hash
   end
 
