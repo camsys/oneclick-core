@@ -26,7 +26,6 @@ module Api
 
       # POST trips/, POST itineraries/plan
       def create
-        puts params.inspect
         # Create an array of strong trip parameters based on itinerary_request sent
         api_v1_params = params[:itinerary_request]
         api_v2_params = params[:trips]
@@ -164,7 +163,6 @@ module Api
       # as well, and attempt to book it.
       def book
         outbound_itineraries = booking_request_params
-      
         # Keep track if anything failed and then cancel all the itineraries ####
         failed = false
         itins  = []
@@ -176,9 +174,6 @@ module Api
           itin.try(:select) # Select the itinerary so that the return trip can be built properly
           booking_request[:itinerary] = itin
           next booking_request unless itin
-
-          # If a note is included in the booking_request, update the itinerary
-          itin.update(note: booking_request[:note]) if booking_request[:note].present?
           
           # If a return_time param was passed, build a return itinerary
           return_time = booking_request.delete(:return_time).try(:to_datetime)
