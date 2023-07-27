@@ -234,11 +234,6 @@ module Api
           render status: 200, json: {booking_results: responses}
         end
 
-        booking_request_params.each do |booking_request|
-          itinerary = Itinerary.find_by(id: booking_request[:itinerary_id])
-          itinerary.trip.update(note: booking_request[:note]) if itinerary
-        end  
-
       end
 
       # Method does batch updates to round trips
@@ -353,7 +348,7 @@ module Api
             :assistant,
             :companions,
             :children,
-            :note,
+            :note
           )
         end
       end
