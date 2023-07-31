@@ -824,9 +824,9 @@ class EcolaneAmbassador < BookingAmbassador
   # Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: @trip.note}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin)}
     else
-      pu_hash = {location: build_location_hash(trip.origin), note: @trip.note}
+      pu_hash = {location: build_location_hash(trip.origin)}
     end
     pu_hash
   end
