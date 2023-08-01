@@ -117,6 +117,13 @@ gem 'em-http-request'
 gem 'aws-sdk-sns' 
 ############################################
 
+### For creating db replicas and snapshots #
+group :development, :qa do 
+  gem 'aws-sdk-rds'
+  gem 'aws-sdk-cloudwatch'
+  gem 'aws-sdk-route53'
+end
+
 ### ONECLICK MODULES #######################
 
 # Loads names of modules to install into ENV variables
