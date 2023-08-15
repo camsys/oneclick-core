@@ -20,7 +20,6 @@ namespace :ecolane do
     end
     
     messages = []
-    global_error = false
     local_error = false
 
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
@@ -54,14 +53,11 @@ namespace :ecolane do
         # NOTE: INCLUDES THE SERVICE'S AGENCY
         new_poi_hashes = service.booking_ambassador.get_pois
         if new_poi_hashes.nil?
-          #If anything goes wrong, delete the new pois and reinstate the old_pois
-          Landmark.is_new.delete_all
-          Landmark.is_old.update_all(old: false)
+          # If anything goes wrong the new pois will be deleted and the old reinstated
           messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
-          global_error = true
           local_error = true
           puts messages.to_s
-          next
+          break
         end
 
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
@@ -75,16 +71,21 @@ namespace :ecolane do
           new_poi = Landmark.new hash
           new_poi.old = false
           new_poi.agency_id = agency_id
-          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
-          if new_poi.name.blank? or new_poi.name.downcase == 'home'
-            if new_poi.city.blank?
-              puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
-              puts hash.ai
-              poi_with_no_city += 1
-              next
-            end
-            new_poi.name = [new_poi.street_number, new_poi.route, new_poi.city].join(" ")
+          if new_poi.city.blank?
+            puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
+            puts hash.ai
+            poi_with_no_city += 1
+            next
+          end
+
+          # Skip POIs whose names contain "do not use" case insensitive
+          next if new_poi.name =~ /do not use/i
+          
+          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          if new_poi.name.blank?
+            # or new_poi.name.downcase == 'home'
+            new_poi.name = new_poi.auto_name
           end
 
           if new_poi_names_set.add?(new_poi.name).nil?
@@ -100,14 +101,12 @@ namespace :ecolane do
         end
 
       rescue Exception => e
-        #If anything goes wrong, delete the new pois and reinstate the old_pois
-        Landmark.is_new.delete_all
-        Landmark.is_old.update_all(old: false)
+        # If anything goes wrong....
         messages << "Error loading POIs for #{system}. #{e.message}."
-        global_error = true
         local_error = true
         # Log if errors happen
         puts messages.to_s
+        break
       end
 
       unless local_error
@@ -133,6 +132,13 @@ namespace :ecolane do
 
   ensure
     task_run_state.update(value: false) unless is_already_running
+
+    if local_error
+      # If anything went wrong, delete the new pois and reinstate the old_pois
+      Landmark.is_new.delete_all
+      Landmark.is_old.update_all(old: false)
+    end
+    
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
