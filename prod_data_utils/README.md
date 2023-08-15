@@ -7,7 +7,7 @@ b. update config.json
 2. update replica_source_id
 3. update database
 4. create AWS access/secret keys and update
-    
+
 How To Run (Note: This is old and needs to be updated)
 ---------
 
