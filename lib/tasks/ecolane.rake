@@ -42,6 +42,9 @@ namespace :ecolane do
     Landmark.update_all(old: true)
     poi_processed_count = 0
     poi_with_no_city = 0
+    poi_blank_name_count = 0
+    poi_total_duplicate_count = 0
+    
     new_poi_names_set = Set.new
     
     services.each do |service|
@@ -86,6 +89,7 @@ namespace :ecolane do
           if new_poi.name.blank?
             # or new_poi.name.downcase == 'home'
             new_poi.name = new_poi.auto_name
+            poi_blank_name_count += 1
           end
 
           if new_poi_names_set.add?(new_poi.name).nil?
@@ -113,6 +117,7 @@ namespace :ecolane do
         #If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
         messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        poi_total_duplicate_count += new_poi_duplicate_count
       end
 
     end
@@ -125,8 +130,10 @@ namespace :ecolane do
       Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
       Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
-      messages << "Successfully loaded  #{new_poi_count} POIs"
+      messages << "Successfully loaded #{new_poi_count} POIs"
+      messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
       messages << "count of pois with no city: #{poi_with_no_city}"
+      messages << "count of pois with initial blank name: #{poi_blank_name_count}"
       puts messages.to_s
     end
 
