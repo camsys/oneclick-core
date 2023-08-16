@@ -843,16 +843,21 @@ class EcolaneAmbassador < BookingAmbassador
 
   #Build a location hash (Used for dropoffs and pickups )
   def build_location_hash(place)
-    if place.name.present? && !place.name.include?("POI") && place.name.include?("|") && place.name != "auto_name"
-      lo_hash = {name: place.name, street_number: place.street_number, street: place.route, city: place.city, 
-      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip}
-    else
-      lo_hash = {street_number: place.street_number, street: place.route, city: place.city, 
-      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip}
+    lo_hash = {
+      street_number: place.street_number,
+      street: place.route,
+      city: place.city,
+      state: place.state || "PA",
+      county: place.county,
+      zip: place.zip
+    }
+  
+    if place.name.present? && place.name != place.auto_name
+      lo_hash[:name] = place.name
     end
-    
-    lo_hash.each {|k, v| lo_hash[k] = nil if v.blank?}
-    
+  
+    lo_hash.each { |k, v| lo_hash[k] = nil if v.blank? }
+  
     lo_hash
   end  
 
