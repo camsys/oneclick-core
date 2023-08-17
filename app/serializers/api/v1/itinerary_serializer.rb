@@ -33,6 +33,7 @@ module Api
         # :negotiated_pu_time,        # DEPRECATE?
         # :negotiated_pu_window_end,  # DEPRECATE?
         # :negotiated_pu_window_start,# DEPRECATE?
+        :note,                      # BOOKING
         # :order_xml,                 # DEPRECATE?
         :phone,
         :prebooking_questions,      # BOOKING
