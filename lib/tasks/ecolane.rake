@@ -92,7 +92,7 @@ namespace :ecolane do
             poi_blank_name_count += 1
           end
 
-          if new_poi_names_set.add?(new_poi.name).nil?
+          if new_poi_names_set.add?(new_poi.name.strip.downcase).nil?
             new_poi_duplicate_count += 1
             puts "Duplicate name: #{new_poi.name}"
             next
