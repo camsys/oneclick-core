@@ -1132,58 +1132,8 @@ class EcolaneAmbassador < BookingAmbassador
   # If we synced trips from Ecolane, we need to identify which trips are actually round trips.
   # They are delivered to us as individual trips, and we will link them together.
   # Linking these lets users cancel them as a group, it also lets us pre-fill the most recent addresses in the user interface
-  def link_trips 
-
-    # First do the past trips, and then do the future trips
-    [:future, :past].each do |times|
-      if times == :future # Get all future trips
-        trips = @user.trips.selected.future
-      else # Get the most recent past 14 days of trips
-        trips = @user.trips.selected.past.past_14_days.reverse
-      end
-      
-      # Group trips on same day.
-      trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
-      trips_by_date.each do |trip_date, same_day_trips|
-        # Reset links on existing trips, unless trip has been created directly in 1click.
-        same_day_trips.each do |trip|
-          if trip.previous_trip and !trip&.selected_itinerary&.booking&.created_in_1click
-            trip.previous_trip = nil
-            trip.save 
-          end
-        end
-
-        # Compare combinations of same day trips.
-        same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
-          trip = Trip.find_by(id: trip_id)
-          next_trip = Trip.find_by(id: next_trip_id)
-
-          # If this is already a round trip, and if trip has been created directly in 1click, 
-          # don't try to re-link. Otherwise, continue.
-          if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
-            next
-          end
-
-          # Are these trips on the same day?
-          unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
-            next
-          end
-
-          #Does these trips have inverted origins/destinations?
-          unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
-            next
-          end
-          unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
-            next
-          end
-
-          #Ok these trips passed all the tests, combine them into one trip
-          next_trip.previous_trip = trip
-          next_trip.save 
-
-        end #trips.each
-      end #trips_by_date.each
-    end #times.each
-  end #link_trips
+  def link_trips
+    # Intentionally made a no-op to avoid creating "round trips"
+  end
 
 end
