@@ -164,7 +164,7 @@ en:
     remove_trip: "Remove this trip"
     trip_was_successfully_removed: "Trip was successfully removed."
     confirm_cancel_trip: "Are you sure you want to cancel this trip booking?"
-    cancel_booking_success: "Your trip has been canceled."
+    cancel_booking_success: "Your trip has been canceled. Be sure to cancel any other relevant trips."
     cancel_booking_failure: "Your trip could not be canceled."
     book_button: "Book"
     client_id: "Client ID"
