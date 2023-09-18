@@ -8,6 +8,7 @@ class User < ApplicationRecord
   include RoleHelper
   include TokenAuthenticationHelpers
   include TravelerProfileUpdater   # Update Profile from API Call
+
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable,
          :lockable, :confirmable
@@ -15,7 +16,6 @@ class User < ApplicationRecord
 
   # acts_as_token_authenticatable unless it's a guest user
   before_save :ensure_authentication_token, unless: :guest_user?
-
 
   ### Serialized Attributes ###
   serialize :preferred_trip_types #Trip types are the types of trips a user requests (e.g., transit, taxi, park_n_ride etc.)
@@ -71,6 +71,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validates :password_confirmation, presence: true, on: :create
   before_save :downcase_email
+  before_save :check_password_change, if: -> { encrypted_password_changed? && access_locked? }
   validate :password_complexity
 
   ### Attribute Accessors ###
@@ -256,6 +257,10 @@ class User < ApplicationRecord
     Config.require_user_confirmation
   end
 
+  def check_password_change
+    unlock_access! if encrypted_password_changed? && access_locked?
+  end
+  
   protected
 
   #All Emails are Lower Case
@@ -263,10 +268,24 @@ class User < ApplicationRecord
     self.email.downcase!
   end
 
-  def password_complexity
-    if password.present? and not password.match(/^(?=.*[0-9])(?=.*[A-Za-z])([-a-zA-Z0-9`~\!@#$%\^&*()-_=\+\[\{\]\}\\|;:'",<.>? ]+)$/)
+##
+# Validates the complexity of the password.
+# This method checks if the password meets the specified complexity requirements.
+# If the password is not present or does not meet the requirements, it adds the
+# appropriate error messages to the `errors` object.
+def password_complexity
+  if password.present?
+    uppercase_complexity = Config.password_required_uppercase <= password.gsub(/([^A-Z])/, '').length
+    lowercase_complexity = Config.password_required_lowercase <= password.gsub(/([^a-z])/, '').length
+    numerical_complexity = Config.password_required_numerical <= password.gsub(/([^0-9])/, '').length
+    special_complexity = Config.password_required_special <= password.gsub(/[a-zA-Z0-9\s]/, '').length
+
+    password_is_complex = uppercase_complexity && lowercase_complexity && numerical_complexity && special_complexity
+    
+    unless password_is_complex
       errors.add :password, "must include at least one letter and one digit"
     end
   end
+end
 
 end

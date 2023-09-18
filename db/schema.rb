@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20230322101725) do
+ActiveRecord::Schema.define(version: 20230915180247) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",                     null: false
@@ -45,16 +45,6 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.index ["accommodation_id"], name: "index_accommodations_users_on_accommodation_id", using: :btree
     t.index ["user_id", "accommodation_id"], name: "index_accommodations_users_on_user_id_and_accommodation_id", unique: true, using: :btree
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
-  end
-
-  create_table "account_identities", force: :cascade do |t|
-    t.integer  "authenticated_account_id", null: false
-    t.string   "identity",                 null: false
-    t.string   "provider",                 null: false
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
-    t.index ["authenticated_account_id"], name: "index_account_identities_on_authenticated_account_id", using: :btree
-    t.index ["identity", "provider"], name: "index_account_identities_on_identity_and_provider", using: :btree
   end
 
   create_table "agencies", force: :cascade do |t|
@@ -92,17 +82,6 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.datetime "updated_at",                            null: false
   end
 
-  create_table "authenticated_accounts", force: :cascade do |t|
-    t.integer  "user_id"
-    t.string   "subject_uuid", null: false
-    t.string   "email",        null: false
-    t.string   "account_type", null: false
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
-    t.index ["subject_uuid"], name: "index_authenticated_accounts_on_subject_uuid", using: :btree
-    t.index ["user_id"], name: "index_authenticated_accounts_on_user_id", using: :btree
-  end
-
   create_table "booking_windows", force: :cascade do |t|
     t.integer  "agency_id",                  null: false
     t.integer  "travel_pattern_id"
@@ -132,6 +111,7 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.datetime "estimated_pu"
     t.datetime "estimated_do"
     t.boolean  "created_in_1click", default: false
+    t.text     "note"
     t.index ["created_in_1click"], name: "index_bookings_on_created_in_1click", using: :btree
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
@@ -268,6 +248,7 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.integer  "wait_time"
     t.boolean  "assistant"
     t.integer  "companions"
+    t.string   "note"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
     t.index ["trip_type"], name: "index_itineraries_on_trip_type", using: :btree
@@ -304,9 +285,11 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
     t.string   "county"
     t.integer  "agency_id"
+    t.text     "search_text"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
-    t.index ["name"], name: "idx_landmarks_on_name", using: :btree
+    t.index ["name"], name: "index_landmarks_on_name", using: :btree
+    t.index ["search_text"], name: "index_landmarks_on_search_text", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -431,7 +414,8 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.geometry "geom",       limit: {:srid=>4326, :type=>"multi_polygon"}
   end
 
-  create_table "request_logs", force: :cascade do |t|
+  create_table "request_logs", id: false, force: :cascade do |t|
+    t.serial   "id",          null: false
     t.string   "controller"
     t.string   "action"
     t.string   "status_code"
@@ -671,6 +655,7 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.string   "disposition_status",    default: "Unknown Disposition"
     t.integer  "user_age"
     t.inet     "user_ip"
+    t.text     "note"
     t.index ["arrive_by"], name: "index_trips_on_arrive_by", using: :btree
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["details"], name: "index_trips_on_details", using: :btree
@@ -801,11 +786,9 @@ ActiveRecord::Schema.define(version: 20230322101725) do
     t.index ["name"], name: "index_zipcodes_on_name", using: :btree
   end
 
-  add_foreign_key "account_identities", "authenticated_accounts"
   add_foreign_key "agencies", "agency_types"
   add_foreign_key "agency_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "agency_oversight_agencies", "agencies", column: "transportation_agency_id", on_delete: :cascade
-  add_foreign_key "authenticated_accounts", "users"
   add_foreign_key "booking_windows", "agencies"
   add_foreign_key "booking_windows", "travel_patterns"
   add_foreign_key "bookings", "itineraries"

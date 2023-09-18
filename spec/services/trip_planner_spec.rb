@@ -61,6 +61,7 @@ RSpec.describe TripPlanner do
   let(:error_tp) { create(:trip_planner, options: {router: otps[:error]})}
   let(:skip_accom_filter_tp) { create(:trip_planner, options: {router: otps[:car], except_filters: [:accommodation]})}
   let(:only_accom_filter_tp) { create(:trip_planner, options: {router: otps[:car], only_filters: [:accommodation]})}
+  let(:mock_service) { create(:service, gtfs_agency_id: '123', name: 'Mock Service') }
   
   before(:all) do
     trip_date = DateTime.new(2020, 7, 14, 14) # Default trip time in factories (Tuesday)
@@ -274,6 +275,38 @@ RSpec.describe TripPlanner do
       Service.available_for(accommodating_trip, only_by: [:accommodation]).pluck(:id)
     )
     
+  end
+
+  describe 'TripPlanner associated services' do
+    let(:trip_planner) { create(:trip_planner, options: {router: otps[:paratransit]}) }
+    let!(:service_1) { create(:paratransit_service, gtfs_agency_id: 'id_1', name: 'name_1') }
+    let!(:service_2) { create(:paratransit_service, gtfs_agency_id: 'id_2', name: 'name_2') }
+    let!(:service_3) { create(:paratransit_service, gtfs_agency_id: 'id_3', name: 'name_1') }
+
+    it 'finds the correct service using gtfs_agency_id' do
+      trip_planner.plan
+      associated_service = Service.find_by(gtfs_agency_id: 'id_1')
+      expect(associated_service).to eq(service_1)
+    end
+
+    it 'finds the correct service using gtfs_agency_name if gtfs_agency_id is not found' do
+      trip_planner.plan
+      associated_service = Service.find_by(name: 'name_2')
+      expect(associated_service).to eq(service_2)
+    end
+
+    it 'returns nil if no associated service is found' do
+      trip_planner.plan
+      associated_service = Service.find_by(gtfs_agency_id: 'id_3', name: 'name_3')
+      expect(associated_service).to be_nil
+    end
+    
+    it 'does not include service based on matching name if id does not match' do
+      trip_planner.plan
+      # In this scenario, 'service_3' has the same name as 'service_1' but a different id
+      associated_service = Service.find_by(gtfs_agency_id: 'id_1')
+      expect(associated_service).not_to eq(service_3)
+    end
   end
 
 end

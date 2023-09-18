@@ -51,6 +51,16 @@ RSpec.describe User, type: :model do
     expect(traveler.encrypted_password).not_to eq(old_password_token)
   end
 
+  it 'resets a user\'s access if the password is changed' do
+    expect(traveler.access_locked?).to eq(false)
+  
+    traveler.lock_access!
+    expect(traveler.access_locked?).to eq(true)
+    
+    traveler.update(password: "another_new_password1", password_confirmation: "another_new_password1")
+    expect(traveler.access_locked?).to eq(false)
+  end
+  
   it 'will not update the password if the password_confirmation does not match' do
     params = {password: "welcome_test_test1", password_confirmation: "blahblah3"}
     expect{traveler.update_basic_attributes params}.to raise_error(ActiveRecord::RecordInvalid)
@@ -276,6 +286,73 @@ RSpec.describe User, type: :model do
       
     end
     
+  end
+
+  describe "password complexity validation" do
+    let(:user) { build(:user) }
+  
+  # Test the default password length configuration.
+    it "has a default value" do
+      default_min_length = Devise.password_length.min
+      expect(User.password_length.min).to eq(default_min_length)
+    end
+  
+    # Tests the password length validation with the default password length.
+    context "with default password length" do
+      # This test checks if a user with a password shorter than the minimum default length is invalid.
+      it "is invalid with a shorter password" do
+        user.password = "ps1"
+        user.password_confirmation = "ps1"
+        expect(user).to_not be_valid
+      end
+  
+      # This test checks if a user with a password of the minimum default length is valid.
+      it "is valid with a password of minimum length" do
+        user.password = "passwrd1"
+        user.password_confirmation = "passwrd1"
+        expect(user).to be_valid
+      end
+    end
+
+    context "with custom complexity requirements" do
+      before do
+        Config.create(key: 'password_required_uppercase', value: 1)
+        Config.create(key: 'password_required_lowercase', value: 1)
+        Config.create(key: 'password_required_numerical', value: 1)
+        Config.create(key: 'password_required_special', value: 1)
+      end
+  
+      it "is invalid with a password missing an uppercase letter" do
+        user.password = "password1!"
+        user.password_confirmation = "password1!"
+        expect(user).to_not be_valid
+      end
+  
+      it "is invalid with a password missing a lowercase letter" do
+        user.password = "PASSWORD1!"
+        user.password_confirmation = "PASSWORD1!"
+        expect(user).to_not be_valid
+      end
+  
+      it "is invalid with a password missing a number" do
+        user.password = "Password!"
+        user.password_confirmation = "Password!"
+        expect(user).to_not be_valid
+      end
+  
+      it "is invalid with a password missing a special character" do
+        user.password = "Password1"
+        user.password_confirmation = "Password1"
+        expect(user).to_not be_valid
+      end
+  
+      it "is valid with a password meeting all complexity requirements" do
+        user.password = "Password1!"
+        user.password_confirmation = "Password1!"
+        expect(user).to be_valid
+      end
+    end
+
   end
 
 end
