@@ -1,6 +1,6 @@
 // The Origin/Destination header
 
-= render :partial => 'fmr_email_header'
+= render :partial => 'email_header'
 
 -unless @itinerary.service.nil?
   = render :partial => "service_summary_header", :locals => { :itinerary => @itinerary }
