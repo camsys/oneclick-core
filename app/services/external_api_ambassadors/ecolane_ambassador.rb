@@ -646,9 +646,10 @@ class EcolaneAmbassador < BookingAmbassador
     destination = occ_place_from_eco_place(eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :location))
     destination_requested = eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[], :requested)
     arrive_by = (not destination_requested.nil?)
+    note = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
     # Save the trip_time in the database as UTC time for UTC data type.
     trip_time = origin_negotiated
-    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by}
+    {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by, note: note}
   end
 
   def occ_place_hash eco_place
@@ -673,6 +674,7 @@ class EcolaneAmbassador < BookingAmbassador
     destination_negotiated = eco_trip.fetch(:dropoff, {})[:negotiated]
     destination_requested = eco_trip.fetch(:dropoff, {})[:requested]
     fare = eco_trip.fetch(:fare, {})[:client_copay].to_f/100 + eco_trip.fetch(:fare, {})[:additional_passenger].to_f/100
+    note = eco_trip.fetch(:pickup, {})[:note]
 
     start_time = origin_negotiated.try(:to_time)
     end_time = destination_negotiated.try(:to_time)
@@ -684,7 +686,8 @@ class EcolaneAmbassador < BookingAmbassador
       transit_time: (start_time and end_time) ? (end_time - start_time).to_i : nil,
       cost: fare.to_f, 
       service: @service, 
-      trip_type: 'paratransit'
+      trip_type: 'paratransit',
+      note: note
     }
   end
 
@@ -795,13 +798,18 @@ class EcolaneAmbassador < BookingAmbassador
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
-    
+    @booking_options[:note] ||= itin&.note
+
+    @trip.reload
+    pickup_hash = build_pu_hash
+    pickup_hash[:note] = @booking_options[:note]
+
     order_hash = {
       assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
-      pickup: build_pu_hash,
+      pickup: pickup_hash,
       dropoff: build_do_hash
     }
 
@@ -822,13 +830,13 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
-
-  #Build the hash for the pickup request
+  
+  # Build the hash for the pickup request
   def build_pu_hash
     if !trip.arrive_by
-      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin), note: @note}
+      pu_hash = {requested: trip.trip_time.xmlschema[0..-7], location: build_location_hash(trip.origin)}
     else
-      pu_hash = {location: build_location_hash(trip.origin), note: @note}
+      pu_hash = {location: build_location_hash(trip.origin)}
     end
     pu_hash
   end
@@ -844,17 +852,24 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   #Build a location hash (Used for dropoffs and pickups )
-  def build_location_hash place 
-    if !place.name.empty? and !place.name.include?("POI") and place.name.include?("|")
-      # Pass name parameter from Ecolane named landmark for better match
-      lo_hash = {name: place.name, street_number: place.street_number, street: place.route, city: place.city, 
-      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
-    else  
-      lo_hash = {street_number: place.street_number, street: place.route, city: place.city, 
-      state: place.state || "PA", county: (place.county || "").chomp(" County"), zip: place.zip, latitude: place.lat, longitude: place.lng}
+  def build_location_hash(place)
+    lo_hash = {
+      street_number: place.street_number,
+      street: place.route,
+      city: place.city,
+      state: place.state || "PA",
+      county: place.county,
+      zip: place.zip
+    }
+  
+    if place.name.present? && place.name != place.auto_name
+      lo_hash[:name] = place.name
     end
+  
+    lo_hash.each { |k, v| lo_hash[k] = nil if v.blank? }
+  
     lo_hash
-  end
+  end  
 
   ### County Mapping ###
   def county_map
@@ -1173,8 +1188,6 @@ class EcolaneAmbassador < BookingAmbassador
           end
 
           #Ok these trips passed all the tests, combine them into one trip
-          next_trip.previous_trip = trip
-          next_trip.save 
 
         end #trips.each
       end #trips_by_date.each

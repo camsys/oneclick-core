@@ -34,12 +34,18 @@ class Config < ApplicationRecord
     lyft_client_token: "", # (String) The application's client token for booking Lyft rides.
     maximum_booking_notice: 30, # (Integer) The maximum number of days into the future a user is allowed to book.
     max_walk_minutes: 45, # (Integer) The maximum number of minutes a traveler is expected to walk when planing a trip.
+    max_walk_distance: 1000, # (Integer) The maximum number of meters a traveler is expected to walk when planing a trip.
     open_trip_planner: "", # (String) OTP's base url.
     open_trip_planner_version: "v1", # (String) Which version of OTP to use. The other option is "v2".
     otp_itinerary_quantity: 3,
     otp_car_park_quantity: 3,
     otp_transit_quantity: 3,
     otp_paratransit_quantity: 3,
+    password_required_letters: 0,
+    password_required_uppercase: 0,
+    password_required_lowercase: 0,
+    password_required_numerical: 0,
+    password_required_special: 0,    
     # otp_max_itineraries_shown: 3,
     require_user_confirmation: false, # (Boolean) Requires user to confirm their email address within a certain timeframe.
     ride_pilot_purposes: {}, # (Hash<String, String>) A Hash of key value pairs containing the names and codes of purposes for Ride Pilot.

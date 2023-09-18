@@ -256,5 +256,52 @@ RSpec.describe Admin::ServicesController, type: :controller do
     
   end
 
+  it 'queries taxis within specified regions' do
+    other_start_area = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area)
+  
+    # Get the taxis that have start_area equal to the start_area we created
+    taxis_in_start_area = Taxi.where(start_area: start_area)
+  
+    # Expect the taxis_in_start_area to include the taxi we created
+    expect(taxis_in_start_area).to include(created_taxi)
+  
+    # Get the taxis that have start_area equal to the other_start_area we created
+    taxis_in_other_start_area = Taxi.where(start_area: other_start_area)
+  
+    # Expect the taxis_in_other_start_area not to include the taxi we created
+    expect(taxis_in_other_start_area).not_to include(created_taxi)
+  end
+  
+  it 'does not query taxi services from a different region' do
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    different_region = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area)
+  
+    # Get the taxis that have start_area equal to the different_region
+    taxis_in_different_region = Taxi.where(start_area: different_region)
+  
+    # Expect the taxis_in_different_region not to include the taxi we created
+    expect(taxis_in_different_region).not_to include(created_taxi)
+  end  
+
+  it 'does not query taxi services for rides starting in end_area' do
+    start_area = Region.create(recipe: attributes_for(:region)[:recipe])
+    end_area = Region.create(recipe: attributes_for(:region_2)[:recipe])
+  
+    # Create a taxi with a start_area and end_area
+    created_taxi = Taxi.create(name: 'test taxi', agency: agency, start_area: start_area, end_area: end_area)
+  
+    # Get the taxis that have start_area equal to the end_area
+    taxis_with_start_area_as_end_area = Taxi.where(start_area: end_area)
+  
+    # Expect the taxis_with_start_area_as_end_area not to include the taxi we created
+    expect(taxis_with_start_area_as_end_area).not_to include(created_taxi)
+  end  
 
 end
