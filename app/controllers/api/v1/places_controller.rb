@@ -34,12 +34,14 @@ module Api
         # Global POIs
         count = 0
         # Filter by agencies associated with user's services
-        agencies = @traveler.booking_profiles.collect(&:service).compact.collect(&:agency)
+        agencies = authentication_successful? ? @traveler.booking_profiles.collect(&:service).compact.collect(&:agency) : []
 
         # Return extras as some may be filtered out later
-        landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
-                      .limit(2 * max_results)
-        
+        # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
+        #              .limit(2 * max_results)
+        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
+                            .limit(2 * max_results)
+
         landmarks = landmarks.where(agency: agencies) if agencies.present?
         
         names = []

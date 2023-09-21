@@ -90,6 +90,9 @@ namespace :ecolane do
             # or new_poi.name.downcase == 'home'
             new_poi.name = new_poi.auto_name
             poi_blank_name_count += 1
+            new_poi.search_text = ''
+          else
+            new_poi.search_text = "#{new_poi.name} "
           end
 
           if new_poi_names_set.add?(new_poi.name.strip.downcase).nil?
@@ -97,7 +100,9 @@ namespace :ecolane do
             puts "Duplicate name: #{new_poi.name}"
             next
           end
-          
+
+          new_poi.search_text += "#{new_poi.auto_name} #{new_poi.zip}"
+
           if !new_poi.save
             puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
             puts "#{new_poi}"

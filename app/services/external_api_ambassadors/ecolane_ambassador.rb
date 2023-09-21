@@ -435,7 +435,15 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
+    current_date = Date.today 
+
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
+      valid_from = Date.parse(funding_source["valid_from"]) if funding_source["valid_from"].present?
+      valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
+
+      # Check if the current date is within the valid_from and valid_until range
+      next unless valid_from.nil? || (valid_from <= current_date && current_date <= valid_until)
+
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
@@ -449,10 +457,12 @@ class EcolaneAmbassador < BookingAmbassador
         purposes_hash << purpose_hash
       end
     end
+
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
+
 
   ##
   # TODO(Drew) write documentation comment
