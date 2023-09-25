@@ -442,7 +442,7 @@ class EcolaneAmbassador < BookingAmbassador
       valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
 
       # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from <= current_date && current_date <= valid_until)
+      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
 
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
