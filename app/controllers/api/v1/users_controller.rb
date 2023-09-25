@@ -138,7 +138,7 @@ module Api
         #If the user is registered with a service, use his/her trip purposes
         trip_purposes  = []
         trip_purposes_hash = []
-        booking_profile = @traveler.booking_profiles.first
+        booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
         if @traveler and booking_profile
           begin
             trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes
