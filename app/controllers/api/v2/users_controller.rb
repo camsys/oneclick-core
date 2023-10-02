@@ -10,8 +10,6 @@ module Api
       # Get the user profile 
       def show
         if @traveler.present?
-          user_booking_profile = UserBookingProfile.find_by(user_id: @traveler.id)
-          agency_code = user_booking_profile&.service&.agency&.agency_code
           render json: {
             user: @traveler,
             agency_code: agency_code
@@ -19,7 +17,11 @@ module Api
         else
           render(fail_response(status: 404, message: "Not found"))
         end
-      end
+      end      
+
+      def agency_code
+        @traveler.user_booking_profile.service.agency.agency_code
+      end      
 
       # Update's the user's profile
       def update
