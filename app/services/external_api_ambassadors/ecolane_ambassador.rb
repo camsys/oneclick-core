@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy, :agency_code
+  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy
   require 'securerandom'
 
   def initialize(opts={})
@@ -23,7 +23,6 @@ class EcolaneAmbassador < BookingAmbassador
     get_booking_profile
     check_travelers_transit_agency
     add_missing_attributes
-    @agency_code = @user.agency_code
     
     # Funding Rules Shortcuts
     # nil is added to the ada_funding_sources, and the sponsors because, occasionally, a purpose will
