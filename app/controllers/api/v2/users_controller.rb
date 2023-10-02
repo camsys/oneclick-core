@@ -20,7 +20,7 @@ module Api
       end      
 
       def agency_code
-        @traveler.user_booking_profile.service.agency.agency_code
+        @traveler.booking_profile.service.agency.agency_code
       end      
 
       # Update's the user's profile
