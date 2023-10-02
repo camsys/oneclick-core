@@ -188,6 +188,10 @@ module Api
           }
         })
       end
+
+      def agency_code
+        self.transportation_agency&.agency_code
+      end
       
       private
       
