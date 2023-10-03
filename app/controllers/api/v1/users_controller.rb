@@ -220,6 +220,11 @@ module Api
           render status: 404, json: {message: "Unable to find matching customer." }
         end
       end
+
+      def agency_code
+        code = @traveler.booking_profiles.first.service.agency.agency_code  # Fetch the agency code
+        render json: { agency_code: code } # Send the agency code as JSON
+      end      
       
       private
       

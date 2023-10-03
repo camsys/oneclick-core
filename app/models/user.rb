@@ -110,9 +110,6 @@ class User < ApplicationRecord
     GuestUserHelper.new.is_guest_email?(email)
   end
 
-  def agency_code
-    self.booking_profile.service.agency.agency_code
-  end    
   
   # Alias for subscribed_to_emails boolean
   def subscribed_to_emails?

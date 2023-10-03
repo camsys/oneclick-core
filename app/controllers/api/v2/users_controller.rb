@@ -16,9 +16,6 @@ module Api
         end
       end
 
-      def fetch_agency_code
-        render json: { agency_code: user.agency_code }
-      end
 
       # Update's the user's profile
       def update
