@@ -222,9 +222,14 @@ module Api
       end
 
       def agency_code
-        code = @traveler.booking_profiles.first.service.agency.agency_code  # Fetch the agency code
-        render json: { agency_code: code } # Send the agency code as JSON
-      end      
+        begin
+          code = @traveler.booking_profiles.first.service.agency.agency_code
+          render json: { agency_code: code }
+        rescue StandardError => e
+          Rails.logger.error "Error fetching agency code: #{e.message}"
+          render json: { error: e.message }, status: :internal_server_error
+        end
+      end          
       
       private
       
