@@ -57,6 +57,7 @@ Rails.application.routes.draw do
           post 'reset'
           get  'lookup'
           get  'current_balance'
+          get  'agency_code'
         end
       end
 
