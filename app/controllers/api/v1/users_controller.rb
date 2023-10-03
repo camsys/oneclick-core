@@ -134,10 +134,13 @@ module Api
 
       def agency_code
         agency_code = nil
-        booking_profile = @traveler.booking_profiles.first
-        agency_code = booking_profile.service.agency.agency_code
-        render json: { agency_code: agency_code } # Send the agency code as JSON
-      end    
+        
+        if @traveler&.booking_profiles&.first&.service&.agency&.agency_code
+          agency_code = @traveler.booking_profiles.first.service.agency.agency_code
+        end
+      
+        render json: { agency_code: agency_code } 
+      end
 
       #Built to Support Ecolane API/V1
       def trip_purposes
@@ -227,7 +230,6 @@ module Api
           render status: 404, json: {message: "Unable to find matching customer." }
         end
       end
-  
       
       private
       

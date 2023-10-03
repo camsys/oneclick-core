@@ -109,7 +109,6 @@ class User < ApplicationRecord
   def guest_user?
     GuestUserHelper.new.is_guest_email?(email)
   end
-
   
   # Alias for subscribed_to_emails boolean
   def subscribed_to_emails?

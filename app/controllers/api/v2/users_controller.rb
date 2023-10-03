@@ -16,7 +16,6 @@ module Api
         end
       end
 
-
       # Update's the user's profile
       def update
 
