@@ -135,14 +135,8 @@ module Api
       def agency_code
         agency_code = nil
         booking_profile = @traveler.booking_profiles.first
-        if @traveler and booking_profile
-          begin
-            agency_code = booking_profile.service.agency.agency_code
-          rescue Exception=>e
-            agency_code = nil
-          end
-        hash = { agency_code: agency_code }
-        render json: hash
+        agency_code = booking_profile.service.agency.agency_code
+        render json: { agency_code: agency_code } # Send the agency code as JSON
       end    
 
       #Built to Support Ecolane API/V1
