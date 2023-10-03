@@ -117,6 +117,7 @@ Rails.application.routes.draw do
           post 'resend_email_confirmation'
           post 'subscribe'
           post 'unsubscribe'
+          get 'fetch_agency_code', on: :collection
         end
       end
       post 'sign_up' => 'users#create'
