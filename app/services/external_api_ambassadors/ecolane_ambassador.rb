@@ -163,7 +163,7 @@ class EcolaneAmbassador < BookingAmbassador
       questions =
         [
           {question: "Will you be traveling with an ADA-approved escort?", choices: [true, false], code: "assistant"},
-          {question: "How many other companions are traveling with you?", choices: (0..10).to_a, code: "companions"}
+          {question: "How many other companions are traveling with you?", choices: (0..3).to_a, code: "companions"}
         ]
     else
       questions =
