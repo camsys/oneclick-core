@@ -7,10 +7,7 @@
   as: :string, label: "To Date"
 
 -# FILTER OUT TRIPS NOT CREATED IN ONE CLICK
-- if Config.dashboard_mode == "travel_patterns" && (current_user.transportation_user?)
-  =f.hidden_field :trip_only_created_in_1click, value: true
-- else
-  =f.hidden_field :trip_only_created_in_1click, value: false
+=f.hidden_field :trip_only_created_in_1click, value: true
   
 -# TRIP PURPOSES
 - unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
