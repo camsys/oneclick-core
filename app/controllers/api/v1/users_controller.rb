@@ -132,6 +132,19 @@ module Api
         render json: hash
       end
 
+      def agency_code
+        agency_code = nil
+        booking_profile = @traveler.booking_profiles.first
+        if @traveler and booking_profile
+          begin
+            agency_code = booking_profile.service.agency.agency_code
+          rescue Exception=>e
+            agency_code = nil
+          end
+        hash = { agency_code: agency_code }
+        render json: hash
+      end    
+
       #Built to Support Ecolane API/V1
       def trip_purposes
 
@@ -220,16 +233,7 @@ module Api
           render status: 404, json: {message: "Unable to find matching customer." }
         end
       end
-
-      def agency_code
-        begin
-          code = @traveler.booking_profiles.first.service.agency.agency_code
-          render json: { agency_code: code }
-        rescue StandardError => e
-          Rails.logger.error "Error fetching agency code: #{e.message}"
-          render json: { error: e.message }, status: :internal_server_error
-        end
-      end          
+  
       
       private
       
