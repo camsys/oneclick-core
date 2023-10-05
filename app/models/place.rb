@@ -83,7 +83,9 @@ class Place < ApplicationRecord
   end
 
   def long_name
-    "#{self.name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
-  end
+    # Split the name into parts by the pipe '|', and get the first part (before the pipe).
+    modified_name = self.name.split('|').first.strip
+    "#{modified_name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
+  end  
 
 end
