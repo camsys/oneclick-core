@@ -83,9 +83,16 @@ class Place < ApplicationRecord
   end
 
   def long_name
-    # Split the name into parts by the pipe '|', and get the first part (before the pipe).
-    modified_name = self.name.split('|').first.strip
-    "#{modified_name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
-  end  
+    # Check if name contains a pipe
+    if self.name.include?("|")
+      parts = self.name.split("|", 2) # Split the name into two parts based on the pipe
+      main_name = parts[0].strip # The main name is the part before the pipe
+      additional_text = parts[1].strip # The additional text is the part after the pipe
+      "#{main_name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
+    else
+      "#{self.name}, #{self.street_number} #{self.route}, #{self.city}, #{self.state} #{self.zip}"
+    end
+  end
+  
 
 end
