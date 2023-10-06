@@ -101,6 +101,10 @@ module Api
             
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+
+            return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
+            return render(status: 404, json: destination_place) unless Landmark.place_exists?(destination_place)
+
             existing_trip = Trip.where(trip_time: trip_param[:trip_time],
                                         arrive_by: trip_param[:arrive_by],
                                         user_id: trip_param[:user_id],

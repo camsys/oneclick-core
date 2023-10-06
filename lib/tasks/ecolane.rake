@@ -9,7 +9,8 @@ namespace :ecolane do
     task_run_state.with_lock do
       task_run_state.reload
       is_already_running = task_run_state.value
-      if is_already_running
+      # Make sure this isn't an old value that didn't get cleaned up
+      if is_already_running && task_run_state.updated_at > (DateTime.now - 1.day)
         puts "Another task instance is already running. Exiting."
         exit
       else
@@ -95,15 +96,19 @@ namespace :ecolane do
             new_poi.search_text = "#{new_poi.name} "
           end
 
-          if new_poi_names_set.add?(new_poi.name.strip.downcase).nil?
+          # Use the name + address to determine duplicates
+          new_poi.search_text += "#{new_poi.auto_name}"
+          if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
             new_poi_duplicate_count += 1
-            puts "Duplicate name: #{new_poi.name}"
+            puts "Duplicate found: #{new_poi.search_text}"
             next
           end
 
-          new_poi.search_text += "#{new_poi.auto_name} #{new_poi.zip}"
+          new_poi.search_text += " #{new_poi.zip}"
 
-          if !new_poi.save
+          # HACK: Because of FMRPA-153 we need to support duplicate names.
+          # Rather than change the model validation for all of 1-Click, just override it here for FMR.
+          if !new_poi.save(validate: false)
             puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
             puts "#{new_poi}"
           end

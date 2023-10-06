@@ -163,7 +163,7 @@ class EcolaneAmbassador < BookingAmbassador
       questions =
         [
           {question: "Will you be traveling with an ADA-approved escort?", choices: [true, false], code: "assistant"},
-          {question: "How many other companions are traveling with you?", choices: (0..10).to_a, code: "companions"}
+          {question: "How many other companions are traveling with you?", choices: (0..3).to_a, code: "companions"}
         ]
     else
       questions =
@@ -442,7 +442,7 @@ class EcolaneAmbassador < BookingAmbassador
       valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
 
       # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from <= current_date && current_date <= valid_until)
+      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
 
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 

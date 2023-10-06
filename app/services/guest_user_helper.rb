@@ -35,12 +35,12 @@ class GuestUserHelper
   
   # Check if a string includes the guest user email domain
   def is_guest_email?(email)
-    email.include?(email_domain)
+    email.include?('guest_') && email.include?(email_domain)
   end
   
   # Returns a SQL query string for finding guest users
   def query_str
-    "email LIKE '%@#{email_domain}%'"
+    "email LIKE 'guest_%@#{email_domain}%'"
   end
   
 end
