@@ -862,8 +862,9 @@ class EcolaneAmbassador < BookingAmbassador
       zip: place.zip
     }
     
-    # Always use the original name for Ecolane API interactions
-    lo_hash[:name] = place.name if place.name.present? && place.name != place.auto_name
+    if place.name.present? && place.name != place.auto_name
+      lo_hash[:name] = place.name
+    end
     
     lo_hash.each { |k, v| lo_hash[k] = nil if v.blank? }
     
