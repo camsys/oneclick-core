@@ -2,6 +2,7 @@ class Place < ApplicationRecord
 
   self.abstract_class = true
   attr_accessor :google_place_attributes
+  attr_accessor :original_name
   before_save :build_geometry
   before_save :ensure_name 
     

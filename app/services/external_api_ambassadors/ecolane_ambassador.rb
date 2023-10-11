@@ -574,18 +574,28 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get a list of all the points of interest for the service
   def get_pois
-      locations = fetch_system_poi_list
-      if locations.nil?
-        return nil
-      end
-
-      # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
-      hashes = []
-      locations.each do |location|
-        hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
-      end
-      hashes
-  end
+    locations = fetch_system_poi_list
+    return nil if locations.nil?
+  
+    # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
+    hashes = []
+    locations.each do |location|
+      location_name = location["name"].to_s.strip
+      hashes << {
+        name: location_name.split('|').first.strip, # Modified name for display
+        original_name: location_name, # Full name from Ecolane
+        city: location["city"].to_s.strip,
+        state: location["state"].to_s.strip,
+        zip: location["postcode"].to_s.strip,
+        lat: location["latitude"],
+        lng: location["longitude"],
+        county: location["county"].to_s.strip,
+        street_number: location["street_number"].to_s.strip,
+        route: location["street"].to_s.strip
+      }
+    end
+    hashes
+  end  
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
   def lookup_customer_number params
@@ -861,15 +871,18 @@ class EcolaneAmbassador < BookingAmbassador
       county: place.county,
       zip: place.zip
     }
-    
-    if place.name.present? && place.name != place.auto_name
+  
+    # Prioritize original_name; if it's not present, use existing logic
+    if place.respond_to?(:original_name) && place.original_name.present?
+      lo_hash[:name] = place.original_name
+    elsif place.name.present? && place.name != place.auto_name
       lo_hash[:name] = place.name
     end
-    
+  
     lo_hash.each { |k, v| lo_hash[k] = nil if v.blank? }
-    
+  
     lo_hash
-  end
+  end  
   
 
   ### County Mapping ###
