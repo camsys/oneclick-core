@@ -14,16 +14,15 @@ module GooglePlace
   end
 
   def google_place_hash
-    #Based on Google Place Details
+    # Based on Google Place Details
     GooglePlaceHash[
         address_components: self.address_components,
         formatted_address: self.formatted_address,
         geometry: self.geometry,
         id: self.id,
-        name: name.split('|').first.strip,          # Modified name for front-end
-        original_name: (self.name == self.auto_name) ? "" : self.name
+        name: name.split('|').first.strip,  # Modified name for front-end
     ]
-  end
+  end  
 
   # Returns an array of google address components hashes based on the place's attributes
   def address_components

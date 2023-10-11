@@ -861,18 +861,15 @@ class EcolaneAmbassador < BookingAmbassador
       county: place.county,
       zip: place.zip
     }
-  
-    # Check if original_name exists; if so, use it. Otherwise, default to the modified name.
-    if place.try(:original_name).present? 
-      lo_hash[:name] = place.original_name
-    elsif place.name.present? && place.name != place.auto_name
-      lo_hash[:name] = place.name
-    end
-  
+    
+    # Always use the original name for Ecolane API interactions
+    lo_hash[:name] = place.name if place.name.present? && place.name != place.auto_name
+    
     lo_hash.each { |k, v| lo_hash[k] = nil if v.blank? }
-  
+    
     lo_hash
-  end    
+  end
+  
 
   ### County Mapping ###
   def county_map
