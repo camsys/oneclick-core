@@ -20,7 +20,8 @@ module GooglePlace
         formatted_address: self.formatted_address,
         geometry: self.geometry,
         id: self.id,
-        name: (self.name == self.auto_name) ? "" : self.name
+        name: name.split('|').first.strip,          # Modified name for front-end
+        original_name: (self.name == self.auto_name) ? "" : self.name
     ]
   end
 
