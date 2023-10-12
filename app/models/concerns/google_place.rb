@@ -14,15 +14,20 @@ module GooglePlace
   end
 
   def google_place_hash
-    #Based on Google Place Details
-    filtered_name = self.name.split('|').first.strip if self.name
-    GooglePlaceHash[
+    if self.name && self.name.respond_to?(:split)
+      split_name = self.name.split('|')
+      filtered_name = split_name.first ? split_name.first.strip : self.name
+    else
+      filtered_name = self.name
+    end
+    
+    {
       address_components: self.address_components,
       formatted_address: self.formatted_address,
       geometry: self.geometry,
       id: self.id,
       name: (filtered_name == self.auto_name) ? "" : filtered_name
-    ]
+    }
   end  
 
   # Returns an array of google address components hashes based on the place's attributes
