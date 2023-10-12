@@ -859,7 +859,8 @@ class EcolaneAmbassador < BookingAmbassador
       city: place.city,
       state: place.state || "PA",
       county: place.county,
-      zip: place.zip
+      zip: place.zip,
+      name: place.name,
     }
   
     if place.name.present? && place.name != place.auto_name
