@@ -9,7 +9,7 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 10)
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
                                    .outbound
                                    .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
@@ -18,7 +18,7 @@ module Api
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 25)
                                      .outbound
                                      .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
