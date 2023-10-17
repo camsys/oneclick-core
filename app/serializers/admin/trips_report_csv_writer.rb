@@ -16,17 +16,17 @@ module Admin
     ]
 
     associations :origin, :destination, :user, :selected_itinerary
-    
-    def initialize(mode = nil)
-      @mode = mode
-    end
-    
-    def columns
-      if @mode == "travel_patterns"
+
+    def self.columns
+      if in_travel_patterns_mode?
         DEFAULT_COLUMNS - TRAVEL_PATTERNS_EXCLUDE
       else
         DEFAULT_COLUMNS
       end
+    end
+
+    def self.in_travel_patterns_mode?
+      Config.dashboard_mode.to_sym == :travel_patterns
     end
 
     def trip_id
@@ -132,19 +132,6 @@ module Admin
 
     def disposition_status
       @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
-    end
-
-    # FMR does not want these columns in their trips reports (FMRPA-163) If a user is in travel patterns mode, the columns are excluded
-    def self.columns
-      if in_travel_patterns_mode?
-        super - EXCLUDED_COLUMNS
-      else
-        super
-      end
-    end
-
-    def self.in_travel_patterns_mode?
-      Config.dashboard_mode.to_sym == :travel_patterns
     end
 
   end
