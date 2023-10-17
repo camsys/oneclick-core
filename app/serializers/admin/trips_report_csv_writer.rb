@@ -1,34 +1,30 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    COLUMNS = [
-      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, 
-      :traveler_paratransit_id, :arrive_by, :disposition_status,
-      :selected_trip_type, :purpose, :orig_addr, :orig_county, 
-      :orig_lat, :orig_lng, :dest_addr, :dest_county, :dest_lat, 
-      :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
-      :traveler_eligibilities
-    ]
+    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
+            :disposition_status,
+            :selected_trip_type,
+            :purpose,
+            :orig_addr, :orig_county, :orig_lat, :orig_lng,
+            :dest_addr, :dest_county, :dest_lat, :dest_lng,
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+    associations :origin, :destination, :user, :selected_itinerary
 
-    ALLOWED_COLUMNS = [
+    FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
       :selected_trip_type, :purpose, :orig_addr, :orig_lat, :orig_lng, 
       :dest_addr, :dest_lat, :dest_lng
     ]
 
-    def self.columns
-      if @in_travel_patterns_mode
-        ALLOWED_COLUMNS
+    def headers
+      if self.class.in_travel_patterns_mode?
+        # Only include FMR_COLUMNS if in travel patterns mode
+        self.class.headers.slice(*FMR_COLUMNS)
       else
-        COLUMNS
+        self.class.headers
       end
     end
-
-    def initialize(record, options = {})
-      @in_travel_patterns_mode = options.delete(:in_travel_patterns_mode) { false }
-      super(record, options)
-    end    
-
+    
     def trip_id
       @record.id
     end

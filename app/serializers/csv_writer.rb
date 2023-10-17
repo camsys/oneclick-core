@@ -79,7 +79,7 @@ class CSVWriter
   attr_reader :records # Sets an instance variable on instances of the inheriting class
   
   # Initialize with a collection of the appropriate record type
-  def initialize(record, options = {})
+  def initialize(records)
     @records = scope(records)
   end
   
