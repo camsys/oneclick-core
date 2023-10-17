@@ -25,9 +25,9 @@ module Admin
     end
 
     def initialize(record, options = {})
-      super
-      @in_travel_patterns_mode = options.fetch(:in_travel_patterns_mode, false)
-    end
+      @in_travel_patterns_mode = options.delete(:in_travel_patterns_mode) { false }
+      super(record, options)
+    end    
 
     def trip_id
       @record.id
