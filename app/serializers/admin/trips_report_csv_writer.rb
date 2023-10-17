@@ -1,19 +1,20 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
-            :disposition_status,
-            :selected_trip_type,
-            :purpose,
-            :orig_addr, :orig_county, :orig_lat, :orig_lng,
-            :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
-    associations :origin, :destination, :user, :selected_itinerary
+    ALL_COLUMNS = [:trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
+      :disposition_status, :selected_trip_type, :purpose, :orig_addr, :orig_county, :orig_lat, :orig_lng, 
+      :dest_addr, :dest_county, :dest_lat, :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
+      :traveler_eligibilities]
 
-    # FMR does not want these columns in their trips reports (FMRPA-163)
-    EXCLUDED_COLUMNS = [:trip_id, :user_type, :traveler_county, :traveler_paratransit_id, 
-      :orig_county, :dest_county, :traveler_age, :traveler_ip, 
-      :traveler_accommodations, :traveler_eligibilities]
+    EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS = [:trip_id, :user_type, :traveler_county, :traveler_paratransit_id, :orig_county, 
+                                  :dest_county, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities]
+
+    columns_to_include = if in_travel_patterns_mode?
+                  ALL_COLUMNS - EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS
+                else
+                  ALL_COLUMNS
+                end
+    columns *columns_to_include
 
     def trip_id
       @record.id
