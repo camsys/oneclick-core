@@ -1,32 +1,27 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
-    
-    EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS = [
-      :trip_id, :user_type, :traveler_county, :traveler_paratransit_id, 
-      :orig_county, :dest_county, :traveler_age, :traveler_ip, 
-      :traveler_accommodations, :traveler_eligibilities
+    FULL_COLUMNS = [
+      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
+      :disposition_status, :selected_trip_type, :purpose, :orig_addr, :orig_county, :orig_lat, :orig_lng, 
+      :dest_addr, :dest_county, :dest_lat, :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
+      :traveler_eligibilities
     ]
 
-    def self.columns(*args)
-      return super unless args.empty?
-      
-      all_columns = [
-        :trip_id, :trip_time, :traveler, :user_type, :traveler_county, 
-        :traveler_paratransit_id, :arrive_by, :disposition_status,
-        :selected_trip_type, :purpose, :orig_addr, :orig_county, 
-        :orig_lat, :orig_lng, :dest_addr, :dest_county, :dest_lat, 
-        :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
-        :traveler_eligibilities
-      ]
-      
-      if in_travel_patterns_mode?
-        all_columns - EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS
-      else
-        all_columns
-      end
+    FMR_COLUMNS = [
+      :trip_time, :traveler, :arrive_by, :disposition_status, :selected_trip_type, :purpose, :orig_addr, 
+      :orig_lat, :orig_lng, :dest_addr, :dest_lat, :dest_lng
+    ]
+
+    def initialize(*args)
+      super
+      filter_columns! if in_travel_patterns_mode?
     end
 
-    def self.in_travel_patterns_mode?
+    def filter_columns!
+      self.columns = FMR_COLUMNS
+    end
+
+    def in_travel_patterns_mode?
       Config.dashboard_mode.to_sym == :travel_patterns
     end
 
