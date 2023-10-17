@@ -1,28 +1,32 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
-    FULL_COLUMNS = [
-      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
-      :disposition_status, :selected_trip_type, :purpose, :orig_addr, :orig_county, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_county, :dest_lat, :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
-      :traveler_eligibilities
+
+    DEFAULT_COLUMNS = [
+      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, 
+      :arrive_by, :disposition_status, :selected_trip_type, :purpose,
+      :orig_addr, :orig_county, :orig_lat, :orig_lng,
+      :dest_addr, :dest_county, :dest_lat, :dest_lng,
+      :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
     ]
 
-    FMR_COLUMNS = [
-      :trip_time, :traveler, :arrive_by, :disposition_status, :selected_trip_type, :purpose, :orig_addr, 
-      :orig_lat, :orig_lng, :dest_addr, :dest_lat, :dest_lng
+    TRAVEL_PATTERNS_EXCLUDE = [
+      :trip_id, :user_type, :traveler_county, :traveler_paratransit_id, 
+      :orig_county, :dest_county, :traveler_age, :traveler_ip, 
+      :traveler_accommodations, :traveler_eligibilities
     ]
 
-    def initialize(*args)
-      super
-      filter_columns! if in_travel_patterns_mode?
+    associations :origin, :destination, :user, :selected_itinerary
+    
+    def initialize(mode = nil)
+      @mode = mode
     end
-
-    def filter_columns!
-      self.columns = FMR_COLUMNS
-    end
-
-    def in_travel_patterns_mode?
-      Config.dashboard_mode.to_sym == :travel_patterns
+    
+    def columns
+      if @mode == "travel_patterns"
+        DEFAULT_COLUMNS - TRAVEL_PATTERNS_EXCLUDE
+      else
+        DEFAULT_COLUMNS
+      end
     end
 
     def trip_id
@@ -128,6 +132,19 @@ module Admin
 
     def disposition_status
       @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
+    end
+
+    # FMR does not want these columns in their trips reports (FMRPA-163) If a user is in travel patterns mode, the columns are excluded
+    def self.columns
+      if in_travel_patterns_mode?
+        super - EXCLUDED_COLUMNS
+      else
+        super
+      end
+    end
+
+    def self.in_travel_patterns_mode?
+      Config.dashboard_mode.to_sym == :travel_patterns
     end
 
   end
