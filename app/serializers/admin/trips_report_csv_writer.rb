@@ -16,6 +16,10 @@ module Admin
       :dest_addr, :dest_lat, :dest_lng
     ]
 
+    def self.in_travel_patterns_mode?
+      Config.dashboard_mode.to_sym == :travel_patterns
+    end
+
     def headers
       if self.class.in_travel_patterns_mode?
         # Only include FMR_COLUMNS if in travel patterns mode
@@ -24,7 +28,7 @@ module Admin
         self.class.headers
       end
     end
-    
+
     def trip_id
       @record.id
     end
