@@ -8,6 +8,8 @@ class Admin::ServicesController < Admin::AdminController
   load_and_authorize_resource # Loads and authorizes @service/@services instance variable
 
   before_action :load_travel_patterns, only: [:show, :update]
+  helper_method :in_travel_patterns_mode?
+
 
   def index
     @services = get_services_for_current_user
@@ -281,6 +283,10 @@ class Admin::ServicesController < Admin::AdminController
                                    .includes(:travel_pattern)
                                    .joins(:travel_pattern)
                                    .merge(TravelPattern.order(:name))
+  end
+
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
   end
 
 end
