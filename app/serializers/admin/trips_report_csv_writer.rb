@@ -1,20 +1,19 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
     
-    ALL_COLUMNS = [:trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
-      :disposition_status, :selected_trip_type, :purpose, :orig_addr, :orig_county, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_county, :dest_lat, :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
-      :traveler_eligibilities]
+    columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
+            :disposition_status,
+            :selected_trip_type,
+            :purpose,
+            :orig_addr, :orig_county, :orig_lat, :orig_lng,
+            :dest_addr, :dest_county, :dest_lat, :dest_lng,
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+    associations :origin, :destination, :user, :selected_itinerary
 
-    EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS = [:trip_id, :user_type, :traveler_county, :traveler_paratransit_id, :orig_county, 
-                                  :dest_county, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities]
+    EXTRA_COLUMNS = [:trip_id, :user_type, :traveler_county, :traveler_paratransit_id, :orig_county, 
+      :dest_county, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities]
 
-    columns_to_include = if in_travel_patterns_mode?
-                  ALL_COLUMNS - EXCLUDED_COLUMNS_IN_TRAVEL_PATTERNS
-                else
-                  ALL_COLUMNS
-                end
-    columns *columns_to_include
+    columns(*self.filtered_columns)
 
     def trip_id
       @record.id
@@ -122,14 +121,13 @@ module Admin
     end
 
     # FMR does not want these columns in their trips reports (FMRPA-163) If a user is in travel patterns mode, the columns are excluded
-    def self.columns
+    def self.filtered_columns
       if in_travel_patterns_mode?
-        super - EXCLUDED_COLUMNS
-      else
-        super
+        return (columns - EXTRA_COLUMNS)
       end
+      columns
     end
-
+    
     def self.in_travel_patterns_mode?
       Config.dashboard_mode.to_sym == :travel_patterns
     end
