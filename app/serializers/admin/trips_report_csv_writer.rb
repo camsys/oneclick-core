@@ -1,32 +1,32 @@
 module Admin
   class TripsReportCSVWriter < CSVWriter
-
-    DEFAULT_COLUMNS = [
-      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, 
-      :arrive_by, :disposition_status, :selected_trip_type, :purpose,
-      :orig_addr, :orig_county, :orig_lat, :orig_lng,
-      :dest_addr, :dest_county, :dest_lat, :dest_lng,
-      :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+    
+    COLUMNS = [
+      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, 
+      :traveler_paratransit_id, :arrive_by, :disposition_status,
+      :selected_trip_type, :purpose, :orig_addr, :orig_county, 
+      :orig_lat, :orig_lng, :dest_addr, :dest_county, :dest_lat, 
+      :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, 
+      :traveler_eligibilities
     ]
 
-    TRAVEL_PATTERNS_EXCLUDE = [
-      :trip_id, :user_type, :traveler_county, :traveler_paratransit_id, 
-      :orig_county, :dest_county, :traveler_age, :traveler_ip, 
-      :traveler_accommodations, :traveler_eligibilities
+    ALLOWED_COLUMNS = [
+      :trip_time, :traveler, :arrive_by, :disposition_status, 
+      :selected_trip_type, :purpose, :orig_addr, :orig_lat, :orig_lng, 
+      :dest_addr, :dest_lat, :dest_lng
     ]
-
-    associations :origin, :destination, :user, :selected_itinerary
 
     def self.columns
-      if in_travel_patterns_mode?
-        DEFAULT_COLUMNS - TRAVEL_PATTERNS_EXCLUDE
+      if @in_travel_patterns_mode
+        ALLOWED_COLUMNS
       else
-        DEFAULT_COLUMNS
+        COLUMNS
       end
     end
 
-    def self.in_travel_patterns_mode?
-      Config.dashboard_mode.to_sym == :travel_patterns
+    def initialize(record, options = {})
+      super
+      @in_travel_patterns_mode = options.fetch(:in_travel_patterns_mode, false)
     end
 
     def trip_id
