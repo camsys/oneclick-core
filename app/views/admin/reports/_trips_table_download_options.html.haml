@@ -7,9 +7,7 @@
   as: :string, label: "To Date"
 
 -# FILTER OUT TRIPS NOT CREATED IN ONE CLICK
-=f.input :trip_only_created_in_1click, required: false,
-  as: :boolean,
-  label: 'Only Show Trips Created In 1Click:'
+=f.hidden_field :trip_only_created_in_1click, value: true
   
 -# TRIP PURPOSES
 - unless Config.dashboard_mode == "travel_patterns" && current_user.currently_oversight?
@@ -42,7 +40,7 @@
 =f.input :trip_destination_recipe, as: :hidden,
   input_html: { value: '[]'}
 
-= "NOTE: Reports will be limited to #{CSVWriter::DEFAULT_RECORD_LIMIT} records."
+= "NOTE: Reports will be limited to #{CSVWriter::DEFAULT_RECORD_LIMIT} records!"
 
 
 

@@ -86,6 +86,7 @@ RSpec.describe Api::V2::UsersController, type: :controller do
       pw = attributes_for(:user)[:password]
       traveler = create(:user, :unconfirmed)
       expect(traveler.confirmed?).to be false
+      Config.find_or_create_by!(key: 'require_user_confirmation').update_attributes(value: 'true')
       
       post :new_session, format: :json, params: { user: { email: traveler.email, password: pw } }
       

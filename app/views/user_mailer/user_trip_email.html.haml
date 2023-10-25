@@ -1,6 +1,6 @@
 // The Origin/Destination header
 
-= render :partial => 'fmr_email_header'
+= render :partial => 'email_header'
 
 -unless @itinerary.service.nil?
   = render :partial => "service_summary_header", :locals => { :itinerary => @itinerary }
@@ -38,4 +38,6 @@
 // Static Map
 %td{style: "text-align: center;", colspan: 2}
   %div{style: "width:100%;background: white; border-radius: 5px; padding: 10px;"}
-    =image_tag(attachments[@itinerary.id.to_s + ".png"].url)
+    - itin_map = attachments[@itinerary.id.to_s + ".png"]
+    - if itin_map
+      =image_tag(itin_map.url)

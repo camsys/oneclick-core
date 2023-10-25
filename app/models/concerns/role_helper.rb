@@ -49,8 +49,6 @@ module RoleHelper
     base.scope :any_staff_admin_for_agencies, -> (agencies) { base.with_roles_for_instances([:staff, :admin], agencies) }
     base.scope :any_staff_admin_for_agency, -> (agency) { base.with_roles_for_instance([:staff, :admin], agency) }
 
-
-
     # ASSOCIATIONS
     base.has_many :transportation_agencies,
       through: :roles,
@@ -166,7 +164,7 @@ module RoleHelper
 
   # Returns the agencies that the user is staff for
   def agencies
-    Agency.where(id: transportation_agencies.pluck(:id) + oversight_agencies.pluck(:id))
+    Agency.where(id: transportation_agencies.pluck(:id) + oversight_agencies.pluck(:id) + partner_agencies.pluck(:id))
   end
 
   # Returns the last of the user's staffing agencies (of which there are hopefully just one)
@@ -226,10 +224,11 @@ module RoleHelper
 
 
   def travelers_for_agency(agencies)
-    # Search for travelers associated with the input agencies ids
-    agency_travelers_id = TravelerTransitAgency.where(transportation_agency_id: agencies).pluck(:user_id)
-    # Return travelers associated with the input agency and guest users
-    User.guests + User.where(id:agency_travelers_id)
+    # agency_travelers_id = TravelerTransitAgency.where(transportation_agency_id: agencies).pluck(:user_id)
+    # User.guests + User.where(id: agency_travelers_id) # Nope. Bad.
+
+    User.joins("LEFT JOIN traveler_transit_agencies on users.id = traveler_transit_agencies.user_id")
+        .merge(TravelerTransitAgency.where(transportation_agency_id: [nil, *agencies]))
   end
 
   def travelers_for_staff_agency
@@ -353,25 +352,25 @@ module RoleHelper
 
   def get_trips_for_staff_user
     # Conditional statement flow:
-    # If current user is a traveler => return nil
-    # If current user is a superuser => return all Trips
-    # If current user is a transportation agency staff => return Trips associated with the agency
-    # If current user is viewing as oversight staff => return Trips associated with all agencies under the oversight agency
-    # If current user is viewing as transportation agency staff => return Trips associated with the current transportation agency
-    # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
+
     if self.superuser?
+      # If current user is a superuser => return all Trips
       Trip.all
     elsif self.transportation_admin? || self.transportation_staff?
-      Trip.with_transportation_agency(self.staff_agency.id)
+      # If current user is a transportation agency staff or admin => return Trips associated with the agency
+      Trip.with_transportation_agency_or_guest_user(self.staff_agency.id)
     elsif self.currently_oversight?
+      # If current user is viewing as oversight staff or admin => return Trips associated with all agencies under the oversight agency
       tas = AgencyOversightAgency.where(oversight_agency_id: self.staff_agency.id).pluck(:transportation_agency_id)
-      Trip.with_transportation_agency(tas)
+      Trip.with_transportation_agency_or_guest_user(tas)
     elsif self.currently_transportation?
-       Trip.with_transportation_agency(self.current_agency.id)
+      # If current user is viewing as transportation agency staff or admin => return Trips associated with the current transportation agency
+      Trip.with_transportation_agency_or_guest_user(self.current_agency.id)
     elsif self.staff_agency&.oversight? && self.current_agency.nil?
-      Trip.with_no_transportation_agency
-      # Fallback just in case an edge case is missed
+      # If the current user is viewing all unaffiliated trips and is oversight staff => return Trips associated with no tranpsortation agency
+      Trip.with_transportation_agency_or_guest_user(self.staff_agency.id)
     else
+      # If current user is a traveler => return nil
       nil
     end
   end

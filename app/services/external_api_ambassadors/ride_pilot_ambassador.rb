@@ -180,7 +180,7 @@ class RidePilotAmbassador < BookingAmbassador
   
   # Returns the RidePilot Purposes Map from the Configs
   def purposes_map
-    (Config.ride_pilot_purposes || {}).with_indifferent_access
+    (Config.ride_pilot_purposes).with_indifferent_access
   end
   
   # Maps a OneClick Purpose Code to RidePilot Purpose ID. Pass a service to

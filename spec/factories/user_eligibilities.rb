@@ -4,11 +4,11 @@ FactoryBot.define do
     eligibility
 
     trait :confirmed do
-      value true
+      value { true }
     end
 
     trait :denied do
-      value false
+      value { false }
     end
 
     factory :answered_veteran do 

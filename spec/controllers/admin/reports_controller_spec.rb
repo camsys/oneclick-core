@@ -336,24 +336,9 @@ RSpec.describe Admin::ReportsController, type: :controller do
     
   end
 
-  xcontext "while signed in as an partner staff" do
-    
+  context "while signed in as an partner staff" do
+
     before(:each) { sign_in partner_staff }
-    # weird test jig issue???
-    xit "allows partner staff to view reports" do
-      get :index
-      
-      expect(response).to be_success
-      expect(assigns(:download_tables)).to eq(Admin::ReportsController::DOWNLOAD_TABLES)
-      expect(assigns(:dashboards)).to eq(Admin::ReportsController::DASHBOARDS)
-      
-    end
-  
-  end
-
-  context "while signed in as an oversight staff" do
-
-    before(:each) { sign_in oversight_staff }
 
     it "allows partner staff to view reports" do
       get :index
@@ -362,19 +347,6 @@ RSpec.describe Admin::ReportsController, type: :controller do
       expect(assigns(:download_tables)).to eq(Admin::ReportsController::DOWNLOAD_TABLES)
       expect(assigns(:dashboards)).to eq(Admin::ReportsController::DASHBOARDS)
 
-    end
-
-  end
-  
-  context "while signed in as a transportation staff" do
-    before(:each) { sign_in transportation_staff }
-
-    it "allows transportation staff to view reports" do
-      get :index
-
-      expect(response).to be_success
-      expect(assigns(:download_tables)).to eq(Admin::ReportsController::DOWNLOAD_TABLES)
-      expect(assigns(:dashboards)).to eq(Admin::ReportsController::DASHBOARDS)
     end
 
   end

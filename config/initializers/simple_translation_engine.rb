@@ -7,7 +7,7 @@ SimpleTranslationEngine.configure do |config|
   
   # Hide any translation keys with "REFERNET" in the name
   config.hidden_key_scope = lambda {
-    where("name ILIKE ?", "%REFERNET%")
+    where("name LIKE ?", "%REFERNET%")
   }
   
 end
@@ -20,6 +20,13 @@ Rails.configuration.to_prepare do
     include TranslationsControllerExtensions
     authorize_resource
   end
+
+  TranslationKeysController.class_eval do
+    include TranslationsControllerExtensions
+    authorize_resource
+  end
+
+
 
   # If AWS_LOCALE_STORAGE is set, trigger upload of locale to AWS every time a record is updated
   if ENV['AWS_LOCALE_STORAGE'] == "true" && 

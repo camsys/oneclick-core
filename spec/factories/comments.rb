@@ -1,16 +1,16 @@
 FactoryBot.define do
   factory :comment do
-    comment "Hello"
-    locale "en"
+    comment { "Hello" }
+    locale { "en" }
 
     factory :es do
-      comment "Hola"
-      locale "es"
+      comment { "Hola" }
+      locale { "es" }
     end
 
     factory :fr do
-      comment "Bonjour"
-      locale "fr"
+      comment { "Bonjour" }
+      locale { "fr" }
     end
     
     trait :with_commenter do
@@ -18,8 +18,8 @@ FactoryBot.define do
     end
     
     factory :acknowledgement_comment do
-      comment "I acknowledged this feedback"
-      locale "en"
+      comment { "I acknowledged this feedback" }
+      locale { "en" }
       commenter
     end
   end

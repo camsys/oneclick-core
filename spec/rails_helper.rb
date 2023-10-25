@@ -13,6 +13,7 @@ require 'spec_helper'
 require 'rspec/rails'
 require 'shoulda/matchers'
 require 'support/factory_bot'
+require 'support/time_helpers'
 require 'devise'
 
 # Add additional requires below this line. Rails is not loaded until this point!

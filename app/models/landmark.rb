@@ -21,7 +21,7 @@ class Landmark < Place
   scope :is_old, -> { where(:old => true) }
   scope :is_new, -> { where(:old => false) }
 
-  #### METHODS ####
+  #### Class Methods ####
   # Load new landmarks from CSV
   # CSV must have the following columns: Name, Street Number, Route, Address, City, State, Zip, Lat, Lng, Types
   def self.update file
@@ -81,6 +81,12 @@ class Landmark < Place
 
   end #Update
 
+  # Determine if a Place corresponds to an existing Landmark
+  def self.place_exists?(place)
+    Landmark.exists?(name: place[:name]) || Landmark.exists?(street_number: place[:street_number], route: place[:route], city: place[:city], zip: place[:zip])
+  end
+
+  ### Instance Methods ###
   def geom_buffer
     @factory = RGeo::ActiveRecord::SpatialFactoryStore.instance.default
     @factory_simple_mercator = RGeo::Geographic.simple_mercator_factory(buffer_resolution: 8)

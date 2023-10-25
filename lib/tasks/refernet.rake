@@ -41,7 +41,7 @@ namespace :refernet do
   task translate_services: :environment do 
     services_translated = 0
     OneclickRefernet::Service.all.each do |service|
-      new_description = service['details']["Label_Service Description"]
+      new_description = service['details']["Label_service_description"]
       old_description = SimpleTranslationEngine.translate(:en, "REFERNET_SERVICE_#{service['details']['Service_ID']}+#{service['details']['ServiceSite_ID']}_description")
       
       if old_description == new_description

@@ -192,7 +192,8 @@ module Api
         status: status,
         json: {
           status: "success",
-          data: data
+          data: data,
+          errors: opts[:errors] || []
         }
       }
     end
@@ -243,6 +244,7 @@ module Api
       u.skip_confirmation! #Don't send confirmation emails to the fake guest users
       u.save!(:validate => false)
       @traveler = u
+      sign_in(:user, @traveler) # sign in the guest user
       session[:guest_user_id] = u.id # DEPRECATE? What is this?
       u
     end

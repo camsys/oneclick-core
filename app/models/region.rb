@@ -30,7 +30,7 @@ class Region < ApplicationRecord
   
   # Tests if the region contains an empty geometry (but not a nil geometry)
   def empty?
-    geom && geom.try(:is_empty?)
+    geom && geom.try(:empty?)
   end
   
   # Tests if the region contains the other geom object passed as an argument

@@ -3,7 +3,7 @@ module Api
 
     class ItinerarySerializer < ApiSerializer
       
-      attributes :trip_type,
+      attributes :id, :trip_type,
         :cost,
         :walk_time,
         :transit_time,
@@ -13,6 +13,14 @@ module Api
         :duration
     
       belongs_to :service
+
+      def cost
+        if object.cost == -0.01 #  -.01 is an error code for OTP. 1-Click should be updated to handle this error
+          return nil
+        else
+          return object.cost
+        end
+      end
       
       # Translate legs based on the locale in scope
       def legs

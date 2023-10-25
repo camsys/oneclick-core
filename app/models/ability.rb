@@ -123,6 +123,11 @@ class Ability
       can :manage, GeographyRecord      # Can create Geography records
       can :manage, Role,                # Can manage roles for current agency
           resource_id: user.staff_agency.id
+      # Admins cannot manage superusers
+      cannot :manage, User,           # Cannot manage superusers
+              id: User.all.superuser.pluck(:id)
+      cannot :manage, Role,               # Cannot manage superuser Roles
+              id: Role.find_by(name: :superuser)
 
       # Transportation Admin Permissions
       if user.transportation_admin?
@@ -160,16 +165,16 @@ class Ability
         can :manage, BookingWindow,
             agency_id: user.staff_agency.agency_oversight_agency.pluck(:transportation_agency_id).concat([user.staff_agency.id])
         can :manage, Service,
-          id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
+            id: user.get_services_for_oversight.pluck(:id).concat(Service.no_agencies_assigned.pluck(:id)) # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Role               # Can manage Roles
         # Mapping related permissions
         can :manage, GeographyRecord    # Can manage geography records
 
         # Oversight Admins cannot manage superusers
         cannot :manage, User,           # Cannot manage superusers
-           id: User.all.superuser.pluck(:id)
+                id: User.all.superuser.pluck(:id)
         cannot :manage, Role,               # Cannot manage superuser Roles
-               id: Role.find_by(name: :superuser)
+                id: Role.find_by(name: :superuser)
       end
     end # end admin
 

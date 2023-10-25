@@ -30,17 +30,17 @@ class GuestUserHelper
   
   # Email domain name to user for guest users
   def email_domain
-    Config.guest_user_email_domain || "example.com"
+    Config.guest_user_email_domain
   end
   
   # Check if a string includes the guest user email domain
   def is_guest_email?(email)
-    email.include?(email_domain)
+    email.include?('guest_') && email.include?(email_domain)
   end
   
   # Returns a SQL query string for finding guest users
   def query_str
-    "email LIKE '%@#{email_domain}%'"
+    "email LIKE 'guest_%@#{email_domain}%'"
   end
   
 end

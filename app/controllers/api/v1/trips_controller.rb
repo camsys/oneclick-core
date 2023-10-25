@@ -9,7 +9,7 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 10)
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
                                    .outbound
                                    .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
@@ -18,7 +18,7 @@ module Api
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 10)
+        future_trips_hash = @traveler.future_trips(params[:max_results] || 25)
                                      .outbound
                                      .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: future_trips_hash}
@@ -37,6 +37,7 @@ module Api
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
             end_location = trip_location_to_google_hash(trip[:end_location])
+            note = params[:note]
             
             trip_params(ActionController::Parameters.new({
               trip: {
@@ -47,8 +48,9 @@ module Api
                 user_id: @traveler && @traveler.id,
                 purpose_id: purpose ? purpose.id : nil,
                 external_purpose: external_purpose,
-                details: trip[:details]
-              }
+                details: trip[:details],
+                note: note
+            }
             }))
           end
         elsif api_v2_params # This is doing it the right way
@@ -99,6 +101,10 @@ module Api
             
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+
+            return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
+            return render(status: 404, json: destination_place) unless Landmark.place_exists?(destination_place)
+
             existing_trip = Trip.where(trip_time: trip_param[:trip_time],
                                         arrive_by: trip_param[:arrive_by],
                                         user_id: trip_param[:user_id],
@@ -161,7 +167,6 @@ module Api
       # as well, and attempt to book it.
       def book
         outbound_itineraries = booking_request_params
-
         # Keep track if anything failed and then cancel all the itineraries ####
         failed = false
         itins  = []
@@ -380,7 +385,8 @@ module Api
           :arrive_by,
           :user_id,
           :purpose_id,
-          :external_purpose
+          :external_purpose,
+          :note
         )
       end
 
@@ -500,6 +506,7 @@ module Api
             id: itinerary.id,
             json_legs: itinerary.legs,
             mode: itinerary.trip_type.nil? ? nil : remodeify(itinerary.trip_type),
+            note: itinerary.note,
             product_id: nil, #itinerary.product_id,
             status: itinerary.booking.try(:status) || "ordered", # DEPRECATE?
             transfers: nil, #itinerary.transfers, # DEPRECATE?

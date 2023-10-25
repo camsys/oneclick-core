@@ -13,7 +13,14 @@ class Admin::ConfigsController < Admin::AdminController
   helper_method :build_dashboard_mode_collection
 
   PERMITTED_CONFIGS = [
+    :application_title,
     :open_trip_planner,
+    :open_trip_planner_version,
+    :otp_itinerary_quantity,
+    :otp_car_park_quantity,
+    :otp_transit_quantity,
+    :otp_paratransit_quantity,
+    # :otp_max_itineraries_shown,
     :tff_api_key,
     :uber_token,
     :lyft_client_token,
@@ -30,6 +37,9 @@ class Admin::ConfigsController < Admin::AdminController
     :ui_url,
     :require_user_confirmation,
     :max_walk_minutes,
+    :max_walk_distance,
+    :walk_reluctance,
+    :bike_reluctance,
     :dashboard_mode,
     :maximum_booking_notice,
     daily_scheduled_tasks: []
@@ -72,7 +82,7 @@ class Admin::ConfigsController < Admin::AdminController
     case key.to_sym
     when :daily_scheduled_tasks
       return value.select(&:present?).map(&:to_sym)
-    when :feedback_overdue_days, :max_walk_minutes, :maximum_booking_notice
+    when :feedback_overdue_days, :max_walk_minutes, :walk_reluctance, :bike_reluctance, :maximum_booking_notice, :max_walk_distance
       return value.to_i
     when :require_user_confirmation
       return (value == "true")

@@ -25,3 +25,6 @@
 
 ### DATABASE ###
 # DATABASE: 'oneclick-core_development' # change this to swap out the database being used
+
+### Travel Patterns ###
+dashboard_mode: travel_patterns # The default behavior and the behavior used for running RSPEC tests

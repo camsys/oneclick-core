@@ -20,16 +20,21 @@ module Api
         end
       end
 
+      def new
+        render success_response(Trip.new, serializer_opts: {include: ['*.*.*']})
+      end
+
       # POST trips/
       # POST trips/plan
       # Creates a new trip and associated itineraries based on the passed params,
       # and returns JSON with information about that trip.
       def create
               
-        # Update the traveler's user profile before planning the trip.        
+        # Update the traveler's user profile before planning the trip.
         update_traveler_profile
         
         # Set purpose_id in trip_params
+        # Note: not used in 211 ride
         set_trip_purpose
 
         # Initialize a trip based on the params
@@ -38,12 +43,20 @@ module Api
         @trip_planner = TripPlanner.new(@trip, trip_planner_options)
 
         # Plan the trip (build itineraries and save it)
+        # TODO: check different OCC instances to ensure that new updates didn't break it
         if @trip_planner.plan
+          # Pull accommodations and eligibilities from the user's profile
+          user_acc = @trip.user.accommodations
+          user_elig = @trip.user.eligibilities
+
           @trip.relevant_purposes = @trip_planner.relevant_purposes
-          @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities
-          @trip.relevant_accommodations = @trip_planner.relevant_accommodations
-          @trip.save 
-          render success_response(@trip, serializer_opts: {include: ['*.*.*']})
+          # Set trip eligibilities and accommodations based on both the trip planner and the user profile
+          @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities.select {|elig| user_elig.include?(elig)}
+          @trip.relevant_accommodations = @trip_planner.relevant_accommodations.where(id: user_acc.pluck(:id))
+          @trip.user_age = @trip.user.age
+          @trip.user_ip = @trip.user.current_sign_in_ip
+          @trip.save
+          render success_response(@trip, {serializer_opts: {include: ['*.*.*']}, errors: @trip_planner.errors})
         end
         
       end
@@ -73,7 +86,7 @@ module Api
       end
 
       def place_attributes
-        [:name, :street_number, :route, :city, :state, :zip, :lat, :lng, :google_place_attributes]
+        [:name, :street_number, :route, :city, :county,:state, :zip, :lat, :lng, :google_place_attributes]
       end
       
       # Updates the traveler's profile if the traveler exists and user_profile param was passed
