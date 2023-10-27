@@ -62,11 +62,12 @@
           readonly: should_be_readonly,
           label: "Permitted Funding Sources",
           input_html: {value: booking_details[:preferred_funding_sources]}
-        =bd.input :ada_funding_sources,
-          as: :text,
-          readonly: should_be_readonly,
-          label: "ADA Funding Sources",
-          input_html: {value: booking_details[:ada_funding_sources]},
+        - unless in_travel_patterns_mode?
+          =bd.input :ada_funding_sources,
+            as: :text,
+            readonly: should_be_readonly,
+            label: "ADA Funding Sources",
+            input_html: {value: booking_details[:ada_funding_sources]},
           required: false
         =bd.input :preferred_sponsors,
           as: :text,
@@ -79,18 +80,20 @@
           placeholder: "",
           label: "Banned Purposes",
           input_html: {value: booking_details[:banned_purposes]}
-        =bd.input :dummy_user,
-          as: :string,
-          readonly: should_be_readonly,
-          label: "Dummy/Guest User",
-          input_html: {value: booking_details[:dummy_user]},
-          required: false
-        =bd.input :guest_funding_sources,
-          as: :text,
-          readonly: should_be_readonly,
-          label: "Guest Funding Sources",
-          input_html: {value: booking_details[:guest_funding_sources]},
-          required: false
+        - unless in_travel_patterns_mode?
+          =bd.input :dummy_user,
+            as: :string,
+            readonly: should_be_readonly,
+            label: "Dummy/Guest User",
+            input_html: {value: booking_details[:dummy_user]},
+            required: false
+        - unless in_travel_patterns_mode?
+          =bd.input :guest_funding_sources,
+            as: :text,
+            readonly: should_be_readonly,
+            label: "Guest Funding Sources",
+            input_html: {value: booking_details[:guest_funding_sources]},
+            required: false
         =bd.input :guest_purpose,
           as: :string,
           readonly: should_be_readonly,
@@ -112,12 +115,13 @@
       -#   readonly: should_be_readonly,
       -#   label: "Trusted Users",
       -#   input_html: {value: booking_details[:trusted_users]}
-      =bd.input :require_selfservice_validation,
-        collection: [false, true],
-        readonly: should_be_readonly,
-        include_blank: false,
-        label: "Require Self Service Validation",
-        selected: (booking_details[:require_selfservice_validation])
+      - unless in_travel_patterns_mode?
+        =bd.input :require_selfservice_validation,
+          collection: [false, true],
+          readonly: should_be_readonly,
+          include_blank: false,
+          label: "Require Self Service Validation",
+          selected: (booking_details[:require_selfservice_validation])
 
   -# TRAPEZE
   .booking-inputs.trapeze-booking.hidden

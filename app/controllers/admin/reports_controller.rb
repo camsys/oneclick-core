@@ -120,8 +120,12 @@ class Admin::ReportsController < Admin::AdminController
     end
     @trips = @trips.order(:trip_time)
     respond_to do |format|
-      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
+      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
+  end
+
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
   end
 
   def feedback_table    
