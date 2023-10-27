@@ -5,3 +5,9 @@ BOOKING_PASSWORD_ENCRYPTION_KEY: "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345"
 
 # I18N
 AVAILABLE_LOCALES: 'en,es,fr'
+
+### Booking Apis ###
+booking_api: all
+
+### Travel Patterns ###
+dashboard_mode: travel_patterns # TODO create two contexts for dashboard modes

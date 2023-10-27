@@ -13,22 +13,47 @@
 
   = f.input :open_trip_planner, required: true,
     label: "URL of the Open Trip Planner Server",
-    input_html: {value: @configs.find_by(key: :open_trip_planner).try(:value)},
+    input_html: {value: Config.open_trip_planner},
     as: :string
+  
+  = f.input :otp_car_park_quantity, required: true,
+    label: "Amount of Car Park Itineraries requested from OTP. This may differ from the number of Itineraries shown",
+    input_html: {value: Config.otp_car_park_quantity},
+    as: :integer
+  
+  = f.input :otp_transit_quantity, required: true,
+    label: "Amount of Transit Itineraries requested from OTP. This may differ from the number of Itineraries shown",
+    input_html: {value: Config.otp_transit_quantity},
+    as: :integer
+
+  = f.input :otp_paratransit_quantity, required: true,
+    label: "Amount of Paratransit Itineraries requested from OTP. This may differ from the number of Itineraries shown",
+    input_html: {value: Config.otp_paratransit_quantity},
+    as: :integer
+
+  = f.input :otp_itinerary_quantity, required: true,
+    label: "Amount of Itineraries requested from OTP for all other types. This may differ from the number of Itineraries shown",
+    input_html: {value: Config.otp_itinerary_quantity},
+    as: :integer
+
+  -# = f.input :otp_max_itineraries_shown, required: true,
+  -#   label: "The maximum number of requested Itineraries that we show per transit type.",
+  -#   input_html: {value: Config.otp_max_itineraries_shown},
+  -#   as: :integer
     
   =f.input :tff_api_key, required: false,
     label: "API Key for Taxi Fare Finder",
-    input_html: {value: @configs.find_by(key: :tff_api_key).try(:value)},
+    input_html: {value: Config.tff_api_key},
     as: :string
     
   =f.input :uber_token, required: false,
     label: "Uber Token",
-    input_html: {value: @configs.find_by(key: :uber_token).try(:value)},
+    input_html: {value: Config.uber_token},
     as: :string
 
   =f.input :lyft_client_token, required: false,
     label: "Lyft Client Token",
-    input_html: {value: @configs.find_by(key: :lyft_client_token).try(:value)},
+    input_html: {value: Config.lyft_client_token},
     as: :string
 
 :javascript

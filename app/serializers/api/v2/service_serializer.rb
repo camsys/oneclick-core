@@ -2,7 +2,7 @@ module Api
   module V2
     class ServiceSerializer < ApiSerializer
 
-      attributes :id, :name, :type, :logo, :url, :email, :phone, :formatted_phone, 
+      attributes :id, :name, :type, :logo, :full_logo, :url, :email, :phone, :formatted_phone,
                  :description, :rating, :ratings_count
                  
       has_many :schedules
@@ -20,6 +20,10 @@ module Api
       
       def logo
         object.full_logo_url
+      end
+
+      def full_logo
+        object.full_logo_url(nil) # get actual size
       end
 
     end

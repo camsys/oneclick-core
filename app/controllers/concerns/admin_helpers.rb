@@ -29,10 +29,13 @@ module AdminHelpers
 
   def return_pages_by_mode
     urls = Rails.application.routes.url_helpers
-    mode = Config.find_by(key: :dashboard_mode).try(:value)&.to_sym || :default
-    mode == :travel_patterns ? [
-      { label: "Travel Patterns", url: urls.root_admin_travel_patterns_path, show: can?(:read, TravelPattern) }
-    ] :
+    mode = Config.dashboard_mode.to_sym
+    if mode == :travel_patterns
+      [
+        { label: "Travel Patterns", url: urls.root_admin_travel_patterns_path, show: can?(:read, TravelPattern) },
+        { label: "Booking Profiles", url: urls.admin_booking_profiles_path, show: can?(:read, UserBookingProfile) }
+      ]
+    else
       [
         { label: "Accommodations",  url: urls.admin_accommodations_path,  show: can?(:read, Accommodation) },
         { label: "Alerts",          url: urls.admin_alerts_path,          show: can?(:read, Alert) },
@@ -42,6 +45,7 @@ module AdminHelpers
         { label: "Landmarks",       url: urls.admin_landmarks_path,       show: can?(:read, Landmark) },
         { label: "Purposes",        url: urls.admin_purposes_path,        show: can?(:read, Purpose) },
       ]
+    end
   end
 
 end

@@ -17,7 +17,7 @@ class Admin::PurposesController < Admin::AdminController
 
   def create
   	purpose = Purpose.new(purpose_params)
-    purpose[:name] = purpose.code if purpose.name.blank?
+    purpose[:name] = purpose.code if purpose_params[:name].blank?
     purpose.save!
   	redirect_to admin_purposes_path
   end
@@ -37,7 +37,7 @@ class Admin::PurposesController < Admin::AdminController
   private
 
   def purpose_params
-  	params.require(:purpose).permit(:code, :name)
+  	params.require(:purpose).permit(:code, :name, :agency_id)
   end
 
 end

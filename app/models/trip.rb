@@ -41,7 +41,17 @@ class Trip < ApplicationRecord
 
   ### CONSTANTS ###
   # Constant list of trip types that can be planned.
-  TRIP_TYPES = [:transit, :paratransit, :taxi, :walk, :car, :bicycle, :uber, :lyft]
+  TRIP_TYPES = [
+    :transit, 
+    :paratransit,
+    # :car_park, # This trip type is not selectable. Instead, it is automatically included when both :car and :transit are selected
+    :taxi,
+    :walk,
+    :car,
+    :bicycle,
+    # :uber, # commenting out since API has changed
+    # :lyft # commenting out since API has changed
+  ]
   DEFAULT_TRIP_DETAILS = { notification_preferences: nil}
 
   # Constant list of bad cities and the correct city
@@ -65,11 +75,23 @@ class Trip < ApplicationRecord
 
   ### SCOPES ###
   # Trips where users under an input transportation agency
-  scope :with_transportation_agency, -> (agency_id){where(user_id: TravelerTransitAgency.where(transportation_agency_id: agency_id).pluck(:user_id))}
+  # Unused scope. Commenting it out for now.
+  # scope :with_transportation_agency, -> (agency_id) {
+  #   self.joins("LEFT JOIN traveler_transit_agencies on trips.user_id = traveler_transit_agencies.user_id")
+  #       .merge(TravelerTransitAgency.where(transportation_agency_id: agency_id))
+  # }
+  
   # Trips with no transportation agency
-  scope :with_no_transportation_agency, -> {where.not(user_id: TravelerTransitAgency.where(
-    transportation_agency_id: TransportationAgency.all.pluck(:id)
-  ).pluck(:user_id))}
+  # Unused scope. Commenting it out for now.
+  # scope :with_no_transportation_agency, -> {
+  #   self.joins("LEFT JOIN traveler_transit_agencies on trips.user_id = traveler_transit_agencies.user_id")
+  #       .merge(TravelerTransitAgency.where(transportation_agency_id: nil))
+  # }
+
+  scope :with_transportation_agency_or_guest_user, -> (agency_id) {
+    self.joins("LEFT JOIN traveler_transit_agencies on trips.user_id = traveler_transit_agencies.user_id")
+        .merge(TravelerTransitAgency.where(transportation_agency_id: [nil, *agency_id]))
+  }
 
   # Return trips before or after a given date and time
   scope :from_datetime, -> (datetime) { datetime ? where('trip_time >= ?', datetime) : all }
@@ -89,11 +111,12 @@ class Trip < ApplicationRecord
   scope :selected, -> { where.not(selected_itinerary_id: nil) }
 
   # Geographic scopes return trips that start or end in the passed geom
+  # The geom parameter does not always serialize correctly to the geometry type, so converting to text.
   scope :origin_in, -> (geom) do
-    where(id: joins(:origin).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+    where(id: joins(:origin).where('ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))', geom.as_text).pluck(:id))
   end
   scope :destination_in, -> (geom) do
-    where(id: joins(:destination).where('ST_Within(waypoints.geom, ?)', geom).pluck(:id))
+    where(id: joins(:destination).where('ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))', geom.as_text).pluck(:id))
   end
   
   # Returns trip that have any of the given purposes

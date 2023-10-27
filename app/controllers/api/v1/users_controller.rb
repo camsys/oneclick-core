@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApiController
-      before_action :require_authentication, only: [:update, :trip_purposes, :current_balance]
+      before_action :require_authentication, only: [:update, :trip_purposes, :current_balance, :agency_code]
       before_action :ensure_traveler, only: [:get_guest_token] #If @traveler is not set, then create a guest user account
 
       # Sends back a profile hash via the API::V1::UserSerializer
@@ -132,13 +132,23 @@ module Api
         render json: hash
       end
 
+      def agency_code
+        agency_code = nil
+        
+        if @traveler&.booking_profiles&.first&.service&.agency&.agency_code
+          agency_code = @traveler.booking_profiles.first.service.agency.agency_code
+        end
+      
+        render json: { agency_code: agency_code } 
+      end
+
       #Built to Support Ecolane API/V1
       def trip_purposes
 
         #If the user is registered with a service, use his/her trip purposes
         trip_purposes  = []
         trip_purposes_hash = []
-        booking_profile = @traveler.booking_profiles.first
+        booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
         if @traveler and booking_profile
           begin
             trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes

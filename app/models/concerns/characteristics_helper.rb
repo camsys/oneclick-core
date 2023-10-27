@@ -23,7 +23,11 @@ module CharacteristicsHelper
   end
 
   def snake_casify
-  	self.code = self.class.format_string_to_code(self[:name])
+    if self.code
+  	  self.code = self.class.format_string_to_code(self.code)
+    else
+      self.code = self.class.format_string_to_code(self[:name])
+    end
   end
 
   def ensure_rank

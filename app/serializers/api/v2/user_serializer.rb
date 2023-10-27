@@ -8,7 +8,10 @@ module Api
                   :email,
                   :preferred_locale,
                   :trip_types,
-                  :age
+                  :age,
+                  :county,
+                  :paratransit_id,
+                  :counties
       
       has_many :eligibilities
       has_many :accommodations
@@ -21,6 +24,11 @@ module Api
       def accommodations
         scope[:user] ||= object # set user in scope
         Accommodation.all
+      end
+
+      def counties
+        scope[:user] ||= object # set user in scope
+        County.all.map { |county| { name: county.name } }
       end
 
       def trip_types

@@ -142,7 +142,7 @@ class Admin::ServicesController < Admin::AdminController
       # otherwise the current user is probably transportation staff
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
-      Service.where(agency_id:nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
+      Service.where(agency_id: nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
       Service.where(agency_id: current_user.staff_agency.id)
     end
@@ -222,13 +222,18 @@ class Admin::ServicesController < Admin::AdminController
 
   def paratransit_params
     [
+      :gtfs_agency_id,
       :fare_structure,
       :booking_api,
       :max_age,
       :min_age,
+      :eligible_max_age,
+      :eligible_min_age,
       {accommodation_ids: []},
       {eligibility_ids: []},
       {purpose_ids: []},
+      start_area_attributes: [:recipe],
+      end_area_attributes: [:recipe],
       start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe],
       schedules_attributes: [:id, :day, :start_time, :end_time, :_destroy]
@@ -241,6 +246,9 @@ class Admin::ServicesController < Admin::AdminController
     [
       :fare_structure,
       {accommodation_ids: []},
+      start_area_attributes: [:recipe],
+      end_area_attributes: [:recipe],
+      start_or_end_area_attributes: [:recipe],
       trip_within_area_attributes: [:recipe]
     ] + FareParamPermitter.new(params[:service]).permit
   end

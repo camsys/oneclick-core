@@ -11,37 +11,58 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
+  = f.input :application_title, required: true,
+      label: "Application Title",
+      input_html: {value: Config.application_title},
+      as: :string
+
   = f.input :dashboard_mode, require: true,
     label: "Dashboard Mode",
     include_blank: false,
     name_method: :name,
     value_method: :value,
     collection: build_dashboard_mode_collection,
-    selected: Config.find_by(key: :dashboard_mode).try(:value) || :default
+    selected: Config.dashboard_mode
 
   = f.input :feedback_overdue_days, required: true,
     label: "Days before sending feedback reminders",
-    input_html: {value: (Config.find_by(key: :feedback_overdue_days).try(:value) || 5)},
+    input_html: {value: Config.feedback_overdue_days},
     as: :integer
 
   = f.input :ui_url, required: true,
     label: "Traveler UI URL",
-    input_html: {value: (Config.find_by(key: :ui_url).try(:value) || "")},
+    input_html: {value: Config.ui_url},
     as: :string
 
   = f.input :require_user_confirmation, require: true, include_blank: false,
     label: "Require users to confirm email addresses",
-    input_html: {value: (Config.find_by(key: :require_user_confirmation).try(:value) || false)},
+    input_html: {value: Config.require_user_confirmation},
     as: :select
 
   = f.input :max_walk_minutes, require: true,
     label: "Max walk minutes",
-    input_html: {value: (Config.find_by(key: :max_walk_minutes).try(:value) || "45")},
+    input_html: {value: Config.max_walk_minutes},
     as: :integer
+
+  = f.input :max_walk_distance, require: true,
+    label: "Max transit walking leg distance (Meters)",
+    input_html: {value: Config.max_walk_distance},
+    as: :integer
+  
+  - if Config.open_trip_planner_version == 'v2'
+    = f.input :walk_reluctance, require: true,
+      label: "Walk reluctance",
+      input_html: {value: Config.walk_reluctance},
+      as: :integer
+
+    = f.input :bike_reluctance, require: true,
+      label: "Bike reluctance",
+      input_html: {value: Config.bike_reluctance},
+      as: :integer
 
   = f.input :maximum_booking_notice, require: true,
     label: "Maximum Booking Notice (Days)",
-    input_html: {value: (Config.find_by(key: :maximum_booking_notice).try(:value) || "30")},
+    input_html: {value: Config.maximum_booking_notice},
     as: :integer
 
 

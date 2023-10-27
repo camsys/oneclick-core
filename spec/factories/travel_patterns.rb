@@ -35,14 +35,14 @@ FactoryBot.define do
     trait :with_trip_purpose do
       before(:create) do |travel_pattern|
         new_purpose = create(:purpose, agency: travel_pattern.agency)
-        travel_pattern.purposes << new_purpose
+        travel_pattern.travel_pattern_purposes << build(:travel_pattern_purpose, purpose: new_purpose, travel_pattern: travel_pattern)  
       end
     end
 
     trait :with_funding_source do
       before(:create) do |travel_pattern|
         funding_source = create(:funding_source, agency: travel_pattern.agency)
-        travel_pattern.funding_sources << funding_source
+        travel_pattern.travel_pattern_funding_sources << build(:travel_pattern_funding_source, funding_source: funding_source, travel_pattern: travel_pattern)
       end
     end
   end

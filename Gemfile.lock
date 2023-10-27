@@ -1,6 +1,7 @@
 GIT
   remote: https://github.com/camsys/oneclick_refernet.git
-  revision: 45eba76e86f385bb6001f0e3d40deff2028d6a72
+  revision: f658e56f3e19093210d78ec82b1a571ace9b7899
+  branch: derek_azure
   specs:
     oneclick_refernet (0.5.9)
       active_model_serializers
@@ -11,7 +12,8 @@ GIT
 
 GIT
   remote: https://github.com/camsys/simple_translation_engine.git
-  revision: de5610da36dd51b8948704922a5f7761522b93e1
+  revision: 4a9c9ad1eeb35bd539aaa80ca53c7074ed62d762
+  branch: lydia_translation_engine
   specs:
     simple_translation_engine (1.1.3)
       pg
@@ -79,23 +81,32 @@ GEM
       execjs (~> 2)
     awesome_print (1.9.2)
     aws-eventstream (1.2.0)
-    aws-partitions (1.629.0)
-    aws-sdk-core (3.146.0)
+    aws-partitions (1.690.0)
+    aws-sdk-cloudwatch (1.73.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-core (3.168.4)
       aws-eventstream (~> 1, >= 1.0.2)
-      aws-partitions (~> 1, >= 1.525.0)
-      aws-sigv4 (~> 1.1)
+      aws-partitions (~> 1, >= 1.651.0)
+      aws-sigv4 (~> 1.5)
       jmespath (~> 1, >= 1.6.1)
-    aws-sdk-kms (1.58.0)
-      aws-sdk-core (~> 3, >= 3.127.0)
+    aws-sdk-kms (1.61.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.114.0)
-      aws-sdk-core (~> 3, >= 3.127.0)
+    aws-sdk-rds (1.179.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-route53 (1.71.0)
+      aws-sdk-core (~> 3, >= 3.165.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-s3 (1.117.2)
+      aws-sdk-core (~> 3, >= 3.165.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.4)
     aws-sdk-sns (1.55.0)
       aws-sdk-core (~> 3, >= 3.127.0)
       aws-sigv4 (~> 1.1)
-    aws-sigv4 (1.5.1)
+    aws-sigv4 (1.5.2)
       aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.18)
     better_errors (2.9.1)
@@ -113,7 +124,7 @@ GEM
     builder (3.2.4)
     byebug (11.1.3)
     cancancan (3.4.0)
-    carrierwave (2.2.2)
+    carrierwave (2.2.3)
       activemodel (>= 5.0.0)
       activesupport (>= 5.0.0)
       addressable (~> 2.6)
@@ -206,7 +217,7 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    jmespath (1.6.1)
+    jmespath (1.6.2)
     jquery-datatables-rails (3.4.0)
       actionpack (>= 3.1)
       jquery-rails
@@ -243,9 +254,9 @@ GEM
       mini_mime (>= 0.1.1)
     marcel (1.0.2)
     method_source (1.0.0)
-    mini_magick (4.11.0)
+    mini_magick (4.12.0)
     mini_mime (1.1.2)
-    minitest (5.16.3)
+    minitest (5.17.0)
     nio4r (2.5.8)
     nokogiri (1.13.8-arm64-darwin)
       racc (~> 1.4)
@@ -262,8 +273,9 @@ GEM
     phony_rails (0.15.0)
       activesupport (>= 3.0)
       phony (>= 2.18.12)
-    public_suffix (5.0.0)
-    puma (3.12.6)
+    public_suffix (5.0.1)
+    puma (6.0.0)
+      nio4r (~> 2.0)
     racc (1.6.0)
     rack (2.2.4)
     rack-cors (1.1.1)
@@ -429,6 +441,9 @@ DEPENDENCIES
   attr_encrypted (~> 3.0.0)
   autoprefixer-rails
   awesome_print
+  aws-sdk-cloudwatch
+  aws-sdk-rds
+  aws-sdk-route53
   aws-sdk-s3
   aws-sdk-sns
   better_errors
@@ -437,13 +452,13 @@ DEPENDENCIES
   bootstrap-sass (~> 3.3.6)
   byebug
   cancancan
-  carrierwave-aws (~> 1.1)
+  carrierwave-aws (~> 1.5)
   chartkick
   coffee-rails (~> 4.2)
   dbf
   devise
   em-http-request
-  factory_bot_rails (~> 4.11)
+  factory_bot_rails
   figaro
   geospatial-kml
   groupdate
@@ -460,9 +475,9 @@ DEPENDENCIES
   mini_magick
   oneclick_refernet!
   pagy (~> 5.10.1)
-  pg (~> 0.18)
+  pg (~> 0.21)
   phony_rails
-  puma (~> 3.0)
+  puma
   rack-cors
   rails (~> 5.0.1)
   rails-controller-testing

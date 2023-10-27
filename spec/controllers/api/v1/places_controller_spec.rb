@@ -33,6 +33,21 @@ RSpec.describe Api::V1::PlacesController, type: :controller do
     expect(parsed_response['record_count']).to eq(0)
   end
 
+  it 'searches by address' do
+
+    create :fenway_park
+    get :search, params: {search_string: "4 Yawkey Way"}, format: :json
+
+    json = JSON.parse(response.body)
+
+    # test for the 200 status-code
+    expect(response).to be_success
+
+    # There is only one search that matches
+    parsed_response = JSON.parse(response.body)
+    expect(parsed_response['record_count']).to eq(1)
+  end
+
   it "returns user's recent places, limited by count" do
     request.headers.merge!(request_headers) # Send user email and token headers
 

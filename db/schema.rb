@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20221230211336) do
+ActiveRecord::Schema.define(version: 20230915180247) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
     t.string   "code",                     null: false
@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer "service_id",       null: false
     t.integer "accommodation_id", null: false
     t.index ["accommodation_id"], name: "index_accommodations_services_on_accommodation_id", using: :btree
+    t.index ["service_id", "accommodation_id"], name: "idx_services_accommodations_on_service_id_and_accommodation_id", unique: true, using: :btree
     t.index ["service_id"], name: "index_accommodations_services_on_service_id", using: :btree
   end
 
@@ -42,6 +43,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer "user_id",          null: false
     t.integer "accommodation_id", null: false
     t.index ["accommodation_id"], name: "index_accommodations_users_on_accommodation_id", using: :btree
+    t.index ["user_id", "accommodation_id"], name: "index_accommodations_users_on_user_id_and_accommodation_id", unique: true, using: :btree
     t.index ["user_id"], name: "index_accommodations_users_on_user_id", using: :btree
   end
 
@@ -109,6 +111,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.datetime "estimated_pu"
     t.datetime "estimated_do"
     t.boolean  "created_in_1click", default: false
+    t.text     "note"
     t.index ["created_in_1click"], name: "index_bookings_on_created_in_1click", using: :btree
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
@@ -173,6 +176,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer "service_id",     null: false
     t.integer "eligibility_id", null: false
     t.index ["eligibility_id"], name: "index_eligibilities_services_on_eligibility_id", using: :btree
+    t.index ["service_id", "eligibility_id"], name: "index_eligibilities_services_on_service_id_and_eligibility_id", unique: true, using: :btree
     t.index ["service_id"], name: "index_eligibilities_services_on_service_id", using: :btree
   end
 
@@ -206,6 +210,19 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.index ["user_id"], name: "index_feedbacks_on_user_id", using: :btree
   end
 
+  create_table "find_services_histories", force: :cascade do |t|
+    t.integer  "user_id"
+    t.inet     "user_ip"
+    t.string   "user_starting_location"
+    t.decimal  "user_starting_lat",        precision: 10, scale: 6
+    t.decimal  "user_starting_lng",        precision: 10, scale: 6
+    t.string   "service_sub_sub_category"
+    t.integer  "trip_id"
+    t.datetime "created_at",                                        null: false
+    t.datetime "updated_at",                                        null: false
+    t.index ["user_id"], name: "index_find_services_histories_on_user_id", using: :btree
+  end
+
   create_table "funding_sources", force: :cascade do |t|
     t.string   "name",        null: false
     t.string   "description", null: false
@@ -231,6 +248,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer  "wait_time"
     t.boolean  "assistant"
     t.integer  "companions"
+    t.string   "note"
     t.index ["service_id"], name: "index_itineraries_on_service_id", using: :btree
     t.index ["trip_id"], name: "index_itineraries_on_trip_id", using: :btree
     t.index ["trip_type"], name: "index_itineraries_on_trip_type", using: :btree
@@ -267,9 +285,11 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.geometry "geom",          limit: {:srid=>4326, :type=>"st_point"}
     t.string   "county"
     t.integer  "agency_id"
+    t.text     "search_text"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
-    t.index ["name"], name: "idx_landmarks_on_name", using: :btree
+    t.index ["name"], name: "index_landmarks_on_name", using: :btree
+    t.index ["search_text"], name: "index_landmarks_on_search_text", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -317,9 +337,10 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.string    "site_name"
     t.text      "description"
     t.geography "latlngg",                 limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-    t.integer   "refernet_service_id"
-    t.integer   "refernet_location_id"
-    t.integer   "refernet_servicesite_id"
+    t.string    "refernet_service_id"
+    t.string    "refernet_location_id"
+    t.string    "refernet_servicesite_id"
+    t.text      "location_details"
     t.index ["latlng"], name: "index_oneclick_refernet_services_on_latlng", using: :gist
     t.index ["latlngg"], name: "index_oneclick_refernet_services_on_latlngg", using: :gist
   end
@@ -348,10 +369,12 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   create_table "oneclick_refernet_sub_sub_categories", force: :cascade do |t|
     t.string   "name"
     t.integer  "sub_category_id"
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
-    t.boolean  "confirmed",       default: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.boolean  "confirmed",            default: false
     t.string   "code"
+    t.string   "taxonomy_code"
+    t.string   "refernet_category_id"
     t.index ["name"], name: "index_oneclick_refernet_sub_sub_categories_on_name", using: :btree
     t.index ["sub_category_id"], name: "index_oneclick_refernet_sub_sub_categories_on_sub_category_id", using: :btree
   end
@@ -380,6 +403,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.integer "service_id", null: false
     t.integer "purpose_id", null: false
     t.index ["purpose_id"], name: "index_purposes_services_on_purpose_id", using: :btree
+    t.index ["service_id", "purpose_id"], name: "index_purposes_services_on_service_id_and_purpose_id", unique: true, using: :btree
     t.index ["service_id"], name: "index_purposes_services_on_service_id", using: :btree
   end
 
@@ -390,7 +414,8 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.geometry "geom",       limit: {:srid=>4326, :type=>"multi_polygon"}
   end
 
-  create_table "request_logs", force: :cascade do |t|
+  create_table "request_logs", id: false, force: :cascade do |t|
+    t.serial   "id",          null: false
     t.string   "controller"
     t.string   "action"
     t.string   "status_code"
@@ -486,11 +511,17 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.text     "booking_details"
     t.integer  "max_age",              default: 200,   null: false
     t.integer  "min_age",              default: 0,     null: false
+    t.integer  "start_area_id"
+    t.integer  "end_area_id"
+    t.integer  "eligible_max_age",     default: 0,     null: false
+    t.integer  "eligible_min_age",     default: 200,   null: false
     t.index ["agency_id"], name: "index_services_on_agency_id", using: :btree
     t.index ["archived"], name: "index_services_on_archived", using: :btree
+    t.index ["end_area_id"], name: "index_services_on_end_area_id", using: :btree
     t.index ["gtfs_agency_id"], name: "index_services_on_gtfs_agency_id", using: :btree
     t.index ["name"], name: "index_services_on_name", using: :btree
     t.index ["published"], name: "index_services_on_published", using: :btree
+    t.index ["start_area_id"], name: "index_services_on_start_area_id", using: :btree
     t.index ["start_or_end_area_id"], name: "index_services_on_start_or_end_area_id", using: :btree
     t.index ["trip_within_area_id"], name: "index_services_on_trip_within_area_id", using: :btree
   end
@@ -622,6 +653,9 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.string   "external_purpose"
     t.text     "details"
     t.string   "disposition_status",    default: "Unknown Disposition"
+    t.integer  "user_age"
+    t.inet     "user_ip"
+    t.text     "note"
     t.index ["arrive_by"], name: "index_trips_on_arrive_by", using: :btree
     t.index ["destination_id"], name: "index_trips_on_destination_id", using: :btree
     t.index ["details"], name: "index_trips_on_details", using: :btree
@@ -703,6 +737,8 @@ ActiveRecord::Schema.define(version: 20221230211336) do
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
     t.integer  "current_agency_id"
+    t.string   "county"
+    t.string   "paratransit_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
@@ -758,6 +794,7 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "custom_geographies", "agencies"
+  add_foreign_key "find_services_histories", "users"
   add_foreign_key "funding_sources", "agencies"
   add_foreign_key "itineraries", "services"
   add_foreign_key "itineraries", "trips"
@@ -776,6 +813,8 @@ ActiveRecord::Schema.define(version: 20221230211336) do
   add_foreign_key "service_oversight_agencies", "agencies", column: "oversight_agency_id", on_delete: :cascade
   add_foreign_key "service_oversight_agencies", "services", on_delete: :cascade
   add_foreign_key "services", "agencies"
+  add_foreign_key "services", "regions", column: "end_area_id"
+  add_foreign_key "services", "regions", column: "start_area_id"
   add_foreign_key "services", "regions", column: "start_or_end_area_id"
   add_foreign_key "services", "regions", column: "trip_within_area_id"
   add_foreign_key "stomping_grounds", "users"

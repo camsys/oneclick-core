@@ -36,7 +36,7 @@ Warden::Manager.before_failure do |env, opts|
     Rails.application.config.logger.info(JSON::dump(json))
   rescue
     puts "Warden Auth Failure Logging Failed"
-    return
+    exit
   end
 end
 

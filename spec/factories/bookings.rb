@@ -3,9 +3,9 @@ FactoryBot.define do
     itinerary
     
     factory :ride_pilot_booking, class: "RidePilotBooking" do
-      type "RidePilotBooking"
-      status "requested"
-      confirmation "12345"
+      type { "RidePilotBooking" }
+      status { "requested" }
+      confirmation { "12345" }
       details { {
              "trip_id" => 1554,
          "pickup_time" => "2017-08-13T07:09:00-06:00",
@@ -19,11 +19,11 @@ FactoryBot.define do
           } }
           
       trait :canceled do
-        status "CANC"        
+        status { "CANC" }        
       end
       
       trait :booked do
-        status "requested"
+        status { "requested" }
       end
       
     end
