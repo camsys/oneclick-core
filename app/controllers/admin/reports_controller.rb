@@ -309,4 +309,9 @@ class Admin::ReportsController < Admin::AdminController
     bool_param.try(:to_bool) || (bool_param.try(:to_i) == 1)
   end
 
+  def filter_download_tables
+    return DOWNLOAD_TABLES unless Config.dashboard_mode.to_sym == :travel_patterns
+
+    DOWNLOAD_TABLES - ['Find Services', 'Feedback', 'Feedback Aggregated']
+  end
 end
