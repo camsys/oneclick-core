@@ -1,3 +1,4 @@
+helper_method :in_travel_patterns_mode?
 - cannot_update_agency = cannot? :update, @agency
 - viewing_oversight_as_transit = current_user.currently_transportation? && @agency.type == 'OversightAgency'
 =content_for :header do
@@ -14,7 +15,8 @@
   =f.input :url, readonly: cannot_update_agency || viewing_oversight_as_transit
   =f.input :phone, readonly: cannot_update_agency || viewing_oversight_as_transit
   =f.input :email, readonly: cannot_update_agency || viewing_oversight_as_transit
-  =f.input :agency_code, label: 'Agency Code', readonly: cannot_update_agency || viewing_oversight_as_transit
+  - if in_travel_patterns_mode?
+    =f.input :agency_code, label: 'Survey Agency Code', readonly: cannot_update_agency || viewing_oversight_as_transit
   =render partial: "shared/description_fields", locals: { form: f, record: @agency, override_readonly: viewing_oversight_as_transit }
 
   -# For type-specific fields

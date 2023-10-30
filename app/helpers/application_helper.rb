@@ -136,7 +136,10 @@ module ApplicationHelper
     }
     alert_mappings[type.to_sym] || type.to_s
   end
-  
+
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
+  end
   ### miscellaneous helpers ###
 
 end
