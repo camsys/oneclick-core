@@ -14,6 +14,7 @@
   =f.input :url, readonly: cannot_update_agency || viewing_oversight_as_transit
   =f.input :phone, readonly: cannot_update_agency || viewing_oversight_as_transit
   =f.input :email, readonly: cannot_update_agency || viewing_oversight_as_transit
+  =f.input :agency_code, label: 'Agency Code', readonly: cannot_update_agency || viewing_oversight_as_transit
   =render partial: "shared/description_fields", locals: { form: f, record: @agency, override_readonly: viewing_oversight_as_transit }
 
   -# For type-specific fields
