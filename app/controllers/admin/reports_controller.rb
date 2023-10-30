@@ -25,6 +25,7 @@ class Admin::ReportsController < Admin::AdminController
   before_action :authorize_reports
   
   def index
+    @download_tables = filter_download_tables
     @download_tables = DOWNLOAD_TABLES
     @dashboards = DASHBOARDS
     @groupings = GROUPINGS
@@ -78,6 +79,12 @@ class Admin::ReportsController < Admin::AdminController
       action: action_name, 
       format: :csv
     }.merge(filters))
+  end
+
+  def filter_download_tables
+    return DOWNLOAD_TABLES unless Config.dashboard_mode.to_sym == :travel_patterns
+
+    DOWNLOAD_TABLES - ['Find Services', 'Feedback', 'Feedback Aggregated']
   end
   
   # TODO (Drew) Array addition is slow, plus we're sending multiple queries. This can be improved.
