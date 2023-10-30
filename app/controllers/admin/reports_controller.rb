@@ -26,7 +26,6 @@ class Admin::ReportsController < Admin::AdminController
   
   def index
     @download_tables = filter_download_tables
-    @download_tables = DOWNLOAD_TABLES
     @dashboards = DASHBOARDS
     @groupings = GROUPINGS
   end
