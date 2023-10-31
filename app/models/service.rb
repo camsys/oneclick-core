@@ -263,11 +263,7 @@ class Service < ApplicationRecord
   #################
 
   ### CONSTANTS ###
-  if Config.dashboard_mode.to_sym == :travel_patterns
-    SERVICE_TYPES = ['Paratransit']
-  else
-    SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
-  end
+  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
 
 
 
@@ -459,6 +455,10 @@ class Service < ApplicationRecord
   # Helper scope constructs a query for empty regions
   scope :empty_region, -> (region="") do
     where("ST_IsEmpty(regions.geom)")
+  end
+
+  def self.service_types
+    Config.dashboard_mode.to_sym == :travel_patterns ? ['Paratransit'] : ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
   end
 
 end

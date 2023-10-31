@@ -123,7 +123,7 @@ class TripPlanner
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
   def available_services_hash(services)
-    Service::SERVICE_TYPES.map do |t| 
+    Service.service_types.map do |t| 
       [t.underscore.to_sym, services.where(type: t)]
     end.to_h.merge({ all: services })
   end
