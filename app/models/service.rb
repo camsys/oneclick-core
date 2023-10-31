@@ -263,7 +263,7 @@ class Service < ApplicationRecord
   #################
 
   ### CONSTANTS ###
-  SERVICE_TYPES = ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
+  SERVICE_TYPES = Config.dashboard_mode.to_sym == :travel_patterns ? ['Paratransit'] : ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
 
 
 
