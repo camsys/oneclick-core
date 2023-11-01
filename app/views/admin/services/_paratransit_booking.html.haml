@@ -14,7 +14,7 @@
   =f.input :booking_api, 
       input_html: {class: 'booking-api'},
       readonly: should_be_readonly,
-      collection: Booking::BOOKING_TYPES.map {|code, name| [code.to_s.camelcase, code] }
+      collection: Booking.available_booking_types.map { |code, name| [code.to_s.camelcase, code] }
   
   -booking_details = @service.booking_details || {}
   
