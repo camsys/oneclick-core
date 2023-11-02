@@ -25,7 +25,7 @@ class Admin::ReportsController < Admin::AdminController
   before_action :authorize_reports
   
   def index
-    @download_tables = DOWNLOAD_TABLES
+    @download_tables = filter_download_tables
     @dashboards = DASHBOARDS
     @groupings = GROUPINGS
   end
@@ -79,6 +79,12 @@ class Admin::ReportsController < Admin::AdminController
       format: :csv
     }.merge(filters))
   end
+
+  def filter_download_tables
+    return DOWNLOAD_TABLES unless Config.dashboard_mode.to_sym == :travel_patterns
+
+    DOWNLOAD_TABLES - ['Find Services', 'Feedback', 'Feedback Aggregated']
+  end
   
   # TODO (Drew) Array addition is slow, plus we're sending multiple queries. This can be improved.
   def users_table
@@ -120,8 +126,12 @@ class Admin::ReportsController < Admin::AdminController
     end
     @trips = @trips.order(:trip_time)
     respond_to do |format|
-      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT) }
+      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
+  end
+
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
   end
 
   def feedback_table    
@@ -299,4 +309,9 @@ class Admin::ReportsController < Admin::AdminController
     bool_param.try(:to_bool) || (bool_param.try(:to_i) == 1)
   end
 
+  def filter_download_tables
+    return DOWNLOAD_TABLES unless Config.dashboard_mode.to_sym == :travel_patterns
+
+    DOWNLOAD_TABLES - ['Find Services', 'Feedback', 'Feedback Aggregated']
+  end
 end

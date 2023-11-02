@@ -10,6 +10,25 @@ module Admin
             :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
     associations :origin, :destination, :user, :selected_itinerary
 
+    FMR_COLUMNS = [
+      :trip_time, :traveler, :arrive_by, :disposition_status, 
+      :selected_trip_type, :purpose, :orig_addr, :orig_lat, :orig_lng, 
+      :dest_addr, :dest_lat, :dest_lng
+    ]
+
+    def self.in_travel_patterns_mode?
+      Config.dashboard_mode.to_sym == :travel_patterns
+    end
+
+    def headers
+      if self.class.in_travel_patterns_mode?
+        # Only include FMR_COLUMNS if in travel patterns mode
+        self.class.headers.slice(*FMR_COLUMNS)
+      else
+        self.class.headers
+      end
+    end
+
     def trip_id
       @record.id
     end
