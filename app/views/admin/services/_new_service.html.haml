@@ -2,7 +2,7 @@
   = "Create a New Service"
 
 = f.input :name, required: true, :as => :string
-= f.input :type, required: true, collection: Service::SERVICE_TYPES, include_blank: "Select a Service Type"
+= f.input :type, required: true, collection: Service.service_types, include_blank: "Select a Service Type"
 -# Transportation Agency field is readonly if the user is not a super user or an oversight user viewing as oversight
 - disable_agency_field = !(current_user.superuser? || (current_user.currently_oversight?))
 = f.input :agency_id,
