@@ -141,7 +141,6 @@ class Admin::UsersController < Admin::AdminController
       raise ActiveRecord::Rollback unless @user.valid?
     end
   end
-
   def replace_user_role(role, agency_id)
     ag = agency_id != '' ? Agency.find_by(id: agency_id) : nil
     User.transaction do
@@ -169,8 +168,8 @@ class Admin::UsersController < Admin::AdminController
       else
         raise ActiveRecord::Rollback
       end
-    
     end
+  end
 
   # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
