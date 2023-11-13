@@ -143,27 +143,31 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def replace_user_role(role, agency_id)
-    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    ag = agency_id != '' ? Agency.find_by(id: agency_id) : nil
     User.transaction do
       # If the user can read the selected agency and manage roles
       # then assign the input role and agency to the user
       if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
-        # If @user is an oversight user, then reset the current_agency_id field to null
-        # This prevents strange interactions due to a potentially stale value in comparison to
-        # the new non-oversight role
-        if @user.oversight_user?
+  
+        # Check if the user is currently an oversight user and will no longer be one
+        is_switching_from_oversight = @user.oversight_user? && !role.eql?('oversight')
+  
+        @user.remove_role(last_role.name, last_role.resource)
+        @user.set_role(role, ag)
+  
+        # If @user is switching from an oversight role to a different role,
+        # then reset the current_agency_id field to null
+        if is_switching_from_oversight
           @user.current_agency = nil
         end
-
-        @user.remove_role(last_role.name,last_role.resource)
-        @user.set_role(role, ag)
+      
       else
         raise ActiveRecord::Rollback
       end
       raise ActiveRecord::Rollback unless @user.valid?
     end
-  end
+  end  
 
   # NOTE: Is the below dead code with the new agency restrictions/ role handling??
   # Set admin role on @user if current_user has permissions
