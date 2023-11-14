@@ -145,33 +145,34 @@ class TripPlanner
     walk_seen = false
     max_walk_minutes = Config.max_walk_minutes
     max_walk_distance = Config.max_walk_distance
-    walk_selected = @trip.itineraries.map(&:trip_type).include?('walk')
-  
     itineraries = @trip.itineraries.map do |itin|
-      ## Test: Make sure we never exceed the maximum walk time
-      next if itin.walk_time and itin.walk_time > max_walk_minutes*60
-  
+
+      ## Test: Make sure we never exceed the maximium walk time
+      if itin.walk_time and itin.walk_time > max_walk_minutes*60
+        next
+      end
+
       ## Test: Make sure that we only ever return 1 walk trip
-      next if itin.walk_time and itin.duration and itin.walk_time == itin.duration and walk_seen
-  
-      walk_seen = true if itin.walk_time and itin.duration and itin.walk_time == itin.duration
-  
-      # Test: Filter out itineraries where walking is the only mode and walking is deselected
-      if !walk_selected && itin.trip_type == 'transit' && itin.legs.first['distance'] >= itin.walk_distance
+      if itin.walk_time and itin.duration and itin.walk_time == itin.duration 
+        if walk_seen
+          next 
+        else 
+          walk_seen = true 
+        end
+      end
+
+      # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
+      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
-  
-      # Test: Filter out itineraries where user has deselected walking as a trip type and any walking leg exceeds the maximum walk distance
-      if !walk_selected && itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
-        next
-      end
-  
+
       ## We've passed all the tests
       itin 
     end
-  
-    @trip.itineraries = itineraries.compact
-  end  
+    itineraries.delete(nil)
+
+    @trip.itineraries = itineraries
+  end
 
   # Calls the requisite trip_type itineraries method
   def build_itineraries(trip_type)
