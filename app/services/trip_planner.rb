@@ -161,6 +161,11 @@ class TripPlanner
         end
       end
 
+      # Test: Filter out itineraries where walking is the only mode and walking is deselected
+      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.first['distance'] >= itin.walk_distance
+        next
+      end
+
       # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
       if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
