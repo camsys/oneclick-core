@@ -173,6 +173,13 @@ class TripPlanner
         next
       end
 
+      # Test: Only apply max_walk_distance if walking is not selected as a trip type
+      if !@trip.itineraries.map(&:trip_type).include?('walk')
+        if itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+          next
+        end
+      end
+
       ## We've passed all the tests
       itin 
     end
