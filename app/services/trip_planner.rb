@@ -145,38 +145,32 @@ class TripPlanner
     walk_seen = false
     max_walk_minutes = Config.max_walk_minutes
     max_walk_distance = Config.max_walk_distance
+    walk_selected = @trip.itineraries.map(&:trip_type).include?('walk')
     itineraries = @trip.itineraries.map do |itin|
   
-      # Test: Make sure we never exceed the maximum walk time
-      if itin.walk_time and itin.walk_time > max_walk_minutes*60
+      # Skip itineraries exceeding maximum walk time
+      next if itin.walk_time && itin.walk_time > max_walk_minutes * 60
+  
+      # Only allow one walk trip
+      if itin.walk_time && itin.duration && itin.walk_time == itin.duration 
+        next if walk_seen
+        walk_seen = true 
+      end
+  
+      # Exclude itineraries where all legs are walking but labeled as 'transit' when walk is deselected
+      if !walk_selected && itin.trip_type == 'transit' && itin.legs.all? { |leg| leg['mode'] == 'WALK' }
         next
       end
   
-      # Test: Make sure that we only ever return 1 walk trip
-      if itin.walk_time and itin.duration and itin.walk_time == itin.duration 
-        if walk_seen
-          next 
-        else 
-          walk_seen = true 
-        end
-      end
-  
-      # Test: Exclude walk-only trips labeled as 'transit' when walk is deselected
-      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.all? { |leg| leg['mode'] == 'WALK' }
+      # Exclude itineraries with walking legs exceeding max walk distance
+      if !walk_selected && itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
   
-      # Test: Filter out itineraries where walking is a part of a transit trip and exceeds the maximum walk distance
-      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
-        next
-      end
-  
-      # We've passed all the tests
-      itin 
+      itin
     end
-    itineraries.compact!
   
-    @trip.itineraries = itineraries
+    @trip.itineraries = itineraries.compact
   end  
 
   # Calls the requisite trip_type itineraries method
