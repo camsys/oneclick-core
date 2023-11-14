@@ -146,28 +146,28 @@ class TripPlanner
     max_walk_minutes = Config.max_walk_minutes
     max_walk_distance = Config.max_walk_distance
     walk_selected = @trip.itineraries.map(&:trip_type).include?('walk')
+  
     itineraries = @trip.itineraries.map do |itin|
+      ## Test: Make sure we never exceed the maximum walk time
+      next if itin.walk_time and itin.walk_time > max_walk_minutes*60
   
-      # Skip itineraries exceeding maximum walk time
-      next if itin.walk_time && itin.walk_time > max_walk_minutes * 60
+      ## Test: Make sure that we only ever return 1 walk trip
+      next if itin.walk_time and itin.duration and itin.walk_time == itin.duration and walk_seen
   
-      # Only allow one walk trip
-      if itin.walk_time && itin.duration && itin.walk_time == itin.duration 
-        next if walk_seen
-        walk_seen = true 
-      end
+      walk_seen = true if itin.walk_time and itin.duration and itin.walk_time == itin.duration
   
-      # Exclude walk-only trips when walking is deselected
-      if !walk_selected && itin.legs.first['mode'] == 'WALK' && itin.walk_distance == itin.legs.first['distance']
+      # Test: Filter out itineraries where walking is the only mode and walking is deselected
+      if !walk_selected && itin.trip_type == 'transit' && itin.legs.first['distance'] >= itin.walk_distance
         next
       end
   
-      # Exclude itineraries with walking legs exceeding max walk distance
-      if !walk_selected && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+      # Test: Filter out itineraries where user has deselected walking as a trip type and any walking leg exceeds the maximum walk distance
+      if !walk_selected && itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
   
-      itin
+      ## We've passed all the tests
+      itin 
     end
   
     @trip.itineraries = itineraries.compact
