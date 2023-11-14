@@ -146,34 +146,38 @@ class TripPlanner
     max_walk_minutes = Config.max_walk_minutes
     max_walk_distance = Config.max_walk_distance
     itineraries = @trip.itineraries.map do |itin|
-
-      ## Test: Make sure we never exceed the maximium walk time
-      if itin.walk_time and itin.walk_time > max_walk_minutes*60
+  
+      # Skip itinerary if it exceeds the maximum walk time
+      if itin.walk_time && itin.walk_time > max_walk_minutes * 60
         next
       end
-
-      ## Test: Make sure that we only ever return 1 walk trip
-      if itin.walk_time and itin.duration and itin.walk_time == itin.duration 
+  
+      # Skip additional walk-only itineraries
+      if itin.walk_time && itin.duration && itin.walk_time == itin.duration 
         if walk_seen
           next 
         else 
           walk_seen = true 
         end
       end
-
-      # Test: Filter out itineraries where user has de-selected walking as a trip type, kept transit, and any walking leg in the transit trip exceeds the maximum walk distance
-      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit' && itin.legs.detect { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
-        next
+  
+      # Skip itineraries labeled as "transit" but are actually walk-only, especially when walk is deselected
+      if !@trip.itineraries.map(&:trip_type).include?('walk') && itin.trip_type == 'transit'
+        # Check if all legs are walking legs and any leg exceeds max walk distance
+        all_walk_legs = itin.legs.all? { |leg| leg['mode'] == 'WALK' }
+        exceeds_max_walk = itin.legs.any? { |leg| leg['distance'] > max_walk_distance }
+        if all_walk_legs || exceeds_max_walk
+          next
+        end
       end
-
-      ## We've passed all the tests
-      itin 
-    end
-    itineraries.delete(nil)
-
+  
+      # The itinerary passes all checks
+      itin
+    end.compact
+  
     @trip.itineraries = itineraries
   end
-
+    
   # Calls the requisite trip_type itineraries method
   def build_itineraries(trip_type)
     catch_errors(trip_type)
