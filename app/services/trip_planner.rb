@@ -157,8 +157,8 @@ class TripPlanner
         walk_seen = true 
       end
   
-      # Exclude itineraries where all legs are walking but labeled as 'transit' when walk is deselected
-      if !walk_selected && itin.trip_type == 'transit' && itin.legs.all? { |leg| leg['mode'] == 'WALK' }
+      # Exclude walk-only itineraries when walk is deselected
+      if !walk_selected && itin.transit_time == 0 && (itin.walk_time.present? || itin.walk_distance.present?)
         next
       end
   
