@@ -157,13 +157,13 @@ class TripPlanner
         walk_seen = true 
       end
   
-      # Exclude walk-only itineraries when walk is deselected
-      if !walk_selected && itin.transit_time == 0 && (itin.walk_time.present? || itin.walk_distance.present?)
+      # Exclude walk-only trips when walking is deselected
+      if !walk_selected && itin.legs.first['mode'] == 'WALK' && itin.walk_distance == itin.legs.first['distance']
         next
       end
   
       # Exclude itineraries with walking legs exceeding max walk distance
-      if !walk_selected && itin.trip_type == 'transit' && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
+      if !walk_selected && itin.legs.any? { |leg| leg['mode'] == 'WALK' && leg["distance"] > max_walk_distance }
         next
       end
   
