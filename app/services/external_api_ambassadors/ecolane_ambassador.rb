@@ -31,8 +31,10 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_funding_sources = @service.preferred_funding_source_names
     @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
     @ada_funding_sources = @service.ada_funding_source_names + [nil]
-    @dummy = @service.booking_details.fetch(:dummy_user)
-    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources)
+
+    # These aren't used right now, they will always be null FMRPA-200
+    @dummy = @service.booking_details.fetch(:dummy_user, nil)
+    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources, nil)
     if @guest_funding_sources
       @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
         { code: x.split(',').first.strip, desc: x.split(',').last.strip }
@@ -41,7 +43,7 @@ class EcolaneAmbassador < BookingAmbassador
       puts '*** no guest funding sources ***'
       @guest_funding_sources = []
     end
-    @guest_purpose = @service.booking_details.fetch(:guest_purpose)
+    @guest_purpose = @service.booking_details.fetch(:guest_purpose, nil)
 
     @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
