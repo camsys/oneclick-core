@@ -31,8 +31,10 @@ class EcolaneAmbassador < BookingAmbassador
     @preferred_funding_sources = @service.preferred_funding_source_names
     @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
     @ada_funding_sources = @service.ada_funding_source_names + [nil]
-    @dummy = @service.booking_details.fetch(:dummy_user)
-    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources)
+    
+    # These aren't used right now, they will always be null
+    @dummy = @service.booking_details.fetch(:dummy_user, nil)
+    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources, nil)
     if @guest_funding_sources
       @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
         { code: x.split(',').first.strip, desc: x.split(',').last.strip }
