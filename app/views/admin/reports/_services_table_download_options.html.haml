@@ -2,7 +2,7 @@
 -# SERVICE TYPE (e.g. paratransit, taxi, etc.)
 = f.input :service_type, 
     required: false, 
-    collection: Service::SERVICE_TYPES, 
+    collection: Service.service_types, 
     include_blank: "Select a Service Type",
     label: "Service Type"
 

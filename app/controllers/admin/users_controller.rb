@@ -141,27 +141,33 @@ class Admin::UsersController < Admin::AdminController
       raise ActiveRecord::Rollback unless @user.valid?
     end
   end
-
   def replace_user_role(role, agency_id)
-    ag = agency_id != '' ? Agency.find_by(id:agency_id) : nil
+    ag = agency_id != '' ? Agency.find_by(id: agency_id) : nil
     User.transaction do
-      # If the user can read the selected agency and manage roles
-      # then assign the input role and agency to the user
+      # Check if the user can read the selected agency and manage roles
       if (can? :show, ag || ag.nil?) && (can? :manage, Role)
         last_role = @user.roles.last
-        # If @user is an oversight user, then reset the current_agency_id field to null
-        # This prevents strange interactions due to a potentially stale value in comparison to
-        # the new non-oversight role
-        if @user.oversight_user?
+
+        # Store the current oversight status before removing the role
+        was_oversight_user = @user.oversight_user?
+
+        # Remove the last role and assign the new role
+        @user.remove_role(last_role.name, last_role.resource)
+        @user.set_role(role, ag)
+
+        # If the user was an oversight user and the new role is not oversight,
+        # then reset the current_agency_id field to null
+        if was_oversight_user && !@user.has_role?(role)
           @user.current_agency = nil
         end
 
-        @user.remove_role(last_role.name,last_role.resource)
-        @user.set_role(role, ag)
+        # Save changes and check for validity
+        unless @user.save && @user.valid?
+          raise ActiveRecord::Rollback
+        end
       else
         raise ActiveRecord::Rollback
       end
-      raise ActiveRecord::Rollback unless @user.valid?
     end
   end
 

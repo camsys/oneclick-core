@@ -44,5 +44,14 @@ class Booking < ApplicationRecord
   def to_h
     self.attributes
   end
+
+  # Filters out irrelevant booking types for FMR
+  def self.available_booking_types
+    if Config.dashboard_mode.to_sym == :travel_patterns
+      { ecolane: "EcolaneBooking" }
+    else
+      BOOKING_TYPES
+    end
+  end
   
 end

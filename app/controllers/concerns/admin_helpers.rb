@@ -15,7 +15,7 @@ module AdminHelpers
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },
       { label: "Staff",           url: urls.staff_admin_users_path,           show: can?(:manage, User) },
       { label: "Translations",    url: simple_translation_engine.translations_path, show: can?(:read, Translation) },
-      { label: "Travelers",       url: urls.travelers_admin_users_path, show: can?(:read, User) },
+      { label: "Travelers",       url: urls.travelers_admin_users_path, show: can?(:read, User) && (current_user.oversight_admin? || current_user.superuser?) },
       { label: "My Agency",
         url: my_agency,
         show: current_user.staff_agency.present? }

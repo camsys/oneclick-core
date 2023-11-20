@@ -457,4 +457,8 @@ class Service < ApplicationRecord
     where("ST_IsEmpty(regions.geom)")
   end
 
+  def self.service_types
+    Config.dashboard_mode.to_sym == :travel_patterns ? ['Paratransit'] : ['Transit', 'Paratransit', 'Taxi', 'Uber', 'Lyft']
+  end
+
 end

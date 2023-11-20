@@ -115,6 +115,7 @@ class Admin::AgenciesController < Admin::AdminController
       :phone,
       :email,
       :logo,
+      :agency_code,
       :published
     ]
   end
