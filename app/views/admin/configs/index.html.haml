@@ -1,7 +1,9 @@
 =content_for :title do
   Configuration
 
-=render partial: 'trip_planning_apis', layout: '/layouts/panel'
-=render partial: 'booking_apis', layout: '/layouts/panel'
-=render partial: 'scheduled_tasks', layout: '/layouts/panel'
-=render partial: 'miscellaneous', layout: 'layouts/panel'
+- if @is_super_user || !@in_travel_patterns
+  = render partial: 'trip_planning_apis', layout: '/layouts/panel'
+  = render partial: 'booking_apis', layout: '/layouts/panel'
+  = render partial: 'scheduled_tasks', layout: '/layouts/panel'
+
+= render partial: 'miscellaneous', layout: 'layouts/panel'

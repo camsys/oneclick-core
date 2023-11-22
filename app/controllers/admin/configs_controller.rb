@@ -11,6 +11,7 @@ class Admin::ConfigsController < Admin::AdminController
   authorize_resource
   before_action :load_configs, only: [:index, :update]
   helper_method :build_dashboard_mode_collection
+  helper_method :in_travel_patterns_mode?
 
   PERMITTED_CONFIGS = [
     :application_title,
@@ -47,6 +48,8 @@ class Admin::ConfigsController < Admin::AdminController
 
   def index
     @dashboard_mode_collection = build_dashboard_mode_collection
+    @in_travel_patterns = in_travel_patterns_mode?
+    @is_super_user = current_user.superuser?
   end
   
   def update
@@ -100,4 +103,9 @@ class Admin::ConfigsController < Admin::AdminController
       DashboardModeInputHelper.new(mode)
     end
   end
+
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
+  end
+
 end
