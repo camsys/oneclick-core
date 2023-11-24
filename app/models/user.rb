@@ -75,13 +75,12 @@ class User < ApplicationRecord
   validate :password_complexity
 
   ### Attribute Accessors ###
-  attr_accessor :county
 
   ### Instance Methods ###
   # Custom initializer with instance variable instantiation
   def initialize(attributes={})
     super
-    @county ||= return_county_if_ecolane_email
+    @county ||= return_county_if_ecolane_email unless @county.present?
   end
 
 
