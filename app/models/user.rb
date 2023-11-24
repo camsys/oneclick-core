@@ -75,7 +75,6 @@ class User < ApplicationRecord
   validate :password_complexity
 
   ### Attribute Accessors ###
-  attr_accessor :county
 
   ### Instance Methods ###
   # Custom initializer with instance variable instantiation
