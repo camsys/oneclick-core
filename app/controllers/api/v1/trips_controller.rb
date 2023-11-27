@@ -410,7 +410,7 @@ module Api
             google_place_attributes: [
               { address_components: [ :long_name, :short_name, {types: []} ] },
               { geometry: [{location: [:lat, :lng]}] }, 
-              :name, :formatted_address, :place_id
+              :name, :formatted_address, :place_id, :original_name
             ]
           }
         ]
