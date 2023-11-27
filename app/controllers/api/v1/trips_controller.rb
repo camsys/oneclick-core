@@ -31,18 +31,9 @@ module Api
         api_v2_params = params[:trips]
 
         trips_params = {}
-
+        
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
-
-            if trip[:origin_attributes][:google_place_attributes][:original_name].present?
-              trip[:origin_attributes][:google_place_attributes][:name] = trip[:origin_attributes][:google_place_attributes][:original_name]
-            end
-
-            if trip[:destination_attributes][:google_place_attributes][:original_name].present?
-              trip[:destination_attributes][:google_place_attributes][:name] = trip[:destination_attributes][:google_place_attributes][:original_name]
-            end
-
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
@@ -64,12 +55,20 @@ module Api
             }))
           end
         elsif api_v2_params
-          params[:trips].map do |trip|
-            # Apply the original_name before trip_params call
+          trips_params = params[:trips].map do |t|
+            # Assign the original_name to name in google_place_attributes if present
+            if t.dig(:origin_attributes, :google_place_attributes, :original_name).present?
+              t[:origin_attributes][:google_place_attributes][:name] = t[:origin_attributes][:google_place_attributes][:original_name]
+            end
 
-            trip_params(trip)
+            if t.dig(:destination_attributes, :google_place_attributes, :original_name).present?
+              t[:destination_attributes][:google_place_attributes][:name] = t[:destination_attributes][:google_place_attributes][:original_name]
+            end
+
+            trip_params(t)
           end
-        else # For creating a single trip
+        else
+          # Handling for a single trip
           trips_params = [trip_params(params)]
         end
 
