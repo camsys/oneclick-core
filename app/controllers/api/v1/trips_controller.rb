@@ -102,11 +102,10 @@ module Api
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
             
-            # Restore the full names for origin and destination
             [origin_place, destination_place].each do |place|
-              # Retrieve the full name from the session using the short name
-              full_name = session[place[:name]]
-              place[:name] = full_name if full_name.present?
+              if place[:google_place_attributes][:original_name].present?
+                place[:name] = place[:google_place_attributes][:original_name]
+              end
             end
 
             return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
