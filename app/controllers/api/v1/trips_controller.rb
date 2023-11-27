@@ -101,6 +101,12 @@ module Api
             
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+            
+            # Restore the full names for origin and destination
+            [origin_place, destination_place].each do |place|
+              matching_landmark = Landmark.find_by(lat: place[:lat], lng: place[:lng])
+              place[:name] = matching_landmark.name if matching_landmark
+            end
 
             return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
             return render(status: 404, json: destination_place) unless Landmark.place_exists?(destination_place)
