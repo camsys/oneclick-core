@@ -106,7 +106,7 @@ module Api
             [origin_place, destination_place].each do |place|
               place[:name] = place[:original_name] if place[:original_name].present?
               if place[:google_place_attributes] && place[:google_place_attributes][:original_name].present?
-                place[:name] = place[:google_place_attributes][:original_name]
+                place[:google_place_attributes][:name] = place[:google_place_attributes][:original_name]
               end
             end
 
