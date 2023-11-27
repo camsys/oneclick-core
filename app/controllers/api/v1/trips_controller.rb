@@ -104,11 +104,8 @@ module Api
             
             # Restore the full names for origin and destination
             [origin_place, destination_place].each do |place|
-              # Create a unique key for the place
-              key = [place[:lat], place[:lng]].join(':')
-            
-              # Retrieve the full name from the mapping
-              full_name = Api::V1::PlacesController::FULL_NAMES_MAPPING[key]
+              # Retrieve the full name from the session using the short name
+              full_name = session[place[:name]]
               place[:name] = full_name if full_name.present?
             end
 
