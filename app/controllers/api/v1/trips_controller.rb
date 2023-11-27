@@ -87,11 +87,11 @@ module Api
           @trips = trips_params.map do |trip_param|
 
             if trip_param[:origin_attributes][:google_place_attributes][:original_name].present?
-              trip_param[:origin_attributes][:google_place_attributes][:name] = trip_param[:origin_attributes][:google_place_attributes][:original_name]
+              trip_param[:origin_attributes][:name] = trip_param[:origin_attributes][:google_place_attributes][:original_name]
             end
-      
+
             if trip_param[:destination_attributes][:google_place_attributes][:original_name].present?
-              trip_param[:destination_attributes][:google_place_attributes][:name] = trip_param[:destination_attributes][:google_place_attributes][:original_name]
+              trip_param[:destination_attributes][:name] = trip_param[:destination_attributes][:google_place_attributes][:original_name]
             end
 
             # To be considered an existing trip it should have the same Origin, Destination,
