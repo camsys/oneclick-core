@@ -32,7 +32,7 @@ module Api
 
         trips_params = {}
         
-        trips_params = params[:trips].map do |trip|
+        trips_params = params[:itinerary_request].map do |trip|
           # Check and set original name for origin attributes
           if trip[:origin_attributes][:google_place_attributes][:original_name].present?
             trip[:origin_attributes][:google_place_attributes][:name] = trip[:origin_attributes][:google_place_attributes][:original_name]
