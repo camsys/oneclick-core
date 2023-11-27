@@ -47,7 +47,6 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        names = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
