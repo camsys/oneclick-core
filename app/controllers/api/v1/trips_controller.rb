@@ -104,16 +104,9 @@ module Api
             
             # Restore the full names for origin and destination
             [origin_place, destination_place].each do |place|
-              matching_landmark = Landmark.find_by(street_number: place[:street_number],
-                                                  route: place[:route],
-                                                  city: place[:city],
-                                                  state: place[:state])
-
-              if matching_landmark.present?
-                place[:name] = matching_landmark.name
-              else
-                Rails.logger.error "Matching landmark not found for place: #{place.inspect}"
-              end
+              # Retrieve the full name from the session using the short name
+              full_name = session[place[:name]]
+              place[:name] = full_name if full_name.present?
             end
 
             return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)

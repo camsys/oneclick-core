@@ -16,6 +16,9 @@ module Api
           count = 0
           landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
           landmarks.each do |landmark|
+            full_name = landmark.name
+            short_name = full_name.split('|').first.strip
+            session[short_name] = full_name # Store the full name in the session
             # Skip returning a Place if it doesn't have a city or if it has a bad city
             # - this helps prevent users from selecting a city-less Place
             # ...and booking shared ride trips with it(it shows up in Ecolane with no city)
