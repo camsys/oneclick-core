@@ -46,17 +46,21 @@ module Api
                             .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
-        
-        names = []
+
+        FULL_NAMES_MAPPING = {}
         landmarks.each do |landmark|
-          # Strip text after the pipe
+          key = [landmark.lat, landmark.lng].join(':')
+        
+          FULL_NAMES_MAPPING[key] = landmark.name
+        
           short_name = landmark.name.split('|').first.strip
-          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
+        
           if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
             locations.append(landmark.google_place_hash.merge(name: short_name))
             names << short_name
             count += 1
           end
+        
           break if count >= max_results
         end
 
