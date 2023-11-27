@@ -16,9 +16,6 @@ module Api
           count = 0
           landmarks = authentication_successful? ? @traveler.waypoints.get_by_query_str(search_string).limit(max_results) : []
           landmarks.each do |landmark|
-            full_name = landmark.name
-            short_name = full_name.split('|').first.strip
-            session[short_name] = full_name # Store the full name in the session
             # Skip returning a Place if it doesn't have a city or if it has a bad city
             # - this helps prevent users from selecting a city-less Place
             # ...and booking shared ride trips with it(it shows up in Ecolane with no city)
@@ -46,24 +43,26 @@ module Api
                             .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
-
+        
+        names = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-        
-          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
-          if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
-            # Pass both original and modified names in the hash
-            place_hash = landmark.google_place_hash.merge(
-              original_name: full_name, 
-              name: short_name
-            )
-        
-            locations.append(place_hash)
-            names << short_name
-            count += 1
-          end
-        
+          
+          # Check if the short name is already in the list to avoid duplicates
+          next if short_name.in?(names)
+
+          # Skip if landmark has no city or has a bad city
+          next if landmark.city.nil? || landmark.city.in?(Trip::BAD_CITIES)
+
+          # Append a hash with both the original full name and the modified short name
+          locations.append(landmark.google_place_hash.merge(
+            original_name: full_name, 
+            name: short_name
+          ))
+
+          names << short_name
+          count += 1
           break if count >= max_results
         end
 
