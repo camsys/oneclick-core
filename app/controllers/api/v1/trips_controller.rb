@@ -32,20 +32,23 @@ module Api
 
         trips_params = {}
         
-        trips_params = params[:itinerary_request].map do |trip|
-          # Check and set original name for origin attributes
-          if trip[:origin_attributes][:google_place_attributes][:original_name].present?
-            trip[:origin_attributes][:google_place_attributes][:name] = trip[:origin_attributes][:google_place_attributes][:original_name]
+
+      if api_v1_params
+        trips_params = params[:trips].map do |trip|
+          # Modify the trip parameter here before processing
+          ['origin_attributes', 'destination_attributes'].each do |location_type|
+            if trip[location_type] && trip[location_type][:google_place_attributes]
+              google_attrs = trip[location_type][:google_place_attributes]
+              if google_attrs[:original_name].present?
+                google_attrs[:name] = google_attrs[:original_name]
+              end
+            end
           end
-      
-          # Check and set original name for destination attributes
-          if trip[:destination_attributes][:google_place_attributes][:original_name].present?
-            trip[:destination_attributes][:google_place_attributes][:name] = trip[:destination_attributes][:google_place_attributes][:original_name]
-          end
-      
-          # Convert the rest of the trip parameters
+    
+          # Now process the trip parameters
           trip_params(trip)
         end
+
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
