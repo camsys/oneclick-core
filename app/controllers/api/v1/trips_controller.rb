@@ -104,7 +104,7 @@ module Api
             
             # Attempt to restore the original full names for origin and destination
             [origin_place, destination_place].each do |place|
-              place[:name] = place[:original_name]
+              place[:name] = place[:original_name] if place[:original_name].present?
             end
 
             return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
