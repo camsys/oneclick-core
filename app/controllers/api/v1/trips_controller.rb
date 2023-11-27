@@ -85,6 +85,15 @@ module Api
         # ie: Companions have been added and the cost needs to be recalculated
         Trip.transaction do
           @trips = trips_params.map do |trip_param|
+
+            if trip_param[:origin_attributes][:google_place_attributes][:original_name].present?
+              trip_param[:origin_attributes][:google_place_attributes][:name] = trip_param[:origin_attributes][:google_place_attributes][:original_name]
+            end
+      
+            if trip_param[:destination_attributes][:google_place_attributes][:original_name].present?
+              trip_param[:destination_attributes][:google_place_attributes][:name] = trip_param[:destination_attributes][:google_place_attributes][:original_name]
+            end
+            
             # To be considered an existing trip it should have the same Origin, Destination,
             # Trip time, Arrival time, and User as the requested trip.
             # Ignore any trips with selected itineraries, as these are already booked.
@@ -98,16 +107,9 @@ module Api
                                     .detect { |possible_trip| possible_trip.selected_itinerary.booking.booked? }
   
             return render(status: 409, json: {}, include: ['*.*']) if (conflicting_trip)
-            
+
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
-      
-            # Restore the original full names for origin and destination
-            [origin_place].each do |place|
-              if place[:original_name].present?
-                place[:name] = place[:original_name]
-              end
-            end
 
             [destination_place].each do |place|
               if place[:original_name].present?
