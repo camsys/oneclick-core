@@ -51,11 +51,19 @@ module Api
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
         
-          # Pass both original and modified names in the hash
-          place_hash = landmark.google_place_hash.merge(
-            original_name: full_name, 
-            name: short_name
-          )
+          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
+          if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
+            # Pass both original and modified names in the hash
+            place_hash = landmark.google_place_hash.merge(
+              original_name: full_name, 
+              name: short_name
+            )
+        
+            locations.append(place_hash)
+            names << short_name
+            count += 1
+          end
+        
           break if count >= max_results
         end
 
