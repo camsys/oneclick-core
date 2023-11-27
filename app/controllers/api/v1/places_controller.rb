@@ -47,10 +47,9 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        FULL_NAMES_MAPPING = {}
+        names = []
         landmarks.each do |landmark|
           # Strip text after the pipe
-          
           short_name = landmark.name.split('|').first.strip
           # Skip a POI if it's already in the current list of names, has no city, or has a bad city
           if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
