@@ -42,7 +42,7 @@ module Api
             if trip[:destination_attributes][:google_place_attributes][:original_name].present?
               trip[:destination_attributes][:google_place_attributes][:name] = trip[:destination_attributes][:google_place_attributes][:original_name]
             end
-            
+
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
             external_purpose = params[:trip_purpose]
             start_location = trip_location_to_google_hash(trip[:start_location])
@@ -66,13 +66,6 @@ module Api
         elsif api_v2_params
           params[:trips].map do |trip|
             # Apply the original_name before trip_params call
-            if trip[:origin_attributes][:google_place_attributes][:original_name].present?
-              trip[:origin_attributes][:google_place_attributes][:name] = trip[:origin_attributes][:google_place_attributes][:original_name]
-            end
-
-            if trip[:destination_attributes][:google_place_attributes][:original_name].present?
-              trip[:destination_attributes][:google_place_attributes][:name] = trip[:destination_attributes][:google_place_attributes][:original_name]
-            end
 
             trip_params(trip)
           end
