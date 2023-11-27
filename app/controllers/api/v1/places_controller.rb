@@ -48,18 +48,14 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-          
-          # Check if the short name is already in the list to avoid duplicates
-          next if short_name.in?(names)
-
-          # Skip if landmark has no city or has a bad city
-          next if landmark.city.nil? || landmark.city.in?(Trip::BAD_CITIES)
-
-          # Append a hash with both the original full name and the modified short name
-          locations.append(landmark.google_place_hash.merge(
-            original_name: full_name, 
-            name: short_name
-          ))
+        
+          # Create a modified google_place_hash with original_name
+          modified_google_place_hash = landmark.google_place_hash
+          modified_google_place_hash[:original_name] = full_name
+        
+          # Append the modified hash to locations
+          locations.append(modified_google_place_hash.merge(name: short_name))
+        
 
           names << short_name
           count += 1

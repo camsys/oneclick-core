@@ -102,9 +102,10 @@ module Api
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
             
+            # Attempt to restore the original full names for origin and destination
             [origin_place, destination_place].each do |place|
-              if place[:google_place_attributes][:original_name].present?
-                place[:name] = place[:google_place_attributes][:original_name]
+              if place[:original_name].present?
+                place[:name] = place[:original_name]
               end
             end
 
