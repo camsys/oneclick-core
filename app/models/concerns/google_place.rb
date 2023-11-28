@@ -74,10 +74,8 @@ module GooglePlace
   module ClassMethods
     def attrs_from_google_place(google_place_attributes)
       google_place_hash = if google_place_attributes.is_a? String 
-                            # Parse JSON if needed
                             GooglePlaceHash[JSON.parse(google_place_attributes)]
                           else
-                            # Already parsed
                             GooglePlaceHash[google_place_attributes]
                           end
 
