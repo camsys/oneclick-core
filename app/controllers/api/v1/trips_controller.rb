@@ -446,6 +446,9 @@ module Api
         trips_hash = { "0" => trip_hash(trip) }
         trips_hash["1"] = trip_hash(trip.next_trip) if (trip.next_trip and trip.next_trip.selected_itinerary)
         trips_hash
+
+        trip.origin.name = filter_name(trip.origin.name)
+        trip.destination.name = filter_name(trip.destination.name)
       end
       
       def trip_hash(trip)
