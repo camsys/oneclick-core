@@ -13,6 +13,8 @@ module Api
                                    .outbound
                                    .map {|t| my_trips_hash(t)}
         render status: 200, json: {trips: past_trips_hash}
+
+        # Filter out 
       end
 
       # GET trips/future_trips
@@ -654,6 +656,9 @@ module Api
         end        
       end
 
+      def filter_name(name)
+        name.split('|').first.strip if name
+      end
     end
   end
 end
