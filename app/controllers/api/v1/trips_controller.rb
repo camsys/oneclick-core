@@ -8,7 +8,6 @@ module Api
 
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
-
       def past_trips
         past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
                                    .outbound
@@ -16,6 +15,8 @@ module Api
         render status: 200, json: {trips: past_trips_hash}
       end
 
+      # GET trips/future_trips
+      # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
         future_trips_hash = @traveler.future_trips(params[:max_results] || 25)
                                      .outbound
@@ -660,6 +661,17 @@ module Api
             success: true
           }
         end        
+      end
+
+      private
+
+      def filter_trip_name(trip)
+        # Modify trip names to filter out text after the pipe
+        trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
+        trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+
+        # Convert the trip object to hash or any other format as needed
+        my_trips_hash(trip)
       end
 
     end
