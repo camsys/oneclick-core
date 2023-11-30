@@ -146,8 +146,9 @@ class EcolaneAmbassador < BookingAmbassador
 
   def cancel
     # Don't ever allow cancellations within 1 hour
-    if @itinerary.booking and @itinerary.booking.negotiated_pu and (@itinerary.booking.negotiated_pu - Time.now) < 3600
-      return @itinerary.booking
+    if @itinerary.booking && @itinerary.booking.negotiated_pu && (@itinerary.booking.negotiated_pu - Time.now) < 3600
+      render json: { error: "Cancellation not allowed within 1 hour of pickup time" }, status: :forbidden
+      return
     end
     @itinerary.booking.reload
     result = cancel_order
