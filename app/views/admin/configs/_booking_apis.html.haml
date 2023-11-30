@@ -17,45 +17,46 @@
     input_html: {value: @configs.find_by(key: :ecolane_url).try(:value)},
     as: :string
 
-  %h4.text-center RidePilot
-  = f.input :ride_pilot_url, required: false,
-    label: "RidePilot API URL",
-    input_html: {value: @configs.find_by(key: :ride_pilot_url).try(:value)},
-    as: :string
-  =f.input :ride_pilot_token, required: false,
-    label: "RidePilot API Token",
-    input_html: {value: @configs.find_by(key: :ride_pilot_token).try(:value)},
-    as: :string
+  - unless in_travel_patterns_mode?
+    %h4.text-center RidePilot
+    = f.input :ride_pilot_url, required: false,
+      label: "RidePilot API URL",
+      input_html: {value: @configs.find_by(key: :ride_pilot_url).try(:value)},
+      as: :string
+    =f.input :ride_pilot_token, required: false,
+      label: "RidePilot API Token",
+      input_html: {value: @configs.find_by(key: :ride_pilot_token).try(:value)},
+      as: :string
 
-  %h4.text-center Trapeze
+    %h4.text-center Trapeze
 
-  = f.input :trapeze_url, required: false,
-    label: "Trapeze API URL",
-    input_html: {value: @configs.find_by(key: :trapeze_url).try(:value)},
-    as: :string
-  = f.input :trapeze_user, required: false,
-    label: "Trapeze API User",
-    input_html: {value: @configs.find_by(key: :trapeze_user).try(:value)},
-    as: :string
-  = f.input :trapeze_token, required: false,
-    label: "Trapeze API Token",
-    input_html: {value: @configs.find_by(key: :trapeze_token).try(:value)},
-    as: :string
-  = f.input :trapeze_ada_funding_sources, required: false,
-    label: "ADA Funding Sources (Comma Separated)",
-    input_html: {value: @configs.find_by(key: :trapeze_ada_funding_sources).try(:value).try(:join,',')},
-    as: :text
-  = f.input :trapeze_ignore_polygon_id, required: false,
-    label: "Ignore Polygon ID",
-    input_html: {value: @configs.find_by(key: :trapeze_ignore_polygon_id).try(:value)},
-    as: :integer
-  = f.input :trapeze_check_polygon_id, required: false,
-    label: "Check Polygon ID",
-    input_html: {value: @configs.find_by(key: :trapeze_check_polygon_id).try(:value)},
-    as: :integer
+    = f.input :trapeze_url, required: false,
+      label: "Trapeze API URL",
+      input_html: {value: @configs.find_by(key: :trapeze_url).try(:value)},
+      as: :string
+    = f.input :trapeze_user, required: false,
+      label: "Trapeze API User",
+      input_html: {value: @configs.find_by(key: :trapeze_user).try(:value)},
+      as: :string
+    = f.input :trapeze_token, required: false,
+      label: "Trapeze API Token",
+      input_html: {value: @configs.find_by(key: :trapeze_token).try(:value)},
+      as: :string
+    = f.input :trapeze_ada_funding_sources, required: false,
+      label: "ADA Funding Sources (Comma Separated)",
+      input_html: {value: @configs.find_by(key: :trapeze_ada_funding_sources).try(:value).try(:join,',')},
+      as: :text
+    = f.input :trapeze_ignore_polygon_id, required: false,
+      label: "Ignore Polygon ID",
+      input_html: {value: @configs.find_by(key: :trapeze_ignore_polygon_id).try(:value)},
+      as: :integer
+    = f.input :trapeze_check_polygon_id, required: false,
+      label: "Check Polygon ID",
+      input_html: {value: @configs.find_by(key: :trapeze_check_polygon_id).try(:value)},
+      as: :integer
 
 
-:javascript
-  $(document).ready(function() {    
-    new FormHandler($('#{form_selector_from_id}'));
-  });
+  :javascript
+    $(document).ready(function() {    
+      new FormHandler($('#{form_selector_from_id}'));
+    });
