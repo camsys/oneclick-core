@@ -73,13 +73,18 @@ module GooglePlace
 
   module ClassMethods
     def attrs_from_google_place(google_place_attributes)
-      if google_place_attributes.is_a? String 
-        # This is JSON parse it before passing it
-        GooglePlaceHash[JSON.parse(google_place_attributes)].to_attrs
-      else
-        # This has already been parsed
-        GooglePlaceHash[google_place_attributes].to_attrs
+      google_place_hash = if google_place_attributes.is_a? String 
+                            GooglePlaceHash[JSON.parse(google_place_attributes)]
+                          else
+                            GooglePlaceHash[google_place_attributes]
+                          end
+
+      # Use original_name as name if present
+      if google_place_hash[:original_name].present?
+        google_place_hash[:name] = google_place_hash[:original_name]
       end
+
+      google_place_hash.to_attrs
     end
   end
 end

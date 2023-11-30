@@ -46,15 +46,20 @@ module Api
         
         names = []
         landmarks.each do |landmark|
-          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
-          if !landmark.name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
-            locations.append(landmark.google_place_hash)
-            names << landmark.name
-            count += 1
-          end
-          if count >= max_results
-            break
-          end
+          full_name = landmark.name
+          short_name = full_name.split('|').first.strip
+        
+          # Create a modified google_place_hash with original_name
+          modified_google_place_hash = landmark.google_place_hash
+          modified_google_place_hash[:original_name] = full_name
+        
+          # Append the modified hash to locations
+          locations.append(modified_google_place_hash.merge(name: short_name))
+        
+
+          names << short_name
+          count += 1
+          break if count >= max_results
         end
 
         # User StompingGrounds
