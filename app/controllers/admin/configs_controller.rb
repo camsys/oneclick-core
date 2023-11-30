@@ -93,6 +93,10 @@ class Admin::ConfigsController < Admin::AdminController
     end
   end
 
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
+  end
+
   private
 
   def build_dashboard_mode_collection
