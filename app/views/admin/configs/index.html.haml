@@ -1,9 +1,9 @@
 =content_for :title do
   Configuration
 
-- unless in_travel_patterns_mode?
+- unless fmr_admin_user?
   =render partial: 'trip_planning_apis', layout: '/layouts/panel'
 =render partial: 'booking_apis', layout: '/layouts/panel'
-- unless in_travel_patterns_mode?
+- unless fmr_admin_user?
   =render partial: 'scheduled_tasks', layout: '/layouts/panel'
 =render partial: 'miscellaneous', layout: 'layouts/panel'

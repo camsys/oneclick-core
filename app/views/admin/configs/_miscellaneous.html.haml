@@ -11,7 +11,7 @@
   authenticity_token: true do |f|
   =remote_form_input # This sends the partial_path to the controller, so it can serve back the correct partial
 
-  - unless in_travel_patterns_mode?
+  - unless fmr_admin_user?
     = f.input :application_title, required: true,
         label: "Application Title",
         input_html: {value: Config.application_title},
@@ -25,7 +25,7 @@
     collection: build_dashboard_mode_collection,
     selected: Config.dashboard_mode
 
-  - unless in_travel_patterns_mode?
+  - unless fmr_admin_user?
     = f.input :feedback_overdue_days, required: true,
       label: "Days before sending feedback reminders",
       input_html: {value: Config.feedback_overdue_days},

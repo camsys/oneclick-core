@@ -93,7 +93,7 @@ class Admin::ConfigsController < Admin::AdminController
     end
   end
 
-  def in_travel_patterns_mode?
+  def fmr_admin_user?
     # If the current user is a superuser, return false
     return false if current_user.superuser?
     Config.dashboard_mode.to_sym == :travel_patterns

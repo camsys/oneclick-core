@@ -17,7 +17,7 @@
     input_html: {value: @configs.find_by(key: :ecolane_url).try(:value)},
     as: :string
 
-  - unless in_travel_patterns_mode?
+  - unless fmr_admin_user?
     %h4.text-center RidePilot
     = f.input :ride_pilot_url, required: false,
       label: "RidePilot API URL",
