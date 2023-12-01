@@ -11,7 +11,7 @@ module Api
       def past_trips
         past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
                                    .outbound
-                                   .map {|t| my_trips_hash(t)}
+                                   .map {|t| filter_trip_name(t)}
         render status: 200, json: {trips: past_trips_hash}
       end
 
@@ -20,8 +20,17 @@ module Api
       def future_trips
         future_trips_hash = @traveler.future_trips(params[:max_results] || 25)
                                      .outbound
-                                     .map {|t| my_trips_hash(t)}
+                                     .map {|t| filter_trip_name(t)}
         render status: 200, json: {trips: future_trips_hash}
+      end
+
+      def filter_trip_name(trip)
+        # Modify trip names to filter out text after the pipe
+        trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
+        trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+
+        # Convert the trip object to hash or any other format as needed
+        my_trips_hash(trip)
       end
 
       # POST trips/, POST itineraries/plan
@@ -31,6 +40,7 @@ module Api
         api_v2_params = params[:trips]
 
         trips_params = {}
+        
         if api_v1_params # This is doing it the old way
           trips_params = api_v1_params.map do |trip|
             purpose = Purpose.find_by(code: params[:trip_purpose] || params[:purpose])
@@ -53,11 +63,21 @@ module Api
             }
             }))
           end
-        elsif api_v2_params # This is doing it the right way
-          trips_params = params[:trips].map { |t|
+        elsif api_v2_params
+          trips_params = params[:trips].map do |t|
+            # Assign the original_name to name in google_place_attributes if present
+            if t.dig(:origin_attributes, :google_place_attributes, :original_name).present?
+              t[:origin_attributes][:google_place_attributes][:name] = t[:origin_attributes][:google_place_attributes][:original_name]
+            end
+
+            if t.dig(:destination_attributes, :google_place_attributes, :original_name).present?
+              t[:destination_attributes][:google_place_attributes][:name] = t[:destination_attributes][:google_place_attributes][:original_name]
+            end
+
             trip_params(t)
-          }
-        else # For creating a single trip
+          end
+        else
+          # Handling for a single trip
           trips_params = [trip_params(params)]
         end
 
@@ -101,6 +121,13 @@ module Api
             
             origin_place = Place.attrs_from_google_place(trip_param[:origin_attributes][:google_place_attributes])
             destination_place = Place.attrs_from_google_place(trip_param[:destination_attributes][:google_place_attributes])
+      
+            # Restore the original full names for origin and destination
+            [origin_place, destination_place].each do |place|
+              if place[:original_name].present?
+                place[:name] = place[:original_name]
+              end
+            end
 
             return render(status: 404, json: origin_place) unless Landmark.place_exists?(origin_place)
             return render(status: 404, json: destination_place) unless Landmark.place_exists?(destination_place)
@@ -401,7 +428,7 @@ module Api
             google_place_attributes: [
               { address_components: [ :long_name, :short_name, {types: []} ] },
               { geometry: [{location: [:lat, :lng]}] }, 
-              :name, :formatted_address, :place_id
+              :name, :formatted_address, :place_id, :original_name
             ]
           }
         ]
@@ -634,6 +661,17 @@ module Api
             success: true
           }
         end        
+      end
+
+      private
+
+      def filter_trip_name(trip)
+        # Modify trip names to filter out text after the pipe
+        trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
+        trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+
+        # Convert the trip object to hash or any other format as needed
+        my_trips_hash(trip)
       end
 
     end

@@ -140,6 +140,12 @@ module ApplicationHelper
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
   end
+
+  def fmr_admin_user?
+    # If the current user is a superuser, return false
+    return false if current_user.superuser?
+    Config.dashboard_mode.to_sym == :travel_patterns
+  end
   ### miscellaneous helpers ###
 
 end
