@@ -39,7 +39,7 @@
               WAIT for Shared Ride
             %br
             %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
-              =trip.origin.name
+              = trip.origin.name.split('|').first.strip + ', '
             %br
             %div{:style => "color:grey; font-size:90%"}
               ="Confirm#: " + booking.confirmation
@@ -55,7 +55,7 @@
               Arrive
             %br
             %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
-              =trip.destination.name
+              = trip.destination.name.split('|').first.strip + ', '
 
     %br
     %br
