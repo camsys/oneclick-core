@@ -56,10 +56,10 @@
             %div{:style => "color:grey; font-size:90%"}
               Arrive
             %br
-          %div{:style => "color: grey; font-size: 100%; font-weight: bold;"}
-            = trip.destination.name.split('|').first.strip
-            %br/
-            = trip.destination.address
+            %div{:style => "color: grey; font-size: 100%; font-weight: bold;"}
+              = trip.destination.name.split('|').first.strip
+              %br/
+              = trip.destination.address
     %br
     %br
 
