@@ -38,8 +38,8 @@
             %div{:style => "color:grey; font-size:90%"}
               WAIT for Shared Ride
             %br
-            %div{:style => "color:grey; font-size:100%; font-weight:bold;"}
-              = trip.origin.original_name || trip.origin.formatted_address
+            %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
+              =trip.origin.name
             %br
             %div{:style => "color:grey; font-size:90%"}
               ="Confirm#: " + booking.confirmation
@@ -54,7 +54,8 @@
             %div{:style => "color:grey; font-size:90%"}
               Arrive
             %br
-            %div{:style => "color:grey; font-size:100%; font-weight:bold;"}
-              = trip.destination.original_name || trip.destination.formatted_address
+            %div{:style => "color:grey; font-size:100%, font-weight:bold;"}
+              =trip.destination.name
+
     %br
     %br
