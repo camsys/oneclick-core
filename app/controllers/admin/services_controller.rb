@@ -288,7 +288,7 @@ class Admin::ServicesController < Admin::AdminController
       @travel_pattern_services = []
     end
   end
-
+  
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
   end
