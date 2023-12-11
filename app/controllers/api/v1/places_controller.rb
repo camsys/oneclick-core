@@ -8,6 +8,12 @@ module Api
         include_user_pois = params[:include_user_pois]
         max_results = (params[:max_results] || 10).to_i
 
+        # Return empty results if search string contains a pipe character
+        if search_string.include?('|')
+          render status: 200, json: { places_search_results: { locations: [] }, record_count: 0 }
+          return
+        end
+
         locations = []
 
         # Recent Places
