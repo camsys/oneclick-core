@@ -279,10 +279,14 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def load_travel_patterns
-    @travel_pattern_services = @service.travel_pattern_services
-                                   .includes(:travel_pattern)
-                                   .joins(:travel_pattern)
-                                   .merge(TravelPattern.order(:name))
+    if @service&.agency
+      @travel_pattern_services = @service.travel_pattern_services
+                                         .includes(:travel_pattern)
+                                         .joins(:travel_pattern)
+                                         .merge(TravelPattern.order(:name))
+    else
+      @travel_pattern_services = []
+    end
   end
 
   def in_travel_patterns_mode?
