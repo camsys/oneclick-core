@@ -132,23 +132,21 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def get_services_for_current_user
-    # NOTE: Includes unaffiliated Services by default
+    # Include only unarchived services by default
     if current_user.superuser?
-      @services
+      @services.where(archived: false)
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
-
-      Service.with_oversight_agency(oa).order(agency_id: :desc)
+      Service.with_oversight_agency(oa).where(archived: false).order(agency_id: :desc)
     elsif current_user.currently_transportation?
-      Service.where(agency_id: current_user.current_agency.id)
-      # otherwise the current user is probably transportation staff
+      Service.where(agency_id: current_user.current_agency.id, archived: false)
     elsif current_user.current_agency.nil? && current_user&.staff_agency&.oversight?
       # Return services with no transportation agency and oversight agency
-      Service.where(agency_id: nil).select{|s| !s&.service_oversight_agency&.oversight_agency}
+      Service.where(agency_id: nil, archived: false).select{|s| !s&.service_oversight_agency&.oversight_agency}
     else
-      Service.where(agency_id: current_user.staff_agency.id)
+      Service.where(agency_id: current_user.staff_agency.id, archived: false)
     end
-  end
+  end  
 
 
   def service_type
@@ -288,7 +286,7 @@ class Admin::ServicesController < Admin::AdminController
       @travel_pattern_services = []
     end
   end
-  
+
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
   end
