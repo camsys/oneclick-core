@@ -134,7 +134,7 @@ class Admin::ServicesController < Admin::AdminController
   def get_services_for_current_user
     # NOTE: Includes unaffiliated Services by default
     if current_user.superuser?
-      @services
+      Service.all
     elsif current_user.currently_oversight?
       oa = current_user.staff_agency
 
