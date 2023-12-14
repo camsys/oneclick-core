@@ -59,5 +59,8 @@ class ApplicationController < ActionController::Base
 
   end
 
+  def in_travel_patterns_mode?
+    Config.dashboard_mode.to_sym == :travel_patterns
+  end
 
 end

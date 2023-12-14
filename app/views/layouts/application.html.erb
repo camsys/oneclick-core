@@ -50,32 +50,31 @@
             <% end %>
             
             <li class="dropdown">
-
               <% if current_user %>
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Utilities<span class="caret"></span></a>
                 <ul class="dropdown-menu">
-                  <%- @admin_pages.each do |page| %>
-                    <li>
-                      <%= link_to page[:label], page[:url] %>
-                    </li>
+                  <% @admin_pages.each do |page| %>
+                    <li><%= link_to page[:label], page[:url] %></li>
                   <% end %>
                   <li role="separator" class="divider"></li>
                   <li>
-                    <%= link_to('Admin Guide', "https://github.com/camsys/oneclick-core/wiki/Admin-User's-Guide", target: "_blank", :method => :get) %>  
+                    <% if in_travel_patterns_mode? %>
+                      <%= link_to('Admin Guide', 'https://occ-pa-dev.s3.us-east-2.amazonaws.com/uploads/admin_guide.pdf', target: "_blank", method: :get) %>
+                    <% else %>
+                      <%= link_to('Admin Guide', 'https://github.com/camsys/oneclick-core/wiki/Admin-User%27s-Guide', target: "_blank", method: :get) %>
+                    <% end %>
                   </li>
-
                   <li role="separator" class="divider"></li>
                   <li>
-                    <%= link_to('My Profile', edit_admin_user_path(current_user), :method => :get) %>  
+                    <%= link_to('My Profile', edit_admin_user_path(current_user), method: :get) %>
                   </li>
                   <li>
-                    <%= link_to('Logout', destroy_user_session_path, :method => :delete) %>  
+                    <%= link_to('Logout', destroy_user_session_path, method: :delete) %>
                   </li>
-
-
                 </ul>
               <% end %>
             </li>
+
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
