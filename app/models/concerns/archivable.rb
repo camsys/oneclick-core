@@ -20,7 +20,13 @@ module Archivable
 
   # Archives the record
   def archive
-    self.update_attributes(archived: true)
+    self.archived = true
+    if save
+      true
+    else
+      Rails.logger.error "Failed to archive Service ##{id}: #{errors.full_messages.join(', ')}"
+      false
+    end
   end
 
   # Restores the record from the archive
