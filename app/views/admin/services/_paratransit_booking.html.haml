@@ -94,12 +94,13 @@
             label: "Guest Funding Sources",
             input_html: {value: booking_details[:guest_funding_sources]},
             required: false
-        =bd.input :guest_purpose,
-          as: :string,
-          readonly: should_be_readonly,
-          label: "Guest Purpose",
-          input_html: {value: booking_details[:guest_purpose]},
-          required: false
+        - unless in_travel_patterns_mode?
+          =bd.input :guest_purpose,
+            as: :string,
+            readonly: should_be_readonly,
+            label: "Guest Purpose",
+            input_html: {value: booking_details[:guest_purpose]},
+            required: false
 
 
       %hr

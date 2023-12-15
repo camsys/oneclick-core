@@ -21,7 +21,11 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def destroy
-    @service.archive # Makes service invisible in default scope
+    if @service.destroy
+      flash[:success] = "Service was successfully deleted."
+    else
+      flash[:error] = "Service could not be deleted."
+    end
     redirect_to admin_services_path
   end
 
@@ -279,12 +283,16 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def load_travel_patterns
-    @travel_pattern_services = @service.travel_pattern_services
-                                   .includes(:travel_pattern)
-                                   .joins(:travel_pattern)
-                                   .merge(TravelPattern.order(:name))
+    if @service&.agency
+      @travel_pattern_services = @service.travel_pattern_services
+                                         .includes(:travel_pattern)
+                                         .joins(:travel_pattern)
+                                         .merge(TravelPattern.order(:name))
+    else
+      @travel_pattern_services = []
+    end
   end
-
+  
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
   end
