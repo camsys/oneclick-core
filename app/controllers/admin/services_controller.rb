@@ -21,11 +21,7 @@ class Admin::ServicesController < Admin::AdminController
   end
 
   def destroy
-    if @service.destroy
-      flash[:success] = "Service was successfully deleted."
-    else
-      flash[:error] = "Service could not be deleted."
-    end
+    @service.archive # Makes service invisible in default scope
     redirect_to admin_services_path
   end
 
