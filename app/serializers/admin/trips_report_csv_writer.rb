@@ -3,7 +3,6 @@ module Admin
     
     columns :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by, 
             :disposition_status,
-            :selected_trip_type,
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
@@ -12,7 +11,7 @@ module Admin
 
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
-      :selected_trip_type, :purpose, :orig_addr, :orig_lat, :orig_lng, 
+      :purpose, :orig_addr, :orig_lat, :orig_lng, 
       :dest_addr, :dest_lat, :dest_lng
     ]
 
@@ -108,11 +107,7 @@ module Admin
     
     def dest_lng
       @record.destination&.lng
-    end
-    
-    def selected_trip_type
-      @record.selected_itinerary&.trip_type || (@record.details && @record.details[:trip_type]) || "N/A"
-    end
+    end 
 
     def traveler_age
       @record.user_age
