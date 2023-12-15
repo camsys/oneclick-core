@@ -113,9 +113,13 @@ module Admin
     def selected_trip_type
       trip_type = @record.selected_itinerary&.trip_type || (@record.details && @record.details[:trip_type]) || "N/A"
       
+  # Log additional details if trip_type is "N/A"
       if trip_type == "N/A"
-        Rails.logger.info "Trip ID #{@record.id}: No trip type found. Selected itinerary trip type: #{@record.selected_itinerary&.trip_type}, Trip details trip type: #{@record.details && @record.details[:trip_type]}"
+        Rails.logger.info "Trip ID #{@record.id}: No trip type found."
+        Rails.logger.info "Selected itinerary: #{@record.selected_itinerary&.inspect}"
+        Rails.logger.info "Trip details: #{@record.details&.inspect}"
       end
+
     
       trip_type
     end    
