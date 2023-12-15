@@ -418,7 +418,7 @@ module Api
       end
 
       def details_attributes
-        [:notification_preferences, :trip_type]
+        [:notification_preferences]
       end
 
       def place_attributes
