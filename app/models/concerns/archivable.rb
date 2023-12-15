@@ -20,12 +20,12 @@ module Archivable
 
   # Archives the record
   def archive
-    self.update_attributes(archived: true)
+    update_column(:archived, true)
   end
 
   # Restores the record from the archive
   def restore
-    self.update_attributes(archived: false)
+    update_column(:archived, false)
   end
 
   # Returns true if record is archived
