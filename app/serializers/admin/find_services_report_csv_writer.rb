@@ -21,7 +21,7 @@ module Admin
 
     def user_type
       if @record.user&.admin_or_staff? == true
-        '211 Ride Staff User'
+        'Staff User'
         # NOTE: the below translations are 211 Ride specific and have values that are not the same
         # as the fallback value, nor are they values that you'd generally expect
       elsif @record.user&.guest? == true
