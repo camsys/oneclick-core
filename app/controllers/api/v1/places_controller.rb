@@ -55,8 +55,8 @@ module Api
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
           
-          # Only process this landmark if the search string matches the short_name
-          next unless short_name.downcase.include?(search_string.downcase)
+          # Skip landmarks where the part after the pipe matches the search string
+          next if full_name.split('|')[1..].join('|').strip.downcase.include?(search_string.downcase)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
