@@ -42,11 +42,12 @@ module Api
         # Filter by agencies associated with user's services
         agencies = authentication_successful? ? @traveler.booking_profiles.collect(&:service).compact.collect(&:agency) : []
 
-        # Return extras as some may be filtered out later
-        # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
-        #              .limit(2 * max_results)
-        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
-        .limit(2 * max_results)
+        # Process the search string to exclude any text after the pipe character
+        processed_search_string = search_string.split('|').first.strip
+
+        # Use the processed search string for the landmark query
+        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{processed_search_string}%").where.not(city: [nil, ''])
+                            .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
@@ -54,22 +55,18 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-          
-          # Skip landmarks where the part after the pipe matches the search string
-          next if full_name.split('|')[1..].join('|').strip.downcase.include?(search_string.downcase)
-        
+
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
-          
+
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
-        
+
           names << short_name
           count += 1
           break if count >= max_results
         end
-
         # User StompingGrounds
         # FMRPA-121 Just skip for now
         if false
