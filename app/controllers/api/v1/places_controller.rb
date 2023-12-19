@@ -54,17 +54,17 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-
-          # Skip this landmark if the search string matches only a part after the pipe
-          next if full_name.include?('|') && full_name.split('|').last.include?(search_string)
-
+          
+          # Only process this landmark if the search string matches the short_name
+          next unless short_name.downcase.include?(search_string.downcase)
+        
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
-
+          
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
-
+        
           names << short_name
           count += 1
           break if count >= max_results
