@@ -46,22 +46,24 @@ module Api
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
         landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
-                            .limit(2 * max_results)
+        .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
-        
+
         names = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-        
+
+          # Skip this landmark if the search string matches only a part after the pipe
+          next if full_name.include?('|') && full_name.split('|').last.include?(search_string)
+
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
-        
+
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
-        
 
           names << short_name
           count += 1
