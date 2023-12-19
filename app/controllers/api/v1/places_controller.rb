@@ -42,18 +42,13 @@ module Api
         # Filter by agencies associated with user's services
         agencies = authentication_successful? ? @traveler.booking_profiles.collect(&:service).compact.collect(&:agency) : []
 
-        # Use the original search string for landmark query
-        landmarks = Landmark.where.not(city: [nil, '']).limit(2 * max_results)
+        # Adjusted search query to consider text before pipe character in search_text
+        landmarks = Landmark.where("split_part(search_text, '|', 1) ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
+                            .limit(2 * max_results)
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        filtered_landmarks = landmarks.select do |landmark|
-          # Only consider text before the first pipe character in search_text for comparison
-          searchable_text = landmark.search_text.split('|').first.strip
-          searchable_text.downcase.include?(search_string.downcase)
-        end
-
         locations = []
-        filtered_landmarks.each do |landmark|
+        landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
 
