@@ -45,7 +45,8 @@ module Api
         # Return extras as some may be filtered out later
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
-        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
+        landmarks = Landmark.where("SUBSTRING(search_text, 1, POSITION('|' IN search_text) - 1) ILIKE :search OR (POSITION('|' IN search_text) = 0 AND search_text ILIKE :search)", search: "%#{search_string}%")
+                            .where.not(city: [nil, ''])
                             .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
@@ -54,21 +55,12 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-          name_parts = full_name.split('|')
-        
-          # Exclude the landmark if the search string is found in any part after the first pipe
-          parts_after_first_pipe = name_parts[1..] || []
-          next if parts_after_first_pipe.any? { |part| part.include?(search_string) }
-        
-          # Process for inclusion if it hasn't been excluded
+
           if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
-            # Create a modified google_place_hash with original_name
             modified_google_place_hash = landmark.google_place_hash
             modified_google_place_hash[:original_name] = full_name
-        
-            # Append the modified hash to locations
+
             locations.append(modified_google_place_hash.merge(name: short_name))
-        
             names << short_name
           end
         end
