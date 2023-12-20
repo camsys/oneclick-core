@@ -55,15 +55,20 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-                  
-        
+
+          # Skip if the search string matches any part of the name after the first pipe
+          next if full_name.split('|', 2)[1]&.include?(search_string)
+
+          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
+          next if short_name.in?(names) || landmark.city.in?(Trip::BAD_CITIES)
+
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
-        
+
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
-        
+
           names << short_name
           count += 1
           break if count >= max_results
