@@ -68,7 +68,7 @@ module Api
           count += 1
           break if count >= max_results
         end
-
+        
         # User StompingGrounds
         # FMRPA-121 Just skip for now
         if false
