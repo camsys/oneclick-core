@@ -54,9 +54,10 @@ module Api
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
+          name_parts = full_name.split('|')
         
-          # Check if any part after the first pipe in the landmark's name includes the search string
-          next if full_name.split('|')[1..].any? { |part| part.include?(search_string) }
+          # Skip if search string matches any part of the name after the first pipe
+          next if name_parts[1..].any? { |part| part.include?(search_string) }
         
           # Skip a POI if it's already in the current list of names, has no city, or has a bad city
           if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
