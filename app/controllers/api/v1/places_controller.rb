@@ -55,14 +55,12 @@ module Api
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
           
-          # Extract parts of the name separated by pipes and check against the search string
+          # Skip if search string matches any part of the name after the first pipe
           name_parts = full_name.split('|')
+          skip_landmark = name_parts[1..].any? { |part| part.strip.include?(search_string.strip) }
+          next if skip_landmark
         
-          # Exclude the landmark if the search string is found in any part after the first pipe
-          parts_after_first_pipe = name_parts[1..] || []
-          next if parts_after_first_pipe.any? { |part| part.include?(search_string) }
-        
-          # Process for inclusion if it hasn't been excluded
+          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
           if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
             # Create a modified google_place_hash with original_name
             modified_google_place_hash = landmark.google_place_hash
