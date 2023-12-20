@@ -56,12 +56,6 @@ module Api
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
                   
-          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
-          if !landmark.name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
-            locations.append(landmark.google_place_hash)
-            names << landmark.name
-            count += 1
-          end
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
