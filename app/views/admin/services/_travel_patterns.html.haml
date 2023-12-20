@@ -27,7 +27,11 @@
 
 :javascript
   function travelPatternServicesSource () {
-    return JSON.parse('#{@service.agency.travel_patterns.order(:name).map{ |travel_pattern| {label: travel_pattern[:name], "unique-key" => travel_pattern.id}}.to_json.html_safe}');
+    - if @service&.agency
+      - travel_patterns_json = @service.agency.travel_patterns.order(:name).map{ |travel_pattern| {label: travel_pattern[:name], "unique-key" => travel_pattern.id}}.to_json.html_safe
+    - else
+      - travel_patterns_json = '[]'
+    return JSON.parse("#{travel_patterns_json}");
   }
 
   $(document).ready(function() {
