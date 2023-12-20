@@ -49,22 +49,27 @@ module Api
                             .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
-        
+
         names = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
         
-          # Create a modified google_place_hash with original_name
-          modified_google_place_hash = landmark.google_place_hash
-          modified_google_place_hash[:original_name] = full_name
+          # Check if any part after the first pipe in the landmark's name includes the search string
+          next if full_name.split('|')[1..].any? { |part| part.include?(search_string) }
         
-          # Append the modified hash to locations
-          locations.append(modified_google_place_hash.merge(name: short_name))
+          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
+          if !short_name.in?(names) && !landmark.city.in?(Trip::BAD_CITIES)
+            # Create a modified google_place_hash with original_name
+            modified_google_place_hash = landmark.google_place_hash
+            modified_google_place_hash[:original_name] = full_name
         
-
-          names << short_name
-          count += 1
+            # Append the modified hash to locations
+            locations.append(modified_google_place_hash.merge(name: short_name))
+        
+            names << short_name
+            count += 1
+          end
           break if count >= max_results
         end
 
