@@ -51,6 +51,7 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
+
         names = []
         addresses = []
         landmarks.each do |landmark|
@@ -59,9 +60,10 @@ module Api
           address = landmark.formatted_address
         
           # Skip if the search string matches any part of the name after the first pipe
-          next if full_name.split('|', 2)[1]&.include?(search_string)
+          # This line ensures that searching by name will not include results where the search string matches something after the pipe.
+          next if search_string.include?('|') && full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
+          # Skip a POI if its full name is already in the list, has no city, or has a bad city
           next if names.include?(short_name) && addresses.include?(address) || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
