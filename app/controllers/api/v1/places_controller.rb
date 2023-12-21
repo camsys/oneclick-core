@@ -45,22 +45,24 @@ module Api
         # Return extras as some may be filtered out later
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
-        landmarks = Landmark.where("split_part(search_text, '|', 1) ILIKE :search", search: "%#{search_string}%")
-                            .where.not(city: [nil, ''])
-                            .limit(2 * max_results)
+        landmarks = Landmark.where("split_part(search_text, '|', 1) ILIKE :search OR (street_number || ' ' || route || ', ' || city || ', ' || state || ' ' || zip) ILIKE :search", search: "%#{search_string}%")
+                    .where.not(city: [nil, ''])
+                    .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
         names = []
+        addresses = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
+          address = landmark.formatted_address
 
           # Skip if the search string matches any part of the name after the first pipe
-          next if full_name.split('|', 2)[1]&.include?(search_string)
+          next if full_name.split('|').drop(1).any? { |part| part.include?(search_string) }
 
-          # Skip a POI if it's already in the current list of names, has no city, or has a bad city
-          next if short_name.in?(names) || landmark.city.in?(Trip::BAD_CITIES)
+          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
+          next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
 
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -70,6 +72,7 @@ module Api
           locations.append(modified_google_place_hash.merge(name: short_name))
 
           names << short_name
+          addresses << address # Add address to the list of processed addresses
           count += 1
           break if count >= max_results
         end
