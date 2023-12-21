@@ -51,9 +51,8 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        names = []
-        addresses = []
-        unique_pois = []
+        processed_names = []
+        processed_addresses = []
         
         landmarks.each do |landmark|
           full_name = landmark.name
@@ -63,11 +62,9 @@ module Api
           # Check if a part of the name after the first pipe matches the search string
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Prepare a unique identifier for the POI, combining name and address
-          poi_identifier = "#{short_name}#{address}"
-        
-          # Skip the POI if it's already included based on the unique identifier
-          next if unique_pois.include?(poi_identifier) || landmark.city.in?(Trip::BAD_CITIES)
+          # Check if this combination of name and address has been processed
+          name_address_combination = "#{short_name}|#{address}"
+          next if processed_names.include?(short_name) && processed_addresses.include?(address)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -76,8 +73,9 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          # Track processed POIs using the unique identifier
-          unique_pois << poi_identifier
+          # Track processed names and addresses
+          processed_names << short_name
+          processed_addresses << address
           count += 1
           break if count >= max_results
         end
