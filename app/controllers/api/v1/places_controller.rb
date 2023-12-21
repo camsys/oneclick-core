@@ -45,7 +45,7 @@ module Api
         # Return extras as some may be filtered out later
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
-        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%")
+        landmarks = Landmark.where("split_part(search_text, '|', 1) ILIKE :search OR address ILIKE :search", search: "%#{search_string}%")
                     .where.not(city: [nil, ''])
                     .limit(2 * max_results)
 
