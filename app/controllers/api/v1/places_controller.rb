@@ -46,20 +46,31 @@ module Api
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
         landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%")
-                    .where.not(city: [nil, ''])
-                    .limit(2 * max_results)
+        .where.not(city: [nil, ''])
+        .limit(2 * max_results)
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
+        # Process each landmark to apply the pipe filter logic
+        processed_landmarks = []
+        landmarks.each do |landmark|
+          full_name = landmark.name
+          name_parts = full_name.split('|')
+          short_name = name_parts.first.strip
+
+          # Exclude landmarks where the search string matches any part of the name after the first pipe
+          next if name_parts[1..].any? { |part| part.include?(search_string) }
+
+          processed_landmarks << landmark
+        end
+
+        # Use the processed landmarks for the rest of the logic
         names = []
         addresses = []
-        landmarks.each do |landmark|
+        processed_landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
           address = landmark.formatted_address
-
-          # Skip if the search string matches any part of the name after the first pipe
-          next if full_name.split('|').drop(1).any? { |part| part.include?(search_string) }
 
           # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
           next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
