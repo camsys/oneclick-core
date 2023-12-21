@@ -55,27 +55,29 @@ module Api
         addresses = []
         landmarks.each do |landmark|
           full_name = landmark.name
-          short_name = full_name.split('|').first.strip # Extract name before the pipe for display
+          short_name = full_name.split('|').first.strip
           address = landmark.formatted_address
         
           # Skip if the search string matches any part of the name after the first pipe
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Check if the full name and address combination is already in the list
-          # This allows landmarks with the same address but different names
-          next if full_names.include?(full_name) || landmark.city.in?(Trip::BAD_CITIES)
+          # Create a unique identifier combining name and address
+          unique_identifier = "#{short_name}|#{address}"
+        
+          # Skip a POI if its unique identifier is already in the list or has a bad city
+          next if unique_identifiers.include?(unique_identifier) || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
         
-          # Append the modified hash to locations, using short_name for display
+          # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          full_names << full_name # Add full_name to the list of processed names
+          unique_identifiers << unique_identifier # Add unique identifier to the list
           count += 1
           break if count >= max_results
-        end     
+        end        
         
         
         # User StompingGrounds
