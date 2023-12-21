@@ -52,12 +52,13 @@ module Api
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
         names = []
+        full_names = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
 
           # Skip if the search string matches any part of the name after the first pipe
-          next if full_name.split('|', 2)[1]&.include?(search_string)
+          next if full_names.include?(full_name) || landmark.city.in?(Trip::BAD_CITIES)
 
           # Skip a POI if it's already in the current list of names, has no city, or has a bad city
           next if short_name.in?(names) || landmark.city.in?(Trip::BAD_CITIES)
