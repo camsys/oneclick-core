@@ -53,16 +53,21 @@ module Api
 
         names = []
         addresses = []
+        unique_pois = []
+        
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
           address = landmark.formatted_address
         
-          # Skip if the search string matches any part of the name after the first pipe
+          # Check if a part of the name after the first pipe matches the search string
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
-          next if names.include?(short_name) && addresses.include?(address) || landmark.city.in?(Trip::BAD_CITIES)
+          # Prepare a unique identifier for the POI, combining name and address
+          poi_identifier = "#{short_name}#{address}"
+        
+          # Skip the POI if it's already included based on the unique identifier
+          next if unique_pois.include?(poi_identifier) || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -71,11 +76,11 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          names << short_name
-          addresses << address # Add address to the list of processed addresses
+          # Track processed POIs using the unique identifier
+          unique_pois << poi_identifier
           count += 1
           break if count >= max_results
-        end   
+        end
         
         
         # User StompingGrounds
