@@ -63,7 +63,7 @@ module Api
           next if full_name.split('|', 2)[1]&.include?(search_string)
 
           # Create a unique identifier for each location
-          location_identifier = "#{short_name.downcase.strip}|#{address.downcase.strip}"
+          location_identifier = "#{full_name.downcase.strip}|#{address.downcase.strip}"
 
           # Skip if this identifier has already been processed
           next if unique_locations.include?(location_identifier)
