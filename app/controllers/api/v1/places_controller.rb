@@ -61,9 +61,9 @@ module Api
           # Skip if the search string matches any part of the name after the first pipe
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Modify the filtering condition to check for unique combinations of full name and address
-          combination = "#{full_name}-#{address}"
-          next if full_names.include?(combination) || landmark.city.in?(Trip::BAD_CITIES)
+          # Modify the condition to check if both name and address are duplicate
+          duplicate_name_and_address = names.include?(short_name) && addresses.include?(address)
+          next if duplicate_name_and_address || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -72,7 +72,8 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          full_names << combination # Update full_names list with the unique combination
+          names << short_name
+          addresses << address # Add address to the list of processed addresses
           count += 1
           break if count >= max_results
         end
