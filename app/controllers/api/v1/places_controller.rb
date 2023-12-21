@@ -45,47 +45,23 @@ module Api
         # Return extras as some may be filtered out later
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
-        landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%")
-        .where.not(city: [nil, ''])
-        .limit(2 * max_results)
-
+         # Fetch all landmarks matching the search string in search_text
+         landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%")
+         .where.not(city: [nil, ''])
+         .limit(2 * max_results)
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        # Process each landmark to apply the pipe filter logic
-        processed_landmarks = []
-        landmarks.each do |landmark|
-          full_name = landmark.name
-          name_parts = full_name.split('|')
-          short_name = name_parts.first.strip
-
-          # Exclude landmarks where the search string matches any part of the name after the first pipe
-          next if name_parts[1..].any? { |part| part.include?(search_string) }
-
-          processed_landmarks << landmark
+        # Process landmarks to exclude those with search string matching after the first pipe
+        processed_landmarks = landmarks.reject do |landmark|
+          name_parts = landmark.name.split('|')
+          name_parts[1..].any? { |part| part.include?(search_string) }
         end
 
-        # Use the processed landmarks for the rest of the logic
-        names = []
-        addresses = []
-        processed_landmarks.each do |landmark|
-          full_name = landmark.name
-          short_name = full_name.split('|').first.strip
-          address = landmark.formatted_address
+        # Process the filtered landmarks
+        locations = process_landmarks(processed_landmarks, max_results)
 
-          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
-          next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
-
-          # Create a modified google_place_hash with original_name
-          modified_google_place_hash = landmark.google_place_hash
-          modified_google_place_hash[:original_name] = full_name
-
-          # Append the modified hash to locations
-          locations.append(modified_google_place_hash.merge(name: short_name))
-
-          names << short_name
-          addresses << address # Add address to the list of processed addresses
-          count += 1
-          break if count >= max_results
+        # Respond with processed locations
+        render status: 200, json: { places_search_results: { locations: locations }, record_count: locations.count }
         end
         
         # User StompingGrounds
@@ -120,6 +96,36 @@ module Api
       # STUBBED method for communication with UI
       def within_area
         render status: 200, json: {result: true}
+      end
+
+      private
+
+      def process_landmarks(landmarks, max_results)
+        names = []
+        addresses = []
+        locations = []
+
+        landmarks.each do |landmark|
+          full_name = landmark.name
+          short_name = full_name.split('|').first.strip
+          address = landmark.formatted_address
+
+          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
+          next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
+
+          # Create a modified google_place_hash with original_name
+          modified_google_place_hash = landmark.google_place_hash
+          modified_google_place_hash[:original_name] = full_name
+
+          # Append the modified hash to locations
+          locations.append(modified_google_place_hash.merge(name: short_name))
+
+          names << short_name
+          addresses << address # Add address to the list of processed addresses
+          break if locations.count >= max_results
+        end
+
+        locations
       end
 
     end
