@@ -51,21 +51,19 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        names = []
-        addresses = []
+        processed_combinations = []
+        locations = []
+        
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
           address = landmark.formatted_address
         
-          # Skip if the search string matches any part of the name after the first pipe
-          next if full_name.split('|', 2)[1]&.include?(search_string)
-        
-          # Modified to check for both name and address in the list to prevent duplicates
+          # Unique identifier for each landmark based on name and address
           unique_identifier = "#{short_name.downcase}-#{address.downcase}"
-
-          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
-          next if names.include?(unique_identifier) || landmark.city.in?(Trip::BAD_CITIES)
+        
+          # Skip if this combination of name and address has already been processed
+          next if processed_combinations.include?(unique_identifier) || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -74,7 +72,7 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          names << unique_identifier
+          processed_combinations << unique_identifier
           count += 1
           break if count >= max_results
         end
