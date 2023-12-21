@@ -61,11 +61,8 @@ module Api
           # Skip if the search string matches any part of the name after the first pipe
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Create a unique identifier combining name and address
-          unique_identifier = "#{short_name}|#{address}"
-        
-          # Skip a POI if its unique identifier is already in the list or has a bad city
-          next if unique_identifiers.include?(unique_identifier) || landmark.city.in?(Trip::BAD_CITIES)
+          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
+          next if names.include?(short_name) && addresses.include?(address) || landmark.city.in?(Trip::BAD_CITIES)
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -74,10 +71,11 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          unique_identifiers << unique_identifier # Add unique identifier to the list
+          names << short_name
+          addresses << address # Add address to the list of processed addresses
           count += 1
           break if count >= max_results
-        end        
+        end   
         
         
         # User StompingGrounds
