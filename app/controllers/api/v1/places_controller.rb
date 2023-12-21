@@ -55,15 +55,17 @@ module Api
         addresses = []
         landmarks.each do |landmark|
           full_name = landmark.name
-          short_name = full_name.split('|').first.strip
           address = landmark.formatted_address
         
           # Skip if the search string matches any part of the name after the first pipe
           next if full_name.split('|', 2)[1]&.include?(search_string)
         
-          # Modify the condition to check if both name and address are duplicate
-          duplicate_name_and_address = names.include?(short_name) && addresses.include?(address)
-          next if duplicate_name_and_address || landmark.city.in?(Trip::BAD_CITIES)
+          # Check if the full name (including after the pipe) and address combination is already in the list
+          # This allows two landmarks with the same address but different names
+          next if full_names.include?(full_name) || landmark.city.in?(Trip::BAD_CITIES)
+        
+          # Shorten the name for display purposes
+          short_name = full_name.split('|').first.strip
         
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -72,11 +74,10 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
         
-          names << short_name
-          addresses << address # Add address to the list of processed addresses
+          full_names << full_name # Add full_name (including after the pipe) to the list of processed names
           count += 1
           break if count >= max_results
-        end
+        end        
         
         
         # User StompingGrounds
