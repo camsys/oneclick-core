@@ -51,30 +51,33 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        processed_combinations = []
-        locations = []
-        
+        names = []
+        addresses = []
         landmarks.each do |landmark|
           full_name = landmark.name
           short_name = full_name.split('|').first.strip
-          address = landmark.formatted_address
-        
-          # Unique identifier for each landmark based on name and address
-          unique_identifier = "#{short_name.downcase}-#{address.downcase}"
-        
-          # Skip if this combination of name and address has already been processed
-          next if processed_combinations.include?(unique_identifier) || landmark.city.in?(Trip::BAD_CITIES)
-        
+          address = landmark.formatted_address.downcase.strip  # Normalize the address
+
+          # Skip if the search string matches any part of the name after the first pipe
+          next if full_name.split('|', 2)[1]&.include?(search_string)
+
+          # Skip a POI if its name and address combination is already in the list
+          location_key = "#{short_name.downcase}#{address}"  # Combine name and address for uniqueness check
+          next if names.include?(short_name) && addresses.include?(address)
+
+          # Skip if the location has no city or a bad city
+          next if landmark.city.in?(Trip::BAD_CITIES)
+
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
           modified_google_place_hash[:original_name] = full_name
-        
+
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
-        
-          processed_combinations << unique_identifier
-          count += 1
-          break if count >= max_results
+
+          names << short_name
+          addresses << address  # Add normalized address to the list
+          break if locations.size >= max_results
         end
         
         
