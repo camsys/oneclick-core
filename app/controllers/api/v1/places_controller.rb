@@ -46,37 +46,36 @@ module Api
         # landmarks = Landmark.where("name ILIKE :search", search: "%#{search_string}%").where.not(city: [nil, ''])
         #              .limit(2 * max_results)
         landmarks = Landmark.where("search_text ILIKE :search", search: "%#{search_string}%")
-        .where.not(city: [nil, ''])
-        .limit(2 * max_results)
+                    .where.not(city: [nil, ''])
+                    .limit(2 * max_results)
 
-landmarks = landmarks.where(agency: agencies) if agencies.present?
+        landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-names = []
-addresses = []
-landmarks.each do |landmark|
-# Split the name and address from the search_text
-name_parts = landmark.name.split('|')
-short_name = name_parts.first.strip
-address = landmark.formatted_address
+        names = []
+        addresses = []
+        landmarks.each do |landmark|
+          full_name = landmark.name
+          short_name = full_name.split('|').first.strip
+          address = landmark.formatted_address
 
-# Exclude the landmark if the search string matches any part of the name after the first pipe
-next if name_parts.drop(1).any? { |part| search_string.include?(part) }
+          # Skip if the search string matches any part of the name after the first pipe
+          next if full_name.split('|').drop(1).any? { |part| part.include?(search_string) }
 
-# Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
-next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
+          # Skip a POI if its name and address combination is already in the list, has no city, or has a bad city
+          next if (names.include?(short_name) && addresses.include?(address)) || landmark.city.in?(Trip::BAD_CITIES)
 
-# Create a modified google_place_hash with original_name
-modified_google_place_hash = landmark.google_place_hash
-modified_google_place_hash[:original_name] = landmark.name
+          # Create a modified google_place_hash with original_name
+          modified_google_place_hash = landmark.google_place_hash
+          modified_google_place_hash[:original_name] = full_name
 
-# Append the modified hash to locations
-locations.append(modified_google_place_hash.merge(name: short_name))
+          # Append the modified hash to locations
+          locations.append(modified_google_place_hash.merge(name: short_name))
 
-names << short_name
-addresses << address # Add address to the list of processed addresses
-count += 1
-break if count >= max_results
-end
+          names << short_name
+          addresses << address # Add address to the list of processed addresses
+          count += 1
+          break if count >= max_results
+        end
         
         # User StompingGrounds
         # FMRPA-121 Just skip for now
