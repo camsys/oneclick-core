@@ -51,7 +51,7 @@ module Api
 
         landmarks = landmarks.where(agency: agencies) if agencies.present?
 
-        processed_locations = Set.new
+        unique_locations = Set.new
         locations = []
 
         landmarks.each do |landmark|
@@ -65,10 +65,10 @@ module Api
           # Skip if the location has no city or a bad city
           next if landmark.city.in?(Trip::BAD_CITIES)
 
-          location_identifier = "#{short_name}#{address}"
+          location_key = "#{short_name.downcase}||#{address}"
 
           # Skip if this location (name + address combination) has already been processed
-          next if processed_locations.include?(location_identifier)
+          next if unique_locations.include?(location_key)
 
           # Create a modified google_place_hash with original_name
           modified_google_place_hash = landmark.google_place_hash
@@ -77,7 +77,7 @@ module Api
           # Append the modified hash to locations
           locations.append(modified_google_place_hash.merge(name: short_name))
 
-          processed_locations.add(location_identifier)  # Mark this location as processed
+          unique_locations.add(location_key)  # Mark this location as processed
           break if locations.size >= max_results
         end
         
