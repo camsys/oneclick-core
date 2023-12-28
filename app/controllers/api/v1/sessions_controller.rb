@@ -3,7 +3,7 @@ module Api
     class SessionsController < Devise::SessionsController
       # acts_as_token_authentication_handler_for User, fallback: :none
       skip_before_action :verify_signed_out_user
-      prepend_before_filter :require_no_authentication, :only => [:create ]
+      prepend_before_action :require_no_authentication, :only => [:create ]
       include Devise::Controllers::Helpers
       include JsonResponseHelper::ApiErrorCatcher # Catches 500 errors and sends back JSON with headers.
 
