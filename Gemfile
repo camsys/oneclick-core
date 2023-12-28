@@ -7,7 +7,7 @@ end
 
 ### DEFAULT RAILS GEMS ####################
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.1'
+gem 'rails', '~> 6.0.1'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 0.21'
 # Use Puma as the app server
@@ -82,7 +82,7 @@ gem 'attr_encrypted', "~> 3.0.0" # For encrypting any column; used for external 
 ### i18n Tools #############################
 gem 'rails-i18n'
 gem 'simple_translation_engine', 
-      github: 'camsys/simple_translation_engine', branch: 'lydia_translation_engine'
+      github: 'camsys/simple_translation_engine_test', branch: 'master'
 ### SOAP Support ###########################
 gem 'savon'
 ############################################
@@ -135,7 +135,7 @@ require './config/oneclick_modules.rb' if File.exists?('./config/oneclick_module
 # e.g. ` gem 'some_engine', require: !!ENV["SOME_ENGINE"] `
 
 # Download the oneclick_refernet gem, but only require it if env var is set
-gem 'oneclick_refernet', github: 'camsys/oneclick_refernet', branch: 'derek_azure'
+gem 'oneclick_refernet', github: 'camsys/oneclick_refernet_test', branch: 'master'
 ############################################
 
 
