@@ -453,7 +453,7 @@ class EcolaneAmbassador < BookingAmbassador
         purpose = allowed["purpose"]
 
         # Skip if the sponsor is not in the list of preferred sponsors
-        next unless @preferred_sponsors.include?(allowed["sponsor"].parameterize.underscore)
+        next unless @preferred_sponsors.include?(allowed["sponsor"])  # Add this line
 
         # Add the date range for which the purpose is eligible, if available.
         purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
