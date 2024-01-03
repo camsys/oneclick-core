@@ -135,6 +135,8 @@ class EcolaneAmbassador < BookingAmbassador
     # For trips that are round trips, make sure that they point to each other.
     link_trips
 
+    # Log a note that the sync was successful
+    Rails.logger.info "Ecolane Sync Successful"
   end
 
     # Books Trip (funding_source and sponsor must be specified)
