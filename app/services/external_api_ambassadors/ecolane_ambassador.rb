@@ -121,21 +121,35 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
-  def sync days_ago=1
-
-    #For performance, only update trips in the future
+  def sync(days_ago=1)
+    # Fetch Ecolane orders
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
+    ecolane_orders = fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order)
+    ecolane_confirmation_numbers = ecolane_orders.map { |order| order[:confirmation_number] }
 
-    (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
-      occ_trip_from_ecolane_trip order
+    # Fetch local trips that should be synced
+    local_trips = Trip.where(user_id: @user.id, trip_time: Time.current..)
+
+    # Iterate over each local trip and process if it matches an Ecolane order
+    local_trips.each do |trip|
+      # Find corresponding Ecolane order
+      ecolane_order = ecolane_orders.find { |order| order[:confirmation_number] == trip.booking.confirmation }
+
+      # Skip the trip if it does not have a corresponding Ecolane order
+      next if ecolane_order.nil?
+
+      # Process the Ecolane order
+      occ_trip_from_ecolane_trip(ecolane_order)
     end
-
-    # For trips that are round trips, make sure that they point to each other.
+  
+    # For trips that are round trips, make sure that they point to each other
     link_trips
 
-  end
+    # Log a note that the sync was successful
+    Rails.logger.info "Ecolane Sync Successful"
+  end  
 
     # Books Trip (funding_source and sponsor must be specified)
   def book
