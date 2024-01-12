@@ -118,7 +118,7 @@ class EcolaneAmbassador < BookingAmbassador
   def authentic_provider?
     true
   end
-
+  
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync days_ago=1
@@ -451,6 +451,10 @@ class EcolaneAmbassador < BookingAmbassador
       end
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
+
+        # Skip if the sponsor is not in the list of preferred sponsors
+        next unless @preferred_sponsors.include?(allowed["sponsor"])
+
         # Add the date range for which the purpose is eligible, if available.
         purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
