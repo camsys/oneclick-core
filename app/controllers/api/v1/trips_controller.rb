@@ -18,9 +18,12 @@ module Api
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_trips_hash = @traveler.future_trips(params[:max_results] || 25)
-                                     .outbound
-                                     .map {|t| filter_trip_name(t)}
+        # Only return trips that have been booked properly
+        future_trips_with_booking = @traveler.future_trips(params[:max_results] || 25).select do |trip|
+          trip.booking.present? && trip.booking.confirmation.present?
+        end
+
+        future_trips_hash = future_trips_with_booking.map { |t| filter_trip_name(t) }
         render status: 200, json: {trips: future_trips_hash}
       end
 
