@@ -41,13 +41,13 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
-    backend_start_time = Time.now
-
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
     # Sets up external ambassadors
     prepare_ambassadors
+
+    backend_start_time = Time.now
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
