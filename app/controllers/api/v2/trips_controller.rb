@@ -42,6 +42,9 @@ module Api
         @trip.user = @traveler
         @trip_planner = TripPlanner.new(@trip, trip_planner_options)
 
+         # Start time measurement
+        start_time = Time.now
+
         # Plan the trip (build itineraries and save it)
         # TODO: check different OCC instances to ensure that new updates didn't break it
         if @trip_planner.plan
@@ -59,6 +62,10 @@ module Api
           render success_response(@trip, {serializer_opts: {include: ['*.*.*']}, errors: @trip_planner.errors})
         end
         
+        end_time = Time.now
+        processing_time = end_time - start_time
+        Rails.logger.info("Trip planning processing time: #{processing_time} seconds")
+      
       end
 
       # POST trips/plan_multiday
