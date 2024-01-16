@@ -41,6 +41,8 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
+    backend_start_time = Time.now
+
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
@@ -63,6 +65,10 @@ class TripPlanner
     end
     @trip.no_valid_services = no_paratransit && no_transit
     @trip.save
+
+    backend_end_time = Time.now
+    backend_processing_time = backend_end_time - backend_start_time
+    Rails.logger.info("Backend processing time: #{backend_processing_time} seconds")
   end
 
   # Set up external API ambassadors

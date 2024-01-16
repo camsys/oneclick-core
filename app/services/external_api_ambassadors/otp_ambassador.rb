@@ -74,9 +74,13 @@ class OTPAmbassador
 
   # Returns an array of 1-Click-ready itinerary hashes.
   def get_itineraries(trip_type)
+    start_time = Time.now
     return [] if errors(trip_type)
     itineraries = ensure_response(trip_type).itineraries
     return itineraries.map {|i| convert_itinerary(i, trip_type)}.compact
+    end_time = Time.now
+    otp_processing_time = end_time - start_time
+    Rails.logger.info("OTP processing time for #{trip_type}: #{otp_processing_time} seconds")
   end
 
   # Extracts a trip duration from the OTP response.
