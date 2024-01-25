@@ -27,15 +27,6 @@ module Api
         render status: 200, json: {trips: future_trips_hash}
       end
 
-      def filter_trip_name(trip)
-        # Modify trip names to filter out text after the pipe
-        trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
-        trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
-
-        # Convert the trip object to hash or any other format as needed
-        my_trips_hash(trip)
-      end
-
       # POST trips/, POST itineraries/plan
       def create
         # Create an array of strong trip parameters based on itinerary_request sent
