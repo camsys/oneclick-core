@@ -670,8 +670,13 @@ module Api
 
       def filter_trip_name(trip)
         # Modify trip names to filter out text after the pipe
-        trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
-        trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+        if trip.origin.name.present?
+          trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
+        end
+
+        if trip.destination.name.present?
+          trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+        end
 
         # Convert the trip object to hash or any other format as needed
         my_trips_hash(trip)
