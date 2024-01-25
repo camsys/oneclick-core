@@ -672,10 +672,14 @@ module Api
         # Modify trip names to filter out text after the pipe
         if trip.origin.name.present?
           trip.origin.name = trip.origin.name.split('|').first.strip if trip.origin.name
+        else
+          trip.origin.name = "#{trip.origin.street_number} #{trip.origin.route}, #{trip.origin.city}".strip
         end
 
         if trip.destination.name.present?
           trip.destination.name = trip.destination.name.split('|').first.strip if trip.destination.name
+        else
+          trip.destination.name = "#{trip.destination.street_number} #{trip.destination.route}, #{trip.destination.city}".strip
         end
 
         # Convert the trip object to hash or any other format as needed
