@@ -657,8 +657,6 @@ module Api
         end        
       end
 
-      private
-
       def filter_trip_name(trip)
         # Modify trip names to filter out text after the pipe
         if trip.origin.name.present?
@@ -676,6 +674,8 @@ module Api
         # Convert the trip object to hash or any other format as needed
         my_trips_hash(trip)
       end
+
+      private
 
     end
   end
