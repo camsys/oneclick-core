@@ -51,3 +51,6 @@
 /public/assets/*
 TAGS
 *.log
+prod_data_utils/config.json
+prod_data_utils/dev-config.json
+prod_data_utils/route53_config.json
