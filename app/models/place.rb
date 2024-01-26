@@ -55,6 +55,7 @@ class Place < ApplicationRecord
 
   def ensure_name 
     self.name ||= auto_name
+    Rails.logger.info "Ensuring name for waypoint: #{self.inspect}"
   end
 
   def auto_name

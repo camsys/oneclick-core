@@ -642,9 +642,10 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_place_from_eco_place(eco_place)
-    byebug
-    place_hash = occ_place_hash(eco_place)
-    Waypoint.create!(place_hash)
+    Rails.logger.info "Ecolane place: #{eco_place.inspect}"
+    waypoint = Waypoint.create!(occ_place_hash(eco_place))
+    Rails.logger.info "Created waypoint: #{waypoint.inspect}"
+    waypoint
   end  
 
   #HASHES
@@ -660,12 +661,9 @@ class EcolaneAmbassador < BookingAmbassador
     {user: @user, origin: origin, destination: destination, trip_time: trip_time, arrive_by: arrive_by, note: note}
   end
 
-  def occ_place_hash(eco_place)
-    name = eco_place.try(:with_indifferent_access).try(:[], :name)
-    Rails.logger.info "Extracted name from eco_place: #{name}"
-  
+  def occ_place_hash eco_place
     {
-      name:           name,
+      name:           eco_place.try(:with_indifferent_access).try(:[], :name),
       street_number:  eco_place.try(:with_indifferent_access).try(:[], :street_number),
       route:          eco_place.try(:with_indifferent_access).try(:[], :street),
       city:           eco_place.try(:with_indifferent_access).try(:[], :city),
@@ -673,10 +671,10 @@ class EcolaneAmbassador < BookingAmbassador
       lat:            eco_place.try(:with_indifferent_access).try(:[], :latitude),
       lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
       county:         eco_place.try(:with_indifferent_access).try(:[], :county)
-    }.tap do |hash|
-      Rails.logger.info "Built occ_place_hash: #{hash.inspect}"
-    end
-  end
+    }  
+    Rails.logger.info "occ_place_hash: #{hash.inspect}"
+    hash
+  end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
     eco_trip = eco_trip.with_indifferent_access
