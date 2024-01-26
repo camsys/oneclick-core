@@ -642,11 +642,10 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def occ_place_from_eco_place(eco_place)
-    Rails.logger.info "Processing eco_place: #{eco_place.inspect}"
+    byebug
     place_hash = occ_place_hash(eco_place)
-    Rails.logger.info "Generated place_hash: #{place_hash.inspect}"
     Waypoint.create!(place_hash)
-  end
+  end  
 
   #HASHES
   def occ_trip_hash eco_trip
