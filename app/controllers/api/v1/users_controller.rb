@@ -159,6 +159,18 @@ module Api
         end
         purposes = trip_purposes.sort
 
+        current_date = Date.today
+        filtered_trip_purposes = []
+        
+        trip_purposes_hash.each do |purpose_hash|
+          valid_from = purpose_hash[:valid_from].present? ? Date.parse(purpose_hash[:valid_from]) : nil
+          valid_until = purpose_hash[:valid_until].present? ? Date.parse(purpose_hash[:valid_until]) : nil
+      
+          if valid_from.nil? || (valid_from <= current_date && (valid_until.nil? || valid_until >= current_date))
+            filtered_trip_purposes << purpose_hash
+          end
+        end
+
         #Append extra information to Top Trip Purposes Array
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
@@ -215,8 +227,8 @@ module Api
           end
           top_purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
-
-        hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}
+        
+        hash = { top_trip_purposes: top_purposes_hash, trip_purposes: filtered_trip_purposes }
         render json: hash
 
       end
