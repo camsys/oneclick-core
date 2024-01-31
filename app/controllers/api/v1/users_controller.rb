@@ -145,6 +145,9 @@ module Api
       #Built to Support Ecolane API/V1
       def trip_purposes
 
+        Rails.logger.info("Starting trip_purposes for user: #{@traveler&.id}")
+
+
         #If the user is registered with a service, use his/her trip purposes
         trip_purposes  = []
         trip_purposes_hash = []
@@ -227,8 +230,10 @@ module Api
           end
           top_purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
-        
+
         hash = { top_trip_purposes: top_purposes_hash, trip_purposes: filtered_trip_purposes }
+        Rails.logger.info("Completed trip_purposes with response: #{hash.inspect}")
+
         render json: hash
 
       end
