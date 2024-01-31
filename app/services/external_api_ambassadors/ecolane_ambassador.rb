@@ -545,6 +545,8 @@ class EcolaneAmbassador < BookingAmbassador
       start_validity = combination[:valid_from] ? Time.parse(combination[:valid_from]) : nil
       end_validity = combination[:valid_until] ? Time.parse(combination[:valid_until]) : nil
 
+      next if start_validity && start_validity > Time.now
+
       invalid_start || invalid_end
     end
 
