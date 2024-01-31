@@ -68,6 +68,11 @@ class EcolaneAmbassador < BookingAmbassador
     return if @booking_profile 
     if @service and @user 
       @booking_profile = UserBookingProfile.find_by(service: @service, user: @user)
+      if @booking_profile && @booking_profile.details[:customer_id] != @customer_id
+        # Update the customer_id in the booking profile if it's outdated
+        @booking_profile.details[:customer_id] = @customer_id
+        @booking_profile.save
+      end
     end
   end
 
@@ -446,6 +451,9 @@ class EcolaneAmbassador < BookingAmbassador
       # Check if the current date is within the valid_from and valid_until range
       next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
 
+      # Skip funding sources that haven't started yet
+      next if valid_from && valid_from > current_date
+
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
@@ -533,6 +541,9 @@ class EcolaneAmbassador < BookingAmbassador
       else
         invalid_end = false
       end
+
+      start_validity = combination[:valid_from] ? Time.parse(combination[:valid_from]) : nil
+      end_validity = combination[:valid_until] ? Time.parse(combination[:valid_until]) : nil
 
       invalid_start || invalid_end
     end
@@ -766,6 +777,7 @@ class EcolaneAmbassador < BookingAmbassador
   def get_user
     valid_passenger, passenger = validate_passenger
     if valid_passenger
+      @customer_id = passenger["id"]  # Update the customer_id with the latest one from Ecolane
       user = nil
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
