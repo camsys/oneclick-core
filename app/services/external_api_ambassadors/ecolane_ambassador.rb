@@ -440,50 +440,48 @@ class EcolaneAmbassador < BookingAmbassador
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
     Rails.logger.info("Starting get_trip_purposes")
-
+  
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today 
-
+  
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       Rails.logger.info("Processing funding source: #{funding_source.inspect}")
-
-      valid_from = Date.parse(funding_source["valid_from"]) if funding_source["valid_from"].present?
-      valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
-
-      # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
-
-      # Skip funding sources that haven't started yet
+  
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : nil
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
+  
+      # Skip funding sources that are not yet valid (i.e., future-dated)
       next if valid_from && valid_from > current_date
-
-      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
-        next 
-      end
-      arrayify(funding_source["allowed"]).each do |allowed|
-        Rails.logger.info("Allowed purpose: #{allowed.inspect}")
-
-        purpose = allowed["purpose"]
-
-        # Skip if the sponsor is not in the list of preferred sponsors
-        next unless @preferred_sponsors.include?(allowed["sponsor"])
-
-        # Add the date range for which the purpose is eligible, if available.
-        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
-        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
-          purposes.append(purpose)
+  
+      # Process only if the current date is within the valid_from and valid_until range
+      if valid_from.nil? || (valid_from <= current_date && (valid_until.nil? || valid_until >= current_date))
+        arrayify(funding_source["allowed"]).each do |allowed|
+          Rails.logger.info("Allowed purpose: #{allowed.inspect}")
+  
+          purpose = allowed["purpose"]
+  
+          # Skip if the sponsor is not in the list of preferred sponsors
+          next unless @preferred_sponsors.include?(allowed["sponsor"])
+  
+          # Add the date range for which the purpose is eligible, if available.
+          purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
+          unless purpose.in? purposes
+            purposes.append(purpose)
+          end
+          purposes_hash << purpose_hash
         end
-        purposes_hash << purpose_hash
       end
     end
-
+  
     Rails.logger.info("Completed get_trip_purposes with purposes: #{purposes.inspect} and purposes_hash: #{purposes_hash.inspect}")
-
+  
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
+  
 
 
   ##
