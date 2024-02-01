@@ -244,7 +244,7 @@ class TravelPattern < ApplicationRecord
 
     # Adjust start_date and end_date based on valid_from and valid_until
     start_date = [start_date, valid_from].compact.max if valid_from
-    end_date = [end_date, valid_until].compact.min if valid_until
+    end_date = valid_until if valid_until
 
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
