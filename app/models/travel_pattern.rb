@@ -235,60 +235,51 @@ class TravelPattern < ApplicationRecord
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
   
-    # Initialize the calendar hash
     calendar = {}
+    
+    # Ensure valid_from and valid_until are Date objects
+    valid_from = valid_from.present? ? Date.strptime(valid_from, '%Y-%m-%d') : nil
+    valid_until = valid_until.present? ? Date.strptime(valid_until, '%Y-%m-%d') : nil
   
-    # Ensure valid_from and valid_until are Date objects, defaulting valid_from to today if nil
-    valid_from = valid_from.present? ? Date.strptime(valid_from, '%Y-%m-%d') : Date.today
-    valid_until = valid_until.present? ? Date.strptime(valid_until, '%Y-%m-%d') : end_date
+    # Use today's date as the default start date if valid_from is nil, ensuring it does not precede start_date
+    valid_from ||= [Date.today, start_date].max
+    
+    # Adjust start_date based on valid_from, ensuring we don't start before it
+    start_date = [start_date, valid_from].max
   
-    # Adjust the iteration start date to valid_from if it's later than the start_date
-    iteration_date = [start_date, valid_from].max
+    # Ensure end_date does not exceed valid_until if it's specified
+    end_date = valid_until if valid_until && valid_until < end_date
   
-    # Iterate over the date range, respecting both start_date and valid_until boundaries
-    while iteration_date <= end_date && iteration_date <= valid_until
-      date_string = iteration_date.strftime('%Y-%m-%d')
+    date = start_date
+    while date <= end_date
+      date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = { start_time: nil, end_time: nil }
   
-      # Process reduced service schedules
-      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
-        valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= iteration_date
-        valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= iteration_date
-        break memo if memo  # Break early if we've already found a reduced schedule for this date
-        
-        if valid_start && valid_end
-          service_schedule.service_sub_schedules.find do |sub_schedule|
-            sub_schedule.calendar_date == iteration_date
-          end
-        else
-          nil
-        end
+      applicable_schedules = (weekly_schedules + extra_service_schedules).select do |service_schedule|
+        service_schedule.start_date.nil? || date >= service_schedule.start_date
+      end.reject do |service_schedule|
+        service_schedule.end_date && date > service_schedule.end_date
       end
   
-      if reduced_sub_schedule
-        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
-        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
+      # Identify and process reduced schedules
+      reduced_schedule_for_date = applicable_schedules.select { |schedule| schedule.type == 'reduced' && schedule.valid_on?(date) }.first
+      if reduced_schedule_for_date
+        sub_schedule = reduced_schedule_for_date.service_sub_schedules.find { |sub| sub.calendar_date == date }
+        calendar[date_string][:start_time], calendar[date_string][:end_time] = sub_schedule.start_time, sub_schedule.end_time if sub_schedule
       else
-        # Process weekly and extra service schedules if no reduced schedule is applicable
-        applicable_schedules = (weekly_schedules + extra_service_schedules).select do |service_schedule|
-          service_schedule.service_sub_schedules.any? do |sub_schedule|
-            (sub_schedule.calendar_date == iteration_date) || (sub_schedule.day == iteration_date.wday && sub_schedule.calendar_date.nil?)
-          end
-        end
-  
-        unless applicable_schedules.empty?
-          start_times = applicable_schedules.map(&:service_sub_schedules).flatten.map(&:start_time)
-          end_times = applicable_schedules.map(&:service_sub_schedules).flatten.map(&:end_time)
-          calendar[date_string][:start_time] = start_times.compact.min
-          calendar[date_string][:end_time] = end_times.compact.max
-        end
+        normal_schedules_for_date = applicable_schedules.reject { |schedule| schedule.type == 'reduced' }.select { |schedule| schedule.valid_on?(date) }
+        start_times = normal_schedules_for_date.map { |schedule| schedule.start_time_for(date) }.compact
+        end_times = normal_schedules_for_date.map { |schedule| schedule.end_time_for(date) }.compact
+        calendar[date_string][:start_time] = start_times.min
+        calendar[date_string][:end_time] = end_times.max
       end
   
-      iteration_date += 1.day
+      date += 1.day
     end
   
     calendar
   end
+  
   
 
   # Class Methods
