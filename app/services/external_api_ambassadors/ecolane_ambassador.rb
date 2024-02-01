@@ -437,18 +437,23 @@ class EcolaneAmbassador < BookingAmbassador
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today 
-
+  
     six_weeks_from_now = Date.today + 6.weeks
-
+  
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : nil
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
   
-      # Skip if the funding source has already expired
-      next if valid_until && valid_until < Date.today
+      # Continue to next iteration if the funding source has already expired
+      next if valid_until && valid_until < current_date
   
-      # Skip if the funding source will become valid more than 6 weeks from now
+      # Continue to next iteration if the funding source is not yet valid and will only become valid more than 6 weeks from now
       next if valid_from && valid_from > six_weeks_from_now
+  
+      # If valid_from is nil, allow purposes until valid_until date
+      if valid_from.nil? && valid_until && valid_until < current_date
+        next
+      end
       
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
