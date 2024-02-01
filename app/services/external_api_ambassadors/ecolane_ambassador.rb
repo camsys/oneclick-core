@@ -440,11 +440,12 @@ class EcolaneAmbassador < BookingAmbassador
     current_date = Date.today 
 
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      valid_from = Date.parse(funding_source["valid_from"]) if funding_source["valid_from"].present?
-      valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : nil
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
 
-      # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
+      # Skip if the funding source is not yet valid or has expired
+      next if valid_from && valid_from > current_date
+      next if valid_until && valid_until < current_date
 
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
