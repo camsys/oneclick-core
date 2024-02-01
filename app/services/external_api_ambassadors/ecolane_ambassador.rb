@@ -431,7 +431,6 @@ class EcolaneAmbassador < BookingAmbassador
     balance
   end
 
-
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
     purposes = []
@@ -439,14 +438,18 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today 
 
+    six_weeks_from_now = Date.today + 6.weeks
+
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : nil
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
-
-      # Skip if the funding source is not yet valid or has expired
-      next if valid_from && valid_from > current_date
-      next if valid_until && valid_until < current_date
-
+  
+      # Skip if the funding source has already expired
+      next if valid_until && valid_until < Date.today
+  
+      # Skip if the funding source will become valid more than 6 weeks from now
+      next if valid_from && valid_from > six_weeks_from_now
+      
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
@@ -456,9 +459,9 @@ class EcolaneAmbassador < BookingAmbassador
         # Skip if the sponsor is not in the list of preferred sponsors
         next unless @preferred_sponsors.include?(allowed["sponsor"])
 
-        # Add the date range for which the purpose is eligible, if available.
+        # Add the purpose and its date range to the list
         purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
-        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
+        unless purpose.in? purposes
           purposes.append(purpose)
         end
         purposes_hash << purpose_hash
@@ -469,6 +472,7 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
+
 
 
   ##
