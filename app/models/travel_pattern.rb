@@ -228,33 +228,29 @@ class TravelPattern < ApplicationRecord
   #   :calendar_length => +start_date+ + 59.days
   # 
   # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
-  def to_calendar(start_date, end_date = start_date + 59.days, valid_from = nil, valid_until = nil)
-    # Ensure valid_from is today's date if nil or not provided
-    valid_from ||= Date.today
-  
-    # Parse valid_from and valid_until if they are strings
-    valid_from = Date.parse(valid_from) if valid_from.is_a?(String)
-    valid_until = Date.parse(valid_until) if valid_until.is_a?(String) && !valid_until.empty?
-  
-    # Adjust the start_date based on the valid_from
-    start_date = [start_date, valid_from].max
-  
-    # Adjust the end_date based on the valid_until, if valid_until is provided and before the calculated end_date
-    end_date = [end_date, valid_until].min if valid_until
-  
+  def to_calendar(start_date, original_end_date = nil, valid_from = nil, valid_until = nil)
     travel_pattern_service_schedules = schedules_by_type
   
-    # Extracting service schedules
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
   
-    calendar = {}
+    # Ensure valid_from and valid_until are Date objects
+    valid_from = valid_from.present? ? Date.strptime(valid_from, '%Y-%m-%d') : Date.today
+    valid_until = valid_until.present? ? Date.strptime(valid_until, '%Y-%m-%d') : Date.today + 59.days
   
+    # Adjust start_date and end_date based on valid_from and valid_until
+    start_date = [start_date, valid_from].max
+    end_date = original_end_date || start_date + 59.days # Recalculate end_date based on adjusted start_date if not explicitly provided
+    end_date = [end_date, valid_until].min
+  
+    calendar = {}
     date = start_date
+  
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = {}
+      calendar[date_string] = {start_time: nil, end_time: nil}
+  
 
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
         valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
