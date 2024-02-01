@@ -238,10 +238,12 @@ class TravelPattern < ApplicationRecord
     calendar = {}
     date = start_date
   
-    # Adjust start_date based on valid_from if valid_from is present
+    # Convert valid_from and valid_until to Date objects if they are strings
+    valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String)
+    valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)
+
+    # Adjust start_date and end_date based on valid_from and valid_until
     start_date = [start_date, valid_from].compact.max if valid_from
-      
-    # Adjust end_date based on valid_until if valid_until is present
     end_date = [end_date, valid_until].compact.min if valid_until
 
     while date <= end_date
