@@ -440,23 +440,33 @@ class EcolaneAmbassador < BookingAmbassador
     six_weeks_from_now = Date.today + 6.weeks
   
     customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
-      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : Date.today
-      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : six_weeks_from_now
+      valid_from = if funding_source["valid_from"].present?
+                     Date.parse(funding_source["valid_from"])
+                   else
+                     Date.today # Default to today if valid_from is not present
+                   end
   
-      # Skip if the funding source has already expired or is not yet valid
-      next if valid_until < current_date || valid_from > six_weeks_from_now
+      valid_until = if funding_source["valid_until"].present?
+                      Date.parse(funding_source["valid_until"])
+                    else
+                      Date.today + 1.year # Example default, adjust as needed
+                    end
+  
+      next if valid_until < current_date # Skip past funding sources
   
       funding_source["allowed"].each do |allowed|
         next unless @preferred_sponsors.include?(allowed["sponsor"])
   
         purpose_hash = {
           code: allowed["purpose"],
-          valid_from: valid_from.to_s, # Ensure it's a string if you're expecting a string format elsewhere
+          valid_from: valid_from.to_s, # Convert to string if necessary
           valid_until: valid_until.to_s
         }
-        
-        purposes << allowed["purpose"] unless purposes.include?(allowed["purpose"])
-        purposes_hash << purpose_hash
+  
+        unless purposes.include?(allowed["purpose"])
+          purposes << allowed["purpose"]
+          purposes_hash << purpose_hash
+        end
       end
     end
   
@@ -465,7 +475,8 @@ class EcolaneAmbassador < BookingAmbassador
     purposes -= banned_purposes
   
     [purposes, purposes_hash]
-  end  
+  end
+  
 
 
 
