@@ -432,63 +432,40 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   # Get a list of trip purposes for a customer
-  def get_trip_purposes 
+  def get_trip_purposes
     purposes = []
     purposes_hash = []
-    purposes.each_with_index do |p, i|
-      trip_purpose_hashes = trip_purposes_hash.select { |h| h[:code] == p }
-      earliest_purpose_hash = trip_purpose_hashes.min_by { |h| h[:valid_from] || Date.today }
-
-      valid_from = earliest_purpose_hash[:valid_from]
-      valid_until = earliest_purpose_hash[:valid_until]
-
-      # Only add the purpose if valid_until is nil (always valid) or still in the future
-      if valid_until.nil? || Date.parse(valid_until) >= Date.today
-        purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
-      end
-    end
     customer_information = fetch_customer_information(funding=true)
-    current_date = Date.today 
-  
+    current_date = Date.today
     six_weeks_from_now = Date.today + 6.weeks
   
-    arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : nil
-      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
+    customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : Date.today
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : six_weeks_from_now
   
-      # Continue to next iteration if the funding source has already expired
-      next if valid_until && valid_until < current_date
+      # Skip if the funding source has already expired or is not yet valid
+      next if valid_until < current_date || valid_from > six_weeks_from_now
   
-      # Continue to next iteration if the funding source is not yet valid and will only become valid more than 6 weeks from now
-      next if valid_from && valid_from > six_weeks_from_now
-  
-      # If valid_from is nil, allow purposes until valid_until date
-      if valid_from.nil? && valid_until && valid_until < current_date
-        next
-      end
-      
-      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
-        next 
-      end
-      arrayify(funding_source["allowed"]).each do |allowed|
-        purpose = allowed["purpose"]
-
-        # Skip if the sponsor is not in the list of preferred sponsors
+      funding_source["allowed"].each do |allowed|
         next unless @preferred_sponsors.include?(allowed["sponsor"])
-
-        # Add the purpose and its date range to the list
-        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
-        unless purpose.in? purposes
-          purposes.append(purpose)
-        end
+  
+        purpose_hash = {
+          code: allowed["purpose"],
+          valid_from: valid_from.to_s, # Ensure it's a string if you're expecting a string format elsewhere
+          valid_until: valid_until.to_s
+        }
+        
+        purposes << allowed["purpose"] unless purposes.include?(allowed["purpose"])
         purposes_hash << purpose_hash
       end
     end
-
+  
+    purposes.sort!.uniq!
     banned_purposes = @service.banned_purpose_names
-    purposes = purposes.sort.uniq - banned_purposes
+    purposes -= banned_purposes
+  
     [purposes, purposes_hash]
-  end
+  end  
 
 
 
