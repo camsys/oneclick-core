@@ -238,13 +238,16 @@ class TravelPattern < ApplicationRecord
     calendar = {}
     date = start_date
   
-    # Ensure valid_from is set to today's date if nil to avoid extending beyond valid_until unintentionally
-    valid_from = Date.today if valid_from.nil?
-    valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)
+    # If valid_from is nil, set it to today's date
+    valid_from = Date.today unless valid_from
+    # Convert valid_from and valid_until to Date objects if they are strings
+    valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String) && valid_from
+    valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String) && valid_until
   
-    # Adjust start_date and end_date based on valid_from and valid_until
-    start_date = [start_date, valid_from].compact.max
-    end_date = valid_until if valid_until && valid_until < end_date  
+    # Ensure start_date is not before valid_from and end_date is not after valid_until
+    start_date = [start_date, valid_from].max
+    end_date = valid_until if valid_until && valid_until < end_date
+  
 
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
