@@ -230,7 +230,7 @@ class TravelPattern < ApplicationRecord
   # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
   def to_calendar(start_date, end_date = start_date + 59.days, valid_from = nil, valid_until = nil)
     travel_pattern_service_schedules = schedules_by_type
-
+  
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
@@ -238,13 +238,13 @@ class TravelPattern < ApplicationRecord
     calendar = {}
     date = start_date
   
-    # Convert valid_from and valid_until to Date objects if they are strings
-    valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String)
+    # Ensure valid_from is set to today's date if nil to avoid extending beyond valid_until unintentionally
+    valid_from = Date.today if valid_from.nil?
     valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)
-
+  
     # Adjust start_date and end_date based on valid_from and valid_until
-    start_date = [start_date, valid_from].compact.max if valid_from
-    end_date = valid_until if valid_until
+    start_date = [start_date, valid_from].compact.max
+    end_date = valid_until if valid_until && valid_until < end_date  
 
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
