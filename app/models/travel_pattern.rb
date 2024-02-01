@@ -239,7 +239,7 @@ class TravelPattern < ApplicationRecord
     date = start_date
   
     # If valid_from is nil, set it to today's date
-    valid_from = Date.today unless valid_from
+    valid_from = Date.yesterday unless valid_from
     # Convert valid_from and valid_until to Date objects if they are strings
     valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String) && valid_from
     valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String) && valid_until
