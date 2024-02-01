@@ -192,15 +192,16 @@ module Api
 
         purposes_hash = []
         purposes.each_with_index do |p, i|
-          # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
-          valid_from = nil
-          valid_until = nil
-          if trip_purpose_hash
-            valid_from = trip_purpose_hash[:valid_from]
-            valid_until = trip_purpose_hash[:valid_until]
+          trip_purpose_hashes = trip_purposes_hash.select { |h| h[:code] == p }
+          earliest_purpose_hash = trip_purpose_hashes.min_by { |h| h[:valid_from] || Date.today }
+        
+          valid_from = earliest_purpose_hash[:valid_from]
+          valid_until = earliest_purpose_hash[:valid_until]
+        
+          # Only add the purpose if valid_until is nil (always valid) or still in the future
+          if valid_until.nil? || Date.parse(valid_until) >= Date.today
+            purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
           end
-          purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
         end
 
         top_purposes_hash = []
