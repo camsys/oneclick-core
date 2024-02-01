@@ -235,14 +235,13 @@ class TravelPattern < ApplicationRecord
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
   
-    # Ensure valid_from and valid_until are Date objects
-    valid_from = valid_from.present? ? Date.strptime(valid_from, '%Y-%m-%d') : Date.today
-    valid_until = valid_until.present? ? Date.strptime(valid_until, '%Y-%m-%d') : Date.today + 59.days
+    # Ensure valid_from is a Date object or today's date if nil
+    valid_from = valid_from.present? ? (valid_from.is_a?(Date) ? valid_from : Date.strptime(valid_from, '%Y-%m-%d')) : Date.today
+    valid_until = valid_until.present? ? (valid_until.is_a?(Date) ? valid_until : Date.strptime(valid_until, '%Y-%m-%d')) : Date.today + 59.days
   
     # Adjust start_date and end_date based on valid_from and valid_until
     start_date = [start_date, valid_from].max
-    end_date = original_end_date || start_date + 59.days # Recalculate end_date based on adjusted start_date if not explicitly provided
-    end_date = [end_date, valid_until].min
+    end_date = [original_end_date || start_date + 59.days, valid_until].min
   
     calendar = {}
     date = start_date
@@ -250,8 +249,7 @@ class TravelPattern < ApplicationRecord
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = {start_time: nil, end_time: nil}
-  
-
+    
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
         valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
         valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
