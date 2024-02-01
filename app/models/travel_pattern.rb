@@ -234,10 +234,14 @@ class TravelPattern < ApplicationRecord
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
-
+  
     calendar = {}
     date = start_date
-
+  
+    # Adjusting start and end dates based on valid_from and valid_until
+    start_date = [start_date, valid_from].compact.max
+    end_date = [end_date, valid_until].compact.min
+  
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = {}
