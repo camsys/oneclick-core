@@ -437,29 +437,31 @@ class EcolaneAmbassador < BookingAmbassador
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
-    six_weeks_from_now = Date.today + 6.weeks
-  
+    
     customer_information["customer"]["funding"]["funding_source"].each do |funding_source|
-      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : Date.today
-      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : six_weeks_from_now
+      # Default valid_from to today's date if not present
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
   
-      # Skip if the funding source has already expired or is not yet valid
-      next if valid_until < current_date || valid_from > six_weeks_from_now
+      next if valid_until && valid_until < current_date # Skip if the funding source has expired
   
       funding_source["allowed"].each do |allowed|
-        next unless @preferred_sponsors.include?(allowed["sponsor"])
+        next unless @preferred_sponsors.include?(allowed["sponsor"]) # Ensure sponsor is preferred
   
         purpose_hash = {
           code: allowed["purpose"],
-          valid_from: valid_from.to_s, # Ensure it's a string if you're expecting a string format elsewhere
-          valid_until: valid_until.to_s
+          valid_from: valid_from.to_s, # Ensuring it's always populated
+          valid_until: valid_until&.to_s # Handling nil case gracefully
         }
-        
-        purposes << allowed["purpose"] unless purposes.include?(allowed["purpose"])
-        purposes_hash << purpose_hash
+  
+        unless purposes.include?(allowed["purpose"])
+          purposes << allowed["purpose"]
+          purposes_hash << purpose_hash
+        end
       end
     end
   
+    # Finalize the purposes list by removing duplicates and excluding banned purposes
     purposes.sort!.uniq!
     banned_purposes = @service.banned_purpose_names
     purposes -= banned_purposes
