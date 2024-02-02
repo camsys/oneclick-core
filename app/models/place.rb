@@ -33,9 +33,20 @@ class Place < ApplicationRecord
     end
   end
 
+  # If a google_place_attributes param is passed, will create a Place based on the JSON contained therein.
+  def self.new(attrs=nil)
+    if attrs && attrs[:google_place_attributes]
+      # Call the method that handles the initialization from Google place attributes
+      initialize_from_google_place_attributes(attrs[:google_place_attributes])
+    else
+      super
+    end
+  end
+
   # Converts google place attributes to readable format before initializing as normal
   def self.initialize_from_google_place_attributes(attrs=nil)
     self.new(attrs_from_google_place(attrs))
+    super(attrs)
   end
 
   # Converts google place attributes to readable format before updating as normal
@@ -56,6 +67,7 @@ class Place < ApplicationRecord
 
   def ensure_name 
     self.name ||= auto_name
+    Rails.logger.info "Ensuring name for waypoint: #{self.inspect}"
   end
 
   def auto_name
