@@ -437,16 +437,21 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
-    current_date = Date.today 
+    current_date = Date.today
 
+    # Retrieve the maximum booking notice from Config or default to 59 if not set
+    max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+  
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
-
-      # Check if the current date is within the valid_from and valid_until range
-      next if valid_until && valid_until < current_date # Skip if the funding source has expired
-      next if valid_from && valid_from > current_date + 59.days
-
+  
+      # Skip if the funding source has expired
+      next if valid_until && valid_until < current_date
+  
+      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
+      next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+  
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
