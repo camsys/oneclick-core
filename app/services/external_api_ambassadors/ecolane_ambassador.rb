@@ -440,11 +440,11 @@ class EcolaneAmbassador < BookingAmbassador
     current_date = Date.today 
 
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      valid_from = Date.parse(funding_source["valid_from"]) if funding_source["valid_from"].present?
-      valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
 
       # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
+      next if valid_until && valid_until < current_date # Skip if the funding source has expired
 
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
@@ -456,7 +456,12 @@ class EcolaneAmbassador < BookingAmbassador
         next unless @preferred_sponsors.include?(allowed["sponsor"])
 
         # Add the date range for which the purpose is eligible, if available.
-        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
+        purpose_hash = {
+          code: allowed["purpose"],
+          valid_from: valid_from.to_s, # Ensuring it's always populated
+          valid_until: valid_until&.to_s # Handling nil case gracefully
+        }
+        
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
         end
