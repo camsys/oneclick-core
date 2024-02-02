@@ -445,6 +445,7 @@ class EcolaneAmbassador < BookingAmbassador
 
       # Check if the current date is within the valid_from and valid_until range
       next if valid_until && valid_until < current_date # Skip if the funding source has expired
+      next if valid_from && valid_from > current_date + 59.days
 
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
