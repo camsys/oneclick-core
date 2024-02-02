@@ -23,20 +23,10 @@ class Place < ApplicationRecord
     where(id: self.group(:name,:lat,:lng).maximum(:id).values)
   end
 
-  # If a google_place_attributes param is passed, will create a Place based on the JSON contained therein.
-  def self.new(attrs=nil)
-    if attrs && attrs[:google_place_attributes]
-      place_attrs = attrs_from_google_place(attrs[:google_place_attributes])
-      super(place_attrs) # Initialize with processed Google Places attributes
-    else
-      super # Fallback to default ActiveRecord::Base.new behavior
-    end
-  end
 
   # If a google_place_attributes param is passed, will create a Place based on the JSON contained therein.
-  def self.new(attrs=nil)
+  def self.new attrs=nil
     if attrs && attrs[:google_place_attributes]
-      # Call the method that handles the initialization from Google place attributes
       initialize_from_google_place_attributes(attrs[:google_place_attributes])
     else
       super
