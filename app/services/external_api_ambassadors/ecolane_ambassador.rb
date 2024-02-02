@@ -683,8 +683,6 @@ class EcolaneAmbassador < BookingAmbassador
       lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
       county:         eco_place.try(:with_indifferent_access).try(:[], :county)
     }  
-    Rails.logger.info "occ_place_hash: #{hash.inspect}"
-    hash
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
