@@ -652,12 +652,9 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def occ_place_from_eco_place(eco_place)
-    Rails.logger.info "Ecolane place: #{eco_place.inspect}"
-    waypoint = Waypoint.create!(occ_place_hash(eco_place))
-    Rails.logger.info "Created waypoint: #{waypoint.inspect}"
-    waypoint
-  end  
+  def occ_place_from_eco_place eco_place
+    Waypoint.create!(occ_place_hash(eco_place))
+  end
 
   #HASHES
   def occ_trip_hash eco_trip
@@ -683,8 +680,6 @@ class EcolaneAmbassador < BookingAmbassador
       lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
       county:         eco_place.try(:with_indifferent_access).try(:[], :county)
     }  
-    Rails.logger.info "occ_place_hash: #{hash.inspect}"
-    hash
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
