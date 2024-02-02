@@ -437,15 +437,21 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
-    current_date = Date.today 
+    current_date = Date.today
 
+    # Retrieve the maximum booking notice from Config or default to 59 if not set
+    max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+  
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
-      valid_from = Date.parse(funding_source["valid_from"]) if funding_source["valid_from"].present?
-      valid_until = Date.parse(funding_source["valid_until"]) if funding_source["valid_until"].present?
-
-      # Check if the current date is within the valid_from and valid_until range
-      next unless valid_from.nil? || (valid_from..valid_until).include?(current_date)
-
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
+  
+      # Skip if the funding source has expired
+      next if valid_until && valid_until < current_date
+  
+      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
+      next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+  
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
         next 
       end
@@ -456,7 +462,12 @@ class EcolaneAmbassador < BookingAmbassador
         next unless @preferred_sponsors.include?(allowed["sponsor"])
 
         # Add the date range for which the purpose is eligible, if available.
-        purpose_hash = {code: allowed["purpose"], valid_from: funding_source["valid_from"], valid_until: funding_source["valid_until"]}
+        purpose_hash = {
+          code: allowed["purpose"],
+          valid_from: valid_from.to_s, # Ensuring it's always populated
+          valid_until: valid_until&.to_s # Handling nil case gracefully
+        }
+        
         unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
         end
@@ -641,9 +652,12 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def occ_place_from_eco_place eco_place
-    Waypoint.create!(occ_place_hash(eco_place))
-  end
+  def occ_place_from_eco_place(eco_place)
+    Rails.logger.info "Ecolane place: #{eco_place.inspect}"
+    waypoint = Waypoint.create!(occ_place_hash(eco_place))
+    Rails.logger.info "Created waypoint: #{waypoint.inspect}"
+    waypoint
+  end  
 
   #HASHES
   def occ_trip_hash eco_trip
@@ -668,7 +682,9 @@ class EcolaneAmbassador < BookingAmbassador
       lat:            eco_place.try(:with_indifferent_access).try(:[], :latitude),
       lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
       county:         eco_place.try(:with_indifferent_access).try(:[], :county)
-    }
+    }  
+    Rails.logger.info "occ_place_hash: #{hash.inspect}"
+    hash
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip

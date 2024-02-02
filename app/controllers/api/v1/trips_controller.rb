@@ -144,6 +144,7 @@ module Api
           # Now that trips have either been found or created, it's time to make sure they're up to date
           previous_trip = nil
           @trips.each do |trip|
+            Rails.logger.info "Trip being created: Origin: #{trip.origin.inspect}, Destination: #{trip.destination.inspect}"
             trip_planner = TripPlanner.new(trip, options)
             trip_planner.plan
 
