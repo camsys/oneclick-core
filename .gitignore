@@ -12,6 +12,8 @@
 /tmp/*
 !/log/.keep
 !/tmp/.keep
+*.log
+TAGS
 
 # Ignore Byebug command history file.
 .byebug_history
@@ -24,9 +26,11 @@
 
 # Instance-specific Files
 /public/uploads/*
+/public/assets/*
 
-# Ignore local_env.yml, which contains secrets
+# Ignore local_env.yml and application.yml, which contain secrets
 /config/local_env.yml
+/config/application.yml
 
 # Ignore oneclick_modules.rb, which identifies which engines to include
 /config/oneclick_modules.rb
