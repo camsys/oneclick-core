@@ -72,6 +72,11 @@ module Api
         render success_response(@trips)
       end
 
+      def trip_purposes
+        purposes = Purpose.all
+        render json: purposes, status: :ok
+      end
+
       protected
 
       def trip_params
