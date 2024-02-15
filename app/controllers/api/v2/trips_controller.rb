@@ -66,7 +66,7 @@ module Api
 
       def trip_purposes
         @purposes = Purpose.all
-        render json: { data: { purposes: purposes } }, status: :ok
+        render json: { data: { purposes: @purposes } }, status: :ok
       end
 
       # POST trips/plan_multiday
