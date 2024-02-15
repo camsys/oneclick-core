@@ -110,17 +110,6 @@ class Service < ApplicationRecord
   # These are filters, that make people eligible
   scope :by_eligible_min_age, -> (age) { where("eligible_min_age < ?", age+1) }
   scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
-
-  scope :filtered_by_purpose, ->(purpose_id) {
-    return all unless purpose_id.present?
-
-    # Leverages ActiveRecord's where exists clause for cleaner syntax and avoiding direct joins
-    where(
-      Service.arel_table[:id].in(
-        Service.joins(:purposes).where(purposes: {id: purpose_id}).select(:id).arel
-      )
-    )
-  }
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
