@@ -131,6 +131,7 @@ Rails.application.routes.draw do
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'
       get 'counties' => 'users#counties'
+      get 'trip_purposes', to: 'trips#trip_purposes'
 
       # Refernet
       if ENV["ONECLICK_REFERNET"]
