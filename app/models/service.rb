@@ -110,6 +110,12 @@ class Service < ApplicationRecord
   # These are filters, that make people eligible
   scope :by_eligible_min_age, -> (age) { where("eligible_min_age < ?", age+1) }
   scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
+
+  scope :with_purpose, -> (purpose_id) {
+    return all unless purpose_id.present?
+    joins(:purposes).where(purposes: { id: purpose_id })
+  }
+
   
   AVAILABILITY_FILTERS = [
     :schedule, :geography, :eligibility, :accommodation, :purpose
