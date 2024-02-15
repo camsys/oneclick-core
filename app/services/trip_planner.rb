@@ -16,6 +16,8 @@ class TripPlanner
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
   Rails.logger.debug "TripPlanner initialized with purpose_id: #{trip.purpose_id}"
+  Rails.logger.debug "TripPlanner initialized with trip_time: #{trip.trip_time}"
+  Rails.logger.debug "TripPlanner initialized with trip_types: #{options[:trip_types]}"
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
@@ -93,7 +95,7 @@ class TripPlanner
     if @trip.purpose_id.present?
       @available_services = @available_services.by_purpose(@trip.purpose_id)
     end
-    
+
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
     if Config.dashboard_mode != 'travel_patterns'
