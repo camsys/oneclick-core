@@ -93,9 +93,9 @@ class TripPlanner
     Rails.logger.info "Initial available services count: #{@available_services.count}"
 
 
-    if @options[:purpose_id].present?
+    if @purpose.present?
       pre_filter_count = @available_services.count
-      @available_services = @available_services.for_purpose(@options[:purpose_id])
+      @available_services = @available_services.select { |service| service.purposes.include?(@purpose) }
       post_filter_count = @available_services.count
       Rails.logger.info "Services filtered by purpose: #{pre_filter_count} -> #{post_filter_count}"
     end
