@@ -96,7 +96,7 @@ class TripPlanner
     # Specifically for debugging the filtering by purpose:
     if @trip.purpose_id.present?
       Rails.logger.debug "Filtering services by purpose_id: #{@trip.purpose_id}"
-      @available_services = @available_services.joins(:purposes).where(purposes: { id: @trip.purpose_id })
+      @available_services = @available_services.where(id: Service.joins(:purposes).where(purposes: {id: @trip.purpose_id}).select(:id))
       Rails.logger.debug "Available services after filtering by purpose: #{available_services.count}"
     end
 
