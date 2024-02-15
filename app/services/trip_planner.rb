@@ -19,8 +19,7 @@ class TripPlanner
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
     @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
-    purpose_id = @options[:purpose_id]
-    purpose = Purpose.find_by(id: purpose_id)
+    @purpose = Purpose.find_by(id: @options[:purpose_id])
 
 
     @errors = []
@@ -91,8 +90,8 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    if purpose.present?
-      @available_services = Service.includes(:purposes).where(purposes: { id: purpose.id })
+    if @purpose.present?
+      @available_services = @available_services.joins(:purposes).where(purposes: { id: @purpose.id })
     end
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
