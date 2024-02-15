@@ -87,9 +87,8 @@ class TripPlanner
     if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
-
     if @options[:purpose_id].present?
-      @available_services = @available_services.joins(:purposes).where(purposes: {id: @options[:purpose_id]})
+      @available_services = @available_services.joins(:purposes).where(purposes: { id: @options[:purpose_id] }).distinct
     end
 
     # Apply remaining filters if not in travel patterns mode.
