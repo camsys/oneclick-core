@@ -89,7 +89,7 @@ class Service < ApplicationRecord
   end
 
   scope :for_purpose, ->(purpose_id) {
-    where(purposes: {id: purpose_id})
+    joins(:purposes).where(purposes: {id: purpose_id})
   }
 
   scope :with_any_oversight_agency, -> do
