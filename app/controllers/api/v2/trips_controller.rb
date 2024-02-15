@@ -74,10 +74,8 @@ module Api
 
       def trip_purposes
         purposes = Purpose.all
-        # Log the purposes fetched
-        Rails.logger.info "Fetched trip purposes: #{purposes.inspect}"
-        render json: purposes, status: :ok
-      end
+        render json: { data: { purposes: purposes } }, status: :ok
+      end      
 
       protected
 
