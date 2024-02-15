@@ -111,6 +111,13 @@ Rails.application.routes.draw do
         end
       end
 
+        # Purposes
+      resources :trips, only: [:show, :create, :new] do
+        collection do
+          get :trip_purposes
+        end
+      end
+
       # Users
       resource :users, only: [:show, :update, :create, :destroy] do
         collection do
