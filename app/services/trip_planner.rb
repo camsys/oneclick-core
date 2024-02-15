@@ -91,7 +91,10 @@ class TripPlanner
     end
 
     if @purpose.present?
-      @available_services = @available_services.joins(:purposes).where(purposes: { id: @purpose.id })
+      @available_services = @available_services.where(
+        "EXISTS (SELECT 1 FROM purposes_services WHERE purposes_services.service_id = services.id AND purposes_services.purpose_id = ?)",
+        @purpose.id
+      )
     end
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
