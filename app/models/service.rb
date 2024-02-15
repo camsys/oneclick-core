@@ -88,6 +88,10 @@ class Service < ApplicationRecord
     left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null and services.agency_id is null')
   end
 
+  scope :for_purpose, ->(purpose_id) {
+    joins(:purposes).where(purposes: { id: purpose_id })
+  }
+
   scope :with_any_oversight_agency, -> do
     joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is not null')
   end

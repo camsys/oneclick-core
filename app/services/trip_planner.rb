@@ -93,16 +93,11 @@ class TripPlanner
     Rails.logger.info "Initial available services count: #{@available_services.count}"
 
 
-    if @purpose.present?
+    if @options[:purpose_id].present?
       pre_filter_count = @available_services.count
-
-      @available_services = @available_services.where(
-        "EXISTS (SELECT 1 FROM purposes_services WHERE purposes_services.service_id = services.id AND purposes_services.purpose_id = ?)",
-        @purpose.id
-      )
+      @available_services = @available_services.for_purpose(@options[:purpose_id])
       post_filter_count = @available_services.count
       Rails.logger.info "Services filtered by purpose: #{pre_filter_count} -> #{post_filter_count}"
-
     end
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
