@@ -64,6 +64,11 @@ module Api
         
       end
 
+      def trip_purposes
+        @purposes = Purpose.all
+        render json: @purposes, status: :ok
+      end
+
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.
       # Returns a trip for each of the passed times.
