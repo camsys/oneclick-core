@@ -38,19 +38,25 @@ module Api
         # Set purpose_id in trip_params
         # Note: not used in 211 ride
         set_trip_purpose
-
+      
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
         @trip.user = @traveler
+        trip_planner_options = {
+          trip_types: params[:trip_types].try(:map, &:to_sym), # convert strings to symbols
+          only_filters: params[:only_filters].try(:map, &:to_sym),
+          except_filters: params[:except_filters].try(:map, &:to_sym),
+          purpose_id: params[:trip][:purpose_id] # pass purpose_id to TripPlanner
+        }
         @trip_planner = TripPlanner.new(@trip, trip_planner_options)
-
+      
         # Plan the trip (build itineraries and save it)
         # TODO: check different OCC instances to ensure that new updates didn't break it
         if @trip_planner.plan
           # Pull accommodations and eligibilities from the user's profile
           user_acc = @trip.user.accommodations
           user_elig = @trip.user.eligibilities
-
+      
           @trip.relevant_purposes = @trip_planner.relevant_purposes
           # Set trip eligibilities and accommodations based on both the trip planner and the user profile
           @trip.relevant_eligibilities = @trip_planner.relevant_eligibilities.select {|elig| user_elig.include?(elig)}
