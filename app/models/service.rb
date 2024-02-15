@@ -195,11 +195,17 @@ class Service < ApplicationRecord
   
   # Allowing the purposes' id to be nil includes services with no purposes selected
   scope :available_by_purpose_for, -> (trip) do
-    return self.all if trip.purpose_id.nil?
-    where(purposes: { id: [nil, trip.purpose_id] })
-      .left_joins(:purposes)
-      .distinct
+    Rails.logger.info "Applying purpose filter for trip with purpose_id: #{trip.purpose_id}"
+    if trip.purpose_id.nil?
+      Rails.logger.info "No purpose_id found, returning all services."
+      self.all
+    else
+      filtered = where(purposes: { id: [nil, trip.purpose_id] }).left_joins(:purposes).distinct
+      Rails.logger.info "Services found after purpose filter: #{filtered.pluck(:id)}"
+      filtered
+    end
   end
+  
   
   scope :available_by_eligibility_for, -> (trip) do
     trip.user ? accepts_eligibility_of(trip.user) : all
