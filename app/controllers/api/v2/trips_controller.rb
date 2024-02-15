@@ -38,7 +38,6 @@ module Api
         # Set purpose_id in trip_params
         # Note: not used in 211 ride
         set_trip_purpose
-        Rails.logger.info "Received Trip Purpose ID: #{@trip.purpose_id}"
 
 
         # Initialize a trip based on the params
