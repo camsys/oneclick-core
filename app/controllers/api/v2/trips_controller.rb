@@ -55,6 +55,7 @@ module Api
           @trip.relevant_accommodations = @trip_planner.relevant_accommodations.where(id: user_acc.pluck(:id))
           @trip.user_age = @trip.user.age
           @trip.user_ip = @trip.user.current_sign_in_ip
+          @trip.purpose_id = params[:trip][:purpose_id] if params[:trip][:purpose_id].present?
           @trip.save
           render success_response(@trip, {serializer_opts: {include: ['*.*.*']}, errors: @trip_planner.errors})
         end
