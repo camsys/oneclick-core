@@ -93,12 +93,8 @@ class TripPlanner
     end
 
     # Apply additional purpose filtering specifically for paratransit services
-    if @trip.purpose_id.present?
-      paratransit_services_with_purpose = @available_services[:paratransit].joins(:purposes).where(purposes: { id: @trip.purpose_id })
-      @available_services[:paratransit] = paratransit_services_with_purpose
-      Rails.logger.debug "Filtered paratransit services by purpose: #{paratransit_services_with_purpose.pluck(:id)}"
+    @available_services = @available_services.by_purpose(@purpose_id) if @purpose_id.present?
 
-    end
 
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.

@@ -112,18 +112,7 @@ module Api
       
       # Directly use purpose_id if provided, bypass purpose code lookup.
       def set_trip_purpose
-        if params[:trip][:purpose_id].present?
-          # Directly assigns the provided purpose_id, bypassing the lookup by purpose code.
-          params[:trip][:purpose_id] = params[:trip][:purpose_id].to_i
-        elsif params[:trip][:purpose].present?
-          # Only lookup purpose by code if purpose_id is not provided.
-          purpose = Purpose.find_by(code: params[:trip][:purpose])
-          if purpose.present?
-            params[:trip][:purpose_id] = purpose.id
-          else
-            @errors << "Invalid purpose code provided"
-          end
-        end
+        @trip.purpose_id = params[:trip][:purpose_id] if params[:trip][:purpose_id].present?
       end
 
 
