@@ -30,7 +30,6 @@ module Api
       # and returns JSON with information about that trip.
       def create
 
-        Rails.logger.info "Received Trip Purpose ID: #{@trip.purpose_id}"
 
               
         # Update the traveler's user profile before planning the trip.
@@ -39,6 +38,8 @@ module Api
         # Set purpose_id in trip_params
         # Note: not used in 211 ride
         set_trip_purpose
+        Rails.logger.info "Received Trip Purpose ID: #{@trip.purpose_id}"
+
 
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
