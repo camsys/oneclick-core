@@ -88,7 +88,7 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    @available_services = @available_services.with_purpose(@options[:purpose_id])
+    @available_services = @available_services.filtered_by_purpose(@options[:purpose_id])
 
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
