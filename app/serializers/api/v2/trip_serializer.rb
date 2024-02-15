@@ -26,7 +26,7 @@ module Api
       end
 
       def purposes
-        Purpose.all.order(:name)
+        object.relevant_purposes     
       end
 
       def all_trip_types
