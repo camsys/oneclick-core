@@ -93,7 +93,7 @@ class TripPlanner
 
     if purpose.present?
       @available_services = Service.includes(:purposes).where(purposes: { id: purpose.id })
-    else
+    end
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
     if Config.dashboard_mode != 'travel_patterns'
