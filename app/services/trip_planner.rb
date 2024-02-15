@@ -15,6 +15,7 @@ class TripPlanner
 
   # Initialize with a Trip object, and an options hash
   def initialize(trip, options={})
+  Rails.logger.debug "TripPlanner initialized with purpose_id: #{trip.purpose_id}"
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
