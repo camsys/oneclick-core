@@ -29,6 +29,8 @@ module Api
       # Creates a new trip and associated itineraries based on the passed params,
       # and returns JSON with information about that trip.
       def create
+
+        Rails.logger.debug "Received purpose_id: #{params[:trip][:purpose_id]}"
               
         # Update the traveler's user profile before planning the trip.
         update_traveler_profile
