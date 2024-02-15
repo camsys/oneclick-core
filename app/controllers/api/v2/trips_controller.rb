@@ -29,6 +29,9 @@ module Api
       # Creates a new trip and associated itineraries based on the passed params,
       # and returns JSON with information about that trip.
       def create
+
+        Rails.logger.info "Received Trip Purpose ID: #{@trip.purpose_id}"
+
               
         # Update the traveler's user profile before planning the trip.
         update_traveler_profile
@@ -40,7 +43,7 @@ module Api
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
         @trip.user = @traveler
-        @trip_planner = TripPlanner.new(@trip, trip_planner_options)
+        @trip_planner = TripPlanner.new(@trip, trip_planner_options.merge(purpose_id: @trip.purpose_id))
 
         # Plan the trip (build itineraries and save it)
         # TODO: check different OCC instances to ensure that new updates didn't break it
