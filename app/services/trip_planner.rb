@@ -88,10 +88,16 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
+    Rails.logger.debug "Entering set_available_services method"
+  
+    # Log the count of services before filtering
+    Rails.logger.debug "Available services before filtering: #{available_services.count}"
+    
+    # Specifically for debugging the filtering by purpose:
     if @trip.purpose_id.present?
-      puts "Filtering services by purpose_id: #{@trip.purpose_id}"
+      Rails.logger.debug "Filtering services by purpose_id: #{@trip.purpose_id}"
       @available_services = @available_services.joins(:purposes).where(purposes: { id: @trip.purpose_id })
-      puts "Filtered services count: #{@available_services.count}"
+      Rails.logger.debug "Available services after filtering by purpose: #{available_services.count}"
     end
 
     # Apply remaining filters if not in travel patterns mode.
