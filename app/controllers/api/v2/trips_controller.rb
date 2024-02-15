@@ -46,7 +46,7 @@ module Api
           trip_types: params[:trip_types].try(:map, &:to_sym), # convert strings to symbols
           only_filters: params[:only_filters].try(:map, &:to_sym),
           except_filters: params[:except_filters].try(:map, &:to_sym),
-          purpose_id: params[:trip][:purpose_id] # pass purpose_id to TripPlanner
+          purpose_id: params[:trip][:purpose_id]
         }
         @trip_planner = TripPlanner.new(@trip, trip_planner_options)
       

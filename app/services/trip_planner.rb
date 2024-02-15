@@ -21,7 +21,7 @@ class TripPlanner
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
     @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
-    @purpose_id = options[:purpose_id] || trip.purpose_id
+    @purpose_id = options[:purpose_id]
     Rails.logger.debug "TripPlanner initialized with purpose_id: #{trip.purpose_id}"
 
     @errors = []
