@@ -92,20 +92,6 @@ class TripPlanner
 
     Rails.logger.info "Initial available services count: #{@available_services.count}"
 
-
-    if @purpose.present?
-      pre_filter_count = @available_services.count
-      # Filters services based on the matching purpose
-      filtered_services = @available_services.select do |service|
-        service.purposes.include?(@purpose)
-      end
-      
-      # Log the filtering result
-      Rails.logger.info "Services filtered by purpose: #{pre_filter_count} -> #{filtered_services.count}"
-
-      # Continue working with filtered_services as your array of services
-      @available_services = filtered_services
-    end
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
     if Config.dashboard_mode != 'travel_patterns'
