@@ -92,9 +92,12 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
-    # Ensure purpose_id is utilized in filtering services
+    # Apply additional purpose filtering specifically for paratransit services
     if @trip.purpose_id.present?
-      @available_services = @available_services.by_purpose(@trip.purpose_id)
+      paratransit_services_with_purpose = @available_services[:paratransit].joins(:purposes).where(purposes: { id: @trip.purpose_id })
+      @available_services[:paratransit] = paratransit_services_with_purpose
+      Rails.logger.debug "Filtered paratransit services by purpose: #{paratransit_services_with_purpose.pluck(:id)}"
+
     end
 
     # Apply remaining filters if not in travel patterns mode.
