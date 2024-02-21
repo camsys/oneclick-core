@@ -237,3 +237,11 @@ en:
      one: '%{count} day',
      other: '%{count} days',
     }
+
+    purposes:
+      grocery: "Grocery"
+      medical: "Medical"
+      work: "Work"
+      other: "Other"
+      social: "Social"
+      spiritual: "Spiritual"
