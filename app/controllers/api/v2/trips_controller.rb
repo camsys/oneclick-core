@@ -65,9 +65,14 @@ module Api
       end
 
       def trip_purposes
-        @purposes = Purpose.all
+        I18n.locale = params[:locale] || I18n.default_locale
+        
+        @purposes = Purpose.all.map do |purpose|
+          { id: purpose.id, name: I18n.t("purposes.#{purpose.code}") }
+        end
+        
         render json: { data: { purposes: @purposes } }, status: :ok
-      end
+      end      
 
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.
