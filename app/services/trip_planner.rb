@@ -18,7 +18,9 @@ class TripPlanner
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
-    @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
+    if Config.open_trip_planner_version != 'v1' && (@trip_types.include?(:car) && @trip_types.include?(:transit))
+      @trip_types.push(:car_park)
+    end    
     @purpose = Purpose.find_by(id: @options[:purpose_id])
 
 
