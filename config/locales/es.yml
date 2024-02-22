@@ -54,3 +54,10 @@ es:
    arrive: "Llegar"
    start: "Empezar"
    to: "a"
+   purposes:
+    grocery: "Comestibles"
+    medical: "Médico"
+    work: "Trabajo"
+    other: "Otro"
+    social: "Social"
+    spiritual: "Espiritual"

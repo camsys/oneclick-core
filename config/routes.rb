@@ -111,6 +111,13 @@ Rails.application.routes.draw do
         end
       end
 
+        # Purposes
+      resources :trips, only: [:show, :create, :new] do
+        collection do
+          get :trip_purposes
+        end
+      end
+
       # Users
       resource :users, only: [:show, :update, :create, :destroy] do
         collection do
@@ -124,6 +131,7 @@ Rails.application.routes.draw do
       post 'sign_in' => 'users#new_session'
       delete 'sign_out' => 'users#end_session'
       get 'counties' => 'users#counties'
+      get 'trip_purposes', to: 'trips#trip_purposes'
 
       # Refernet
       if ENV["ONECLICK_REFERNET"]
