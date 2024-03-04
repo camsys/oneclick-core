@@ -257,8 +257,7 @@ class TravelPattern < ApplicationRecord
       # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
       # Highlander voice: There can only be one!
       if reduced_sub_schedule
-        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
-        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
+        calendar[date_string][:time_ranges] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
         date += 1.day
         next
       end
