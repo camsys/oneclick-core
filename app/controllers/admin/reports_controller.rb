@@ -50,11 +50,11 @@ class Admin::ReportsController < Admin::AdminController
   def unique_users_dashboard
     @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
     unless current_user.superuser?
-      traveler_ids = current_user.get_travelers_for_staff_user.ids
-      @user_requests = @user_requests.joins(:user).where(users: {id: traveler_ids})
+      travelers_emails = current_user.get_travelers_for_staff_user.select(:email)
+      @user_requests = @user_requests.where(auth_email: travelers_emails)
     end
   end
-  
+    
   def popular_destinations_dashboard
     @trips = current_user.get_trips_for_staff_user
     @trips = @trips.from_date(@from_date).to_date(@to_date)
