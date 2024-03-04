@@ -48,11 +48,10 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def unique_users_dashboard
-    if current_user.superuser?
-      @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
-    else
-      travelers_emails = current_user.get_travelers_for_staff_user.pluck(:email)
-      @user_requests = RequestLog.where(auth_email:travelers_emails).from_date(@from_date).to_date(@to_date)
+    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+    unless current_user.superuser?
+      traveler_ids = current_user.get_travelers_for_staff_user.ids
+      @user_requests = @user_requests.joins(:user).where(users: {id: traveler_ids})
     end
   end
   
