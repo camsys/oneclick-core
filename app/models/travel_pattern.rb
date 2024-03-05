@@ -162,10 +162,21 @@ class TravelPattern < ApplicationRecord
     start_date = [start_date, valid_from].compact.max if valid_from
     end_date = [end_date, valid_until].compact.min if valid_until
   
+    calendar = self.to_calendar(start_date, end_date, valid_from, valid_until)
+
+    operational_days = calendar.select do |date, time_slots|
+      time_slots.any? { |slot| slot[:start_time] > 0 && slot[:end_time] > 1 }
+    end.keys
+  
+
+  
     self.as_json(travel_pattern_opts).merge({
-      "to_calendar" => self.to_calendar(start_date, end_date, valid_from, valid_until),
+      "operational_days_count" => operational_days.count,
+      "to_calendar" => calendar,
+
     })
-  end  
+  end
+  
 
   def self.for_user(user)
     if user.superuser?
@@ -272,7 +283,6 @@ class TravelPattern < ApplicationRecord
   
     return calendar.transform_values { |slots| slots.map { |start_time, end_time| { start_time: start_time, end_time: end_time } } }
   end
-    
 
   # Class Methods
 
