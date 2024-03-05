@@ -162,21 +162,10 @@ class TravelPattern < ApplicationRecord
     start_date = [start_date, valid_from].compact.max if valid_from
     end_date = [end_date, valid_until].compact.min if valid_until
   
-    calendar = self.to_calendar(start_date, end_date, valid_from, valid_until)
-
-    operational_days = calendar.select do |date, time_slots|
-      time_slots.any? { |slot| slot[:start_time] > 0 && slot[:end_time] > 1 }
-    end.keys
-  
-
-  
     self.as_json(travel_pattern_opts).merge({
-      "operational_days_count" => operational_days.count,
-      "to_calendar" => calendar,
-
+      "to_calendar" => self.to_calendar(start_date, end_date, valid_from, valid_until),
     })
-  end
-  
+  end  
 
   def self.for_user(user)
     if user.superuser?
@@ -241,47 +230,66 @@ class TravelPattern < ApplicationRecord
   # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
   def to_calendar(start_date, end_date = start_date + 59.days, valid_from = nil, valid_until = nil)
     travel_pattern_service_schedules = schedules_by_type
-  
+
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
-  
+
     calendar = {}
     date = start_date
-  
+
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      time_slots = []
-  
+      calendar[date_string] = {}
+
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
-        valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
-        valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
         next unless valid_start && valid_end
-  
-        sub_schedule = service_schedule.service_sub_schedules.find do |sub|
-          sub.calendar_date == date
+        
+        sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
+          sub_schedule.calendar_date == date
         end
-  
+
         break(sub_schedule) if sub_schedule
       end
-  
+
+      # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
+      # Highlander voice: There can only be one!
       if reduced_sub_schedule
-        time_slots << [reduced_sub_schedule.start_time, reduced_sub_schedule.end_time]
-      else
-        sub_schedules = (weekly_schedules + extra_service_schedules).flat_map(&:service_sub_schedules).select do |sub_schedule|
-          sub_schedule.day == date.wday || sub_schedule.calendar_date == date
-        end
-  
-        sub_schedules.each do |sub_schedule|
-          time_slots << [sub_schedule.start_time, sub_schedule.end_time]
-        end
+        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
+        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
+        date += 1.day
+        next
       end
-  
-      calendar[date_string] = time_slots.uniq.sort_by(&:first)
+
+      weekly_schedules = weekly_schedules.select do |service_schedule|
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start && valid_end
+      end
+
+      weekly_sub_schedules = weekly_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
+        sub_schedule.day == date.wday
+      end
+
+      extra_service_schedules = extra_service_schedules.select do |service_schedule|
+        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
+        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
+        valid_start && valid_end
+      end
+
+      extra_service_sub_schedules = extra_service_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
+        sub_schedule.calendar_date == date
+      end
+
+      sub_schedules = weekly_sub_schedules + extra_service_sub_schedules
+      calendar[date_string][:start_time] = sub_schedules.min_by(&:start_time)&.start_time
+      calendar[date_string][:end_time] = sub_schedules.max_by(&:end_time)&.end_time
       date += 1.day
     end
-  
-    return calendar.transform_values { |slots| slots.map { |start_time, end_time| { start_time: start_time, end_time: end_time } } }
+
+    return calendar
   end
 
   # Class Methods

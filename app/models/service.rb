@@ -351,11 +351,11 @@ class Service < ApplicationRecord
     # Get the travel_patttern's calendar, get rid of any dates without operating hours,
     # then add all remaining days into a set.
     travel_pattern_dates = travel_patterns_with_schedules.map { |travel_pattern|
-      travel_pattern.to_calendar(localtime.to_date).select { |date, time_slots|
-        time_slots.any? { |slot| slot[:start_time] > 0 && slot[:end_time] > 1 }
+      travel_pattern.to_calendar(localtime.to_date).select { |date, business_hours|
+        business_hours[:start_time]&.>(0) && business_hours[:end_time]&.>(1)
       }.keys
     }
-  
+    
     Set.new(travel_pattern_dates.flatten)
   end
 
