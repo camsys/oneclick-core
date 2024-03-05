@@ -240,13 +240,13 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = []
+      time_slots = []
   
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
         valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
         valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
         next unless valid_start && valid_end
-        
+  
         sub_schedule = service_schedule.service_sub_schedules.find do |sub|
           sub.calendar_date == date
         end
@@ -255,31 +255,24 @@ class TravelPattern < ApplicationRecord
       end
   
       if reduced_sub_schedule
-        calendar[date_string] << { start_time: reduced_sub_schedule.start_time, end_time: reduced_sub_schedule.end_time }
-        date += 1.day
-        next
-      end
+        time_slots << [reduced_sub_schedule.start_time, reduced_sub_schedule.end_time]
+      else
+        sub_schedules = (weekly_schedules + extra_service_schedules).flat_map(&:service_sub_schedules).select do |sub_schedule|
+          sub_schedule.day == date.wday || sub_schedule.calendar_date == date
+        end
   
-      # Process weekly and extra service schedules
-      (weekly_schedules + extra_service_schedules).each do |service_schedule|
-        service_schedule.service_sub_schedules.each do |sub_schedule|
-          if sub_schedule.day == date.wday || sub_schedule.calendar_date == date
-            calendar[date_string] << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }
-          end
+        sub_schedules.each do |sub_schedule|
+          time_slots << [sub_schedule.start_time, sub_schedule.end_time]
         end
       end
   
-      # Ensure there are no type mismatches when adding time windows
-      calendar[date_string].map! { |time_window| time_window.transform_keys { |key| key.to_sym } }
-  
-      calendar[date_string].uniq! { |time_window| [time_window[:start_time], time_window[:end_time]] }
-      calendar[date_string].sort_by! { |time_window| time_window[:start_time] }
+      calendar[date_string] = time_slots.uniq.sort_by(&:first)
       date += 1.day
     end
   
-    return calendar
+    return calendar.transform_values { |slots| slots.map { |start_time, end_time| { start_time: start_time, end_time: end_time } } }
   end
-  
+    
 
   # Class Methods
 
