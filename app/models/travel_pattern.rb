@@ -269,6 +269,9 @@ class TravelPattern < ApplicationRecord
         end
       end
   
+      # Ensure there are no type mismatches when adding time windows
+      calendar[date_string].map! { |time_window| time_window.transform_keys { |key| key.to_sym } }
+  
       calendar[date_string].uniq! { |time_window| [time_window[:start_time], time_window[:end_time]] }
       calendar[date_string].sort_by! { |time_window| time_window[:start_time] }
       date += 1.day
@@ -276,6 +279,7 @@ class TravelPattern < ApplicationRecord
   
     return calendar
   end
+  
 
   # Class Methods
 
