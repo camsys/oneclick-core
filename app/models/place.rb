@@ -70,6 +70,12 @@ class Place < ApplicationRecord
     lat == other_place[:lat] &&
     lng == other_place[:lng]
   end
+
+  def self.create_from_google_place(attrs)
+    place_attrs = attrs_from_google_place(attrs)
+    create(place_attrs)
+  end
+
   
   # Combines the various address components into a pretty string
   def formatted_address        
