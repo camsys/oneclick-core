@@ -381,9 +381,9 @@ class TravelPattern < ApplicationRecord
     }
     .select { |travel_pattern|
       calendar_business_hours = travel_pattern["to_calendar"].values
-      calendar_business_hours.detect { |business_hours|
-        (business_hours[:start_time] || -1) >= 0 && (business_hours[:end_time] || -1) >= 1
-      }
+      calendar_business_hours.any? do |time_ranges|
+        time_ranges.any? { |range| (range[:start_time] || -1) >= 0 && (range[:end_time] || -1) >= 1 }
+      end
     }
   end
 
