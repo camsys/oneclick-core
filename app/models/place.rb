@@ -34,14 +34,10 @@ class Place < ApplicationRecord
   end
 
   # Converts google place attributes to readable format before initializing as normal
-  def self.create_from_google_place(attrs = nil)
-    if attrs && attrs[:google_place_attributes]
-      new_place_attrs = attrs_from_google_place(attrs[:google_place_attributes])
-      new(new_place_attrs)
-    else
-      new(attrs)
-    end
-  end  
+  def self.initialize_from_google_place_attributes(attrs=nil)
+    self.new(attrs_from_google_place(attrs))
+    super(attrs)
+  end
 
   # Converts google place attributes to readable format before updating as normal
   def update_from_google_place_attributes(attrs=nil)
@@ -74,12 +70,6 @@ class Place < ApplicationRecord
     lat == other_place[:lat] &&
     lng == other_place[:lng]
   end
-
-  def self.create_from_google_place(attrs)
-    place_attrs = attrs_from_google_place(attrs)
-    create(place_attrs)
-  end
-
   
   # Combines the various address components into a pretty string
   def formatted_address        
