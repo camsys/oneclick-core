@@ -225,24 +225,14 @@ class EcolaneAmbassador < BookingAmbassador
   # Get orders for a customer
   def fetch_customer_orders options={}
     url_options = "/api/customer/#{system_id}/"
-    url_options += "#{@customer_id}/orders" 
-  
-    # Adding query parameters based on method arguments
-    query_params = {}
-    query_params[:start] = start_date.iso8601 if start_date
-    query_params[:end] = end_date.iso8601 if end_date
-    query_params[:limit] = limit if limit
-    
-    # Construct the full URL with query parameters
-    query_string = query_params.map { |k, v| "#{k}=#{v}" }.join("&")
-    url_options += "?#{query_string}" unless query_string.empty?
-  
-    response = send_request(@url + url_options)
+    url_options += @customer_id.to_s
+    url_options += "/orders"
+    url_options += ("/?" + options.map{|k,v| "#{k}=#{v}"}.join("&"))
+    resp = send_request(@url + url_options)
     begin
-      # Parse XML response and handle it as needed for your application
-      Hash.from_xml(response.body)
+      Hash.from_xml(resp.body)
     rescue REXML::ParseException => e
-      Rails.logger.error "Failed to parse Ecolane response: #{e.message}"
+      pp e
       {}
     end
   end
