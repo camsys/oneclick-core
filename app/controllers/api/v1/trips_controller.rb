@@ -5,13 +5,14 @@ module Api
         :past_trips, :future_trips, :select, :cancel, :index, :book
       ]
       before_action :ensure_traveler, only: [:create] #If @traveler is not set, then create a guest user account
+      require 'httparty'
 
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
         past_start_date = Date.today - 30.days
         past_end_date = Date.today
-        past_rides = EcolaneAmbassador.new.fetch_customer_orders(start_date: past_start_date, end_date: past_end_date)
+        past_rides = EcolaneAmbassador.new.fetch_customer_orders
         render status: 200, json: {trips: past_rides}
       end
 
@@ -20,7 +21,7 @@ module Api
       def future_trips
         future_start_date = Date.today
         future_end_date = Date.today + 14.days
-        future_rides = EcolaneAmbassador.new.fetch_customer_orders(start_date: future_start_date, end_date: future_end_date)
+        future_rides = EcolaneAmbassador.new.fetch_customer_orders
         render status: 200, json: {trips: future_rides}
       end
 
