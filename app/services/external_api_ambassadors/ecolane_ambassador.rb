@@ -223,7 +223,7 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   # Get orders for a customer
-  def fetch_customer_orders(start_date: nil, end_date: nil, limit: nil)
+  def fetch_customer_orders options={}
     url_options = "/api/customer/#{system_id}/"
     url_options += "#{@customer_id}/orders" 
   
