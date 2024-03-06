@@ -9,19 +9,22 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_start_date = Date.today - 30.days
-        past_end_date = Date.today
-        past_rides = EcolaneAmbassador.new.fetch_customer_orders
-        render status: 200, json: {trips: past_rides}
+        past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
+                                   .outbound
+                                   .map {|t| filter_trip_name(t)}
+        render status: 200, json: {trips: past_trips_hash}
       end
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
-        future_start_date = Date.today
-        future_end_date = Date.today + 14.days
-        future_rides = EcolaneAmbassador.new.fetch_customer_orders
-        render status: 200, json: {trips: future_rides}
+        # Only return trips that have been booked properly
+        future_trips_with_booking = @traveler.future_trips(params[:max_results] || 25).select do |trip|
+          trip.booking.present? && trip.booking.confirmation.present?
+        end
+
+        future_trips_hash = future_trips_with_booking.map { |t| filter_trip_name(t) }
+        render status: 200, json: {trips: future_trips_hash}
       end
 
       # POST trips/, POST itineraries/plan
