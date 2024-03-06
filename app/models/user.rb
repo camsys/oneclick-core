@@ -146,7 +146,7 @@ class User < ApplicationRecord
 
   def fetch_ecolane_trips(start_date, end_date)
     # Initialize EcolaneAmbassador with user-specific details
-    ambassador = EcolaneAmbassador.new(service: self.current_service, user: self)
+    ambassador = EcolaneAmbassador.new(service: self.current_service, customer_id: self.booking_profile&.customer_id)
     # Make the API call
     ambassador.fetch_customer_orders(start: start_date.iso8601, end: end_date.iso8601)
   end
