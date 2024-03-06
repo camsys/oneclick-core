@@ -10,7 +10,6 @@ module Api
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
         past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
-                                   .outbound
                                    .map {|t| filter_trip_name(t)}
         render status: 200, json: {trips: past_trips_hash}
       end
