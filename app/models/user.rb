@@ -144,34 +144,27 @@ class User < ApplicationRecord
     end
   end
 
-  # Returns the user's (count) past trips, in descending order of trip time
-  def past_trips(count = 25)
+  def fetch_ecolane_trips(start_date, end_date)
     # Initialize EcolaneAmbassador with user-specific details
-    service = self.current_service
-    ambassador = EcolaneAmbassador.new(service: service, trip: self.trips.first, customer_number: self.customer_number)
-    
-    # Define date range for past trips (last 30 days as an example)
-    past_start_date = (Date.today - 30.days).strftime('%Y-%m-%d')
-    past_end_date = Date.today.strftime('%Y-%m-%d')
-    
-    # Fetch and return past trips using EcolaneAmbassador
-    options = {start: past_start_date, end: past_end_date}
-    ambassador.fetch_customer_orders(options)
+    ambassador = EcolaneAmbassador.new(customer_id: self.ecolane_customer_id, service: self.current_service)
+    # Make the API call
+    ambassador.fetch_customer_orders(start: start_date.iso8601, end: end_date.iso8601)
   end
-
-  # Returns the user's future trips by fetching them from Ecolane
-  def future_trips(count = 25)
-    # Initialize EcolaneAmbassador with user-specific details
-    service = self.current_service
-    ambassador = EcolaneAmbassador.new(service: service, trip: self.trips.first, customer_number: self.customer_number)
+  
+  def past_trips(count = nil)
+    # Define your date range for past trips, for example, past year up to today
+    start_date = 365.days.ago.to_date
+    end_date = Date.today
     
-    # Define date range for future trips (next 14 days as an example)
-    future_start_date = Date.today.strftime('%Y-%m-%d')
-    future_end_date = (Date.today + 14.days).strftime('%Y-%m-%d')
+    self.fetch_ecolane_trips(start_date, end_date)
+  end
+  
+  def future_trips(count = nil)
+    # Define your date range for future trips, from today onwards
+    start_date = Date.today
+    end_date = 365.days.from_now.to_date
     
-    # Fetch and return future trips using EcolaneAmbassador
-    options = {start: future_start_date, end: future_end_date}
-    ambassador.fetch_customer_orders(options)
+    self.fetch_ecolane_trips(start_date, end_date)
   end
 
   # Returns an unordered collection of the traveler's waypoints
