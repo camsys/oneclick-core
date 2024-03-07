@@ -229,68 +229,38 @@ class TravelPattern < ApplicationRecord
   # 
   # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
   def to_calendar(start_date, end_date = start_date + 59.days, valid_from = nil, valid_until = nil)
-    travel_pattern_service_schedules = schedules_by_type
-
-    weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
-    extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
-    reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
-
+    # Assuming schedules_by_type method properly classifies the schedules
+    # and we already have a way to determine if a schedule applies to a given date.
+    
     calendar = {}
     date = start_date
-
+  
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = {}
-
-      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
-        next unless valid_start && valid_end
-        
-        sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
-          sub_schedule.calendar_date == date
+      # Change here: Initialize as an array of ranges instead of a single range.
+      calendar[date_string] = []
+  
+      # Assume we have a method or a way to filter applicable schedules for 'date'.
+      applicable_schedules = filter_applicable_schedules_for_date(date)
+  
+      applicable_schedules.each do |schedule|
+        # Directly add the time ranges to the array
+        schedule.service_sub_schedules.each do |sub_schedule|
+          if sub_schedule.applies_on?(date) # Ensure this checks correctly
+            calendar[date_string] << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }
+          end
         end
-
-        break(sub_schedule) if sub_schedule
       end
-
-      # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
-      # Highlander voice: There can only be one!
-      if reduced_sub_schedule
-        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
-        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
-        date += 1.day
-        next
-      end
-
-      weekly_schedules = weekly_schedules.select do |service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
-        valid_start && valid_end
-      end
-
-      weekly_sub_schedules = weekly_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
-        sub_schedule.day == date.wday
-      end
-
-      extra_service_schedules = extra_service_schedules.select do |service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
-        valid_start && valid_end
-      end
-
-      extra_service_sub_schedules = extra_service_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
-        sub_schedule.calendar_date == date
-      end
-
-      sub_schedules = weekly_sub_schedules + extra_service_sub_schedules
-      calendar[date_string][:start_time] = sub_schedules.min_by(&:start_time)&.start_time
-      calendar[date_string][:end_time] = sub_schedules.max_by(&:end_time)&.end_time
+  
+      # Sort by start_time for readability or further processing.
+      calendar[date_string].sort_by! { |range| range[:start_time] }
+  
       date += 1.day
     end
-
-    return calendar
+  
+    calendar
   end
+  
 
   # Class Methods
 
