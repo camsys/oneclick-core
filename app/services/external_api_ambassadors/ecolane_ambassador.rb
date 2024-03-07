@@ -679,7 +679,7 @@ class EcolaneAmbassador < BookingAmbassador
       lat:            eco_place.try(:with_indifferent_access).try(:[], :latitude),
       lng:            eco_place.try(:with_indifferent_access).try(:[], :longitude),
       county:         eco_place.try(:with_indifferent_access).try(:[], :county)
-    }
+    }  
   end 
 
   def occ_itinerary_hash_from_eco_trip eco_trip
