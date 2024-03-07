@@ -34,7 +34,6 @@ class Place < ApplicationRecord
   # Converts google place attributes to readable format before initializing as normal
   def self.initialize_from_google_place_attributes(attrs=nil)
     self.new(attrs_from_google_place(attrs))
-    super(attrs)
   end
 
   # Converts google place attributes to readable format before updating as normal
