@@ -48,13 +48,12 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def unique_users_dashboard
-    if current_user.superuser?
-      @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
-    else
-      travelers_emails = current_user.get_travelers_for_staff_user.pluck(:email)
-      @user_requests = RequestLog.where(auth_email:travelers_emails).from_date(@from_date).to_date(@to_date)
+    @user_requests = RequestLog.from_date(@from_date).to_date(@to_date)
+    unless current_user.superuser?
+      travelers_emails = current_user.get_travelers_for_staff_user.select(:email)
+      @user_requests = @user_requests.where(auth_email: travelers_emails)
     end
-  end
+  end  
   
   def popular_destinations_dashboard
     @trips = current_user.get_trips_for_staff_user
