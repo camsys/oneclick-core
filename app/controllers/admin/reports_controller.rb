@@ -111,8 +111,8 @@ class Admin::ReportsController < Admin::AdminController
   
   def trips_table
     # Get trips for the current user's agency and role
-    landmark_geom_origin = Landmark.find_by(id: 161699613).geom
-    landmark_geom_destination = Landmark.find_by(id: 161699624).geom
+    landmark_geom_origin = Region.find_by(id: 2).geom
+    landmark_geom_destination = Region.find_by(id: 2).geom
 
     @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
 
