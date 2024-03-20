@@ -111,13 +111,16 @@ class Admin::ReportsController < Admin::AdminController
   
   def trips_table
     # Get trips for the current user's agency and role
+    landmark_geom_origin = Landmark.find_by(id: 161699613).geom
+    landmark_geom_destination = Landmark.find_by(id: 161699624).geom
+
     @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
 
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-    @trips = @trips.origin_in unless @trip_origin_region.empty?
-    @trips = @trips.destination_in unless @trip_destination_region.empty?
+    @trips = @trips.origin_in_landmark(landmark_geom_origin)
+    @trips = @trips.destination_in_landmark(landmark_geom_destination)
     @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)

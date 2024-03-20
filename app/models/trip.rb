@@ -112,12 +112,12 @@ class Trip < ApplicationRecord
 
   # Geographic scopes return trips that start or end in the passed geom
   # The geom parameter does not always serialize correctly to the geometry type, so converting to text.
-  scope :origin_in, -> {
-    joins(:origin).where('ST_Within(waypoints.geom, (SELECT geom FROM regions WHERE id = 2))')
+  scope :origin_in_landmark, -> (landmark_geom) {
+    joins(:origin).where("ST_Within(waypoints.geom, ?)", landmark_geom)
   }
   
-  scope :destination_in, -> {
-    joins(:destination).where('ST_Within(waypoints.geom, (SELECT geom FROM regions WHERE id = 2))')
+  scope :destination_in_landmark, -> (landmark_geom) {
+    joins(:destination).where("ST_Within(waypoints.geom, ?)", landmark_geom)
   }
   
   # Returns trip that have any of the given purposes
