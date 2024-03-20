@@ -110,8 +110,7 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-
-    ActiveRecord::Base.connection.execute("SET statement_timeout = 5000")
+    ActiveRecord::Base.connection.execute("SET statement_timeout = 10000") # 10 seconds
 
     # Get trips for the current user's agency and role
     @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
@@ -130,6 +129,8 @@ class Admin::ReportsController < Admin::AdminController
     respond_to do |format|
       format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
+  ensure
+    ActiveRecord::Base.connection.execute("SET statement_timeout = 0") # Reset the timeout
   end
 
   def in_travel_patterns_mode?
