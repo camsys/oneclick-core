@@ -110,6 +110,9 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
+
+    ActiveRecord::Base.connection.execute("SET statement_timeout = 5000")
+
     # Get trips for the current user's agency and role
     @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
 
