@@ -20,6 +20,14 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
+  purposes:
+    grocery: "Grocery"
+    medical: "Medical"
+    work: "Work"
+    other: "Other"
+    social: "Social"
+    spiritual: "Spiritual"
+
   global: 
     otp: 
       relative_direction:

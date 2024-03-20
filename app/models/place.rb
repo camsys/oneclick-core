@@ -27,8 +27,6 @@ class Place < ApplicationRecord
   def self.new attrs=nil
     if attrs && attrs[:google_place_attributes]
       initialize_from_google_place_attributes(attrs[:google_place_attributes])
-    else
-      super
     end
   end
 

@@ -29,6 +29,8 @@ module Api
       # Creates a new trip and associated itineraries based on the passed params,
       # and returns JSON with information about that trip.
       def create
+
+
               
         # Update the traveler's user profile before planning the trip.
         update_traveler_profile
@@ -37,10 +39,11 @@ module Api
         # Note: not used in 211 ride
         set_trip_purpose
 
+
         # Initialize a trip based on the params
         @trip = Trip.create(trip_params)
         @trip.user = @traveler
-        @trip_planner = TripPlanner.new(@trip, trip_planner_options)
+        @trip_planner = TripPlanner.new(@trip, trip_planner_options.merge(purpose_id: @trip.purpose_id))
 
         # Plan the trip (build itineraries and save it)
         # TODO: check different OCC instances to ensure that new updates didn't break it
@@ -60,6 +63,16 @@ module Api
         end
         
       end
+
+      def trip_purposes
+        I18n.locale = params[:locale] || I18n.default_locale
+        
+        @purposes = Purpose.all.map do |purpose|
+          { id: purpose.id, name: I18n.t("purposes.#{purpose.code}") }
+        end
+        
+        render json: { data: { purposes: @purposes } }, status: :ok
+      end      
 
       # POST trips/plan_multiday
       # Similar to the normal plan call, except accepts an array of trip times.

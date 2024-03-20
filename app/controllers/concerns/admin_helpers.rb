@@ -9,7 +9,7 @@ module AdminHelpers
       my_agency = urls.admin_agency_path(current_user.staff_agency.try(:id)) || ""
     end
     global_pages = [
-      { label: "Agencies",        url: urls.admin_agencies_path,        show: can?(:read, Agency) },
+      { label: "Agencies",        url: urls.admin_agencies_path,        show: can?(:read, Agency) && (current_user.oversight_admin? || current_user.superuser?) },
       { label: "Configuration",   url: urls.admin_configs_path,         show: can?(:read, Config) },
       { label: "Reports",         url: urls.admin_reports_path,         show: can?(:read, :report) },
       { label: "Services",        url: urls.admin_services_path,        show: can?(:read, Service) },

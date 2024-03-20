@@ -18,7 +18,11 @@ class TripPlanner
     @trip = trip
     @options = options
     @trip_types = (options[:trip_types] || TRIP_TYPES) & TRIP_TYPES # Set to only valid trip_types, all by default
-    @trip_types.push(:car_park) if (@trip_types.include?(:car) && @trip_types.include?(:transit))
+    if Config.open_trip_planner_version != 'v1' && (@trip_types.include?(:car) && @trip_types.include?(:transit))
+      @trip_types.push(:car_park)
+    end    
+    @purpose = Purpose.find_by(id: @options[:purpose_id])
+
 
     @errors = []
     @paratransit_drive_time_multiplier = 2.5
@@ -87,6 +91,8 @@ class TripPlanner
     if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
+
+    Rails.logger.info "Initial available services count: #{@available_services.count}"
 
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
