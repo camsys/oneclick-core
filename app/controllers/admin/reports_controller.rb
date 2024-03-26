@@ -110,38 +110,29 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    # Begin by fetching trips associated with the current user's role and agency
+    # Get trips for the current user's agency and role
     @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-  
-    # Apply filters for time range, purpose, and oversight agency as needed
+
+    # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
+    unless @trip_origin_region.blank?
+      @trips = @trips.joins(:origin).where("ST_Within(waypoints.geom, ?)", @trip_origin_region.geom)
+    end
+  
+    unless @trip_destination_region.blank?
+      @trips = @trips.joins(:destination).where("ST_Within(waypoints.geom, ?)", @trip_destination_region.geom)
+    end
     @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
-  
-    # Spatial queries for origin and destination within specified regions
-    if @trip_origin_region.present?
-      @trips = @trips.joins(:origin).where("ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))", @trip_origin_region.geom.as_text)
-    end
-  
-    if @trip_destination_region.present?
-      @trips = @trips.joins(:destination).where("ST_Within(waypoints.geom, ST_GeomFromText(?, 4326))", @trip_destination_region.geom.as_text)
-    end
-  
-    # Additional filters (e.g., trips created in 1click)
     if @trip_only_created_in_1click
-      @trips = @trips.joins(itineraries: :booking).where(itineraries: {trip_type: 'paratransit'}, bookings: {created_in_1click: true})
+      @trips = @trips.joins(itineraries: :booking)
+                     .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
     end
-  
-    # Order the trips by trip_time
     @trips = @trips.order(:trip_time)
-  
-    # Respond with the CSV data
     respond_to do |format|
       format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
   end
-  
-  
 
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
