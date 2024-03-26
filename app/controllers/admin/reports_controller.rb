@@ -110,24 +110,46 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    # Get trips for the current user's agency and role
-    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-
-    # Filter trips based on inputs
+    # Initial scope limited by agency and role; consider narrowing this further if possible.
+    @trips = current_user.get_trips_for_staff_user
+  
+    # Apply time range filtering as early as possible to reduce dataset size.
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+  
+    # Filter by purpose, if specified.
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
-    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
-    if @trip_only_created_in_1click
-      @trips = @trips.joins(itineraries: :booking)
-                     .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
+  
+    # Spatial queries optimization: Consider consolidating these into fewer database calls or adjusting logic to pre-filter.
+    unless @trip_origin_region.empty?
+      origin_geom_text = @trip_origin_region.geom.to_s
+      @trips = @trips.joins(:origin).where("ST_Within(origins.geom::geometry, ST_GeomFromText(?, 4326)::geometry)", origin_geom_text)
     end
-    @trips = @trips.order(:trip_time)
+  
+    unless @trip_destination_region.empty?
+      dest_geom_text = @trip_destination_region.geom.to_s
+      @trips = @trips.joins(:destination).where("ST_Within(destinations.geom::geometry, ST_GeomFromText(?, 4326)::geometry)", dest_geom_text)
+    end
+  
+    # Additional filters.
+    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+  
+    # Filtering for trips created in 1click; adjust as needed.
+    if @trip_only_created_in_1click
+      @trips = @trips.joins(itineraries: :booking).where(itineraries: {trip_type: 'paratransit'}, bookings: {created_in_1click: true})
+    end
+  
+    # Pre-load associations used in CSV generation to avoid N+1 queries.
+    @trips = @trips.includes(:user, origin: [], destination: [], itineraries: [:booking])
+  
+    # Ordering and limiting the results to manage memory and speed.
+    @trips = @trips.order(:trip_time).limit(CSVWriter::DEFAULT_RECORD_LIMIT)
+  
+    # Generate and send the CSV data.
     respond_to do |format|
       format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
   end
+  
 
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
