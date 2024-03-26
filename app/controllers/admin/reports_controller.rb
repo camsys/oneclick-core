@@ -116,13 +116,8 @@ class Admin::ReportsController < Admin::AdminController
     # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-    unless @trip_origin_region.blank?
-      @trips = @trips.joins(:origin).where("ST_Within(waypoints.geom, ?)", @trip_origin_region.geom)
-    end
-  
-    unless @trip_destination_region.blank?
-      @trips = @trips.joins(:destination).where("ST_Within(waypoints.geom, ?)", @trip_destination_region.geom)
-    end
+    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
+    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
     @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)
