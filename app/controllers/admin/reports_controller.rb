@@ -120,14 +120,12 @@ class Admin::ReportsController < Admin::AdminController
     @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
   
     # Spatial queries optimization: Consider consolidating these into fewer database calls or adjusting logic to pre-filter.
-    unless @trip_origin_region.empty?
-      origin_geom_text = @trip_origin_region.geom.to_s
-      @trips = @trips.joins(:origin).where("ST_Within(origins.geom::geometry, ST_GeomFromText(?, 4326)::geometry)", origin_geom_text)
+    if @trip_origin_region.present?
+      @trips = @trips.joins(:origin).where("ST_Within(waypoints.geom, ?)", @trip_origin_region.geom)
     end
   
-    unless @trip_destination_region.empty?
-      dest_geom_text = @trip_destination_region.geom.to_s
-      @trips = @trips.joins(:destination).where("ST_Within(destinations.geom::geometry, ST_GeomFromText(?, 4326)::geometry)", dest_geom_text)
+    if @trip_destination_region.present?
+      @trips = @trips.joins(:destination).where("ST_Within(waypoints.geom, ?)", @trip_destination_region.geom)
     end
   
     # Additional filters.
