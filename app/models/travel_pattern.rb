@@ -249,50 +249,55 @@ class TravelPattern < ApplicationRecord
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = []
+      
+      has_holiday = false
   
-      # Process reduced service schedules
-      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
-        valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
-        valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
-        next memo unless valid_start && valid_end
-        
-        sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
-        
-        sub_schedule ? sub_schedule : memo
-      end
+      # Check reduced service schedules for holidays (nil start and end times)
+      reduced_service_schedules.each do |service_schedule|
+        next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) && 
+                    (service_schedule.end_date.nil? || service_schedule.end_date >= date)
   
-      if reduced_sub_schedule && reduced_sub_schedule.start_time.nil? && reduced_sub_schedule.end_time.nil?
-        # Explicitly ensure the array for this date remains empty to indicate no service        
-        calendar[date_string] = []
-        date += 1.day
-        next
-      elsif reduced_sub_schedule
-        calendar[date_string] << { start_time: reduced_sub_schedule.start_time, end_time: reduced_sub_schedule.end_time }
-        date += 1.day
-        next
-      end
-  
-      # Filter and collect weekly and extra sub-schedules for the day
-      sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
-        next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
-        next unless service_schedule.end_date.nil? || service_schedule.end_date >= date
-  
-        service_schedule.service_sub_schedules.select do |sub_schedule|
-          sub_schedule.day == date.wday || sub_schedule.calendar_date == date
+        service_schedule.service_sub_schedules.each do |sub_schedule|
+          if sub_schedule.calendar_date == date && sub_schedule.start_time.nil? && sub_schedule.end_time.nil?
+            # Mark as holiday; do not add any time slots for this day
+            has_holiday = true
+            break
+          end
         end
-      end.compact
   
-      # Combine, ensuring to remove nils and sort by start_time
-      unless sub_schedules.empty?
-        calendar[date_string] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
-        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
+        break if has_holiday # Exit early if a holiday is found
       end
   
+      # Proceed with adding time slots only if no holiday was found
+      unless has_holiday
+        sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
+          next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) &&
+                      (service_schedule.end_date.nil? || service_schedule.end_date >= date)
+  
+          service_schedule.service_sub_schedules.select do |sub_schedule|
+            (sub_schedule.day == date.wday || sub_schedule.calendar_date == date) &&
+            !(sub_schedule.start_time.nil? && sub_schedule.end_time.nil?) # Exclude nil times
+          end
+        end.compact
+  
+        # Map to start_time and end_time, excluding nil values explicitly
+        sub_schedules.each do |ss|
+          calendar[date_string] << { start_time: ss.start_time, end_time: ss.end_time } unless ss.start_time.nil? || ss.end_time.nil?
+        end
+      end
+  
+      # Move to the next day
       date += 1.day
     end
   
-    return calendar
+    calendar
   end
+  
+  
+  
+  
+  
+  
 
   # Class Methods
 
