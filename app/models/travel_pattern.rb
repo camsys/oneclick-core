@@ -248,24 +248,22 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-  
-      # Assume no reduced schedule by default; prepare to accumulate times if applicable
       calendar[date_string] = []
   
-      # Process reduced service schedules
+      # Log message to show processing date
+      Rails.logger.debug "Processing date: #{date_string}"
+  
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
         valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
         valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
         next memo unless valid_start && valid_end
-        
+  
         sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
-        
+  
         sub_schedule ? sub_schedule : memo
       end
   
       if reduced_sub_schedule && reduced_sub_schedule.start_time.nil? && reduced_sub_schedule.end_time.nil?
-        # Explicitly ensure the array for this date remains empty to indicate no service,
-        # overriding any further processing
         calendar[date_string] = []
         date += 1.day
         next
@@ -275,7 +273,6 @@ class TravelPattern < ApplicationRecord
         next
       end
   
-      # Filter and collect weekly and extra sub-schedules for the day
       sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
         next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
         next unless service_schedule.end_date.nil? || service_schedule.end_date >= date
@@ -285,10 +282,16 @@ class TravelPattern < ApplicationRecord
         end
       end.compact
   
-      # Combine, ensuring to remove nils and sort by start_time
+      # Before sorting, log the sub_schedules to inspect for nil values
+      Rails.logger.debug "Sub schedules before sorting for date #{date_string}: #{sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }}"
+  
       unless sub_schedules.empty?
         calendar[date_string] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
-        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
+  
+        # Log a message before the sort_by! to catch potential nil values
+        Rails.logger.debug "Attempting to sort sub_schedules for date #{date_string}"
+  
+        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] || 0 }
       end
   
       date += 1.day
@@ -296,6 +299,8 @@ class TravelPattern < ApplicationRecord
   
     calendar
   end
+  
+  
   
   
 
