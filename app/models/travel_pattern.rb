@@ -248,9 +248,10 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = []
+      
+      # Initially mark the day as not processed.
+      day_processed = false
   
-      # Process reduced service schedules
       reduced_service_schedules.each do |service_schedule|
         next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
         next unless service_schedule.end_date.nil? || service_schedule.end_date >= date
@@ -258,20 +259,21 @@ class TravelPattern < ApplicationRecord
         sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
   
         if sub_schedule
+          day_processed = true
           if sub_schedule.start_time.nil? && sub_schedule.end_time.nil?
-            # If reduced schedule indicates no service (nil times), ensure the day's array remains empty
-            calendar[date_string] = []
-            break
+            # Mark the day explicitly as having no service.
+            calendar[date_string] = nil
           else
-            # If reduced schedule has specific times, it overrides other schedules
+            # If reduced schedule has specific times, it overrides other schedules.
             calendar[date_string] = [{ start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }]
-            break
           end
+          break
         end
       end
   
-      # If no reduced schedule was found or processed, proceed with weekly and extra schedules
-      if calendar[date_string].empty?
+      # Process weekly and extra schedules only if no reduced schedule has marked the day yet.
+      if !day_processed
+        calendar[date_string] = []
         weekly_and_extra_schedules = weekly_schedules + extra_service_schedules
         weekly_and_extra_schedules.each do |service_schedule|
           next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
@@ -283,12 +285,16 @@ class TravelPattern < ApplicationRecord
             end
           end
         end
-      end
   
-      # Ensure the times are sorted and uniqued only if there are multiple entries
-      unless calendar[date_string].empty?
-        calendar[date_string].uniq! { |time_slot| [time_slot[:start_time], time_slot[:end_time]] }
-        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
+        # Sort and uniquify time slots if there are multiple entries.
+        unless calendar[date_string].empty?
+          calendar[date_string].uniq! { |time_slot| [time_slot[:start_time], time_slot[:end_time]] }
+          calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
+        end
+      elsif calendar[date_string].nil?
+        # Skip further processing if the day is marked as having no service.
+        date += 1.day
+        next
       end
   
       date += 1.day
@@ -296,6 +302,7 @@ class TravelPattern < ApplicationRecord
   
     calendar
   end
+  
   
 
   # Class Methods
