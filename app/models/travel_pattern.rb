@@ -249,6 +249,8 @@ class TravelPattern < ApplicationRecord
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = []
+
+      Rails.logger.debug "Processing date: #{date_string}"
   
       # Process reduced service schedules
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
@@ -293,6 +295,11 @@ class TravelPattern < ApplicationRecord
   
       # Combine all relevant sub-schedules
       sub_schedules += extra_service_sub_schedules
+
+      # Debugging: Log each sub_schedule's start_time and end_time before sorting
+      sub_schedules.each_with_index do |sub_schedule, index|
+        Rails.logger.debug "Sub_schedule #{index}: start_time=#{sub_schedule.start_time.inspect}, end_time=#{sub_schedule.end_time.inspect}"
+      end
   
       # Sort by start_time and group by time ranges
       sub_schedules.sort_by(&:start_time).each do |sub_schedule|
