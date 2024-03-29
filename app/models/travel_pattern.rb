@@ -248,32 +248,29 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = []
   
-      # First, process reduced service schedules (holidays)
       reduced_schedule_for_date = find_reduced_schedule_for_date(reduced_service_schedules, date)
   
-      if reduced_schedule_for_date
-        # If reduced schedule is nil, remove the date from the calendar to indicate no service
-        if reduced_schedule_for_date.start_time.nil? && reduced_schedule_for_date.end_time.nil?
-          calendar.delete(date_string)
-          date += 1.day
-          next
-        else
+      # If reduced schedule is nil (indicating no service), do not add or remove the date from the calendar
+      if reduced_schedule_for_date && reduced_schedule_for_date.start_time.nil? && reduced_schedule_for_date.end_time.nil?
+        # No operation needed, the date is skipped automatically
+      else
+        calendar[date_string] = []
+        if reduced_schedule_for_date
+          # If there is a reduced schedule with specific times, use those times
           calendar[date_string] << { start_time: reduced_schedule_for_date.start_time, end_time: reduced_schedule_for_date.end_time }
-          date += 1.day
-          next
+        else
+          # Process weekly and extra schedules only if there's no reduced schedule overriding the day
+          process_weekly_and_extra_schedules(weekly_schedules, extra_service_schedules, date, calendar[date_string])
         end
       end
-  
-      # Process weekly schedules only if there's no reduced schedule overriding the day
-      process_weekly_and_extra_schedules(weekly_schedules, extra_service_schedules, date, calendar[date_string])
   
       date += 1.day
     end
   
     return calendar
   end
+  
   
   def find_reduced_schedule_for_date(reduced_service_schedules, date)
     reduced_service_schedules.each do |service_schedule|
