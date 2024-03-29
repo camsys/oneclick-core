@@ -248,27 +248,56 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = [] # Initialize the day with an empty array
+      # Default assumption is that the day has regular service, hence initializing with an empty array.
+      calendar[date_string] = []
   
       reduced_schedule_for_date = find_reduced_schedule_for_date(reduced_service_schedules, date)
   
+      # Process reduced service schedules first, as they have the highest priority.
       if reduced_schedule_for_date
+        # If "service hours" are blank, indicating a holiday with no service.
         if reduced_schedule_for_date.start_time.nil? && reduced_schedule_for_date.end_time.nil?
-          # If there's a reduced schedule with nil times, keep the array empty to indicate no service
-          # The calendar[date_string] is already initialized as empty, so nothing more to do
+          # Do nothing as we've already initialized the day with an empty array.
         else
-          # If there's a reduced schedule with specific times, replace the empty array with those times
+          # If there are specific times, it means reduced service hours, not a complete closure.
           calendar[date_string] = [{ start_time: reduced_schedule_for_date.start_time, end_time: reduced_schedule_for_date.end_time }]
         end
       else
-        # Process weekly and extra schedules only if there's no reduced schedule overriding the day
-        process_weekly_and_extra_schedules(weekly_schedules, extra_service_schedules, date, calendar[date_string])
+        # If no reduced service overrides, then process weekly and extra schedules.
+        process_weekly_schedules(weekly_schedules, date, calendar[date_string])
+        process_extra_service_schedules(extra_service_schedules, date, calendar[date_string])
       end
   
       date += 1.day
     end
   
     return calendar
+  end
+  
+  # This method remains largely the same but ensures that it doesn't apply on days with reduced schedules indicating no service.
+  def process_weekly_schedules(weekly_schedules, date, calendar_entries)
+    weekly_schedules.each do |service_schedule|
+      next unless service_schedule.applies_on?(date) # Assumes a method `applies_on?` that checks the date against the service schedule's operational days and dates.
+  
+      # Add the weekly service times.
+      service_schedule.service_sub_schedules.each do |sub_schedule|
+        calendar_entries << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time } if sub_schedule.day == date.wday
+      end
+    end
+  end
+  
+  # Similar to processing weekly schedules, but for extra service schedules. Assumes all extra schedules apply in addition to regular service.
+  def process_extra_service_schedules(extra_service_schedules, date, calendar_entries)
+    extra_service_schedules.each do |service_schedule|
+      next unless service_schedule.applies_on_date?(date) # Assumes a method `applies_on_date?` that checks if the extra service schedule applies on the given date.
+  
+      # Add the extra service times without overriding the existing times.
+      service_schedule.service_sub_schedules.each do |sub_schedule|
+        if sub_schedule.calendar_date == date
+          calendar_entries << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }
+        end
+      end
+    end
   end
   
   
