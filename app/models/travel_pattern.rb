@@ -248,53 +248,47 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      
-      # Initially mark the day as not processed.
-      day_processed = false
   
-      reduced_service_schedules.each do |service_schedule|
+      # Assume no reduced schedule by default; prepare to accumulate times if applicable
+      calendar[date_string] = []
+  
+      # Process reduced service schedules
+      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
+        valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
+        valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
+        next memo unless valid_start && valid_end
+        
+        sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
+        
+        sub_schedule ? sub_schedule : memo
+      end
+  
+      if reduced_sub_schedule && reduced_sub_schedule.start_time.nil? && reduced_sub_schedule.end_time.nil?
+        # Explicitly ensure the array for this date remains empty to indicate no service,
+        # overriding any further processing
+        calendar[date_string] = []
+        date += 1.day
+        next
+      elsif reduced_sub_schedule
+        calendar[date_string] << { start_time: reduced_sub_schedule.start_time, end_time: reduced_sub_schedule.end_time }
+        date += 1.day
+        next
+      end
+  
+      # Filter and collect weekly and extra sub-schedules for the day
+      sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
         next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
         next unless service_schedule.end_date.nil? || service_schedule.end_date >= date
   
-        sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
-  
-        if sub_schedule
-          day_processed = true
-          if sub_schedule.start_time.nil? && sub_schedule.end_time.nil?
-            # Mark the day explicitly as having no service.
-            calendar[date_string] = nil
-          else
-            # If reduced schedule has specific times, it overrides other schedules.
-            calendar[date_string] = [{ start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }]
-          end
-          break
+        service_schedule.service_sub_schedules.select do |sub_schedule|
+          sub_schedule.day == date.wday || sub_schedule.calendar_date == date
         end
-      end
+      end.compact
   
-      # Process weekly and extra schedules only if no reduced schedule has marked the day yet.
-      if !day_processed
-        calendar[date_string] = []
-        weekly_and_extra_schedules = weekly_schedules + extra_service_schedules
-        weekly_and_extra_schedules.each do |service_schedule|
-          next unless service_schedule.start_date.nil? || service_schedule.start_date <= date
-          next unless service_schedule.end_date.nil? || service_schedule.end_date >= date
-  
-          service_schedule.service_sub_schedules.each do |sub_schedule|
-            if sub_schedule.calendar_date == date || sub_schedule.day == date.wday
-              calendar[date_string] << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }
-            end
-          end
-        end
-  
-        # Sort and uniquify time slots if there are multiple entries.
-        unless calendar[date_string].empty?
-          calendar[date_string].uniq! { |time_slot| [time_slot[:start_time], time_slot[:end_time]] }
-          calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
-        end
-      elsif calendar[date_string].nil?
-        # Skip further processing if the day is marked as having no service.
-        date += 1.day
-        next
+      # Combine, ensuring to remove nils and sort by start_time
+      unless sub_schedules.empty?
+        calendar[date_string] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
+        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
       end
   
       date += 1.day
