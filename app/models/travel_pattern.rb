@@ -250,9 +250,6 @@ class TravelPattern < ApplicationRecord
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = []
   
-      # Log message to show processing date
-      Rails.logger.debug "Processing date: #{date_string}"
-  
       reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |memo, service_schedule|
         valid_start = service_schedule.start_date.nil? || service_schedule.start_date <= date
         valid_end = service_schedule.end_date.nil? || service_schedule.end_date >= date
@@ -282,16 +279,24 @@ class TravelPattern < ApplicationRecord
         end
       end.compact
   
-      # Before sorting, log the sub_schedules to inspect for nil values
-      Rails.logger.debug "Sub schedules before sorting for date #{date_string}: #{sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }}"
+      # Log each sub_schedule to inspect for nil values
+      sub_schedules.each_with_index do |sub_schedule, index|
+        Rails.logger.debug "Date: #{date_string}, Sub Schedule #{index}, Start Time: #{sub_schedule.start_time.inspect}, End Time: #{sub_schedule.end_time.inspect}"
+      end
+  
+      # Check for nil values directly and log if found
+      if sub_schedules.any? { |ss| ss.start_time.nil? || ss.end_time.nil? }
+        Rails.logger.error "Nil values found in sub_schedules for date #{date_string}"
+      end
   
       unless sub_schedules.empty?
-        calendar[date_string] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
-  
-        # Log a message before the sort_by! to catch potential nil values
-        Rails.logger.debug "Attempting to sort sub_schedules for date #{date_string}"
-  
-        calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] || 0 }
+        # Sort by start_time while handling nils to avoid error but log the operation
+        begin
+          calendar[date_string] = sub_schedules.map { |ss| { start_time: ss.start_time, end_time: ss.end_time } }
+          calendar[date_string].sort_by! { |time_slot| time_slot[:start_time] }
+        rescue => e
+          Rails.logger.error "Failed to sort sub_schedules for date #{date_string}: #{e.message}"
+        end
       end
   
       date += 1.day
@@ -299,6 +304,7 @@ class TravelPattern < ApplicationRecord
   
     calendar
   end
+  
   
   
   
