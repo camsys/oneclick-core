@@ -248,21 +248,21 @@ class TravelPattern < ApplicationRecord
   
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
+      calendar[date_string] = [] # Initialize the day with an empty array
   
       reduced_schedule_for_date = find_reduced_schedule_for_date(reduced_service_schedules, date)
   
-      # If reduced schedule is nil (indicating no service), do not add or remove the date from the calendar
-      if reduced_schedule_for_date && reduced_schedule_for_date.start_time.nil? && reduced_schedule_for_date.end_time.nil?
-        # No operation needed, the date is skipped automatically
-      else
-        calendar[date_string] = []
-        if reduced_schedule_for_date
-          # If there is a reduced schedule with specific times, use those times
-          calendar[date_string] << { start_time: reduced_schedule_for_date.start_time, end_time: reduced_schedule_for_date.end_time }
+      if reduced_schedule_for_date
+        if reduced_schedule_for_date.start_time.nil? && reduced_schedule_for_date.end_time.nil?
+          # If there's a reduced schedule with nil times, keep the array empty to indicate no service
+          # The calendar[date_string] is already initialized as empty, so nothing more to do
         else
-          # Process weekly and extra schedules only if there's no reduced schedule overriding the day
-          process_weekly_and_extra_schedules(weekly_schedules, extra_service_schedules, date, calendar[date_string])
+          # If there's a reduced schedule with specific times, replace the empty array with those times
+          calendar[date_string] = [{ start_time: reduced_schedule_for_date.start_time, end_time: reduced_schedule_for_date.end_time }]
         end
+      else
+        # Process weekly and extra schedules only if there's no reduced schedule overriding the day
+        process_weekly_and_extra_schedules(weekly_schedules, extra_service_schedules, date, calendar[date_string])
       end
   
       date += 1.day
@@ -270,6 +270,7 @@ class TravelPattern < ApplicationRecord
   
     return calendar
   end
+  
   
   
   def find_reduced_schedule_for_date(reduced_service_schedules, date)
