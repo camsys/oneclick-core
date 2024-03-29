@@ -249,26 +249,29 @@ class TravelPattern < ApplicationRecord
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = []
+      skip_day = false # Flag to indicate whether to skip further processing for the current day
   
-      # Process reduced service schedules (holidays with nil times)
+      # Process reduced service schedules
       reduced_service_schedules.each do |service_schedule|
         if service_schedule.start_date.nil? || service_schedule.start_date <= date && service_schedule.end_date.nil? || service_schedule.end_date >= date
           reduced_sub_schedule = service_schedule.service_sub_schedules.find { |ss| ss.calendar_date == date }
           if reduced_sub_schedule
             if reduced_sub_schedule.start_time.nil? && reduced_sub_schedule.end_time.nil?
-              # If reduced schedule indicates no service, make it an empty array and skip further processing
+              # If reduced schedule indicates no service, make it an empty array
               calendar[date_string] = []
-              break
+              skip_day = true # Set the flag to true to skip further processing
+              break # Exit the loop as we found the applicable reduced schedule
             else
               # If reduced schedule provides specific times, it overrides other schedules
               calendar[date_string] = [{ start_time: reduced_sub_schedule.start_time, end_time: reduced_sub_schedule.end_time }]
+              skip_day = true # Although we have specific times, we treat it as "processed"
               break
             end
           end
         end
       end
   
-      next if calendar[date_string].empty? && reduced_sub_schedule # Skip to next day if reduced schedule indicated no service
+      next if skip_day # Move to the next day if the flag is set
   
       # Process weekly and extra service schedules if the day is not overridden by reduced schedules
       (weekly_schedules + extra_service_schedules).each do |service_schedule|
@@ -276,13 +279,11 @@ class TravelPattern < ApplicationRecord
         
         service_schedule.service_sub_schedules.each do |sub_schedule|
           if sub_schedule.calendar_date == date || (sub_schedule.day == date.wday && sub_schedule.calendar_date.nil?)
-            # Add time slots from both weekly and extra schedules unless overridden by reduced schedules
             calendar[date_string] << { start_time: sub_schedule.start_time, end_time: sub_schedule.end_time }
           end
         end
       end
   
-      # Remove duplicates and ensure the array is sorted by start_time
       calendar[date_string].uniq! { |slot| [slot[:start_time], slot[:end_time]] }
       calendar[date_string].sort_by! { |slot| slot[:start_time] || 0 }
   
@@ -291,6 +292,7 @@ class TravelPattern < ApplicationRecord
   
     return calendar
   end
+  
   
   
   
