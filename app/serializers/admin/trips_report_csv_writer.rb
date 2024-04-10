@@ -6,13 +6,13 @@ module Admin
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :ecolane_error_message
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
       :purpose, :orig_addr, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_lat, :dest_lng
+      :dest_addr, :dest_lat, :dest_lng, :ecolane_error_message
     ]
 
     def self.in_travel_patterns_mode?
