@@ -203,8 +203,10 @@ class EcolaneAmbassador < BookingAmbassador
         booking
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
-        error_messages = Array.wrap(body_hash.dig(:status, :error)).map { |e| e[:message] }.join("; ")
+        error_messages = Array(body_hash['status']['error']).map { |e| e['message'] }.join("; ")
         self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        booking.ecolane_error_message = error_messages
+        booking.created_in_1click = true
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
