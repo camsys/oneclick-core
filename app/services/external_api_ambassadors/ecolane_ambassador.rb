@@ -201,13 +201,18 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "failure"
-          error_message = body_hash.dig(:status, :error, :message)
-          booking.created_in_1click = true
-          booking.ecolane_error_message = error_message
+        if resp.body.include?('failure') # A simple check to see if 'failure' is present in the response
+          error_info = JSON.parse(resp.body) rescue nil # Attempt JSON parsing if XML parsing failed
+          if error_info
+            error_message = error_info.dig('status', 'error', 'message')
+            self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
+          else
+            # Handle case where JSON parsing fails or 'failure' isn't in a JSON format
+            self.booking.update(created_in_1click: true, ecolane_error_message: 'Unknown error, check response format')
+          end
         else
-          # In case of other outcomes, ensure created_in_1click is updated
-          self.booking.update(created_in_1click: true)
+          # Fallback for unexpected formats or parsing issues
+          self.booking.update(created_in_1click: true, ecolane_error_message: 'Failed to parse error response')
         end
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
