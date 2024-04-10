@@ -202,16 +202,11 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        Rails.logger.info "Order creation failed"
-        if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "failure"
-          error_messages = body_hash.dig(:status, :error).map { |e| e[:message] }.join("; ")
-          Rails.logger.info "Failure message: #{error_message}"
-          self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
-        else
-          self.booking.update(created_in_1click: true)
-        end
+        Rails.logger.info "Failure response from Ecolane: #{resp.body}"
+        error_messages = Array.wrap(body_hash.dig(:status, :error)).map { |e| e[:message] }.join("; ")
+        self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-        Rails.logger.info "Booking updated with failure: #{self.booking.inspect}"
         nil
       end
     rescue REXML::ParseException
