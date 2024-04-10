@@ -6,7 +6,7 @@ module Admin
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :ecolane_error_message
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
@@ -129,5 +129,8 @@ module Admin
       @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
     end
 
+    def ecolane_error_message
+      @record.selected_itinerary&.booking&.ecolane_error_message || "N/A"
+    end
   end
 end
