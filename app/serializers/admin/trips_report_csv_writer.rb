@@ -130,7 +130,7 @@ module Admin
     end
 
     def ecolane_error_message
-      @record.selected_itinerary&.booking&.ecolane_error_message || "N/A"
+     "N/A"
     end
   end
 end
