@@ -203,6 +203,7 @@ class EcolaneAmbassador < BookingAmbassador
         booking
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
+        booking = self.booking
         error_messages = Array(body_hash['status']['error']).map { |e| e['message'] }.join("; ")
         self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         booking.ecolane_error_message = error_messages
