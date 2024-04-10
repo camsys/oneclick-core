@@ -210,6 +210,7 @@ class EcolaneAmbassador < BookingAmbassador
         self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         booking.ecolane_error_message = error_messages
         booking.created_in_1click = true
+        booking.save
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
