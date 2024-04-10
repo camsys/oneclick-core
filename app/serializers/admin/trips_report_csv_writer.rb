@@ -10,9 +10,9 @@ module Admin
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
-      :trip_time, :traveler, :arrive_by, :disposition_status, 
+      :trip_time, :traveler, :ecolane_error_message, :disposition_status, 
       :purpose, :orig_addr, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_lat, :dest_lng, :ecolane_error_message
+      :dest_addr, :dest_lat, :dest_lng
     ]
 
     def self.in_travel_patterns_mode?
