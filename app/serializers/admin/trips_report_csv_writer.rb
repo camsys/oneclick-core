@@ -130,7 +130,8 @@ module Admin
     end
 
     def ecolane_error_message
-     "N/A"
-    end
+      message = @record.selected_itinerary&.booking&.ecolane_error_message || "N/A"
+      Rails.logger.debug "Ecolane Error Message for Trip ID #{@record.id}: #{message}"
+      message    end
   end
 end
