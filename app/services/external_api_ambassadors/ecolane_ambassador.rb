@@ -186,6 +186,7 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     begin
       order =  build_order
+      Rails.logger.info "Order built, sending request..."
       resp = send_request(url, 'POST', order)
     # NOTE: this seems like overkill, but Ecolane uses both JSON and
     # ...XML for their responses, and failed responses are formatted as JSON
@@ -200,13 +201,21 @@ class EcolaneAmbassador < BookingAmbassador
         booking.created_in_1click = true
         booking.save
         booking
-      elsif body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "failure"
-        booking.ecolane_error_message = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :failure).try(:[], :message)
-        booking.created_in_1click = true
+      else
+        Rails.logger.info "Order creation failed"
+        if body_hash.dig(:status, :result) == "failure"
+          error_message = body_hash.dig(:status, :error, :message)
+          Rails.logger.info "Failure message: #{error_message}"
+          self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
+        else
+          self.booking.update(created_in_1click: true)
+        end
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        Rails.logger.info "Booking updated with failure: #{self.booking.inspect}"
         nil
       end
     rescue REXML::ParseException
+      Rails.logger.error "REXML::ParseException: #{e.message}"
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       self.booking.update(created_in_1click: true)
       nil
@@ -613,6 +622,7 @@ class EcolaneAmbassador < BookingAmbassador
   
   ### Create OCC Trip from Ecolane Trip ###
   def occ_trip_from_ecolane_trip eco_trip
+    Rails.logger.info "Found existing itinerary: #{itinerary.inspect}"
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
@@ -628,13 +638,19 @@ class EcolaneAmbassador < BookingAmbassador
         trip = itinerary.trip 
         trip.selected_itinerary = nil
         trip.save
+        Rails.logger.info "Itinerary canceled, trip unselected"
+
         # For some reason itinerary.unselect doesn't work here.
       end
       booking.save
+      Rails.logger.info "Booking updated: #{booking.inspect}"
+
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
       nil
     # This Trip needs to be added to OCC
     else
+      Rails.logger.info "Creating new trip and itinerary from eco_trip"
+
       # Make the Trip
       trip = Trip.create!(occ_trip_hash(eco_trip))
       # Make the Itinerary
