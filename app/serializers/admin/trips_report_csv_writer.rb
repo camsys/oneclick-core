@@ -6,7 +6,7 @@ module Admin
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :ecolane_error_message
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
