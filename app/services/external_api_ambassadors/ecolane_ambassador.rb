@@ -201,9 +201,8 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        error_message = body_hash.dig(:status, :error, :message)
-        self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        self.booking.update(created_in_1click: true)
         nil
       end
     rescue REXML::ParseException
