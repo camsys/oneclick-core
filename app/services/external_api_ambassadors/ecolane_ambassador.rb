@@ -201,7 +201,8 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        error_messages = body_hash.try(:[], :status).try(:[], :error).map { |e| e[:message] }.join("; ")
+        errors = [body_hash[:status][:error]].flatten.compact
+        error_messages = errors.map { |error| error[:message] }.join("; ")
         self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
