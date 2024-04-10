@@ -201,9 +201,10 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         booking
       else
-        if body_hash.dig(:status, :result) == "failure"
+        if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "failure"
           error_message = body_hash.dig(:status, :error, :message)
-          self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
+          booking.created_in_1click = true
+          booking.ecolane_error_message = error_message
         else
           # In case of other outcomes, ensure created_in_1click is updated
           self.booking.update(created_in_1click: true)
