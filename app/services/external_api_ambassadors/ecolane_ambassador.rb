@@ -203,7 +203,7 @@ class EcolaneAmbassador < BookingAmbassador
         booking
       else
         Rails.logger.info "Order creation failed"
-        if body_hash.dig(:status, :result) == "failure"
+        if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "failure"
           error_messages = body_hash.dig(:status, :error).map { |e| e[:message] }.join("; ")
           Rails.logger.info "Failure message: #{error_message}"
           self.booking.update(ecolane_error_message: error_message, created_in_1click: true)
