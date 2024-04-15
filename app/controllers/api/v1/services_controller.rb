@@ -20,7 +20,8 @@ module Api
         render status: 200, json: {
           county_services: external_array,
           service_ids: external_array.map{ |county_service|
-            county_service[:countyName] - county_service[service.name]
+            # make the names of the services next to the county names
+            county_service[:label]
           }
         }
 
