@@ -4,11 +4,31 @@ module Api
 
       # FOR ECOLANEs
       def ids_humanized
-        external_id_array = []
-        Service.paratransit_services.published.is_ecolane.each do |service|
-          external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
+        external_array = []
+        Service.paratransit_services.published.with_ecolane_api.each do |service|
+          county_services = service.booking_details[:home_counties]
+                                    .split(',')
+                                    .map{ |county_name| 
+                                      {
+                                        serviceId: service.id,
+                                        label: "#{county_name.strip.humanize} - #{service.name}",
+                                        countyName: county_name.strip.humanize
+                                      }
+                                    }
+          external_array += county_services
         end
-        render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
+        render status: 200, json: {
+          county_services: external_array,
+          service_ids: external_array.map{ |county_service|
+            county_service[:countyName]
+          }
+        }
+
+        # external_id_array = []
+        # Service.paratransit_services.published.with_ecolane_api.each do |service|
+        #   external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
+        # end
+        # render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
       end
 
       # For Ecolane
