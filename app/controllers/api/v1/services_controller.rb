@@ -5,7 +5,7 @@ module Api
       # FOR ECOLANEs
       def ids_humanized
         external_array = []
-        Service.paratransit_services.published.with_ecolane_api.each do |service|
+        Service.paratransit_services.published.is_ecolane.each do |service|
           county_services = service.booking_details[:home_counties]
                                     .split(',')
                                     .map{ |county_name| 
