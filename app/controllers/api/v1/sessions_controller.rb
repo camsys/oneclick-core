@@ -15,7 +15,6 @@ module Api
         email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
-        selected_service_id = session_params[:service_id].to_i
         ecolane_id = session_params[:ecolane_id]
         county = session_params[:county]
         dob = session_params[:dob]
@@ -25,11 +24,6 @@ module Api
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
-            Rails.logger.info "Unauthorized access attempt with service ID: #{selected_service_id}"
-            unless @user.primary_service_id == selected_service_id
-              render status: 401, json: { message: "Unauthorized access to the selected service." }
-              return
-            end
             #Last Trip
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
@@ -97,7 +91,7 @@ module Api
 
       def session_params
         params[:session] = params.delete :user if params.has_key? :user
-        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob, :service_id)
+        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob)
       end
 
     end
