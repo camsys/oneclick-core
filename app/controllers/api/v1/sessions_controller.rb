@@ -29,10 +29,13 @@ module Api
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id, service_id: service_id})
-          Rails.logger.info "service_id: #{service_id}"
-
+          
           @user = ecolane_ambassador.user
           if @user
+            unless @user.primary_service_id == selected_service_id
+              render status: 401, json: { message: "Unauthorized access to the selected service." }
+              return
+            end
             #Last Trip
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
