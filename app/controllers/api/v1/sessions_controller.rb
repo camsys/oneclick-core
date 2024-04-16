@@ -25,11 +25,7 @@ module Api
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
-            services = Service.where(county: county)
-            if services.count == 1
-              selected_service_id = services.first.id # Automatically assign if only one service
-            end
-            
+            Rails.logger.info "Unauthorized access attempt with service ID: #{selected_service_id}"
             unless @user.primary_service_id == selected_service_id
               render status: 401, json: { message: "Unauthorized access to the selected service." }
               return
