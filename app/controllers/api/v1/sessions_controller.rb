@@ -76,6 +76,9 @@ module Api
         end
         return
 
+
+        Rails.logger.info "service_id: #{service_id}"
+
       end
 
       # Custom sign_out method renders JSON and handles invalid token errors.
