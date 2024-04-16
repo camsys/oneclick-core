@@ -6,31 +6,14 @@ module Api
       def ids_humanized
         external_array = []
         Service.paratransit_services.published.is_ecolane.each do |service|
-          county_services = service.booking_details[:home_counties]
-                                    .split(',')
-                                    .map{ |county_name| 
-                                      {
-                                        serviceId: service.id,
-                                        label: "#{county_name.strip.humanize} - #{service.name}",
-                                        countyName: county_name.strip.humanize
-                                      }
-                                    }
-          external_array += county_services
+          service.booking_details[:home_counties].split(',').each do |county_name|
+            county_name = county_name.strip.humanize
+            external_array << { serviceId: service.id, label: "#{county_name} - #{service.name}", countyName: county_name }
+          end
         end
-        render status: 200, json: {
-          county_services: external_array,
-          service_ids: external_array.map{ |county_service|
-            # make the names of the services next to the county names
-            county_service[:countyName]
-          }
-        }
-
-        # external_id_array = []
-        # Service.paratransit_services.published.with_ecolane_api.each do |service|
-        #   external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
-        # end
-        # render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
-      end
+        grouped_by_county = external_array.group_by { |cs| cs[:countyName] }
+        render status: 200, json: { county_services: grouped_by_county }
+      end      
 
       # For Ecolane
       #Given a registered traveler.  Return the dates/hours that are allowed for booking
