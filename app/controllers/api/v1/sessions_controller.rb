@@ -18,6 +18,8 @@ module Api
         ecolane_id = session_params[:ecolane_id]
         county = session_params[:county]
         dob = session_params[:dob]
+        service_id = session_params[:service_id]
+        Rails.logger.info "service_id: #{service_id}"
 
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
@@ -91,7 +93,7 @@ module Api
 
       def session_params
         params[:session] = params.delete :user if params.has_key? :user
-        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob)
+        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob, :service_id)
       end
 
     end
