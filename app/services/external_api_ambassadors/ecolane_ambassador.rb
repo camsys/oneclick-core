@@ -16,7 +16,6 @@ class EcolaneAmbassador < BookingAmbassador
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
-    @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
