@@ -8,12 +8,18 @@ module Api
         Service.paratransit_services.published.is_ecolane.each do |service|
           service.booking_details[:home_counties].split(',').each do |county_name|
             county_name = county_name.strip.humanize
-            external_array << { serviceId: service.id, label: "#{county_name} - #{service.name}", countyName: county_name }
+            # Include service ID and any other relevant details in the label
+            external_array << {
+              serviceId: service.id,
+              label: "#{county_name} - #{service.name}",
+              countyName: county_name,
+              serviceName: service.name  # Adding service name for clarity on the frontend
+            }
           end
         end
         grouped_by_county = external_array.group_by { |cs| cs[:countyName] }
         render status: 200, json: { county_services: grouped_by_county }
-      end      
+      end    
 
       # For Ecolane
       #Given a registered traveler.  Return the dates/hours that are allowed for booking
