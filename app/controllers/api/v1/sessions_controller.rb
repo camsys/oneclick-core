@@ -12,6 +12,7 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
+        Rails.logger.info "Received params: #{params.inspect}"
         email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
