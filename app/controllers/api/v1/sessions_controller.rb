@@ -32,7 +32,7 @@ module Api
           
           @user = ecolane_ambassador.user
           if @user
-            unless @user.primary_service_id == selected_service_id
+            unless @user.primary_service_id == service_id.to_i
               render status: 401, json: { message: "Unauthorized access to the selected service." }
               return
             end
