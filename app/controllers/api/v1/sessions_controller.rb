@@ -12,65 +12,71 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        email = session_params[:email].try(:downcase)
-        password = session_params[:password]
+        email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
+        password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
+        @user = User.find_by(email: email)
+        selected_service_id = session_params[:service_id].to_i
         ecolane_id = session_params[:ecolane_id]
-        selected_service_id = session_params[:service_id].to_i # Ensure it's compared as integer
         county = session_params[:county]
         dob = session_params[:dob]
-      
+
+        ############## Custom Ecolane Stuff ######################
         if ecolane_id
-          ecolane_ambassador = EcolaneAmbassador.new(county: county, dob: dob, ecolane_id: ecolane_id)
+          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
           @user = ecolane_ambassador.user
           if @user
-            # Check if the selected service ID matches the user's primary service ID
+            Rails.logger.info "Unauthorized access attempt with service ID: #{selected_service_id}"
             unless @user.primary_service_id == selected_service_id
-              Rails.logger.info "Unauthorized access attempt with service ID: #{selected_service_id}"
               render status: 401, json: { message: "Unauthorized access to the selected service." }
               return
             end
-            
-      
             #Last Trip
-            service_id = @user.primary_service_id
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
-            last_trip = last_trip.previous_trip if last_trip&.previous_trip 
-            last_origin = last_trip&.origin&.google_place_hash
-            last_destination = last_trip&.destination&.google_place_hash
-      
-            sign_in(@user)
+            #If this is a round trip, return the first part instead of the last part
+            if last_trip and last_trip.previous_trip 
+              last_trip = last_trip.previous_trip
+            end
+            if last_trip and last_trip.origin and last_trip.destination
+              last_origin = last_trip.origin.google_place_hash
+              last_destination = last_trip.destination.google_place_hash
+            end
+            sign_in(:user, @user)
             @user.ensure_authentication_token
-            sync_duration = (Time.now - @user.created_at < 10.minutes) ? 14 : 3
-            @user.sync(sync_duration)
-      
+            days_to_sync = 3
+            # if user is new to db, run 14 day sync (user may have called in rides up to now)
+            if (Time.now - @user.created_at) < 10.minutes
+              days_to_sync = 14
+            end
+            puts "Syncing user from #{days_to_sync} days ago"
+            @user.sync days_to_sync
+
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,
-              service_id: service_id,
               first_name: @user.first_name,
               last_name: @user.last_name,
-              last_origin: last_origin,
-              last_destination: last_destination
+              last_origin: last_origin || nil,
+              last_destination: last_destination || nil
             }
           else 
-            render status: 401, json: {message: "Invalid Ecolane ID or DOB."}
+            render status: 401, json: {message: "Invalid Ecolane Id or DOB."}
           end
-        elsif @user&.valid_password?(password)
-          # Regular email/password authentication
-          sign_in(@user)
+
+        elsif @user && @user.valid_password?(password)
+          sign_in(:user, @user)
           @user.ensure_authentication_token
           render status: 200, json: {
             authentication_token: @user.authentication_token,
             email: @user.email
           }
         else
-          render status: 401, json: { message: "Invalid credentials" }
+          render status: 401,
+            json: json_response(:fail, data: {user: "Please enter a valid email address and password"})
         end
+        return
+
       end
-      
-      
-      
 
       # Custom sign_out method renders JSON and handles invalid token errors.
       def destroy
