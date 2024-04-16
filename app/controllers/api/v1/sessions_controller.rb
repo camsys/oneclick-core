@@ -16,6 +16,7 @@ module Api
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
         ecolane_id = session_params[:ecolane_id]
+        service_id = session_params[:service_id]
         county = session_params[:county]
         dob = session_params[:dob]
 
@@ -48,6 +49,7 @@ module Api
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,
+              service_id: @user.service_id,
               first_name: @user.first_name,
               last_name: @user.last_name,
               last_origin: last_origin || nil,
@@ -91,7 +93,7 @@ module Api
 
       def session_params
         params[:session] = params.delete :user if params.has_key? :user
-        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob)
+        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob, :service_id)
       end
 
     end
