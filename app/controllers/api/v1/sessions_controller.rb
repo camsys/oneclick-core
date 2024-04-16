@@ -50,7 +50,7 @@ module Api
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,
-              service_id: service_id
+              service_id: service_id,
               first_name: @user.first_name,
               last_name: @user.last_name,
               last_origin: last_origin || nil,
