@@ -28,6 +28,8 @@ module Api
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
           ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id, service_id: service_id})
+          Rails.logger.info "service_id: #{service_id}"
+
           @user = ecolane_ambassador.user
           if @user
             #Last Trip
