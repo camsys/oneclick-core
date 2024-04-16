@@ -25,9 +25,11 @@ module Api
           if @user
             # Check if the selected service ID matches the user's primary service ID
             unless @user.primary_service_id == selected_service_id
+              Rails.logger.info "Unauthorized access attempt with service ID: #{selected_service_id}"
               render status: 401, json: { message: "Unauthorized access to the selected service." }
               return
             end
+            
       
             #Last Trip
             service_id = @user.primary_service_id
