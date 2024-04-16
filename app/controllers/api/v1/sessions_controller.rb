@@ -12,38 +12,35 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
-        email = session_params[:email].try(:downcase) # Retrieve and downcase the email from session parameters
-        password = session_params[:password] # Retrieve password from session parameters
-        @user = User.find_by(email: email)
+        email = session_params[:email].try(:downcase)
+        password = session_params[:password]
         ecolane_id = session_params[:ecolane_id]
-        selected_service_id = session_params[:service_id].to_i  # Convert the selected service ID to integer for comparison
+        selected_service_id = session_params[:service_id].to_i # Ensure it's compared as integer
         county = session_params[:county]
         dob = session_params[:dob]
       
-        # Custom Ecolane user check and handling
         if ecolane_id
-          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
+          ecolane_ambassador = EcolaneAmbassador.new(county: county, dob: dob, ecolane_id: ecolane_id)
           @user = ecolane_ambassador.user
           if @user
-            # Ensure the user has permission to access the selected service
-            if @user.services.map(&:id).include?(selected_service_id)
-              service_id = selected_service_id
-            else
-              render status: 401, json: { message: "Unauthorized service access." }
+            # Check if the selected service ID matches the user's primary service ID
+            unless @user.primary_service_id == selected_service_id
+              render status: 401, json: { message: "Unauthorized access to the selected service." }
               return
             end
       
+            #Last Trip
+            service_id = @user.primary_service_id
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
-            # Handle round trips: return the first part instead of the last
-            last_trip = last_trip.previous_trip if last_trip && last_trip.previous_trip
+            last_trip = last_trip.previous_trip if last_trip&.previous_trip 
             last_origin = last_trip&.origin&.google_place_hash
             last_destination = last_trip&.destination&.google_place_hash
       
-            sign_in(:user, @user)
+            sign_in(@user)
             @user.ensure_authentication_token
-            sync_days = (Time.now - @user.created_at) < 10.minutes ? 14 : 3
-            @user.sync sync_days
+            sync_duration = (Time.now - @user.created_at < 10.minutes) ? 14 : 3
+            @user.sync(sync_duration)
       
             render status: 200, json: {
               authentication_token: @user.authentication_token,
@@ -55,27 +52,21 @@ module Api
               last_destination: last_destination
             }
           else 
-            render status: 401, json: {message: "Invalid Ecolane Id or DOB."}
+            render status: 401, json: {message: "Invalid Ecolane ID or DOB."}
           end
-      
-        elsif @user && @user.valid_password?(password)
-          # Validate that the user can access the selected service
-          if @user.services.map(&:id).include?(selected_service_id)
-            sign_in(:user, @user)
-            @user.ensure_authentication_token
-            render status: 200, json: {
-              authentication_token: @user.authentication_token,
-              email: @user.email,
-              service_id: selected_service_id  # Return the validated and selected service ID
-            }
-          else
-            render status: 401, json: { message: "Unauthorized service access." }
-          end
+        elsif @user&.valid_password?(password)
+          # Regular email/password authentication
+          sign_in(@user)
+          @user.ensure_authentication_token
+          render status: 200, json: {
+            authentication_token: @user.authentication_token,
+            email: @user.email
+          }
         else
-          render status: 401,
-            json: json_response(:fail, data: {user: "Please enter a valid email address and password"})
+          render status: 401, json: { message: "Invalid credentials" }
         end
       end
+      
       
       
 
