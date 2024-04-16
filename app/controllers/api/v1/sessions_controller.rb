@@ -20,6 +20,10 @@ module Api
         dob = session_params[:dob]
         service_id = session_params[:service_id]
         Rails.logger.info "service_id: #{service_id}"
+        Rails.logger.info "ecolane_id: #{ecolane_id}"
+        Rails.logger.info "county: #{county}"
+        Rails.logger.info "dob: #{dob}"
+        Rails.logger.info "email: #{email}"
 
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
