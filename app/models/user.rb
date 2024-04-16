@@ -132,6 +132,10 @@ class User < ApplicationRecord
     end
   end
 
+  def primary_service_id
+    booking_profile&.service_id
+  end
+
   # Check to see if this user owns the object
   def owns? object
     case object.class.name

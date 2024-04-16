@@ -26,6 +26,7 @@ module Api
           @user = ecolane_ambassador.user
           if @user
             #Last Trip
+            service_id = @user.primary_service_id
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
             #If this is a round trip, return the first part instead of the last part
@@ -49,7 +50,7 @@ module Api
             render status: 200, json: {
               authentication_token: @user.authentication_token,
               email: @user.email,
-              service_id: @user.service_id,
+              service_id: service_id
               first_name: @user.first_name,
               last_name: @user.last_name,
               last_origin: last_origin || nil,
