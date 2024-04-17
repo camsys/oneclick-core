@@ -11,7 +11,7 @@ module Api
             # Include service ID and any other relevant details in the label
             external_array << {
               serviceId: service.id,
-              label: "#{county_name} - #{service.name}",
+              label: "#{service.name}",
               countyName: county_name,
               serviceName: service.name  # Adding service name for clarity on the frontend
             }
