@@ -52,6 +52,8 @@ namespace :ecolane do
       local_error = false
       system = service.booking_details[:external_id]
       agency_id = service&.agency&.id
+      service_id = service.id
+
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
@@ -75,6 +77,7 @@ namespace :ecolane do
           new_poi = Landmark.new hash
           new_poi.old = false
           new_poi.agency_id = agency_id
+          new_poi.service_id = service_id # Assign the service ID here
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.city.blank?
             puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
