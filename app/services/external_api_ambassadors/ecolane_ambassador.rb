@@ -5,6 +5,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   def initialize(opts={})
     #TODO Clean up this mess
+    Rails.logger.info "Initializing service with options: #{opts}"
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]

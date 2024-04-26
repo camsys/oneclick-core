@@ -24,9 +24,17 @@ module FareHelper
 
     # Calculate the fare based on the passed trip and the fare_structure/details
     def calculate
+      Rails.logger.info "Calculating fare using structure: #{@fare_structure}"
       return NO_FARE if @fare_structure.nil?
-      return format_fare(self.send("calculate_#{@fare_structure}"))
+      method = "calculate_#{@fare_structure}"
+      if respond_to?(method, true)
+        return format_fare(send(method))
+      else
+        Rails.logger.error "No method for fare calculation: #{method}"
+        return NO_FARE
+      end
     end
+    
 
     private
 
