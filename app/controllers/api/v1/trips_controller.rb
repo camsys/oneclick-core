@@ -188,6 +188,9 @@ module Api
       # If return_time is passed in the booking request, create a return trip
       # as well, and attempt to book it.
       def book
+        Rails.logger.info "Received booking request: #{params.inspect}"
+        begin
+
         outbound_itineraries = booking_request_params
         # Keep track if anything failed and then cancel all the itineraries ####
         failed = false
@@ -259,6 +262,10 @@ module Api
         else
           render status: 200, json: {booking_results: responses}
         end
+      rescue ActionController::ParameterMissing => e
+        Rails.logger.error "Missing parameters: #{e.message}"
+        render json: { error: e.message }, status: :bad_request
+      end
 
       end
 
