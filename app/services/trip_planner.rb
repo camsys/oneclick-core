@@ -291,6 +291,7 @@ class TripPlanner
                               trip_id: @trip.id
                             )
 
+      Rails.logger.info("Itinerary found: #{itinerary.persisted?}")
       # Whether an itinerary was found, or initialized, we need to update it
       itinerary.assign_attributes({
         assistant: @options[:assistant],
