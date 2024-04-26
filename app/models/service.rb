@@ -317,17 +317,20 @@ class Service < ApplicationRecord
 
   # Calculates fare for passed trip, based on service's fare_structure and fare_details
   def fare_for(trip, options={})
-    if fare_structure == "zone"
-      options[:origin_zone] = origin_zone_code(trip)
-      options[:destination_zone] = destination_zone_code(trip)
-    end
-
-    if fare_structure == "use_booking_service"
-      options[:service] = self
-    end
-
-    FareCalculator.new(fare_structure, fare_details, trip, options).calculate
+  Rails.logger.info "Calculating fare: Service ID=#{id}, Fare Structure=#{fare_structure}"
+  if fare_structure == "zone"
+    options[:origin_zone] = origin_zone_code(trip)
+    options[:destination_zone] = destination_zone_code(trip)
+  elsif fare_structure == "use_booking_service"
+    options[:service] = self
+    Rails.logger.info "Using booking service with options: #{options.inspect}"
   end
+
+  calculated_fare = FareCalculator.new(fare_structure, fare_details, trip, options).calculate
+  Rails.logger.info "Calculated fare: #{calculated_fare}"
+  calculated_fare
+end
+
 
   # OVERWRITE
   # Builds geographic associations.
