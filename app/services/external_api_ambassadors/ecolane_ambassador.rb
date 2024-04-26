@@ -339,13 +339,15 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Find the fare for a trip.
   def get_fare
-    return unless @customer_id #If there is no user, then just return nil
+    Rails.logger.info "Fetching fare: Checking which fare rule to apply..."
     if @use_ecolane_rules #use Ecolane Rules
+      Rails.logger.info "Using Ecolane rules for fare calculation."
       get_ecolane_fare
     else
+      Rails.logger.info "Using 1-Click rules for fare calculation."
       get_1click_fare
     end
-  end
+  end  
 
     # Checks on an itineraries funding options and sends the request to Ecolane
   def get_funding_options
