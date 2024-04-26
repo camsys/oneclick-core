@@ -295,6 +295,7 @@ class TripPlanner
       itinerary.assign_attributes({
         assistant: @options[:assistant],
         companions: @options[:companions],
+        Rails.logger "Fare for trip: #{svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant])}"
         cost: svc.fare_for(@trip, router: @router, companions: @options[:companions], assistant: @options[:assistant]),
         transit_time: @router.get_duration(:paratransit) * @paratransit_drive_time_multiplier
       })
