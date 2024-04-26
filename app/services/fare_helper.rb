@@ -89,6 +89,7 @@ module FareHelper
         booking_options = {}
         booking_options[:companions] = options[:companions] if options[:companions].to_i > 0
         booking_options[:assistant] = options[:assistant] if options[:assistant].to_bool
+        Rails.logger.info("Initializing EcolaneAmbassador with options: #{booking_options.inspect}, Service: #{@service.inspect}")
         EcolaneAmbassador.new({trip: @trip, service: @service, booking_options: booking_options}).get_fare #TODO: Improve performance by using the request bundler
       end 
     end
