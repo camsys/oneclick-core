@@ -153,8 +153,8 @@ class Service < ApplicationRecord
     case filter
     when :schedule
       return self.available_by_schedule_for(trip)
-    when :geography
-      return self.available_by_geography_for(trip)
+    # when :geography
+      # return self.available_by_geography_for(trip)
     when :eligibility
       return self.available_by_eligibility_for(trip)
     when :accommodation
