@@ -48,8 +48,10 @@ class TripPlanner
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
+    unless Config.dashboard_mode == 'travel_patterns'
     # Sets up external ambassadors
-    prepare_ambassadors
+      prepare_ambassadors
+    end
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
