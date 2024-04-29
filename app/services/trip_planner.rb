@@ -75,7 +75,7 @@ class TripPlanner
   def prepare_ambassadors
     if Config.dashboard_mode == 'travel_patterns'
     # Initialize @router with EcolaneAmbassador
-      @router ||= EcolaneAmbassador.new({trip: @trip, service: @service, booking_options: booking_options, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit])})
+      @router ||= EcolaneAmbassador.new({trip: @trip, service: @service, booking_options: booking_options, http_request_bundler: @http_request_bundler, available_services: @available_services[:paratransit]})
     else
     # Set up external API ambassadors for route finding and fare calculation
       @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
