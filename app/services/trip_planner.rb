@@ -50,10 +50,8 @@ class TripPlanner
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
-    unless Config.dashboard_mode == 'travel_patterns'
     # Sets up external ambassadors
-      prepare_ambassadors
-    end
+    prepare_ambassadors
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
@@ -75,11 +73,15 @@ class TripPlanner
 
   # Set up external API ambassadors
   def prepare_ambassadors
+    if Config.dashboard_mode == 'travel_patterns'
+    # Initialize @router with EcolaneAmbassador
+      @router ||= EcolaneAmbassador.new(trip: @trip, service: Service.find_by(id: options[:service_id]))
+    else
     # Set up external API ambassadors for route finding and fare calculation
-    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
-    @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
-    @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
-    @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
+      @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
+      @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
+      @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
+      @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
