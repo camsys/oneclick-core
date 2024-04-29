@@ -45,30 +45,27 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
+    # Identify available services and set instance variable for use in building itineraries
     set_available_services
-    prepare_ambassadors unless Config.dashboard_mode == 'travel_patterns'
     
-    if Config.dashboard_mode == 'travel_patterns'
-      build_itineraries_for_travel_patterns
-    else
-      build_all_itineraries
-    end
-  
+    # Sets up external ambassadors
+    prepare_ambassadors
+
+    # Build itineraries for each requested trip_type, then save the trip
+    build_all_itineraries
+
+    # Run through post-planning filters
     filter_itineraries
-    finalize_trip_plan
-  end
-  
-  def build_itineraries_for_travel_patterns
-    # Assuming `build_fixed_itineraries` can handle travel patterns directly
-    @trip_types.each do |trip_type|
-      @trip.itineraries += build_fixed_itineraries(trip_type)
+    no_transit = true
+    no_paratransit = true
+    @trip.itineraries.each do |itin|
+      if itin.trip_type == "transit"
+        no_transit = false
+      elsif itin.trip_type == "paratransit"
+        no_paratransit = false
+      end
     end
-  end
-  
-  def finalize_trip_plan
-    no_transit = @trip.itineraries.none? { |itin| itin.trip_type == "transit" }
-    no_paratransit = @trip.itineraries.none? { |itin| itin.trip_type == "paratransit" }
-    @trip.no_valid_services = no_transit && no_paratransit
+    @trip.no_valid_services = no_paratransit && no_transit
     @trip.save
   end
 
@@ -84,42 +81,55 @@ class TripPlanner
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
   def set_available_services
+    # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
+
+    # Only select services that match the requested trip types
     @available_services = @available_services.by_trip_type(*@trip_types)
-  
-    if @trip.user && @trip.user.age
+
+    # Only select services that your age makes you eligible for
+    if @trip.user and @trip.user.age 
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
-  
-    if Config.dashboard_mode != 'travel_patterns'
-      # Apply filters only when not using travel patterns
-      apply_filters
-    else
-      # Directly use travel patterns to determine service availability
-      use_travel_patterns
+
+      # Filter services based on user's associated services via UserBookingProfile
+    if @trip.user
+      associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+      @available_services = @available_services.where(id: associated_service_ids)
     end
-  
+
     Rails.logger.info "Initial available services count: #{@available_services.count}"
-  end
-  
-  def apply_filters
-    # Existing filtering logic here
-    # This includes geographical and other types of filters
-    @available_services = @available_services.available_for(@trip, only_by: @filters)
-    @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-    @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-    @relevant_accommodations = Accommodation.all.ordered_by_rank
-    @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-  end
-  
-  def use_travel_patterns
-    options = {
-      origin: {lat: @trip.origin.lat, lng: @trip.origin.lng},
-      destination: {lat: @trip.destination.lat, lng: @trip.destination.lng},
-      purpose_id: @trip.purpose_id,
-      date: @trip.trip_time.to_date
-    }
-    @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+
+    # Apply remaining filters if not in travel patterns mode.
+    # Services using travel patterns are checked through travel patterns API.
+    if Config.dashboard_mode != 'travel_patterns'
+      # Find all the services that are available for your time and locations
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+
+      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+    else
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      options = {}
+      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
+      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
+      options[:date] = @trip.trip_time.to_date if @trip.trip_time
+      
+      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
+    end
+
+    # Now convert into a hash grouped by type
+    @available_services = available_services_hash(@available_services)
+
   end
   
   # Group available services by type, returning a hash with a key for each
