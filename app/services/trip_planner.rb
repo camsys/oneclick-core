@@ -83,49 +83,43 @@ class TripPlanner
   def set_available_services
     # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
-
-    # Only select services that match the requested trip types
-    @available_services = @available_services.by_trip_type(*@trip_types)
-
-    # Only select services that your age makes you eligible for
-    if @trip.user and @trip.user.age 
-      @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
-    end
-    
-
-    Rails.logger.info "Initial available services count: #{@available_services.count}"
-
-    # Apply remaining filters if not in travel patterns mode.
-    # Services using travel patterns are checked through travel patterns API.
-    if Config.dashboard_mode != 'travel_patterns'
-      # Find all the services that are available for your time and locations
-      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
-
-      # Pull out the relevant purposes, eligbilities, and accommodations of these services
-      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+  
+    # Apply different logic based on the operation mode
+    if Config.dashboard_mode == 'travel_patterns'
+      # Skip most filters, only apply minimal necessary filters for travel patterns
+      options = {
+        origin: { lat: @trip.origin.lat, lng: @trip.origin.lng },
+        destination: { lat: @trip.destination.lat, lng: @trip.destination.lng },
+        purpose_id: @trip.purpose_id,
+        date: @trip.trip_time.to_date
+      }
+  
+      @available_services = TravelPattern.available_for(options).distinct
       @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
-
-      # Now finish filtering by purpose, eligibility, and accommodation
-      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
     else
-      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
-      options = {}
-      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
-      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
-      options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
-      options[:date] = @trip.trip_time.to_date if @trip.trip_time
-      
-      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
-      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-      @relevant_accommodations = Accommodation.all.ordered_by_rank
-      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
+      # Normal operation with full filtering
+      @available_services = @available_services.by_trip_type(*@trip_types)
+      @available_services = filter_services_based_on_user(@available_services)
+      @available_services = apply_filters(@available_services)
     end
-
-    # Now convert into a hash grouped by type
+  
     @available_services = available_services_hash(@available_services)
-
   end
+  
+  private
+  
+  def filter_services_based_on_user(services)
+    return services unless @trip.user
+  
+    associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+    services.where(id: associated_service_ids)
+  end
+  
+  def apply_filters(services)
+    services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+  end
+  
   
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
