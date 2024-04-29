@@ -50,8 +50,10 @@ class TripPlanner
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
+    if Config.dashboard_mode != 'travel_patterns'
     # Sets up external ambassadors
-    prepare_ambassadors
+      prepare_ambassadors
+    end
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
@@ -144,6 +146,7 @@ class TripPlanner
   
   # Builds itineraries for all trip types
   def build_all_itineraries
+    Rails.logger.info("Building itineraries for trip types: #{@trip_types}")
     trip_itineraries = @trip_types.flat_map {|t| build_itineraries(t)}
     new_itineraries = trip_itineraries.reject(&:persisted?)
     old_itineraries = trip_itineraries.select(&:persisted?)
