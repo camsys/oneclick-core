@@ -92,6 +92,12 @@ class TripPlanner
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
 
+      # Filter services based on user's associated services via UserBookingProfile
+    if @trip.user
+      associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+      @available_services = @available_services.where(id: associated_service_ids)
+    end
+
     Rails.logger.info "Initial available services count: #{@available_services.count}"
 
     # Apply remaining filters if not in travel patterns mode.
