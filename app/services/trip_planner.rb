@@ -72,8 +72,6 @@ class TripPlanner
   # Set up external API ambassadors
   def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
-    return if Config.dashboard_mode == 'travel_patterns'
-
     @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
@@ -82,37 +80,40 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
-  def set_available_services
-    # Start with the scope of all services available for public viewing
-    @available_services = @master_service_scope.published
-    @available_services = @available_services.by_trip_type(*@trip_types)
-  
-    # Only select services that match the user's age, if available
-    if @trip.user && @trip.user.age
-      @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
+# Identifies available services for the trip and requested trip_types, and sorts them by service type
+def set_available_services
+  # Start with the scope of all services available for public viewing
+  @available_services = @master_service_scope.published
+
+  # Only select services that match the requested trip types
+  @available_services = @available_services.by_trip_type(*@trip_types)
+
+  # Special handling for travel patterns mode
+  if Config.dashboard_mode == 'travel_patterns'
+    # Bypass other filters and directly integrate travel patterns
+    options = {
+      origin: {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin,
+      destination: {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination,
+      purpose_id: @trip.purpose_id if @trip.purpose_id,
+      date: @trip.trip_time.to_date if @trip.trip_time
+    }
+
+    @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+  else
+    # Filter services based on user's associated services via UserBookingProfile
+    if @trip.user
+      associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+      @available_services = @available_services.where(id: associated_service_ids)
     end
-  
-    # Check if we are in travel patterns mode
-    if Config.dashboard_mode == 'travel_patterns'
-      # In travel patterns mode, filter directly using travel patterns
-      options = {
-        origin: {lat: @trip.origin.lat, lng: @trip.origin.lng},
-        destination: {lat: @trip.destination.lat, lng: @trip.destination.lng},
-        purpose_id: @trip.purpose_id,
-        date: @trip.trip_time.to_date
-      }
-      @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
-    else
-      # Otherwise, apply all filters
-      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
-  
-      # Finish filtering by purpose, eligibility, and accommodation if not in travel patterns mode
-      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
-    end
-  
-    Rails.logger.info "Available Services after Filtering: #{@available_services.pluck(:id)}"
+
+    # Apply remaining filters if not in travel patterns mode.
+    @available_services = @available_services.available_for(@trip, only_by: @filters)
   end
-  
+
+  # Convert into a hash grouped by type
+  @available_services = available_services_hash(@available_services)
+end
+
   
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
@@ -264,9 +265,9 @@ class TripPlanner
       #TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
-      if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
-        next nil
-      end
+       # if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
+        # next nil
+      # end
 
       # Look for an existing itinerary
       # But ones that don't have a booking attached
