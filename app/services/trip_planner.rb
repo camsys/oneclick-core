@@ -72,6 +72,8 @@ class TripPlanner
   # Set up external API ambassadors
   def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
+    return if Config.dashboard_mode == 'travel_patterns'
+
     @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
