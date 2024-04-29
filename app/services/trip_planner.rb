@@ -45,6 +45,8 @@ class TripPlanner
 
   # Constructs Itineraries for the Trip based on the options passed
   def plan
+    Rails.logger.info("Dashboard Mode: #{Config.dashboard_mode}")
+
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
