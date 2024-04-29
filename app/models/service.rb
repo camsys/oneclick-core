@@ -187,10 +187,13 @@ class Service < ApplicationRecord
   end
   
   scope :available_by_geography_for, -> (trip) do
-    available_by_start_area_for(trip)
+    Rails.logger.info("Geography Filter: Checking start, end, and within areas for trip with origin: #{trip.origin&.geom}, destination: #{trip.destination&.geom}")
+    result = available_by_start_area_for(trip)
       .available_by_end_area_for(trip)
       .available_by_start_or_end_area_for(trip)
       .available_by_trip_within_area_for(trip)
+    Rails.logger.info("Geography Filter: Services passed: #{result.pluck(:id)}")
+    result
   end
   
   # Allowing the purposes' id to be nil includes services with no purposes selected
@@ -398,20 +401,27 @@ end
 
   # available_by_geography_for scopes
   scope :available_by_start_area_for, -> (trip) do
-    # no start_area contains origin
-    where( id: no_region(:start_area) | with_containing_start_area(trip) )
+    result = where(id: no_region(:start_area) | with_containing_start_area(trip))
+    Rails.logger.info("Start Area Filter: Services passed: #{result.pluck(:id)}")
+    result
   end
+  
   scope :available_by_end_area_for, -> (trip) do
-    # no end_area contains destination
-    where( id: no_region(:end_area) | with_containing_end_area(trip) )
+    result = where(id: no_region(:end_area) | with_containing_end_area(trip))
+    Rails.logger.info("End Area Filter: Services passed: #{result.pluck(:id)}")
+    result
   end
+  
   scope :available_by_start_or_end_area_for, -> (trip) do
-    # no start_or_end_area, or start_or_end_area contains origin OR destination
-    where( id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip) )
+    result = where(id: no_region(:start_or_end_area) | with_containing_start_or_end_area(trip))
+    Rails.logger.info("Start or End Area Filter: Services passed: #{result.pluck(:id)}")
+    result
   end
+  
   scope :available_by_trip_within_area_for, -> (trip) do
-    # no trip_within_area, or trip_within_area contains origin OR destination
-    where( id: no_region(:trip_within_area) | with_containing_trip_within_area(trip) )
+    result = where(id: no_region(:trip_within_area) | with_containing_trip_within_area(trip))
+    Rails.logger.info("Trip Within Area Filter: Services passed: #{result.pluck(:id)}")
+    result
   end
 
   # Returns all services that provide a given accommodation
@@ -430,9 +440,11 @@ end
 
   # Returns IDs of Services with a start_area that is EMPTY or containing trip origin
   def self.with_containing_start_area(trip)
-    joins(:start_area).empty_region(:start_area)
-    .or(joins(:start_area).region_contains(trip.origin.geom))
-    .pluck(:id)
+    results = joins(:start_area).empty_region(:start_area)
+      .or(joins(:start_area).region_contains(trip.origin.geom))
+      .pluck(:id)
+    Rails.logger.info("With Containing Start Area: Services considered: #{results}")
+    results
   end
 
   # Returns IDs of Services with a end_area that is EMPTY or containing trip destination
