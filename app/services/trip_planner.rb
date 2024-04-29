@@ -94,9 +94,9 @@ class TripPlanner
       options = {
         origin: {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin,
         destination: {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination,
-        purpose_id: @trip.purpose_id if @trip.purpose_id,
-        date: @trip.trip_time.to_date if @trip.trip_time
-      }
+        purpose_id: @trip.purpose_id,
+        date: @trip.trip_time.to_date
+      }.compact # Ensures that nil values are not included in the hash
 
       @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
     else
@@ -113,6 +113,7 @@ class TripPlanner
     # Convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
+
 
   
   # Group available services by type, returning a hash with a key for each
