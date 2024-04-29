@@ -82,6 +82,7 @@ class TripPlanner
       @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
       @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
       @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
+    end
   end
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
