@@ -81,38 +81,38 @@ class TripPlanner
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
 # Identifies available services for the trip and requested trip_types, and sorts them by service type
-def set_available_services
-  # Start with the scope of all services available for public viewing
-  @available_services = @master_service_scope.published
+  def set_available_services
+    # Start with the scope of all services available for public viewing
+    @available_services = @master_service_scope.published
 
-  # Only select services that match the requested trip types
-  @available_services = @available_services.by_trip_type(*@trip_types)
+    # Only select services that match the requested trip types
+    @available_services = @available_services.by_trip_type(*@trip_types)
 
-  # Special handling for travel patterns mode
-  if Config.dashboard_mode == 'travel_patterns'
-    # Bypass other filters and directly integrate travel patterns
-    options = {
-      origin: {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin,
-      destination: {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination,
-      purpose_id: @trip.purpose_id if @trip.purpose_id,
-      date: @trip.trip_time.to_date if @trip.trip_time
-    }
+    # Special handling for travel patterns mode
+    if Config.dashboard_mode == 'travel_patterns'
+      # Bypass other filters and directly integrate travel patterns
+      options = {
+        origin: {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin,
+        destination: {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination,
+        purpose_id: @trip.purpose_id if @trip.purpose_id,
+        date: @trip.trip_time.to_date if @trip.trip_time
+      }
 
-    @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
-  else
-    # Filter services based on user's associated services via UserBookingProfile
-    if @trip.user
-      associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
-      @available_services = @available_services.where(id: associated_service_ids)
+      @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+    else
+      # Filter services based on user's associated services via UserBookingProfile
+      if @trip.user
+        associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+        @available_services = @available_services.where(id: associated_service_ids)
+      end
+
+      # Apply remaining filters if not in travel patterns mode.
+      @available_services = @available_services.available_for(@trip, only_by: @filters)
     end
 
-    # Apply remaining filters if not in travel patterns mode.
-    @available_services = @available_services.available_for(@trip, only_by: @filters)
+    # Convert into a hash grouped by type
+    @available_services = available_services_hash(@available_services)
   end
-
-  # Convert into a hash grouped by type
-  @available_services = available_services_hash(@available_services)
-end
 
   
   # Group available services by type, returning a hash with a key for each
