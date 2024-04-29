@@ -80,46 +80,59 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
+# Identifies available services for the trip and requested trip_types, and sorts them by service type
+# Only filter by filters included in the @filters array
   def set_available_services
     # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
-  
-    # Apply different logic based on the operation mode
+
+    # Only select services that match the requested trip types
+    @available_services = @available_services.by_trip_type(*@trip_types)
+
+    # Only select services that your age makes you eligible for
+    if @trip.user and @trip.user.age 
+      @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
+    end
+
+    # Filter services based on user's associated services via UserBookingProfile
+    if @trip.user
+      associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
+      @available_services = @available_services.where(id: associated_service_ids)
+    end
+
+    Rails.logger.info "Initial available services count: #{@available_services.count}"
+
+    # Check if we are in travel patterns mode
     if Config.dashboard_mode == 'travel_patterns'
-      # Skip most filters, only apply minimal necessary filters for travel patterns
+      # Apply travel pattern filters
       options = {
-        origin: { lat: @trip.origin.lat, lng: @trip.origin.lng },
-        destination: { lat: @trip.destination.lat, lng: @trip.destination.lng },
+        origin: {lat: @trip.origin.lat, lng: @trip.origin.lng},
+        destination: {lat: @trip.destination.lat, lng: @trip.destination.lng},
         purpose_id: @trip.purpose_id,
         date: @trip.trip_time.to_date
       }
-  
-      @available_services = TravelPattern.available_for(options).distinct
+
+      @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
       @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
+
     else
-      # Normal operation with full filtering
-      @available_services = @available_services.by_trip_type(*@trip_types)
-      @available_services = filter_services_based_on_user(@available_services)
-      @available_services = apply_filters(@available_services)
+      # Apply remaining filters if not in travel patterns mode.
+      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
+
+      # Pull out the relevant purposes, eligibilities, and accommodations of these services
+      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+
+      # Now finish filtering by purpose, eligibility, and accommodation
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
     end
-  
+
+    # Convert available services into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
-  
-  private
-  
-  def filter_services_based_on_user(services)
-    return services unless @trip.user
-  
-    associated_service_ids = UserBookingProfile.where(user: @trip.user).pluck(:service_id)
-    services.where(id: associated_service_ids)
-  end
-  
-  def apply_filters(services)
-    services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
-  end
-  
+
   
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
