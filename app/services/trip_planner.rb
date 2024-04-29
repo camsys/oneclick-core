@@ -50,10 +50,8 @@ class TripPlanner
     # Identify available services and set instance variable for use in building itineraries
     set_available_services
     
-    if Config.dashboard_mode != 'travel_patterns'
     # Sets up external ambassadors
-      prepare_ambassadors
-    end
+    prepare_ambassadors
 
     # Build itineraries for each requested trip_type, then save the trip
     build_all_itineraries
@@ -75,10 +73,6 @@ class TripPlanner
 
   # Set up external API ambassadors
   def prepare_ambassadors
-    if Config.dashboard_mode == 'travel_patterns'
-    # Initialize @router with EcolaneAmbassador
-      @router ||= EcolaneAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:paratransit])
-    else
     # Set up external API ambassadors for route finding and fare calculation
       @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
       @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
