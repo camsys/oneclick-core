@@ -88,6 +88,10 @@ class Service < ApplicationRecord
     left_joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is null and services.agency_id is null')
   end
 
+  scope :for_purpose, ->(purpose_id) {
+    joins(:purposes).where(purposes: {id: purpose_id})
+  }
+
   scope :with_any_oversight_agency, -> do
     joins(:service_oversight_agency).where('service_oversight_agencies.oversight_agency_id is not null')
   end
@@ -191,11 +195,17 @@ class Service < ApplicationRecord
   
   # Allowing the purposes' id to be nil includes services with no purposes selected
   scope :available_by_purpose_for, -> (trip) do
-    return self.all if trip.purpose_id.nil?
-    where(purposes: { id: [nil, trip.purpose_id] })
-      .left_joins(:purposes)
-      .distinct
+    Rails.logger.info "Applying purpose filter for trip with purpose_id: #{trip.purpose_id}"
+    if trip.purpose_id.nil?
+      Rails.logger.info "No purpose_id found, returning all services."
+      self.all
+    else
+      filtered = where(purposes: { id: [nil, trip.purpose_id] }).left_joins(:purposes).distinct
+      Rails.logger.info "Services found after purpose filter: #{filtered.pluck(:id)}"
+      filtered
+    end
   end
+  
   
   scope :available_by_eligibility_for, -> (trip) do
     trip.user ? accepts_eligibility_of(trip.user) : all
@@ -330,24 +340,23 @@ class Service < ApplicationRecord
   # We should look at replacing this code later.
   # - Drew 01/26/2022
   def business_days
-    # Preloading all the travel_patterns and thir schedules to avoid n+1 queries
-    # Fewer queries means more performance
+    # Preloading all the travel_patterns and their schedules to avoid n+1 queries
     travel_patterns_with_schedules = self.travel_patterns.includes(
       travel_pattern_service_schedules: {
         service_schedule: [:service_schedule_type, :service_sub_schedules]
       }
     )
-
-    # Get the travel_patttern's calendar, get rid of any dates without operating hours,
+  
+    # Get the travel_pattern's calendar, get rid of any dates without operating hours,
     # then add all remaining days into a set.
     travel_pattern_dates = travel_patterns_with_schedules.map { |travel_pattern|
-      travel_pattern.to_calendar(localtime.to_date).select { |date, business_hours|
-        business_hours[:start_time]&.>(0) && business_hours[:end_time]&.>(1)
+      travel_pattern.to_calendar(localtime.to_date).select { |date, time_ranges|
+        time_ranges.any? { |range| range[:start_time]&.>(0) && range[:end_time]&.>(0) }
       }.keys
     }
-    
+  
     Set.new(travel_pattern_dates.flatten)
-  end
+  end  
 
   # Our client is in Pennsylvania. Currently servers are in the same time zone, but I don't want
   # to break things if our servers move. If we gain other clients, we should add a timezone field.
@@ -449,7 +458,7 @@ class Service < ApplicationRecord
 
   # Helper scope constructs a contains query based on region association name and a geometry
   scope :region_contains, -> (geom) do
-    where("ST_Contains(regions.geom, ?)", geom)
+    where("ST_Within(regions.geom, ?)", geom)
   end
 
   # Helper scope constructs a query for empty regions

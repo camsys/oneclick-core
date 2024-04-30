@@ -162,8 +162,16 @@ class TravelPattern < ApplicationRecord
     start_date = [start_date, valid_from].compact.max if valid_from
     end_date = [end_date, valid_until].compact.min if valid_until
   
+    calendar_data = self.to_calendar(start_date, end_date, valid_from, valid_until)
+  
+    # Adjust the calendar data for serialization
+    adjusted_calendar_data = calendar_data.transform_values do |time_ranges|
+      # Transform each time range in the array into a serializable format, if necessary
+      time_ranges.map { |range| { start_time: range[:start_time], end_time: range[:end_time] } }
+    end
+  
     self.as_json(travel_pattern_opts).merge({
-      "to_calendar" => self.to_calendar(start_date, end_date, valid_from, valid_until),
+      "to_calendar" => adjusted_calendar_data
     })
   end  
 
@@ -230,67 +238,66 @@ class TravelPattern < ApplicationRecord
   # @return [Hash] The structure is {"%Y-%m-%d" => { start_time: +Integer+, end_time: +Integer+ }}
   def to_calendar(start_date, end_date = start_date + 59.days, valid_from = nil, valid_until = nil)
     travel_pattern_service_schedules = schedules_by_type
-
+  
     weekly_schedules = travel_pattern_service_schedules[:weekly_schedules].map(&:service_schedule)
     extra_service_schedules = travel_pattern_service_schedules[:extra_service_schedules].map(&:service_schedule)
     reduced_service_schedules = travel_pattern_service_schedules[:reduced_service_schedules].map(&:service_schedule)
-
+  
     calendar = {}
     date = start_date
-
+  
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
-      calendar[date_string] = {}
-
-      reduced_sub_schedule = reduced_service_schedules.reduce(nil) do |sub_schedule, service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date <= date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date <= date
-        next unless valid_start && valid_end
-        
-        sub_schedule = service_schedule.service_sub_schedules.find do |sub_schedule|
-          sub_schedule.calendar_date == date
+      calendar[date_string] = []
+      
+      has_holiday = false
+  
+      # Check reduced service schedules for holidays (nil start and end times)
+      reduced_service_schedules.each do |service_schedule|
+        next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) && 
+                    (service_schedule.end_date.nil? || service_schedule.end_date >= date)
+  
+        service_schedule.service_sub_schedules.each do |sub_schedule|
+          if sub_schedule.calendar_date == date && sub_schedule.start_time.nil? && sub_schedule.end_time.nil?
+            # Mark as holiday; do not add any time slots for this day
+            has_holiday = true
+            break
+          end
         end
-
-        break(sub_schedule) if sub_schedule
+  
+        break if has_holiday # Exit early if a holiday is found
       end
-
-      # Reduced Schedules overwrite all other schedules so we can skip the rest of this iteration
-      # Highlander voice: There can only be one!
-      if reduced_sub_schedule
-        calendar[date_string][:start_time] = reduced_sub_schedule.start_time
-        calendar[date_string][:end_time] = reduced_sub_schedule.end_time
-        date += 1.day
-        next
+  
+      # Proceed with adding time slots only if no holiday was found
+      unless has_holiday
+        sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
+          next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) &&
+                      (service_schedule.end_date.nil? || service_schedule.end_date >= date)
+  
+          service_schedule.service_sub_schedules.select do |sub_schedule|
+            (sub_schedule.day == date.wday || sub_schedule.calendar_date == date) &&
+            !(sub_schedule.start_time.nil? && sub_schedule.end_time.nil?) # Exclude nil times
+          end
+        end.compact
+  
+        # Map to start_time and end_time, excluding nil values explicitly
+        sub_schedules.each do |ss|
+          calendar[date_string] << { start_time: ss.start_time, end_time: ss.end_time } unless ss.start_time.nil? || ss.end_time.nil?
+        end
       end
-
-      weekly_schedules = weekly_schedules.select do |service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
-        valid_start && valid_end
-      end
-
-      weekly_sub_schedules = weekly_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
-        sub_schedule.day == date.wday
-      end
-
-      extra_service_schedules = extra_service_schedules.select do |service_schedule|
-        valid_start = service_schedule.start_date == nil || service_schedule.start_date < date
-        valid_end = service_schedule.end_date == nil || service_schedule.end_date < date
-        valid_start && valid_end
-      end
-
-      extra_service_sub_schedules = extra_service_schedules.map(&:service_sub_schedules).flatten.select do |sub_schedule|
-        sub_schedule.calendar_date == date
-      end
-
-      sub_schedules = weekly_sub_schedules + extra_service_sub_schedules
-      calendar[date_string][:start_time] = sub_schedules.min_by(&:start_time)&.start_time
-      calendar[date_string][:end_time] = sub_schedules.max_by(&:end_time)&.end_time
+  
+      # Move to the next day
       date += 1.day
     end
-
-    return calendar
+  
+    calendar
   end
+  
+  
+  
+  
+  
+  
 
   # Class Methods
 
@@ -368,9 +375,9 @@ class TravelPattern < ApplicationRecord
     }
     .select { |travel_pattern|
       calendar_business_hours = travel_pattern["to_calendar"].values
-      calendar_business_hours.detect { |business_hours|
-        (business_hours[:start_time] || -1) >= 0 && (business_hours[:end_time] || -1) >= 1
-      }
+      calendar_business_hours.any? do |time_ranges|
+        time_ranges.any? { |range| (range[:start_time] || -1) >= 0 && (range[:end_time] || -1) >= 1 }
+      end
     }
   end
 
