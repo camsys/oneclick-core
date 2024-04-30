@@ -116,7 +116,7 @@ class Service < ApplicationRecord
   scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
-    :schedule, :eligibility, :accommodation, :purpose
+    :schedule, :geography, :eligibility, :accommodation, :purpose
   ]
 
   TAXI_SERVICES = %w[ Taxi Uber Lyft ]
@@ -186,12 +186,28 @@ class Service < ApplicationRecord
       .distinct
   end
   
+  # Logging details for geographical filtering
   scope :available_by_geography_for, -> (trip) do
-    available_by_start_area_for(trip)
-      .available_by_end_area_for(trip)
-      .available_by_start_or_end_area_for(trip)
-      .available_by_trip_within_area_for(trip)
-  end
+    Rails.logger.info "Geography Filter: Starting with all services."
+    
+    start_area_services = available_by_start_area_for(trip)
+    Rails.logger.info "Start Area Filter: Services passed: #{start_area_services.pluck(:id)}"
+    
+    end_area_services = available_by_end_area_for(trip)
+    Rails.logger.info "End Area Filter: Services passed: #{end_area_services.pluck(:id)}"
+    
+    start_or_end_area_services = available_by_start_or_end_area_for(trip)
+    Rails.logger.info "Start or End Area Filter: Services passed: #{start_or_end_area_services.pluck(:id)}"
+    
+    trip_within_area_services = available_by_trip_within_area_for(trip)
+    Rails.logger.info "Trip Within Area Filter: Services passed: #{trip_within_area_services.pluck(:id)}"
+    
+    # Combine all filters
+    result = start_area_services & end_area_services & start_or_end_area_services & trip_within_area_services
+    Rails.logger.info "Geography Filter: Combined Services passed: #{result.pluck(:id)}"
+    
+    result
+  end  
   
   # Allowing the purposes' id to be nil includes services with no purposes selected
   scope :available_by_purpose_for, -> (trip) do
