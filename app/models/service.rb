@@ -116,7 +116,7 @@ class Service < ApplicationRecord
   scope :by_eligible_max_age, -> (age) { where("eligible_max_age > ?", age-1) }
   
   AVAILABILITY_FILTERS = [
-    :schedule, :geography, :eligibility, :accommodation, :purpose
+    :schedule, :eligibility, :accommodation, :purpose
   ]
 
   TAXI_SERVICES = %w[ Taxi Uber Lyft ]
@@ -153,8 +153,8 @@ class Service < ApplicationRecord
     case filter
     when :schedule
       return self.available_by_schedule_for(trip)
-    when :geography
-      return self.available_by_geography_for(trip)
+    # when :geography
+      # return self.available_by_geography_for(trip)
     when :eligibility
       return self.available_by_eligibility_for(trip)
     when :accommodation
