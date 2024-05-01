@@ -38,6 +38,12 @@ class Admin::ServicesController < Admin::AdminController
     s_params = service_params
     oversight_agency_id = os_params[:oversight_agency_id]
     transportation_agency_id = s_params[:agency_id]
+
+      # Setting default fare_structure if in travel patterns mode
+    if in_travel_patterns_mode?
+      s_params[:fare_structure] = "use_booking_service"
+    end
+    
     # if oversight is empty/ a bad combo of oversight, then redirect
     is_not_included = !Service::TAXI_SERVICES.include?(s_params[:type]) && validate_agencies_choices(oversight_agency_id,transportation_agency_id)
 
