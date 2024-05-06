@@ -122,19 +122,20 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync days_ago=1
-
-    #For performance, only update trips in the future
+    Rails.logger.info "Starting trip synchronization process..."
+  
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
-
+  
     (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
       occ_trip_from_ecolane_trip order
     end
-
-    # For trips that are round trips, make sure that they point to each other.
+  
+    Rails.logger.info "Trips synchronized. Starting to link trips..."
     link_trips
-
+    Rails.logger.info "Trips linked successfully."
+  
   end
 
     # Books Trip (funding_source and sponsor must be specified)
@@ -1160,55 +1161,54 @@ class EcolaneAmbassador < BookingAmbassador
   # They are delivered to us as individual trips, and we will link them together.
   # Linking these lets users cancel them as a group, it also lets us pre-fill the most recent addresses in the user interface
   def link_trips 
-
-    # First do the past trips, and then do the future trips
+    Rails.logger.info "Start linking trips..."
+  
     [:future, :past].each do |times|
-      if times == :future # Get all future trips
+      if times == :future 
         trips = @user.trips.selected.future
-      else # Get the most recent past 14 days of trips
+      else 
         trips = @user.trips.selected.past.past_14_days.reverse
       end
       
-      # Group trips on same day.
       trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
       trips_by_date.each do |trip_date, same_day_trips|
-        # Reset links on existing trips, unless trip has been created directly in 1click.
         same_day_trips.each do |trip|
           if trip.previous_trip and !trip&.selected_itinerary&.booking&.created_in_1click
             trip.previous_trip = nil
             trip.save 
           end
         end
-
-        # Compare combinations of same day trips.
+  
         same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
           trip = Trip.find_by(id: trip_id)
           next_trip = Trip.find_by(id: next_trip_id)
-
-          # If this is already a round trip, and if trip has been created directly in 1click, 
-          # don't try to re-link. Otherwise, continue.
+  
           if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
+            Rails.logger.info "Skipping round trip linking for trip #{trip.id} as it's already a round trip created in 1click."
             next
           end
-
-          # Are these trips on the same day?
+  
           unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
+            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they are not on the same day."
             next
           end
-
-          #Does these trips have inverted origins/destinations?
+  
           unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
+            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they don't have inverted origins/destinations."
             next
           end
           unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
+            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they don't have inverted origins/destinations."
             next
           end
-
+  
+          Rails.logger.info "Linking round trips: #{trip.id} and #{next_trip.id}"
           #Ok these trips passed all the tests, combine them into one trip
-
-        end #trips.each
-      end #trips_by_date.each
-    end #times.each
-  end #link_trips
+  
+        end 
+      end 
+    end 
+    Rails.logger.info "Round trip linking completed."
+  end  #link_trips
 
 end
