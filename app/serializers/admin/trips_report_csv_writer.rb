@@ -6,13 +6,15 @@ module Admin
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :agency_name, :service_name
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip, :booking_timestamp,
+            :funding_source, :sponsor, :companions, :trip_note, :orig_addr, :dest_addr
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
       :purpose, :orig_addr, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_lat, :dest_lng, :agency_name, :service_name
+      :dest_addr, :dest_lat, :dest_lng, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip, :booking_timestamp,
+      :funding_source, :sponsor, :companions, :trip_note, :orig_addr, :dest_addr
     ]
 
     def self.in_travel_patterns_mode?
@@ -44,6 +46,54 @@ module Admin
       @record.user.booking_profile.service.name rescue 'No Service'
     end
 
+    def booking_id
+      @record.booking.confirmation rescue 'No Booking ID'
+    end
+    
+    def booking_client_id
+      @record.user.booking_profile.external_user_id rescue 'No Client ID'
+    end    
+
+    def is_round_trip
+      @record.previous_trip.present? || @record.next_trip.present? ? 'Yes' : 'No'
+    end    
+
+    def booking_timestamp
+      @record.booking.created_at.strftime("%Y-%m-%d %H:%M:%S") rescue 'No Booking Timestamp'
+    end    
+
+    def funding_source
+      @record.booking.details.dig(:funding_hash, :funding_source) rescue 'No Funding Source'
+    end
+    
+    def sponsor
+      @record.booking.details.dig(:funding_hash, :sponsor) rescue 'No Sponsor'
+    end
+    
+    def companions
+      @record.booking.itinerary.companions rescue '0'
+    end    
+
+    def trip_note
+      @record.booking.itinerary.note rescue 'nil'
+    end 
+
+    def formatted_address(waypoint)
+      return 'No Address' unless waypoint
+      address_parts = [waypoint.street_number, waypoint.route, waypoint.city, waypoint.state, waypoint.zip].compact.join(' ')
+      full_name = waypoint.name
+      short_name = full_name.split('|').first.strip
+      "#{short_name}, #{address_parts}"
+    end
+    
+    def orig_addr
+      formatted_address(@record.origin)
+    end
+    
+    def dest_addr
+      formatted_address(@record.destination)
+    end
+    
     def user_type
       if @record.user&.admin_or_staff? == true
         'Staff User'
