@@ -78,7 +78,7 @@ module Admin
       @record.booking.itinerary.note rescue 'nil'
     end 
 
-    def formatted_address(trip, type)
+    def formatted_address(waypoint)
       waypoint = trip.send(type) # dynamically gets either origin or destination from the trip
       
       # Extract components and the name
@@ -91,7 +91,6 @@ module Admin
       # Format full address with name and address components
       "#{short_name}, #{address_parts}"
     end
-    
     
     def orig_addr
       formatted_address(@record.origin)
