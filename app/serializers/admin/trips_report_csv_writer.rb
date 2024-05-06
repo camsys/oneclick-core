@@ -79,7 +79,8 @@ module Admin
     end 
 
     def formatted_address(waypoint)
-      waypoint = trip.send(type) # dynamically gets either origin or destination from the trip
+      # Return 'No Address' if waypoint is nil
+      return 'No Address' unless waypoint
       
       # Extract components and the name
       address_parts = [waypoint.street_number, waypoint.route, waypoint.city, waypoint.state, waypoint.zip].compact.join(' ')
@@ -93,13 +94,13 @@ module Admin
     end
     
     def orig_addr
-      formatted_address(@record.origin)
+      @record.origin&.formatted_address
     end
     
     def dest_addr
-      formatted_address(@record.destination)
+      @record.destination&.formatted_address
     end
-    
+        
     def user_type
       if @record.user&.admin_or_staff? == true
         'Staff User'
