@@ -6,13 +6,13 @@ module Admin
             :purpose,
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
-            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+            :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :agency_name
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
       :purpose, :orig_addr, :orig_lat, :orig_lng, 
-      :dest_addr, :dest_lat, :dest_lng
+      :dest_addr, :dest_lat, :dest_lng, :agency_name
     ]
 
     def self.in_travel_patterns_mode?
@@ -35,6 +35,10 @@ module Admin
     def traveler
       @record.user && @record.user&.email
     end
+
+    def agency_name
+      @record.user.booking_profile.service.agency.name rescue 'No Agency'
+    end    
 
     def user_type
       if @record.user&.admin_or_staff? == true
