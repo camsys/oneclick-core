@@ -143,7 +143,7 @@ module Admin
     end
     
     def orig_addr
-      @record.origin&.address
+      @record.origin&.formatted_address
     end
 
     def orig_county
@@ -159,7 +159,7 @@ module Admin
     end
     
     def dest_addr
-      @record.destination&.address
+      @record.destination&.formatted_address
     end
 
     def dest_county
