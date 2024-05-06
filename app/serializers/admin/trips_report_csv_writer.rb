@@ -78,13 +78,20 @@ module Admin
       @record.booking.itinerary.note rescue 'nil'
     end 
 
-    def formatted_address(waypoint)
-      return 'No Address' unless waypoint
+    def formatted_address(trip, type)
+      waypoint = trip.send(type) # dynamically gets either origin or destination from the trip
+      
+      # Extract components and the name
       address_parts = [waypoint.street_number, waypoint.route, waypoint.city, waypoint.state, waypoint.zip].compact.join(' ')
-      full_name = waypoint.name
+      full_name = waypoint.name || '' # Fallback to empty string if name is nil
+      
+      # Handle pipe filtering for the name
       short_name = full_name.split('|').first.strip
+      
+      # Format full address with name and address components
       "#{short_name}, #{address_parts}"
     end
+    
     
     def orig_addr
       formatted_address(@record.origin)
