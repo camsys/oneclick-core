@@ -153,8 +153,19 @@ class User < ApplicationRecord
   def future_trips(count=nil)
     # Sync up with any booking services
     sync 
-    trips.selected.future.limit(count)
+    trips = @user.trips.selected.future.limit(count)
+  
+    # Determine if each trip is a round trip
+    future_trips_with_round_trip_info = trips.map do |trip|
+      {
+        trip: filter_trip_name(trip),
+        is_round_trip: trip.is_round_trip
+      }
+    end
+  
+    render status: 200, json: {trips: future_trips_with_round_trip_info}
   end
+  
 
   # Returns an unordered collection of the traveler's waypoints
   def waypoints
