@@ -1203,7 +1203,7 @@ class EcolaneAmbassador < BookingAmbassador
           end
   
           Rails.logger.info "Linking round trips: #{trip.id} and #{next_trip.id}"
-          #Ok these trips passed all the tests, combine them into one trip
+          next_trip.update(previous_trip_id: trip.id)
   
         end 
       end 
