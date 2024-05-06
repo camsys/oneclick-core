@@ -7,14 +7,14 @@ module Admin
             :orig_addr, :orig_county, :orig_lat, :orig_lng,
             :dest_addr, :dest_county, :dest_lat, :dest_lng,
             :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip, :booking_timestamp,
-            :funding_source, :sponsor, :companions, :trip_note, :orig_addr, :dest_addr
+            :funding_source, :sponsor, :companions, :trip_note
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, 
       :purpose, :orig_addr, :orig_lat, :orig_lng, 
       :dest_addr, :dest_lat, :dest_lng, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip, :booking_timestamp,
-      :funding_source, :sponsor, :companions, :trip_note, :orig_addr, :dest_addr
+      :funding_source, :sponsor, :companions, :trip_note
     ]
 
     def self.in_travel_patterns_mode?
@@ -91,14 +91,6 @@ module Admin
       
       # Format full address with name and address components
       "#{short_name}, #{address_parts}"
-    end
-    
-    def orig_addr
-      @record.origin&.formatted_address
-    end
-    
-    def dest_addr
-      @record.destination&.formatted_address
     end
         
     def user_type
