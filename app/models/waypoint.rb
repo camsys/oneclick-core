@@ -16,9 +16,8 @@ class Waypoint < Place
   end
 
   def formatted_address
-    # Extract components and the name
-    address_parts = [waypoint.street_number, waypoint.route, waypoint.city, waypoint.state, waypoint.zip].compact.join(' ')
-    full_name = waypoint.name || '' # Fallback to empty string if name is nil
+    address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
+    full_name = self.name || ''  # Fallback to empty string if name is nil
     
     # Handle pipe filtering for the name
     short_name = full_name.split('|').first.strip
