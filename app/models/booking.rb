@@ -53,5 +53,9 @@ class Booking < ApplicationRecord
       BOOKING_TYPES
     end
   end
+
+  def ecolane_booking_snapshot
+    EcolaneBookingSnapshot.find_by(booking_id: self.id)
+  end
   
 end
