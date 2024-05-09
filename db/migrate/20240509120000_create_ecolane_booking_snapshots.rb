@@ -1,4 +1,4 @@
-class CreateEcolaneSnapshots < ActiveRecord::Migration[5.0]
+class CreateEcolaneBookingSnapshots < ActiveRecord::Migration[5.0]
   def change
     create_table :ecolane_booking_snapshots do |t|
       t.integer :itinerary_id
