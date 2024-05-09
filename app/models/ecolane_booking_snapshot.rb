@@ -1,3 +1,3 @@
 class EcolaneBookingSnapshot < ApplicationRecord
-  belongs_to :booking, class_name: 'EcolaneBooking'
+  belongs_to :booking
 end
