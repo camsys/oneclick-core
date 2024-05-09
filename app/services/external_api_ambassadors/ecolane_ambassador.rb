@@ -661,15 +661,12 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-    # Find or create a new EcolaneBookingSnapshot, but only apply data if newly created
+    booking_details = booking.details || {}
+    funding_hash = booking_details.fetch(:funding_hash, {})
+  
     ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
-      # Exclude `type` from booking data
       booking_data = occ_booking_hash(eco_trip).except(:type)
-
-      # Extract funding source and purpose from the funding hash
-      funding_hash = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :funding_hash)
-
-      # Assign attributes only when creating a new snapshot
+  
       snapshot.assign_attributes(
         booking_data.merge(
           itinerary_id: itinerary.id,
