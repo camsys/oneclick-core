@@ -621,62 +621,61 @@ class EcolaneAmbassador < BookingAmbassador
   end
   
   ### Create OCC Trip from Ecolane Trip ###
-  def occ_trip_from_ecolane_trip eco_trip
+  def occ_trip_from_ecolane_trip(eco_trip)
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
-
-    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" and itinerary and not itinerary.selected?
-      return 
+  
+    # Check for trip cancellation status
+    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" && itinerary && !itinerary.selected?
+      return
     end
-
-    # This Trip has already been created, just update it with new times/status etc.
-    if itinerary
-      booking = itinerary.booking 
+  
+    trip, booking = if itinerary
+      # Update existing itinerary
+      booking = itinerary.booking
       booking.update(occ_booking_hash(eco_trip))
+  
       if booking.status == "canceled"
-        trip = itinerary.trip 
+        trip = itinerary.trip
         trip.selected_itinerary = nil
         trip.save
-        # For some reason itinerary.unselect doesn't work here.
       end
+  
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
-      nil
-    # This Trip needs to be added to OCC
+      [itinerary.trip, booking]
     else
-      # Make the Trip
+      # Create new trip, itinerary, and booking
       trip = Trip.create!(occ_trip_hash(eco_trip))
-      # Make the Itinerary
+  
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
       itinerary.trip = trip
-      itinerary.save 
+      itinerary.save
       itinerary.select
-
-      # Make the Booking
+  
       booking = Booking.new(occ_booking_hash(eco_trip))
       booking.itinerary = itinerary
-      if booking.status == 'canceled'
-        itinerary.unselect
-      end
-      booking.save 
+  
+      itinerary.unselect if booking.status == 'canceled'
+      booking.save
+      [trip, booking]
     end
-
+  
     booking_details = booking.details || {}
     funding_hash = booking_details.fetch(:funding_hash, {})
   
     # Prepare snapshot data
-    booking_data = occ_booking_hash(eco_trip).except(:type)
     snapshot_data = {
       itinerary_id: itinerary.id,
-      status: booking_data[:status],
-      confirmation: booking_data[:confirmation],
-      earliest_pu: booking_data[:earliest_pu],
-      latest_pu: booking_data[:latest_pu],
-      negotiated_pu: booking_data[:negotiated_pu],
-      negotiated_do: booking_data[:negotiated_do],
-      estimated_pu: booking_data[:estimated_pu],
-      estimated_do: booking_data[:estimated_do],
-      created_in_1click: booking_data[:created_in_1click] || false,
+      status: booking.status,
+      confirmation: booking.confirmation,
+      earliest_pu: booking.earliest_pu,
+      latest_pu: booking.latest_pu,
+      negotiated_pu: booking.negotiated_pu,
+      negotiated_do: booking.negotiated_do,
+      estimated_pu: booking.estimated_pu,
+      estimated_do: booking.estimated_do,
+      created_in_1click: booking.created_in_1click || false,
       note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
       funding_source: funding_hash[:funding_source],
       purpose: funding_hash[:purpose],
@@ -696,10 +695,11 @@ class EcolaneAmbassador < BookingAmbassador
       pca: itinerary.assistant
     }
   
-    # Update or create the EcolaneBookingSnapshot
+    # Use `find_or_initialize_by` to avoid multiple snapshot creations
     ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(booking_id: booking.id)
-    ecolane_booking_snapshot.update!(snapshot_data)
+    ecolane_booking_snapshot.update(snapshot_data)
   end
+  
 
   def occ_place_from_eco_place eco_place
     Waypoint.create!(occ_place_hash(eco_place))
