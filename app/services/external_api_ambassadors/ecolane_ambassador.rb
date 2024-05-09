@@ -661,13 +661,19 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-    booking_data = occ_booking_hash(eco_trip).except(:type)
+  # Create a new EcolaneBookingSnapshot excluding 'type'
+  booking_data = occ_booking_hash(eco_trip).except(:type)
+  funding_hash = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :funding_hash)
 
-    # Create a new booking snapshot without `type`
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.new(booking_data)
-    
-    # Save or further manipulate the snapshot object
-    ecolane_booking_snapshot.save!
+  ecolane_booking_snapshot = EcolaneBookingSnapshot.new(booking_data)
+  ecolane_booking_snapshot.booking = booking
+  ecolane_booking_snapshot.itinerary_id = itinerary.id
+  ecolane_booking_snapshot.funding_source = funding_hash.try(:[], :funding_source)
+  ecolane_booking_snapshot.purpose = funding_hash.try(:[], :purpose)
+  ecolane_booking_snapshot.note = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
+
+  ecolane_booking_snapshot.save!
+  
   end
 
   def occ_place_from_eco_place eco_place
