@@ -673,14 +673,26 @@ class EcolaneAmbassador < BookingAmbassador
           funding_source: funding_hash.try(:[], :funding_source),
           purpose: funding_hash.try(:[], :purpose),
           note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
+          ecolane_error_message: booking_details.fetch(:ecolane_error_message, nil),
+          pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
+          companions: eco_trip.try(:with_indifferent_access).try(:[], :companions).to_i + eco_trip.try(:with_indifferent_access).try(:[], :children).to_i,
+          sponsor: funding_hash.try(:[], :sponsor),
+          status: eco_trip.try(:with_indifferent_access).try(:[], :status),
+          confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
+          booking_client_id: itinerary.user.booking_profile.external_user_id,
+          agency_name: itinerary.user.booking_profile.service.agency.name,
+          service_name: itinerary.user.booking_profile.service.name,
+          created_at: Time.current,
+          orig_addr: itinerary.origin_address,
+          dest_addr: itinerary.destination_address,
+          is_round_trip: itinerary.trip.round_trip?,
           
         )
       )
     end
 
     # Save the newly created snapshot
-    ecolane_booking_snapshot.save! if ecolane_booking_snapshot.new_record?
-
+    ecolane_booking_snapshot.save!
   end
 
   def occ_place_from_eco_place eco_place
