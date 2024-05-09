@@ -20,6 +20,5 @@ class CreateEcolaneBookingSnapshots < ActiveRecord::Migration[5.0]
       t.timestamps
     end
 
-    add_index :ecolane_booking_snapshots, :booking_id
   end
 end
