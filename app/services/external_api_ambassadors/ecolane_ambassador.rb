@@ -661,8 +661,13 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.new(occ_booking_hash(eco_trip))
+    booking_data = occ_booking_hash(eco_trip).except(:type)
 
+    # Create a new booking snapshot without `type`
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.new(booking_data)
+    
+    # Save or further manipulate the snapshot object
+    ecolane_booking_snapshot.save!
   end
 
   def occ_place_from_eco_place eco_place
@@ -733,7 +738,7 @@ class EcolaneAmbassador < BookingAmbassador
 
     {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
-      type: "EcolaneBooking", 
+      type: "EcolaneBooking",
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
       negotiated_pu: negotiated_pu,
       negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated),
