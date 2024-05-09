@@ -47,36 +47,33 @@ module Admin
     end
 
     def booking_id
-      @record.booking.confirmation rescue 'No Booking ID'
+      @record.ecolane_booking_snapshot&.confirmation || @record.booking&.confirmation || 'No Booking ID'
     end
     
     def booking_client_id
-      @record.user.booking_profile.external_user_id rescue 'No Client ID'
-    end    
-
-    def is_round_trip
-      @record.previous_trip.present? || @record.next_trip.present? ? 'TRUE' : 'FALSE'
-    end    
-
+      @record.ecolane_booking_snapshot&.details&.dig(:client_id) || @record.booking&.details&.dig(:client_id) || 'No Client ID'
+    end
+    
     def booking_timestamp
-      @record.booking.created_at.strftime("%Y-%m-%d %H:%M:%S") rescue 'No Booking Timestamp'
-    end    
-
+      @record.ecolane_booking_snapshot&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || @record.booking&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || 'No Booking Timestamp'
+    end
+    
     def funding_source
-      @record.booking.details.dig(:funding_hash, :funding_source) rescue 'No Funding Source'
+      @record.ecolane_booking_snapshot&.details&.dig(:funding_source) || @record.booking&.details&.dig(:funding_source) || 'No Funding Source'
     end
     
     def sponsor
-      @record.booking.details.dig(:funding_hash, :sponsor) rescue 'No Sponsor'
+      @record.ecolane_booking_snapshot&.details&.dig(:sponsor) || @record.booking&.details&.dig(:sponsor) || 'No Sponsor'
     end
     
     def companions
-      @record.booking.itinerary.companions rescue '0'
-    end    
-
+      @record.ecolane_booking_snapshot&.details&.dig(:companions) || @record.booking&.itinerary&.companions || '0'
+    end
+    
     def trip_note
-      @record.booking.itinerary.note rescue ' '
-    end 
+      @record.ecolane_booking_snapshot&.details&.dig(:note) || @record.booking&.itinerary&.note || ' '
+    end
+    
 
     def ecolane_error_message
       message = @record.selected_itinerary&.booking&.ecolane_error_message || "N/A"
