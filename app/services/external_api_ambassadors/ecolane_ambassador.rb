@@ -664,22 +664,41 @@ class EcolaneAmbassador < BookingAmbassador
     booking_details = booking.details || {}
     funding_hash = booking_details.fetch(:funding_hash, {})
   
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
-      booking_data = occ_booking_hash(eco_trip).except(:type)
+    # Prepare snapshot data
+    booking_data = occ_booking_hash(eco_trip).except(:type)
+    snapshot_data = {
+      itinerary_id: itinerary.id,
+      status: booking_data[:status],
+      confirmation: booking_data[:confirmation],
+      earliest_pu: booking_data[:earliest_pu],
+      latest_pu: booking_data[:latest_pu],
+      negotiated_pu: booking_data[:negotiated_pu],
+      negotiated_do: booking_data[:negotiated_do],
+      estimated_pu: booking_data[:estimated_pu],
+      estimated_do: booking_data[:estimated_do],
+      created_in_1click: booking_data[:created_in_1click] || false,
+      note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
+      funding_source: funding_hash[:funding_source],
+      purpose: funding_hash[:purpose],
+      traveler: trip.user&.email,
+      orig_addr: trip.origin&.formatted_address,
+      orig_lat: trip.origin&.lat,
+      orig_lng: trip.origin&.lng,
+      dest_addr: trip.destination&.formatted_address,
+      dest_lat: trip.destination&.lat,
+      dest_lng: trip.destination&.lng,
+      agency_name: trip.user.booking_profile.service.agency.name rescue 'No Agency',
+      service_name: trip.user.booking_profile.service.name rescue 'No Service',
+      booking_client_id: booking_details.fetch(:client_id, nil),
+      is_round_trip: itinerary.trip.previous_trip.present?,
+      ecolane_error_message: booking.ecolane_error_message,
+      companions: itinerary.companions,
+      pca: itinerary.assistant
+    }
   
-      snapshot.assign_attributes(
-        booking_data.merge(
-          itinerary_id: itinerary.id,
-          funding_source: funding_hash.try(:[], :funding_source),
-          purpose: funding_hash.try(:[], :purpose),
-          note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
-        )
-      )
-    end
-
-    # Save the newly created snapshot
-    ecolane_booking_snapshot.save! if ecolane_booking_snapshot.new_record?
-
+    # Update or create the EcolaneBookingSnapshot
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(booking_id: booking.id)
+    ecolane_booking_snapshot.update!(snapshot_data)
   end
 
   def occ_place_from_eco_place eco_place
