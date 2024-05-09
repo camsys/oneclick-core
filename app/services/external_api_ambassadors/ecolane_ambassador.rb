@@ -661,37 +661,25 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-      # Prepare booking snapshot data
-    booking_data = occ_booking_hash(eco_trip).except(:type)
-    funding_hash = booking.details.fetch(:funding_hash, {})
-    snapshot_data = {
-      trip_time: trip.trip_time,
-      traveler: trip.user&.email,
-      arrive_by: trip.arrive_by,
-      disposition_status: trip.disposition_status,
-      purpose: trip.external_purpose || trip.purpose&.code,
-      orig_addr: trip.origin&.formatted_address,
-      orig_lat: trip.origin&.lat,
-      orig_lng: trip.origin&.lng,
-      dest_addr: trip.destination&.formatted_address,
-      dest_lat: trip.destination&.lat,
-      dest_lng: trip.destination&.lng,
-      agency_name: trip.user.booking_profile.service.agency.name rescue 'No Agency',
-      service_name: trip.user.booking_profile.service.name rescue 'No Service',
-      booking_client_id: booking.details.fetch(:client_id, nil),
-      is_round_trip: itinerary.trip.previous_trip.present?,
-      booking_timestamp: booking.created_at,
-      funding_source: funding_hash.fetch(:funding_source, nil),
-      sponsor: funding_hash.fetch(:sponsor, nil),
-      companions: itinerary.companions,
-      trip_note: itinerary.note,
-      ecolane_error_message: booking.ecolane_error_message,
-      pca: itinerary.assistant
-    }
+    booking_details = booking.details || {}
+    funding_hash = booking_details.fetch(:funding_hash, {})
+  
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
+      booking_data = occ_booking_hash(eco_trip).except(:type)
+  
+      snapshot.assign_attributes(
+        booking_data.merge(
+          itinerary_id: itinerary.id,
+          funding_source: funding_hash.try(:[], :funding_source),
+          purpose: funding_hash.try(:[], :purpose),
+          note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
+        )
+      )
+    end
 
-    # Update or create the EcolaneBookingSnapshot
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(booking_id: booking.id)
-    ecolane_booking_snapshot.update!(snapshot_data)
+    # Save the newly created snapshot
+    ecolane_booking_snapshot.save! if ecolane_booking_snapshot.new_record?
+
   end
 
   def occ_place_from_eco_place eco_place
