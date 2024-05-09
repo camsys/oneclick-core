@@ -661,9 +661,8 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(booking_id: booking.id)
-    ecolane_booking_snapshot.update(occ_booking_hash(eco_trip))
-    
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.new(occ_booking_hash(eco_trip))
+
   end
 
   def occ_place_from_eco_place eco_place
