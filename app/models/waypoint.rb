@@ -22,9 +22,19 @@ class Waypoint < Place
     # Handle pipe filtering for the name
     short_name = full_name.split('|').first.strip
     
-    # Format full address with name and address components
-    "#{short_name}, #{address_parts}"
-  end
+    # Check if short name is already present in the address components
+    address_components = address_parts.split(',').map(&:strip)
+    if address_components.include?(short_name)
+      # Short name is already present, so use address_parts as is
+      full_address = address_parts
+    else
+      # Short name is not present, so include it in the full address
+      full_address = "#{short_name}, #{address_parts}"
+    end
+    
+    # Remove any duplicate spaces to clean up the address
+    full_address.gsub(/\s+/, ' ')
+  end  
   
   def to_s
     address

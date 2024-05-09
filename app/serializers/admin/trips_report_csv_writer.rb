@@ -75,7 +75,7 @@ module Admin
     end    
 
     def trip_note
-      @record.booking.itinerary.note rescue 'nil'
+      @record.booking.itinerary.note rescue ' '
     end 
 
     def ecolane_error_message
