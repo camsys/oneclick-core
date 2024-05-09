@@ -661,6 +661,7 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
+      # Prepare booking snapshot data
     booking_data = occ_booking_hash(eco_trip).except(:type)
     funding_hash = booking.details.fetch(:funding_hash, {})
     snapshot_data = {
@@ -687,13 +688,10 @@ class EcolaneAmbassador < BookingAmbassador
       ecolane_error_message: booking.ecolane_error_message,
       pca: itinerary.assistant
     }
-  
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
-      snapshot.assign_attributes(snapshot_data)
-    end
-  
-    ecolane_booking_snapshot.save! if ecolane_booking_snapshot.new_record?
 
+    # Update or create the EcolaneBookingSnapshot
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(booking_id: booking.id)
+    ecolane_booking_snapshot.update!(snapshot_data)
   end
 
   def occ_place_from_eco_place eco_place
