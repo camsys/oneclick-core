@@ -683,7 +683,6 @@ class EcolaneAmbassador < BookingAmbassador
           agency_name: itinerary.user.booking_profile.service.agency.name,
           service_name: itinerary.user.booking_profile.service.name,
           created_at: Time.current,
-          is_round_trip: itinerary.trip.round_trip?,
 
         )
       )
