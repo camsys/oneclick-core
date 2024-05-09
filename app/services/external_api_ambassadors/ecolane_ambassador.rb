@@ -661,19 +661,28 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
-  # Create a new EcolaneBookingSnapshot excluding 'type'
-  booking_data = occ_booking_hash(eco_trip).except(:type)
-  funding_hash = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :funding_hash)
+    # Find or create a new EcolaneBookingSnapshot, but only apply data if newly created
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
+      # Exclude `type` from booking data
+      booking_data = occ_booking_hash(eco_trip).except(:type)
 
-  ecolane_booking_snapshot = EcolaneBookingSnapshot.new(booking_data)
-  ecolane_booking_snapshot.booking = booking
-  ecolane_booking_snapshot.itinerary_id = itinerary.id
-  ecolane_booking_snapshot.funding_source = funding_hash.try(:[], :funding_source)
-  ecolane_booking_snapshot.purpose = funding_hash.try(:[], :purpose)
-  ecolane_booking_snapshot.note = eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
+      # Extract funding source and purpose from the funding hash
+      funding_hash = eco_trip.try(:with_indifferent_access).try(:[], :fare).try(:[], :funding_hash)
 
-  ecolane_booking_snapshot.save!
-  
+      # Assign attributes only when creating a new snapshot
+      snapshot.assign_attributes(
+        booking_data.merge(
+          itinerary_id: itinerary.id,
+          funding_source: funding_hash.try(:[], :funding_source),
+          purpose: funding_hash.try(:[], :purpose),
+          note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note)
+        )
+      )
+    end
+
+    # Save the newly created snapshot
+    ecolane_booking_snapshot.save! if ecolane_booking_snapshot.new_record?
+
   end
 
   def occ_place_from_eco_place eco_place
