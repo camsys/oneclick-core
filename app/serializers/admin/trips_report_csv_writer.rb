@@ -161,8 +161,14 @@ module Admin
     end
 
     def is_round_trip
-      booking_snapshot&.is_round_trip || (@record.trip&.previous_trip_id.present? ? 'TRUE' : 'FALSE')
-    end
+      if @record.booking.ecolane_booking_snapshot&.is_round_trip
+        @record.booking.ecolane_booking_snapshot.is_round_trip ? 'TRUE' : 'FALSE'
+      elsif @record.previous_trip_id.present?
+        'TRUE'
+      else
+        'FALSE'
+      end
+    end    
     
 
   end
