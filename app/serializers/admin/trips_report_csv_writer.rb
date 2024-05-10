@@ -38,6 +38,7 @@ module Admin
 
     def purpose
       booking_snapshot&.purpose || @record.booking&.details&.dig(:purpose) || 'No Purpose'
+    end
 
     def trip_time
       booking_snapshot&.negotiated_pu || @record.trip_time&.in_time_zone
