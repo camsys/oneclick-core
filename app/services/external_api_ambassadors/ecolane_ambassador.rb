@@ -675,15 +675,21 @@ class EcolaneAmbassador < BookingAmbassador
           note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
           ecolane_error_message: booking_details.fetch(:ecolane_error_message, nil),
           pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-          companions: eco_trip.try(:with_indifferent_access).try(:[], :companions).to_i + eco_trip.try(:with_indifferent_access).try(:[], :children).to_i,
+          companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
           sponsor: funding_hash.try(:[], :sponsor),
           status: eco_trip.try(:with_indifferent_access).try(:[], :status),
           confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
           booking_client_id: itinerary.user.booking_profile.external_user_id,
           agency_name: itinerary.user.booking_profile.service.agency.name,
           service_name: itinerary.user.booking_profile.service.name,
-          created_at: Time.current,
-
+          traveler: itinerary.user.email,
+          orig_addr: itinerary.trip.origin.formatted_address,
+          orig_lat: itinerary.trip.origin.lat,
+          orig_lng: itinerary.trip.origin.lng,
+          dest_addr: itinerary.trip.destination.formatted_address,
+          dest_lat: itinerary.trip.destination.lat,
+          dest_lng: itinerary.trip.destination.lng,
+          is_round_trip: itinerary.trip.previous_trip.present?
         )
       )
     end
