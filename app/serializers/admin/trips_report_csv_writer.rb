@@ -90,7 +90,7 @@ module Admin
     end
 
     def booking_client_id
-      booking_snapshot&.booking_client_id || @record.booking&.details&.dig(:client_id) || 'No Client ID'
+      booking_snapshot&.booking_client_id || @record.booking&.details&.dig(:client_id) || @record.user.booking_profile.external_user_id || 'No Booking Client ID'
     end
 
     def booking_timestamp
