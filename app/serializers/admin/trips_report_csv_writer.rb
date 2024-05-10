@@ -37,8 +37,17 @@ module Admin
     end
 
     def purpose
-      booking_snapshot&.purpose || @record.booking&.details&.dig(:purpose) || 'No Purpose'
+      if @record.booking.ecolane_booking_snapshot&.purpose
+        @record.booking.ecolane_booking_snapshot.purpose
+      elsif @record.external_purpose
+        @record.external_purpose
+      elsif @record.purpose
+        @record.purpose.code
+      else
+        "N/A"
+      end
     end
+    
 
     def trip_time
       booking_snapshot&.negotiated_pu || @record.trip_time&.in_time_zone
