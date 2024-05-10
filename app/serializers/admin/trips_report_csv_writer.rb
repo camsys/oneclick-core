@@ -160,5 +160,10 @@ module Admin
       @record.trip_eligibilities.reduce('') { |string, elg_hash| "#{string}#{elg_hash&.eligibility&.code}; " }
     end
 
+    def is_round_trip
+      booking_snapshot&.is_round_trip || (@record.trip&.previous_trip_id.present? ? 'TRUE' : 'FALSE')
+    end
+    
+
   end
 end
