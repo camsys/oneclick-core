@@ -122,7 +122,7 @@ module Admin
     end
 
     def disposition_status
-      booking_snapshot&.status || @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
+      @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]    
     end
 
     def orig_addr

@@ -666,6 +666,7 @@ class EcolaneAmbassador < BookingAmbassador
   
     ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
       booking_data = occ_booking_hash(eco_trip).except(:type)
+      round_trip_status = booking.itinerary.trip.previous_trip.present? || booking.itinerary.trip.next_trip.present?
   
       snapshot.assign_attributes(
         booking_data.merge(
@@ -689,8 +690,8 @@ class EcolaneAmbassador < BookingAmbassador
           dest_addr: booking.itinerary.trip.destination.formatted_address,
           dest_lat: booking.itinerary.trip.destination.lat,
           dest_lng: booking.itinerary.trip.destination.lng,
-          is_round_trip: booking.itinerary.trip.previous_trip.present?
-        )
+          is_round_trip: round_trip_status
+          )
       )
     end
 
