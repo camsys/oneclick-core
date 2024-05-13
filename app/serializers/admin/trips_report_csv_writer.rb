@@ -175,7 +175,7 @@ module Admin
 
     def is_round_trip
       if @record.ecolane_booking_snapshot.is_round_trip.present?
-        @record.booking.ecolane_booking_snapshot.is_round_trip ? 'TRUE' : 'FALSE'
+        @record.ecolane_booking_snapshot.is_round_trip ? 'TRUE' : 'FALSE'
       elsif @record.previous_trip_id.present?
         'TRUE'
       else
