@@ -37,8 +37,8 @@ module Admin
     end
 
     def purpose
-      if @record.booking.ecolane_booking_snapshot&.purpose
-        @record.booking.ecolane_booking_snapshot.purpose
+      if @record.ecolane_booking_snapshot&.purpose
+        @record.ecolane_booking_snapshot.purpose
       elsif @record.external_purpose
         @record.external_purpose
       elsif @record.purpose
