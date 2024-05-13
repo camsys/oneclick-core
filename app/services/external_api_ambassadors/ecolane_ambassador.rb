@@ -664,6 +664,7 @@ class EcolaneAmbassador < BookingAmbassador
     booking_details = booking.details || {}
     funding_hash = booking.details.fetch(:funding_hash, {})
     existing_snapshot = EcolaneBookingSnapshot.find_by(confirmation: booking.confirmation)
+    trip = itinerary.trip
   
     unless existing_snapshot
       new_snapshot = EcolaneBookingSnapshot.new(
