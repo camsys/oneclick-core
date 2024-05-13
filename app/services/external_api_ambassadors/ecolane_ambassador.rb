@@ -691,10 +691,10 @@ class EcolaneAmbassador < BookingAmbassador
           dest_addr: itinerary.trip.destination.formatted_address,
           dest_lat: itinerary.trip.destination.lat,
           dest_lng: itinerary.trip.destination.lng,
-          is_round_trip: itinerary.trip.previous_trip.present? || itinerary.trip.next_trip.present?
+          is_round_trip: itinerary.trip.previous_trip.present? || itinerary.trip.next_trip.present?,
+          trip_id: trip.id
         )
       )
-      ecolane_booking_snapshot.trip_id ||= trip.id  # Only set trip_id if it's not already set
       ecolane_booking_snapshot.save!
     end
   end
