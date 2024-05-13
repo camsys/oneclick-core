@@ -19,6 +19,7 @@ class Trip < ApplicationRecord
   has_one :selected_service, through: :selected_itinerary, source: :service
   belongs_to :previous_trip, class_name: "Trip", foreign_key: :previous_trip_id
   has_one    :next_trip,     class_name: "Trip", foreign_key: :previous_trip_id, dependent: :nullify 
+  has_one :ecolane_booking_snapshot, dependent: :destroy
   has_many :oversight_agencies, through: :user
 
   has_many :trip_accommodations
