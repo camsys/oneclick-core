@@ -29,7 +29,7 @@ module Admin
 
     # Helper method to access booking snapshot
     def booking_snapshot
-      @record.booking&.ecolane_booking_snapshot
+      @record.ecolane_booking_snapshot
     end
 
     def trip_id

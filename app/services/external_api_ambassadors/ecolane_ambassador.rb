@@ -664,39 +664,42 @@ class EcolaneAmbassador < BookingAmbassador
     booking_details = booking.details || {}
     funding_hash = booking_details.fetch(:funding_hash, {})
   
-    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_create_by(booking_id: booking.id) do |snapshot|
-      booking_data = occ_booking_hash(eco_trip).except(:type)
-      round_trip_status = booking.itinerary.trip.previous_trip.present? || booking.itinerary.trip.next_trip.present?
+    update_or_create_snapshot(trip, booking)
+  end
   
-      snapshot.assign_attributes(
-        booking_data.merge(
-          itinerary_id: itinerary.id,
-          funding_source: funding_hash.try(:[], :funding_source),
-          purpose: funding_hash.try(:[], :purpose),
-          note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
-          ecolane_error_message: booking.ecolane_error_message,
-          pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-          companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
-          sponsor: funding_hash.try(:[], :sponsor),
-          status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-          confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-          booking_client_id: booking.itinerary.user.booking_profile.external_user_id,
-          agency_name: booking.itinerary.user.booking_profile.service.agency.name,
-          service_name: booking.itinerary.user.booking_profile.service.name,
-          traveler: booking.itinerary.user.email,
-          orig_addr: booking.itinerary.trip.origin.formatted_address,
-          orig_lat: booking.itinerary.trip.origin.lat,
-          orig_lng: booking.itinerary.trip.origin.lng,
-          dest_addr: booking.itinerary.trip.destination.formatted_address,
-          dest_lat: booking.itinerary.trip.destination.lat,
-          dest_lng: booking.itinerary.trip.destination.lng,
-          is_round_trip: round_trip_status
-          )
+  # Update or create a booking snapshot
+  def update_or_create_snapshot(trip, booking)
+    booking_details = booking.details || {}
+    funding_hash = booking_details.fetch(:funding_hash, {})
+    round_trip_status = trip.previous_trip.present? || trip.next_trip.present?
+  
+    ecolane_booking_snapshot = EcolaneBookingSnapshot.find_or_initialize_by(trip_id: trip.id)
+    if ecolane_booking_snapshot.new_record?
+      ecolane_booking_snapshot.assign_attributes(
+        itinerary_id: booking.itinerary.id,
+        funding_source: funding_hash[:funding_source],
+        purpose: funding_hash[:purpose],
+        note: trip.note,
+        ecolane_error_message: booking.ecolane_error_message,
+        pca: booking.itinerary.assistant,
+        companions: booking.itinerary.companions,
+        sponsor: funding_hash[:sponsor],
+        status: booking.status,
+        confirmation: booking.confirmation,
+        booking_client_id: booking.itinerary.user.booking_profile.external_user_id,
+        agency_name: booking.itinerary.user.booking_profile.service.agency.name,
+        service_name: booking.itinerary.user.booking_profile.service.name,
+        traveler: booking.itinerary.user.email,
+        orig_addr: trip.origin.formatted_address,
+        orig_lat: trip.origin.lat,
+        orig_lng: trip.origin.lng,
+        dest_addr: trip.destination.formatted_address,
+        dest_lat: trip.destination.lat,
+        dest_lng: trip.destination.lng,
+        is_round_trip: round_trip_status
       )
+      ecolane_booking_snapshot.save!
     end
-
-    # Save the newly created snapshot
-    ecolane_booking_snapshot.save!
   end
 
   def occ_place_from_eco_place eco_place
