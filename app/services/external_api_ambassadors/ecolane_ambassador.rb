@@ -646,7 +646,6 @@ class EcolaneAmbassador < BookingAmbassador
     else
       # Make the Trip
       trip = Trip.create!(occ_trip_hash(eco_trip))
-      update_or_create_snapshot(trip, booking)
       # Make the Itinerary
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
       itinerary.trip = trip
@@ -664,6 +663,8 @@ class EcolaneAmbassador < BookingAmbassador
 
     booking_details = booking.details || {}
     funding_hash = booking_details.fetch(:funding_hash, {})
+
+    update_or_create_snapshot(trip, booking)
   
   end
   
