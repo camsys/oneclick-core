@@ -689,7 +689,8 @@ class EcolaneAmbassador < BookingAmbassador
         dest_addr: trip.destination.formatted_address,
         dest_lat: trip.destination.lat,
         dest_lng: trip.destination.lng,
-        is_round_trip: trip.previous_trip.present? || trip.next_trip.present?
+        is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
+        disposition_status: trip.disposition_status
       )
       new_snapshot.save!
     end
