@@ -122,7 +122,7 @@ module Admin
     end
 
     def disposition_status
-      @record.disposition_status || booking_snapshot&.disposition_status
+      booking_snapshot&.disposition_status || @record.ecolane_booking_snapshot&.disposition_status || 'Unknown Disposition'
     end
 
     def orig_addr
