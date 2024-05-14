@@ -122,6 +122,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync days_ago=1
+
     # For performance, only update trips in the future
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
@@ -133,6 +134,7 @@ class EcolaneAmbassador < BookingAmbassador
 
     # For trips that are round trips, make sure that they point to each other.
     link_trips
+
   end
 
     # Books Trip (funding_source and sponsor must be specified)
@@ -771,7 +773,7 @@ class EcolaneAmbassador < BookingAmbassador
 
     {
       confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id), 
-      type: "EcolaneBooking",
+      type: "EcolaneBooking", 
       status: eco_trip.try(:with_indifferent_access).try(:[], :status),
       negotiated_pu: negotiated_pu,
       negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :dropoff).try(:[],:negotiated),
@@ -1211,13 +1213,16 @@ class EcolaneAmbassador < BookingAmbassador
   # They are delivered to us as individual trips, and we will link them together.
   # Linking these lets users cancel them as a group, it also lets us pre-fill the most recent addresses in the user interface
   def link_trips 
+
+    # First do the past trips, and then do the future trips
     [:future, :past].each do |times|
-      if times == :future 
+      if times == :future # Get all future trips
         trips = @user.trips.selected.future
-      else 
+      else # Get the most recent past 14 days of trips
         trips = @user.trips.selected.past.past_14_days.reverse
       end
-      
+
+      # Group trips on same day.
       trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
       trips_by_date.each do |trip_date, same_day_trips|
         same_day_trips.each do |trip|
@@ -1227,18 +1232,23 @@ class EcolaneAmbassador < BookingAmbassador
           end
         end
 
+        # Compare combinations of same day trips.
         same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
           trip = Trip.find_by(id: trip_id)
           next_trip = Trip.find_by(id: next_trip_id)
 
+          # If this is already a round trip, and if trip has been created directly in 1click, 
+          # don't try to re-link. Otherwise, continue.
           if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
             next
           end
 
+          # Are these trips on the same day?
           unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
             next
           end
 
+          #Does these trips have inverted origins/destinations?
           unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
             next
           end
@@ -1246,10 +1256,11 @@ class EcolaneAmbassador < BookingAmbassador
             next
           end
 
+          #Ok these trips passed all the tests, combine them into one trip
           next_trip.update(previous_trip_id: trip.id)
-        end 
-      end 
-    end 
-  end  #link_trips
+        end #trips.each
+      end #trips_by_date.each
+    end #times.each
+  end #link_trips
 
 end
