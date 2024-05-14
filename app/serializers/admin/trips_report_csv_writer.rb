@@ -122,11 +122,11 @@ module Admin
     end
 
     def disposition_status
-      @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]    
+      booking_snapshot&.disposition_status || @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
     end
 
     def orig_addr
-      booking_snapshot&.disposition_status || @record.disposition_status || Trip::DISPOSITION_STATUSES[:unknown]
+      booking_snapshot&.orig_addr || @record.origin&.formatted_address
     end
 
     def orig_county
