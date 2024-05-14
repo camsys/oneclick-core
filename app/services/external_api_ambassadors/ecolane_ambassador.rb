@@ -123,7 +123,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Create 1-Click Trips for those trips if they don't already exist
   def sync days_ago=1
 
-    # For performance, only update trips in the future
+    #For performance, only update trips in the future
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
@@ -1225,6 +1225,7 @@ class EcolaneAmbassador < BookingAmbassador
       # Group trips on same day.
       trips_by_date = trips.group_by {|trip| trip.trip_time.in_time_zone.to_date}
       trips_by_date.each do |trip_date, same_day_trips|
+        # Reset links on existing trips, unless trip has been created directly in 1click.
         same_day_trips.each do |trip|
           if trip.previous_trip and !trip&.selected_itinerary&.booking&.created_in_1click
             trip.previous_trip = nil
