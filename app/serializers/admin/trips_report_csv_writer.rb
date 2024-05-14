@@ -47,7 +47,6 @@ module Admin
         "N/A"
       end
     end
-    
 
     def trip_time
       booking_snapshot&.negotiated_pu || @record.trip_time&.in_time_zone
@@ -60,6 +59,8 @@ module Admin
     def user_type
       if @record.user&.admin_or_staff?
         'Staff User'
+      # NOTE: the below translations are 211 Ride specific and have values that are not the same
+      # as the fallback value, nor are they values that you'd generally expect
       elsif @record.user&.guest?
         I18n.t('admin.reporting.guest') || 'Guest'
       elsif @record.user&.registered_traveler?
@@ -181,8 +182,7 @@ module Admin
       else
         'FALSE'
       end
-    end    
-    
+    end
 
   end
 end

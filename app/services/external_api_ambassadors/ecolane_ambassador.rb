@@ -122,20 +122,17 @@ class EcolaneAmbassador < BookingAmbassador
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
   def sync days_ago=1
-    Rails.logger.info "Starting trip synchronization process..."
-  
+    # For performance, only update trips in the future
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
-  
+
     (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
       occ_trip_from_ecolane_trip order
     end
-  
-    Rails.logger.info "Trips synchronized. Starting to link trips..."
+
+    # For trips that are round trips, make sure that they point to each other.
     link_trips
-    Rails.logger.info "Trips linked successfully."
-  
   end
 
     # Books Trip (funding_source and sponsor must be specified)
@@ -661,27 +658,30 @@ class EcolaneAmbassador < BookingAmbassador
       booking.save 
     end
 
+    # Create a snapshot of the booking for reporting purposes
     booking_details = booking.details || {}
     funding_hash = booking.details.fetch(:funding_hash, {})
     existing_snapshot = EcolaneBookingSnapshot.find_by(confirmation: booking.confirmation)
     trip = itinerary.trip
-  
+
     unless existing_snapshot
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
-        funding_source: funding_hash[:funding_source],
-        purpose: funding_hash[:purpose],
-        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
-        ecolane_error_message: booking.ecolane_error_message,
-        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
-        sponsor: funding_hash[:sponsor],
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
         confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        booking_client_id: itinerary.user.booking_profile.external_user_id,
-        agency_name: itinerary.user.booking_profile.service.agency.name,
-        service_name: itinerary.user.booking_profile.service.name,
+        details: eco_trip.to_json,
+        earliest_pu: eco_trip.try(:with_indifferent_access).try(:[], :earliest_pu),
+        latest_pu: eco_trip.try(:with_indifferent_access).try(:[], :latest_pu),
+        negotiated_pu: eco_trip.try(:with_indifferent_access).try(:[], :negotiated_pu),
+        negotiated_do: eco_trip.try(:with_indifferent_access).try(:[], :negotiated_do),
+        estimated_pu: eco_trip.try(:with_indifferent_access).try(:[], :estimated_pu),
+        estimated_do: eco_trip.try(:with_indifferent_access).try(:[], :estimated_do),
+        created_in_1click: booking.created_in_1click,
+        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
+        funding_source: funding_hash[:funding_source],
+        purpose: funding_hash[:purpose],
+        booking_id: booking.id,
         traveler: itinerary.user.email,
         orig_addr: trip.origin.formatted_address,
         orig_lat: trip.origin.lat,
@@ -689,8 +689,16 @@ class EcolaneAmbassador < BookingAmbassador
         dest_addr: trip.destination.formatted_address,
         dest_lat: trip.destination.lat,
         dest_lng: trip.destination.lng,
+        agency_name: itinerary.user.booking_profile.service.agency.name,
+        service_name: itinerary.user.booking_profile.service.name,
+        booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        disposition_status: trip.disposition_status
+        sponsor: funding_hash[:sponsor],
+        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
+        ecolane_error_message: booking.ecolane_error_message,
+        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
+        disposition_status: trip.disposition_status,
+        booking_timestamp: booking.created_at.strftime("%Y-%m-%d %H:%M:%S")
       )
       new_snapshot.save!
     end
@@ -1204,8 +1212,6 @@ class EcolaneAmbassador < BookingAmbassador
   # They are delivered to us as individual trips, and we will link them together.
   # Linking these lets users cancel them as a group, it also lets us pre-fill the most recent addresses in the user interface
   def link_trips 
-    Rails.logger.info "Start linking trips..."
-  
     [:future, :past].each do |times|
       if times == :future 
         trips = @user.trips.selected.future
@@ -1221,37 +1227,30 @@ class EcolaneAmbassador < BookingAmbassador
             trip.save 
           end
         end
-  
+
         same_day_trips.pluck(:id).combination(2).each do |trip_id, next_trip_id|
           trip = Trip.find_by(id: trip_id)
           next_trip = Trip.find_by(id: next_trip_id)
-  
+
           if (trip.previous_trip or trip.next_trip) and trip&.selected_itinerary&.booking&.created_in_1click
-            Rails.logger.info "Skipping round trip linking for trip #{trip.id} as it's already a round trip created in 1click."
             next
           end
-  
+
           unless trip.trip_time.in_time_zone.to_date == next_trip.trip_time.in_time_zone.to_date
-            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they are not on the same day."
             next
           end
-  
+
           unless trip.origin.lat == next_trip.destination.lat and trip.origin.lng == next_trip.destination.lng
-            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they don't have inverted origins/destinations."
             next
           end
           unless trip.destination.lat == next_trip.origin.lat and trip.destination.lng == next_trip.origin.lng
-            Rails.logger.info "Skipping round trip linking for trips #{trip.id} and #{next_trip.id} as they don't have inverted origins/destinations."
             next
           end
-  
-          Rails.logger.info "Linking round trips: #{trip.id} and #{next_trip.id}"
+
           next_trip.update(previous_trip_id: trip.id)
-  
         end 
       end 
     end 
-    Rails.logger.info "Round trip linking completed."
   end  #link_trips
 
 end
