@@ -697,8 +697,7 @@ class EcolaneAmbassador < BookingAmbassador
         companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
         ecolane_error_message: booking.ecolane_error_message,
         pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-        disposition_status: trip.disposition_status,
-        booking_timestamp: booking.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        disposition_status: trip.disposition_status
       )
       new_snapshot.save!
     end
