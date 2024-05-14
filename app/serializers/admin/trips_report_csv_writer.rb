@@ -9,11 +9,11 @@ module Admin
     associations :origin, :destination, :user, :selected_itinerary
 
     FMR_COLUMNS = [
-      :trip_time, :traveler, :arrive_by, :disposition_status, :purpose, :orig_addr, :orig_lat, :orig_lng,
-      :dest_addr, :dest_lat, :dest_lng, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip,
-      :booking_timestamp, :funding_source, :sponsor, :companions, :trip_note, :ecolane_error_message, :pca
+      :trip_time, :traveler, :arrive_by, :disposition_status, :purpose, :orig_lat, :orig_lng,
+      :dest_lat, :dest_lng, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip,
+      :booking_timestamp, :ecolane_error_message, :funding_source, :sponsor, :companions, :trip_note, :pca, :orig_addr, :dest_addr
     ]
-
+    
     def self.in_travel_patterns_mode?
       Config.dashboard_mode.to_sym == :travel_patterns
     end
