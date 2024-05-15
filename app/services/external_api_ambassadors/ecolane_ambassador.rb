@@ -191,6 +191,7 @@ class EcolaneAmbassador < BookingAmbassador
     # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
 
+      # Initializing variables for the snapshot
       eco_trip = nil
       booking = self.booking
       trip = itinerary.trip
@@ -225,6 +226,7 @@ class EcolaneAmbassador < BookingAmbassador
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       self.booking.update(created_in_1click: true)
       nil
+    # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     ensure
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
