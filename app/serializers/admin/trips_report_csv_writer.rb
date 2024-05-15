@@ -91,8 +91,16 @@ module Admin
     end
 
     def booking_client_id
-      booking_snapshot&.booking_client_id || @record.booking&.details&.dig(:client_id) || @record.user.booking_profile.external_user_id || 'No Booking Client ID'
-    end
+      if booking_snapshot&.booking_client_id
+        booking_snapshot.booking_client_id
+      elsif @record.booking&.details&.dig(:client_id)
+        @record.booking.details.dig(:client_id)
+      elsif @record.user&.booking_profile&.external_user_id
+        @record.user.booking_profile.external_user_id
+      else
+        'No Booking Client ID'
+      end
+    end    
 
     def booking_timestamp
       booking_snapshot&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || @record.booking&.created_at&.strftime("%Y-%m-%d %H:%M:%S") || 'No Booking Timestamp'
