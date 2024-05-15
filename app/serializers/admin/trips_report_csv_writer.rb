@@ -8,6 +8,15 @@ module Admin
             :funding_source, :sponsor, :companions, :trip_note, :ecolane_error_message, :pca
     associations :origin, :destination, :user, :selected_itinerary
 
+    # These are the columns that are always included in the CSV. Any new columns for non-FMR clients should be added here (FMRPA-236)
+    DEFAULT_COLUMNS = [
+      :trip_id, :trip_time, :traveler, :user_type, :traveler_county, :traveler_paratransit_id, :arrive_by,
+      :disposition_status, :purpose, :orig_addr, :orig_county, :orig_lat, :orig_lng, :dest_addr, :dest_county,
+      :dest_lat, :dest_lng, :traveler_age, :traveler_ip, :traveler_accommodations, :traveler_eligibilities
+    ]
+
+    # FMR_COLUMNS are only included in the CSV if in travel patterns mode
+    # FMR requested these columns for their reports, many of which that are only relevant to them (FMRPA-236)
     FMR_COLUMNS = [
       :trip_time, :traveler, :arrive_by, :disposition_status, :purpose, :orig_lat, :orig_lng,
       :dest_lat, :dest_lng, :agency_name, :service_name, :booking_id, :booking_client_id, :is_round_trip,
@@ -20,10 +29,11 @@ module Admin
 
     def headers
       if self.class.in_travel_patterns_mode?
-        # Only include FMR_COLUMNS if in travel patterns mode
+        # Only include FMR_COLUMNS if in travel patterns mode (FMRPA-236)
         self.class.headers.slice(*FMR_COLUMNS)
       else
-        self.class.headers
+        # Include DEFAULT_COLUMNS for other clients
+        self.class.headers.slice(*DEFAULT_COLUMNS)
       end
     end
 
