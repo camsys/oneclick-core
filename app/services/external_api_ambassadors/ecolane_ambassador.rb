@@ -190,26 +190,23 @@ class EcolaneAmbassador < BookingAmbassador
       # NOTE: this seems like overkill, but Ecolane uses both JSON and
       # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
+  
+      eco_trip = nil
+      booking = self.booking
+      trip = itinerary.trip
+      booking_details = booking.details || {}
+      funding_hash = booking.details.fetch(:funding_hash, {})
+  
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
         eco_trip = fetch_order(confirmation)["order"]
-        booking = self.booking
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
         booking.confirmation = confirmation
         booking.created_in_1click = true
         booking.save
-
-        trip = itinerary.trip
-        booking_details = booking.details || {}
-        funding_hash = booking.details.fetch(:funding_hash, {})
-
-        create_booking_snapshot(booking, eco_trip, trip, itinerary, funding_hash)
-        
-        booking
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
-        booking = self.booking
         errors = body_hash['status']['error']
         errors = [errors] unless errors.is_a?(Array)
         error_messages = errors.map { |e| e['message'] }.join("; ")
@@ -219,31 +216,16 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-
-        trip = itinerary.trip
-        booking_details = booking.details || {}
-        funding_hash = booking.details.fetch(:funding_hash, {})
-
-        create_booking_snapshot(booking, nil, trip, itinerary, funding_hash)
-        
-        nil
       end
     rescue REXML::ParseException => e
       Rails.logger.error "REXML::ParseException: #{e.message}"
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      booking = self.booking
       booking.update(created_in_1click: true)
-
-      trip = itinerary.trip
-      booking_details = booking.details || {}
-      funding_hash = booking.details.fetch(:funding_hash, {})
-
-      create_booking_snapshot(booking, nil, trip, itinerary, funding_hash)
-      
-      nil
+    ensure
+      create_booking_snapshot(booking, eco_trip, trip, itinerary, funding_hash)
     end
   end
-
+  
   def create_booking_snapshot(booking, eco_trip, trip, itinerary, funding_hash)
     new_snapshot = EcolaneBookingSnapshot.new(
       trip_id: trip.id,
@@ -281,7 +263,6 @@ class EcolaneAmbassador < BookingAmbassador
     )
     new_snapshot.save!
   end
-
 
   # Get a list of customers
   def search_for_customers terms={}
