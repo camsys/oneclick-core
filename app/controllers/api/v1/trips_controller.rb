@@ -241,6 +241,7 @@ module Api
 
           # Update Trip Disposition Status to ecolane succeeded
           itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
+          itin.trip.ecolane_booking_snapshot.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
