@@ -137,15 +137,18 @@ class Service < ApplicationRecord
     logger.info {"Available Services before Filtering: #{self.all.pluck(:id)}"}
     
     available_services = filters.reduce(self.all) do |scope, filter|
-      filtered_scope = scope.available_by_filter_for(filter, trip)
-      
+      filtered_scope = if filter == :accommodation
+        scope.available_by_accommodation_for(trip)
+      else
+        scope.available_by_filter_for(filter, trip)
+      end
+  
       logger.info {"Available Services after Filtering on #{filter}: #{filtered_scope.pluck(:id)}"}
-      
       filtered_scope
     end
-    
+  
     logger.info {"Available Services after Filtering: #{available_services.pluck(:id)}"}
-    
+  
     return available_services
   end
   
@@ -212,7 +215,11 @@ class Service < ApplicationRecord
   end
   
   scope :available_by_accommodation_for, -> (trip) do
-    trip.user ? accommodates(trip.user) : all
+    if trip.user
+      where.not(type: 'Transit').accommodates(trip.user).or(where(type: 'Transit'))
+    else
+      all
+    end
   end
   
   # Includes service if either it accommodates all the user's needs, or the
