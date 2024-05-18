@@ -88,7 +88,7 @@ class TripPlanner
     @available_services = @available_services.by_trip_type(*@trip_types)
   
     # Only select services that your age makes you eligible for
-    if @trip.user and @trip.user.age
+    if @trip.user && @trip.user.age
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
   
@@ -113,7 +113,7 @@ class TripPlanner
       non_transit_services = non_transit_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
   
       # Combine the filtered non-transit services with transit services
-      @available_services = (transit_services + non_transit_services).uniq
+      @available_services = Service.where(id: (transit_services.pluck(:id) + non_transit_services.pluck(:id)).uniq)
     else
       # Currently there's only one service per county, users are only allowed to book rides for their home service, and we only use paratransit services, so this may break
       options = {}
@@ -122,7 +122,7 @@ class TripPlanner
       options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
       options[:date] = @trip.trip_time.to_date if @trip.trip_time
       
-      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
       @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
       @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
@@ -131,6 +131,7 @@ class TripPlanner
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
+  
   
   
   # Group available services by type, returning a hash with a key for each
