@@ -80,6 +80,8 @@ class TripPlanner
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
+# Identifies available services for the trip and requested trip_types, and sorts them by service type
+# Only filter by filters included in the @filters array
   def set_available_services
     # Start with the scope of all services available for public viewing
     @available_services = @master_service_scope.published
@@ -100,15 +102,19 @@ class TripPlanner
       # Find all the services that are available for your time and locations
       @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      # Pull out the relevant purposes, eligibilities, and accommodations of these services
       @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
       @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
 
       # Now finish filtering by purpose, eligibility, and accommodation
       @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+
+      # Ensure transit services bypass accommodation filter
+      transit_services = @master_service_scope.published.by_trip_type(:transit)
+      @available_services = (@available_services + transit_services).uniq
     else
-      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and we only use paratransit services, so this may break
       options = {}
       options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
       options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
@@ -123,8 +129,8 @@ class TripPlanner
 
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
-
   end
+
   
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
