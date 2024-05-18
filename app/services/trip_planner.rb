@@ -134,6 +134,7 @@ class TripPlanner
   
   
   
+  
   # Group available services by type, returning a hash with a key for each
   # service type, and one for all the available services
   def available_services_hash(services)
