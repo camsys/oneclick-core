@@ -73,7 +73,6 @@ class TripPlanner
   def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
     @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
-    @paratransit_router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:paratransit])
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
     @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
@@ -238,19 +237,17 @@ class TripPlanner
     router_paratransit_itineraries = []
     if Config.open_trip_planner_version == 'v2'
       # Paratransit itineraries must belong to a service
-      # This ensures we respect accomodations and eligibilities
-      otp_itineraries = build_fixed_itineraries(:paratransit).select{ |itin|
-        itin.service_id.present?
-      }
+      # This ensures we respect accommodations and eligibilities
+      otp_itineraries = build_fixed_itineraries(:paratransit).select { |itin| itin.service_id.present? }
       
       # paratransit itineraries can return just transit since we also look for a mixed
       # filter these out
       # then set itineraries that are a mix of paratransit and transit mixed
-      router_paratransit_itineraries += otp_itineraries.map{ |itin|
+      router_paratransit_itineraries += otp_itineraries.map { |itin|
         no_paratransit = true
         has_transit = false
         itin.legs.each do |leg|
-          no_paratransit = false if leg['mode'].include?('FLEX') 
+          no_paratransit = false if leg['mode'].include?('FLEX')
           has_transit = true unless leg['mode'].include?('FLEX') || leg['mode'] == 'WALK'
         end
         if no_paratransit
@@ -275,7 +272,7 @@ class TripPlanner
     itineraries = paratransit_services.map { |svc|
       Rails.logger.info("Checking service id: #{svc&.id}")
 
-      #TODO: this is a hack and needs to be replaced.
+      # TODO: this is a hack and needs to be replaced.
       # For FindMyRide, we only allow RideShares service to be returned if the user is associated with it.
       # If the service is an ecolane service and NOT the ecolane service that the user belongs do, then skip it.
       if svc.booking_api == "ecolane" and UserBookingProfile.where(service: svc, user: @trip.user).count == 0 and @trip.user.registered?
