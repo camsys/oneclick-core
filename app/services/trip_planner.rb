@@ -97,23 +97,22 @@ class TripPlanner
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
     if Config.dashboard_mode != 'travel_patterns'
-      # Find all the services that are available for your time and locations
-      @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
-  
-      # Pull out the relevant purposes, eligibilities, and accommodations of these services
-      @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-      @relevant_accommodations = Accommodation.all.ordered_by_rank
-  
-      # Separate transit services from other services
+      # Separate transit and paratransit services from other services
       transit_services = @available_services.transit_services
-      non_transit_services = @available_services.where.not(id: transit_services.pluck(:id))
+      paratransit_services = @available_services.paratransit_services
+      other_services = @available_services.where.not(id: (transit_services.pluck(:id) + paratransit_services.pluck(:id)))
   
-      # Now finish filtering non-transit services by purpose, eligibility, and accommodation
-      non_transit_services = non_transit_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+      # Filter transit services by geography only
+      transit_services = transit_services.available_for(@trip, only_by: [:geography])
   
-      # Combine the filtered non-transit services with transit services
-      @available_services = Service.where(id: (transit_services.pluck(:id) + non_transit_services.pluck(:id)).uniq)
+      # Filter paratransit services by geography and other filters
+      paratransit_services = paratransit_services.available_for(@trip, only_by: [:geography, :purpose, :eligibility, :accommodation])
+  
+      # Filter other services by all specified filters
+      other_services = other_services.available_for(@trip, only_by: @filters)
+  
+      # Combine the filtered results
+      @available_services = Service.where(id: (transit_services.pluck(:id) + paratransit_services.pluck(:id) + other_services.pluck(:id)).uniq)
     else
       # Currently there's only one service per county, users are only allowed to book rides for their home service, and we only use paratransit services, so this may break
       options = {}
@@ -131,6 +130,7 @@ class TripPlanner
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
+  
   
   
   
