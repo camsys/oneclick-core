@@ -72,13 +72,11 @@ class TripPlanner
   # Set up external API ambassadors
   def prepare_ambassadors
     # Set up external API ambassadors for route finding and fare calculation
-    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit])
-    @paratransit_router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:paratransit])
+    @router ||= OTPAmbassador.new(@trip, @trip_types, @http_request_bundler, @available_services[:transit].or(@available_services[:paratransit]))
     @taxi_ambassador ||= TFFAmbassador.new(@trip, @http_request_bundler, services: @available_services[:taxi])
     @uber_ambassador ||= UberAmbassador.new(@trip, @http_request_bundler)
     @lyft_ambassador ||= LyftAmbassador.new(@trip, @http_request_bundler)
   end
-
 
   # Identifies available services for the trip and requested trip_types, and sorts them by service type
   # Only filter by filters included in the @filters array
