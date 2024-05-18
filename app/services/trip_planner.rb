@@ -88,7 +88,7 @@ class TripPlanner
     @available_services = @available_services.by_trip_type(*@trip_types)
   
     # Only select services that your age makes you eligible for
-    if @trip.user and @trip.user.age 
+    if @trip.user && @trip.user.age
       @available_services = @available_services.by_max_age(@trip.user.age).by_min_age(@trip.user.age)
     end
   
@@ -102,28 +102,45 @@ class TripPlanner
   
       # Pull out the relevant purposes, eligibilities, and accommodations of these services
       @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by { |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
   
-      # Now finish filtering by purpose, eligibility, and accommodation
-      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+      # Apply purpose and eligibility filters to all services
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility]))
+  
+      # Apply accommodation filter only to paratransit services
+      if @filters.include?(:accommodation)
+        @available_services = @available_services.or(@available_services.where(type: 'Paratransit').available_for(@trip, only_by: [:accommodation]))
+      end
     else
-      # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
+      # Currently there's only one service per county, users are only allowed to book rides for their home service, and we only use paratransit services, so this may break
       options = {}
-      options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
-      options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      options[:origin] = { lat: @trip.origin.lat, lng: @trip.origin.lng } if @trip.origin
+      options[:destination] = { lat: @trip.destination.lat, lng: @trip.destination.lng } if @trip.destination
       options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
       options[:date] = @trip.trip_time.to_date if @trip.trip_time
-      
-      @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
-      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
+  
+      @available_services = @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by { |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
-      @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
+      @available_services = @available_services.available_for(@trip, only_by: [:eligibility])
+    end
+  
+    # Debugging logs to understand filtering steps
+    Rails.logger.info "Available Services after initial filters: #{@available_services.pluck(:id)}"
+  
+    # Filter by geography only if it is included in filters
+    if @filters.include?(:geography)
+      before_geography_filter = @available_services.pluck(:id)
+      @available_services = @available_services.available_for(@trip, only_by: [:geography])
+      Rails.logger.info "Available Services before Geography Filter: #{before_geography_filter}"
+      Rails.logger.info "Available Services after Geography Filter: #{@available_services.pluck(:id)}"
     end
   
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
+  
   
   
   # Group available services by type, returning a hash with a key for each
