@@ -112,7 +112,7 @@ class TripPlanner
       filtered_paratransit_services = paratransit_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
   
       # Combine the filtered paratransit services with other services that don't need these filters
-      @available_services = filtered_paratransit_services + other_services
+      @available_services = filtered_paratransit_services.or(other_services)
     else
       # Currently there's only one service per county, users are only allowed to book rides for their home service, and we only use paratransit services, so this may break
       options = {}
@@ -130,6 +130,7 @@ class TripPlanner
     # Now convert into a hash grouped by type
     @available_services = available_services_hash(@available_services)
   end
+  
   
   
   # Group available services by type, returning a hash with a key for each
