@@ -193,43 +193,13 @@ class EcolaneAmbassador < BookingAmbassador
       booking_details[:note] = order[:pickup][:note]
       booking.update(details: booking_details)
   
-      resp = send_request(url, 'POST', order)
-      # NOTE: this seems like overkill, but Ecolane uses both JSON and
-      # ...XML for their responses, and failed responses are formatted as JSON
-      body_hash = Hash.from_xml(resp.body)
-  
-      eco_trip = nil
-  
-      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
-        eco_trip = fetch_order(confirmation)["order"]
-        booking.update(occ_booking_hash(eco_trip))
-        booking.itinerary = itinerary
-        booking.confirmation = confirmation
-        booking.created_in_1click = true
-        booking.save
-        booking
-      else
-        Rails.logger.info "Failure response from Ecolane: #{resp.body}"
-        errors = body_hash['status']['error']
-        errors = [errors] unless errors.is_a?(Array)
-        error_messages = errors.map { |e| e['message'] }.join("; ")
-        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
-        Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
-        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-        nil
-      end
-    rescue REXML::ParseException
-      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      booking.update(created_in_1click: true)
-      nil
-    ensure
+      # Prepare to save a snapshot before attempting booking
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
-        status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-        confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        details: eco_trip ? eco_trip.to_json : nil,
+        status: nil,  # initially nil, will be updated after the booking attempt
+        confirmation: nil,  # initially nil, will be updated after the booking attempt
+        details: order.to_json,  # save the order details
         earliest_pu: booking.earliest_pu,
         latest_pu: booking.latest_pu,
         negotiated_pu: booking.negotiated_pu,
@@ -237,7 +207,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
+        note: order[:pickup][:note],
         funding_source: booking_details[:funding_hash].try(:[], :funding_source),
         purpose: booking_details[:funding_hash].try(:[], :purpose),
         booking_id: booking.id,
@@ -253,14 +223,49 @@ class EcolaneAmbassador < BookingAmbassador
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
         sponsor: booking_details[:funding_hash].try(:[], :sponsor),
-        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
-        ecolane_error_message: booking.ecolane_error_message,
-        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
+        companions: order[:companions].to_i,  # capture companions from the order
+        ecolane_error_message: nil,  # initially nil, will be updated if there's an error
+        pca: order[:assistant],  # capture PCA from the order
         disposition_status: trip.disposition_status
       )
+  
+      resp = send_request(url, 'POST', order)
+      body_hash = Hash.from_xml(resp.body)
+      eco_trip = nil
+  
+      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+        confirmation = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        eco_trip = fetch_order(confirmation)["order"]
+        booking.update(occ_booking_hash(eco_trip))
+        booking.itinerary = itinerary
+        booking.confirmation = confirmation
+        booking.created_in_1click = true
+        booking.save
+      else
+        Rails.logger.info "Failure response from Ecolane: #{resp.body}"
+        errors = body_hash['status']['error']
+        errors = [errors] unless errors.is_a?(Array)
+        error_messages = errors.map { |e| e['message'] }.join("; ")
+        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
+        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+      end
+  
+      # Update the snapshot with the booking results
+      new_snapshot.status = eco_trip.try(:with_indifferent_access).try(:[], :status)
+      new_snapshot.confirmation = eco_trip.try(:with_indifferent_access).try(:[], :id)
+      new_snapshot.details = eco_trip ? eco_trip.to_json : order.to_json  # use the order details if booking failed
+      new_snapshot.ecolane_error_message = booking.ecolane_error_message
+  
+    rescue REXML::ParseException
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+      booking.update(created_in_1click: true)
+    ensure
+      # Ensure the snapshot is saved with all the gathered details
       new_snapshot.save!
     end
   end
+  
   
 
   # Get a list of customers
