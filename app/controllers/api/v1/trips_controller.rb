@@ -264,7 +264,7 @@ module Api
         end
       end
 
-      def create_snapshot(trip, booking, order:, eco_trip:)
+      def create_snapshot(trip, booking, order, eco_trip)
         itinerary = booking.itinerary || trip.itinerary
         user = itinerary&.user
         service = user&.booking_profile&.service
