@@ -902,42 +902,56 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order funding=true, funding_hash=nil
+  def build_order(funding=true, funding_hash=nil)
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
+    Rails.logger.info "Building order with itinerary: #{itin.inspect}"
+  
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
-
+  
     @trip.reload
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
-
+  
+    Rails.logger.info "Pickup hash: #{pickup_hash.inspect}"
+  
     order_hash = {
-      assistant: @booking_options[:assistant], 
-      companions: @booking_options[:companions] || 0, 
-      children: @booking_options[:children] || 0, 
+      assistant: @booking_options[:assistant],
+      companions: @booking_options[:companions] || 0,
+      children: @booking_options[:children] || 0,
       other_passengers: 0,
       pickup: pickup_hash,
       dropoff: build_do_hash
     }
-
+  
+    Rails.logger.info "Initial order hash: #{order_hash.inspect}"
+  
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
+  
+    Rails.logger.info "Order hash with customer ID: #{order_hash.inspect}"
+  
     begin
       if funding_hash && !funding_hash.empty?
         order_hash[:funding] = funding_hash
       elsif funding
         order_hash[:funding] = get_funding_hash
       elsif @purpose
-        order_hash[:funding] = {purpose: @purpose}
+        order_hash[:funding] = { purpose: @purpose }
       end
-
-      order_hash.to_xml(root: 'order', :dasherize => false)
-    rescue REXML::ParseException
+  
+      Rails.logger.info "Final order hash: #{order_hash.inspect}"
+      order_xml = order_hash.to_xml(root: 'order', dasherize: false)
+      Rails.logger.info "Order XML: #{order_xml}"
+      order_xml
+    rescue REXML::ParseException => e
+      Rails.logger.error("REXML::ParseException when building order: #{e.message}")
       nil
     end
   end
+  
   
   # Build the hash for the pickup request
   def build_pu_hash
