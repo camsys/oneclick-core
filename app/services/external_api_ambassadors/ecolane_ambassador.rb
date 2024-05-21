@@ -201,36 +201,42 @@ class EcolaneAmbassador < BookingAmbassador
           booking.save
         else
           error_messages = body_hash['status']['error'].map { |e| e['message'] }.join("; ")
-          booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+          booking.update(ecolane_error_message: error_messages, created_in_1click: true, note: order.dig(:pickup, :note))
           @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         end
       else
         error_messages = JSON.parse(resp.body)['errors'].map { |e| e['message'] }.join("; ")
-        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        booking.update(ecolane_error_message: error_messages, created_in_1click: true, note: order.dig(:pickup, :note))
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
     rescue REXML::ParseException => e
       Rails.logger.error("XML Parsing Error: #{e.message}")
-      booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true)
+      booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true, note: order.dig(:pickup, :note))
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     rescue StandardError => e
       Rails.logger.error("Booking Error: #{e.message}")
-      booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true)
+      booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true, note: order.dig(:pickup, :note))
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     ensure
       itinerary = booking.itinerary || self.itinerary
       user = itinerary&.user
       service = user&.booking_profile&.service
       agency = service&.agency
-      booking_details = booking.details || {}
-      order_details = order || {}
 
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
       Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
       Rails.logger.info "Order at ensure block: #{order.inspect}" # Logging the order
       Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}" # Logging the eco_trip
-      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}" # Logging the booking details
-      Rails.logger.info "Order Details at ensure block: #{order_details.inspect}" # Logging the order details
+
+      # Parse the order back into a hash if necessary
+      if order.is_a?(String)
+        order_hash = Hash.from_xml(order)
+        order_details = order_hash.with_indifferent_access[:order]
+      else
+        order_details = order.with_indifferent_access
+      end
+
+      booking_details = booking.details || {}
 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
