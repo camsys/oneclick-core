@@ -222,6 +222,8 @@ class EcolaneAmbassador < BookingAmbassador
       user = itinerary&.user
       service = user&.booking_profile&.service
       agency = service&.agency
+      booking_details = booking.details || {}
+      order = booking_details[:order] || {}
 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
