@@ -59,7 +59,7 @@ module Admin
     end
 
     def trip_time
-      @record.trip_time&.in_time_zone
+      booking_snapshot&.negotiated_pu || @record.trip_time&.in_time_zone
     end
 
     def traveler
