@@ -199,6 +199,12 @@ class EcolaneAmbassador < BookingAmbassador
     user = itinerary&.user
     service = user&.booking_profile&.service
     agency = service&.agency
+
+    Rails.logger.info "Itinerary at new_order: #{itinerary.inspect}"
+    Rails.logger.info "Booking at new_order: #{booking.inspect}"
+    Rails.logger.info "Order at new_order: #{order.inspect}"
+    Rails.logger.info "Booking Details at new_order: #{booking.details.inspect}"
+    Rails.logger.info "Order Details at new_order: #{order.inspect}"
   
     new_snapshot = EcolaneBookingSnapshot.new(
       trip_id: trip.id,
@@ -213,9 +219,6 @@ class EcolaneAmbassador < BookingAmbassador
       estimated_pu: booking.estimated_pu,
       estimated_do: booking.estimated_do,
       created_in_1click: booking.created_in_1click,
-      note: order.dig("order", "pickup", "note"),
-      funding_source: order.dig("order", "funding", "funding_source"),
-      purpose: order.dig("order", "funding", "purpose"),
       booking_id: booking.id,
       traveler: user&.email,
       orig_addr: trip.origin.formatted_address,
@@ -280,9 +283,6 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Order Details at ensure block: #{order.inspect}"
     end
   end
-  
-  
-  
   
   
   # Get a list of customers
