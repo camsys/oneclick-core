@@ -230,6 +230,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
       Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
       Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}" # Logging the booking details  
+      Rails.logger.info "Order at ensure block: #{order.inspect}" # Logging the order
 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
