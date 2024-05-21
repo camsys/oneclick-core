@@ -298,6 +298,8 @@ class EcolaneAmbassador < BookingAmbassador
   end
   
   
+  
+  
   # Get a list of customers
   def search_for_customers terms={}
     url_options = "/api/customer/#{system_id}/search?"
@@ -945,10 +947,10 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Final order hash: #{order_hash.inspect}"
       order_xml = order_hash.to_xml(root: 'order', dasherize: false)
       Rails.logger.info "Order XML: #{order_xml}"
-      return order_xml, order_hash
+      [order_xml, order_hash]
     rescue REXML::ParseException => e
       Rails.logger.error("REXML::ParseException when building order: #{e.message}")
-      return nil, nil
+      [nil, nil]
     end
   end
   
