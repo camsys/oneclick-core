@@ -456,6 +456,11 @@ class EcolaneAmbassador < BookingAmbassador
       req.add_field 'X-ECOLANE-TOKEN', token
       req.add_field 'Content-Type', 'text/xml'
 
+      # Add the X-Ecolane-Api-Key header if the subdomain is sandbox-penndot1
+      if self.system_id == 'sandbox-penndot1'
+        req.add_field 'X-Ecolane-Api-Key', '1e2eed08-a637-4bf1-9c24-7daeaa72bfbb'
+      end
+
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
