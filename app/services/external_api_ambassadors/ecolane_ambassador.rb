@@ -228,12 +228,10 @@ class EcolaneAmbassador < BookingAmbassador
       booking_details = booking.details || {}
 
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
-
+      Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
+      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}" # Logging the booking details  
 
       new_snapshot = EcolaneBookingSnapshot.new(
-        Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}", # Logging the itinerary
-        Rails.logger.info "Booking at ensure block: #{booking.inspect}", # Logging the booking
-        Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}", # Logging the booking details
         trip_id: trip.id,
         itinerary_id: itinerary&.id,
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
