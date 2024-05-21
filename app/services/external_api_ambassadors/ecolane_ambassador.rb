@@ -239,14 +239,14 @@ class EcolaneAmbassador < BookingAmbassador
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
         booking.confirmation = confirmation
-        booking.created_in_1click = true
+        booking.created_in_1click = true  # Set the flag here
         booking.save
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
         errors = body_hash['status']['error']
         errors = [errors] unless errors.is_a?(Array)
         error_messages = errors.map { |e| e['message'] }.join("; ")
-        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        booking.update(ecolane_error_message: error_messages, created_in_1click: true)  # Set the flag here
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
@@ -259,7 +259,7 @@ class EcolaneAmbassador < BookingAmbassador
   
     rescue REXML::ParseException
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      booking.update(created_in_1click: true)
+      booking.update(created_in_1click: true)  # Set the flag here
     ensure
       # Ensure the snapshot is saved with all the gathered details
       new_snapshot.save!
