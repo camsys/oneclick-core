@@ -206,7 +206,7 @@ class EcolaneAmbassador < BookingAmbassador
       itinerary_id: itinerary&.id,
       status: nil,
       confirmation: nil,
-      details: order.to_json,
+      details: order,
       earliest_pu: booking.earliest_pu,
       latest_pu: booking.latest_pu,
       negotiated_pu: booking.negotiated_pu,
@@ -296,8 +296,6 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Order Details at ensure block: #{order.inspect}"
     end
   end
-  
-  
   
   
   # Get a list of customers
@@ -953,7 +951,6 @@ class EcolaneAmbassador < BookingAmbassador
       return nil, nil
     end
   end
-  
   
   
   # Build the hash for the pickup request
