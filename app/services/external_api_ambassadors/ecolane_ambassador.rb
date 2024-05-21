@@ -223,21 +223,20 @@ class EcolaneAmbassador < BookingAmbassador
       service = user&.booking_profile&.service
       agency = service&.agency
       booking_details = booking.details || {}
-      order_details = order
+      order_details = order || {}
 
-      # Logging for debugging purposes
-      Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
-      Rails.logger.info "Booking at ensure block: #{booking.inspect}"
-      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}"
-      Rails.logger.info "Order Details at ensure block: #{order_details.inspect}"
-      Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}"
+      Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
+      Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
+      Rails.logger.info "Order at ensure block: #{order.inspect}" # Logging the order
+      Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}" # Logging the eco_trip
+      Rails.logger.info "Booking Details at ensure block: #{order_details.inspect}" # Logging the booking details
 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary&.id,
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
         confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        details: eco_trip ? eco_trip.to_json : order_details.to_json,
+        details: eco_trip ? eco_trip.to_json : order.to_json,
         earliest_pu: booking.earliest_pu,
         latest_pu: booking.latest_pu,
         negotiated_pu: booking.negotiated_pu,
@@ -245,7 +244,6 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: order.dig(:pickup, :note),
         funding_source: booking_details.dig(:funding_hash, :funding_source),
         purpose: booking_details.dig(:funding_hash, :purpose),
         booking_id: booking.id,
@@ -261,9 +259,9 @@ class EcolaneAmbassador < BookingAmbassador
         booking_client_id: user&.booking_profile&.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
         sponsor: booking_details.dig(:funding_hash, :sponsor),
-        companions: order.dig(:companions).to_i,
+        companions: order_details[:companions].to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: order.dig(:assistant),
+        pca: order_details[:assistant],
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
