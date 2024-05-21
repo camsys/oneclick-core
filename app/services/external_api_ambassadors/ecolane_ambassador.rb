@@ -236,7 +236,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: order[:pickup][:note],
+        note: booking.note,
         funding_source: booking.details[:funding_hash].try(:[], :funding_source),
         purpose: booking.details[:funding_hash].try(:[], :purpose),
         booking_id: booking.id,
