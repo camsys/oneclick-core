@@ -184,8 +184,7 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
-    order = build_order
-    booking = self.booking
+    order, order_hash = build_order
   
     Rails.logger.info "Order before sending request: #{order.inspect}"
   
@@ -193,6 +192,8 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error("Order is nil after build_order call")
       return
     end
+  
+    booking = self.booking
   
     # Create a snapshot before attempting to book
     itinerary = booking.itinerary || self.itinerary
@@ -225,10 +226,10 @@ class EcolaneAmbassador < BookingAmbassador
       service_name: service&.name,
       booking_client_id: user&.booking_profile&.external_user_id,
       is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-      sponsor: order.dig("order", "funding", "sponsor"),
-      companions: order.dig("order", "companions").to_i,
+      sponsor: order_hash.dig(:funding, :sponsor),
+      companions: order_hash[:companions].to_i,
       ecolane_error_message: nil,
-      pca: order.dig("order", "assistant"),
+      pca: order_hash[:assistant],
       disposition_status: trip.disposition_status
     }
   
@@ -295,6 +296,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Order Details at ensure block: #{order.inspect}"
     end
   end
+  
   
   
   
@@ -945,12 +947,13 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Final order hash: #{order_hash.inspect}"
       order_xml = order_hash.to_xml(root: 'order', dasherize: false)
       Rails.logger.info "Order XML: #{order_xml}"
-      order_xml
+      return order_xml, order_hash
     rescue REXML::ParseException => e
       Rails.logger.error("REXML::ParseException when building order: #{e.message}")
-      nil
+      return nil, nil
     end
   end
+  
   
   
   # Build the hash for the pickup request
