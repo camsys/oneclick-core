@@ -184,7 +184,8 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
-    order, order_hash = build_order
+    order = build_order
+    booking = self.booking
   
     Rails.logger.info "Order before sending request: #{order.inspect}"
   
@@ -193,20 +194,24 @@ class EcolaneAmbassador < BookingAmbassador
       return
     end
   
-    booking = self.booking
-  
     # Create a snapshot before attempting to book
     itinerary = booking.itinerary || self.itinerary
     user = itinerary&.user
     service = user&.booking_profile&.service
     agency = service&.agency
+
+    Rails.logger.info "Itinerary at new_order: #{itinerary.inspect}"
+    Rails.logger.info "Booking at new_order: #{booking.inspect}"
+    Rails.logger.info "Order at new_order: #{order.inspect}"
+    Rails.logger.info "Booking Details at new_order: #{booking.details.inspect}"
+    
   
-    snapshot_details = {
+    new_snapshot = EcolaneBookingSnapshot.new(
       trip_id: trip.id,
       itinerary_id: itinerary&.id,
       status: nil,
       confirmation: nil,
-      details: order,
+      details: order.to_json,
       earliest_pu: booking.earliest_pu,
       latest_pu: booking.latest_pu,
       negotiated_pu: booking.negotiated_pu,
@@ -226,14 +231,12 @@ class EcolaneAmbassador < BookingAmbassador
       service_name: service&.name,
       booking_client_id: user&.booking_profile&.external_user_id,
       is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-      sponsor: order_hash.dig(:funding, :sponsor),
-      companions: order_hash[:companions].to_i,
+      sponsor: order.dig("order", "funding", "sponsor"),
+      companions: order.dig("order", "companions").to_i,
       ecolane_error_message: nil,
-      pca: order_hash[:assistant],
+      pca: order.dig("order", "assistant"),
       disposition_status: trip.disposition_status
-    }
-  
-    new_snapshot = EcolaneBookingSnapshot.new(snapshot_details)
+    )
     new_snapshot.save!
   
     begin
@@ -248,44 +251,28 @@ class EcolaneAmbassador < BookingAmbassador
           booking.confirmation = confirmation
           booking.created_in_1click = true
           booking.save
-          new_snapshot.update(
-            status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-            confirmation: confirmation,
-            details: eco_trip.to_json
-          )
+          new_snapshot.update(status: eco_trip.try(:with_indifferent_access).try(:[], :status), confirmation: confirmation, details: eco_trip.to_json)
         else
           error_messages = body_hash['status']['error'].map { |e| e['message'] }.join("; ")
           booking.update(ecolane_error_message: error_messages, created_in_1click: true)
-          new_snapshot.update(
-            ecolane_error_message: error_messages,
-            disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied]
-          )
+          new_snapshot.update(ecolane_error_message: error_messages, disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
           @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         end
       else
         error_messages = JSON.parse(resp.body)['errors'].map { |e| e['message'] }.join("; ")
         booking.update(ecolane_error_message: error_messages, created_in_1click: true)
-        new_snapshot.update(
-          ecolane_error_message: error_messages,
-          disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied]
-        )
+        new_snapshot.update(ecolane_error_message: error_messages, disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
     rescue REXML::ParseException => e
       Rails.logger.error("XML Parsing Error: #{e.message}")
       booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true)
-      new_snapshot.update(
-        ecolane_error_message: "XML Parsing Error: #{e.message}",
-        disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied]
-      )
+      new_snapshot.update(ecolane_error_message: "XML Parsing Error: #{e.message}", disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     rescue StandardError => e
       Rails.logger.error("Booking Error: #{e.message}")
       booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true)
-      new_snapshot.update(
-        ecolane_error_message: "Booking Error: #{e.message}",
-        disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied]
-      )
+      new_snapshot.update(ecolane_error_message: "Booking Error: #{e.message}", disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     ensure
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
@@ -296,8 +283,6 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Order Details at ensure block: #{order.inspect}"
     end
   end
-  
-  
   
   
   # Get a list of customers
@@ -904,56 +889,42 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order(funding=true, funding_hash=nil)
+  def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
-    Rails.logger.info "Building order with itinerary: #{itin.inspect}"
-  
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
-  
+
     @trip.reload
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
-  
-    Rails.logger.info "Pickup hash: #{pickup_hash.inspect}"
-  
+
     order_hash = {
-      assistant: @booking_options[:assistant],
-      companions: @booking_options[:companions] || 0,
-      children: @booking_options[:children] || 0,
+      assistant: @booking_options[:assistant], 
+      companions: @booking_options[:companions] || 0, 
+      children: @booking_options[:children] || 0, 
       other_passengers: 0,
       pickup: pickup_hash,
       dropoff: build_do_hash
     }
-  
-    Rails.logger.info "Initial order hash: #{order_hash.inspect}"
-  
+
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
-  
-    Rails.logger.info "Order hash with customer ID: #{order_hash.inspect}"
-  
     begin
       if funding_hash && !funding_hash.empty?
         order_hash[:funding] = funding_hash
       elsif funding
         order_hash[:funding] = get_funding_hash
       elsif @purpose
-        order_hash[:funding] = { purpose: @purpose }
+        order_hash[:funding] = {purpose: @purpose}
       end
-  
-      Rails.logger.info "Final order hash: #{order_hash.inspect}"
-      order_xml = order_hash.to_xml(root: 'order', dasherize: false)
-      Rails.logger.info "Order XML: #{order_xml}"
-      [order_xml, order_hash]
-    rescue REXML::ParseException => e
-      Rails.logger.error("REXML::ParseException when building order: #{e.message}")
-      [nil, nil]
+
+      order_hash.to_xml(root: 'order', :dasherize => false)
+    rescue REXML::ParseException
+      nil
     end
   end
-  
   
   # Build the hash for the pickup request
   def build_pu_hash
