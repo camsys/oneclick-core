@@ -186,7 +186,7 @@ class EcolaneAmbassador < BookingAmbassador
     eco_trip = nil
     order = build_order
     booking = self.booking
-
+  
     begin
       resp = send_request(url, 'POST', order)
       if resp.content_type == 'application/xml'
@@ -223,14 +223,16 @@ class EcolaneAmbassador < BookingAmbassador
       service = user&.booking_profile&.service
       agency = service&.agency
       booking_details = booking.details || {}
-      order_details = order || {}
-
-      Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
-      Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
-      Rails.logger.info "Order at ensure block: #{order.inspect}" # Logging the order
-      Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}" # Logging the eco_trip
-      Rails.logger.info "Booking Details at ensure block: #{order_details.inspect}" # Logging the booking details
-
+      order_details = order
+  
+      # Logging for debugging purposes
+      Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
+      Rails.logger.info "Booking at ensure block: #{booking.inspect}"
+      Rails.logger.info "Order at ensure block: #{order.inspect}"
+      Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}"
+      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}"
+      Rails.logger.info "Order Details at ensure block: #{order_details.inspect}"
+  
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary&.id,
@@ -244,8 +246,9 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        funding_source: booking_details.dig(:funding_hash, :funding_source),
-        purpose: booking_details.dig(:funding_hash, :purpose),
+        note: order.dig("order", "pickup", "note"),
+        funding_source: order.dig("order", "funding", "funding_source"),
+        purpose: order.dig("order", "funding", "purpose"),
         booking_id: booking.id,
         traveler: user&.email,
         orig_addr: trip.origin.formatted_address,
@@ -258,15 +261,16 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: service&.name,
         booking_client_id: user&.booking_profile&.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: booking_details.dig(:funding_hash, :sponsor),
-        companions: order_details[:companions].to_i,
+        sponsor: order.dig("order", "funding", "sponsor"),
+        companions: order.dig("order", "companions").to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: order_details[:assistant],
+        pca: order.dig("order", "assistant"),
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
     end
   end
+  
   
   # Get a list of customers
   def search_for_customers terms={}
