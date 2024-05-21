@@ -222,15 +222,14 @@ class EcolaneAmbassador < BookingAmbassador
       user = itinerary&.user
       service = user&.booking_profile&.service
       agency = service&.agency
-      booking_details = booking.details || {}
-      order_details = order
+      order_hash = order.is_a?(String) ? Hash.from_xml(order) : order
+      order_details = order_hash.with_indifferent_access[:order]
   
       # Logging for debugging purposes
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
       Rails.logger.info "Booking at ensure block: #{booking.inspect}"
       Rails.logger.info "Order at ensure block: #{order.inspect}"
       Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}"
-      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}"
       Rails.logger.info "Order Details at ensure block: #{order_details.inspect}"
   
       new_snapshot = EcolaneBookingSnapshot.new(
@@ -246,9 +245,9 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: order.dig("order", "pickup", "note"),
-        funding_source: order.dig("order", "funding", "funding_source"),
-        purpose: order.dig("order", "funding", "purpose"),
+        note: order_details[:pickup][:note],
+        funding_source: order_details.dig(:funding, :funding_source),
+        purpose: order_details.dig(:funding, :purpose),
         booking_id: booking.id,
         traveler: user&.email,
         orig_addr: trip.origin.formatted_address,
@@ -261,10 +260,10 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: service&.name,
         booking_client_id: user&.booking_profile&.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: order.dig("order", "funding", "sponsor"),
-        companions: order.dig("order", "companions").to_i,
+        sponsor: order_details.dig(:funding, :sponsor),
+        companions: order_details[:companions].to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: order.dig("order", "assistant"),
+        pca: order_details[:assistant],
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
