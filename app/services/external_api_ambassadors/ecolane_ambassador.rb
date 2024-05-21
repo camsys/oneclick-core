@@ -222,8 +222,13 @@ class EcolaneAmbassador < BookingAmbassador
       user = itinerary&.user
       service = user&.booking_profile&.service
       agency = service&.agency
-      order_hash = order.is_a?(String) ? Hash.from_xml(order) : order
-      order_details = order_hash.with_indifferent_access[:order]
+  
+      begin
+        order_hash = Nokogiri::XML(order).remove_namespaces!
+        order_details = Hash.from_xml(order_hash.to_s).with_indifferent_access["order"]
+      rescue
+        order_details = {}
+      end
   
       # Logging for debugging purposes
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
@@ -245,7 +250,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: order_details[:pickup][:note],
+        note: order_details.dig(:pickup, :note),
         funding_source: order_details.dig(:funding, :funding_source),
         purpose: order_details.dig(:funding, :purpose),
         booking_id: booking.id,
@@ -269,6 +274,7 @@ class EcolaneAmbassador < BookingAmbassador
       new_snapshot.save!
     end
   end
+  
   
   
   # Get a list of customers
