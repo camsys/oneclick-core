@@ -223,29 +223,31 @@ module Api
           # BOOK THE ITINERARY, selecting it and storing the response in a booking object
           if itin.booked?
             # This itinerary has already been booked. Don't book it again.
+            create_snapshot(itin.trip, itin.booking, booking_request, nil)
             next response.merge(booking_response_hash(itin.booking))
           end
 
-          booking_result = itin.try(:book, booking_options: booking_request)
-          unless booking_result.is_a?(Booking)
+          booking = itin.try(:book, booking_options: booking_request)
+          unless booking.is_a?(Booking)
             failed = true
-            create_snapshot(itin.trip, booking_result, order: booking_request, eco_trip: nil)
+            create_snapshot(itin.trip, booking, booking_request, nil)
             next response 
           end
 
           # Ensure that the confirmation is not blank
-          if booking_result.confirmation.blank?
+          if booking.confirmation.blank?
             failed = true
-            create_snapshot(itin.trip, booking_result, order: booking_request, eco_trip: nil)
+            create_snapshot(itin.trip, booking, booking_request, nil)
             next response 
           end
 
-          create_snapshot(itin.trip, booking_result, order: booking_request, eco_trip: fetch_order(booking_result.confirmation)["order"])
+          eco_trip = fetch_order(booking.confirmation)["order"]
+          create_snapshot(itin.trip, booking, booking_request, eco_trip)
           # Update Trip Disposition Status to ecolane succeeded
           itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           itin.trip.ecolane_booking_snapshot.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
           # Package it in a response hash as per API V1 docs
-          next response.merge(booking_response_hash(booking_result))
+          next response.merge(booking_response_hash(booking))
         end
 
         # If any of the itineraries failed, cancel them all and return failures
@@ -264,8 +266,10 @@ module Api
         end
       end
 
+      private
+
       def create_snapshot(trip, booking, order, eco_trip)
-        itinerary = booking.itinerary || trip.itinerary
+        itinerary = booking&.itinerary || trip.itinerary
         user = itinerary&.user
         service = user&.booking_profile&.service
         agency = service&.agency
@@ -276,17 +280,17 @@ module Api
           status: eco_trip.try(:with_indifferent_access).try(:[], :status),
           confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
           details: eco_trip ? eco_trip.to_json : order.to_json,
-          earliest_pu: booking.earliest_pu,
-          latest_pu: booking.latest_pu,
-          negotiated_pu: booking.negotiated_pu,
-          negotiated_do: booking.negotiated_do,
-          estimated_pu: booking.estimated_pu,
-          estimated_do: booking.estimated_do,
-          created_in_1click: booking.created_in_1click,
+          earliest_pu: booking&.earliest_pu,
+          latest_pu: booking&.latest_pu,
+          negotiated_pu: booking&.negotiated_pu,
+          negotiated_do: booking&.negotiated_do,
+          estimated_pu: booking&.estimated_pu,
+          estimated_do: booking&.estimated_do,
+          created_in_1click: booking&.created_in_1click,
           note: order[:pickup][:note],
-          funding_source: booking.details[:funding_hash].try(:[], :funding_source),
-          purpose: booking.details[:funding_hash].try(:[], :purpose),
-          booking_id: booking.id,
+          funding_source: booking&.details&.dig(:funding_hash, :funding_source),
+          purpose: booking&.details&.dig(:funding_hash, :purpose),
+          booking_id: booking&.id,
           traveler: user&.email,
           orig_addr: trip.origin.formatted_address,
           orig_lat: trip.origin.lat,
@@ -298,9 +302,9 @@ module Api
           service_name: service&.name,
           booking_client_id: user&.booking_profile&.external_user_id,
           is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-          sponsor: booking.details[:funding_hash].try(:[], :sponsor),
+          sponsor: booking&.details&.dig(:funding_hash, :sponsor),
           companions: order[:companions].to_i,
-          ecolane_error_message: booking.ecolane_error_message,
+          ecolane_error_message: booking&.ecolane_error_message,
           pca: order[:assistant],
           disposition_status: trip.disposition_status
         )
