@@ -225,6 +225,8 @@ class EcolaneAmbassador < BookingAmbassador
       booking_details = booking.details || {}
       order = booking_details[:order] || {}
 
+      booking_details = booking.details || {}
+
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary&.id,
@@ -238,9 +240,9 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: booking.note,
-        funding_source: booking.details[:funding_hash].try(:[], :funding_source),
-        purpose: booking.details[:funding_hash].try(:[], :purpose),
+        note: itinerary&.note,
+        funding_source: booking_details[:funding_hash].try(:[], :funding_source),
+        purpose: booking_details[:funding_hash].try(:[], :purpose),
         booking_id: booking.id,
         traveler: user&.email,
         orig_addr: trip.origin.formatted_address,
@@ -253,7 +255,7 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: service&.name,
         booking_client_id: user&.booking_profile&.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: booking.details[:funding_hash].try(:[], :sponsor),
+        sponsor: booking_details[:funding_hash].try(:[], :sponsor),
         companions: order[:companions].to_i,
         ecolane_error_message: booking.ecolane_error_message,
         pca: order[:assistant],
