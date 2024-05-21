@@ -189,39 +189,44 @@ class EcolaneAmbassador < BookingAmbassador
   
     begin
       resp = send_request(url, 'POST', order)
-      body_hash = Hash.from_xml(resp.body)
-  
-      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-        confirmation = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
-        eco_trip = fetch_order(confirmation)["order"]
-        booking.update(occ_booking_hash(eco_trip))
-        booking.itinerary = itinerary
-        booking.confirmation = confirmation
-        booking.created_in_1click = true
-        booking.save
+      if resp.content_type == 'application/xml'
+        body_hash = Hash.from_xml(resp.body)
+        if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
+          confirmation = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+          eco_trip = fetch_order(confirmation)["order"]
+          booking.update(occ_booking_hash(eco_trip))
+          booking.itinerary = itinerary
+          booking.confirmation = confirmation
+          booking.created_in_1click = true
+          booking.save
+        else
+          handle_booking_failure(booking, body_hash['status']['error'])
+        end
       else
-        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-        booking.update(created_in_1click: true)
+        handle_booking_failure(booking, JSON.parse(resp.body)['errors'])
       end
-  
     rescue REXML::ParseException => e
       Rails.logger.error("XML Parsing Error: #{e.message}")
-      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      booking.update(created_in_1click: true)
+      handle_booking_failure(booking, ["XML Parsing Error: #{e.message}"])
     rescue StandardError => e
       Rails.logger.error("Booking Error: #{e.message}")
-      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      booking.update(created_in_1click: true)
+      handle_booking_failure(booking, ["Booking Error: #{e.message}"])
     ensure
       create_snapshot(order, eco_trip)
     end
   end
   
+  def handle_booking_failure(booking, errors)
+    error_messages = errors.is_a?(Array) ? errors.map { |e| e['message'] }.join("; ") : errors
+    booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+    @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+  end
+  
   def create_snapshot(order, eco_trip)
     booking = self.booking
     itinerary = booking.itinerary || self.itinerary
-    user = itinerary.user if itinerary
-    service = itinerary&.user&.booking_profile&.service
+    user = itinerary&.user
+    service = user&.booking_profile&.service
     agency = service&.agency
   
     new_snapshot = EcolaneBookingSnapshot.new(
@@ -250,7 +255,7 @@ class EcolaneAmbassador < BookingAmbassador
       dest_lng: trip.destination.lng,
       agency_name: agency&.name,
       service_name: service&.name,
-      booking_client_id: itinerary&.user&.booking_profile&.external_user_id,
+      booking_client_id: user&.booking_profile&.external_user_id,
       is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
       sponsor: booking.details[:funding_hash].try(:[], :sponsor),
       companions: order[:companions].to_i,
