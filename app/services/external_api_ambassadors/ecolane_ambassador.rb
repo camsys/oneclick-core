@@ -189,6 +189,53 @@ class EcolaneAmbassador < BookingAmbassador
   
     Rails.logger.info "Order before sending request: #{order.inspect}"
   
+    if order.nil?
+      Rails.logger.error("Order is nil after build_order call")
+      return
+    end
+  
+    # Create a snapshot before attempting to book
+    itinerary = booking.itinerary || self.itinerary
+    user = itinerary&.user
+    service = user&.booking_profile&.service
+    agency = service&.agency
+  
+    new_snapshot = EcolaneBookingSnapshot.new(
+      trip_id: trip.id,
+      itinerary_id: itinerary&.id,
+      status: nil,
+      confirmation: nil,
+      details: order.to_json,
+      earliest_pu: booking.earliest_pu,
+      latest_pu: booking.latest_pu,
+      negotiated_pu: booking.negotiated_pu,
+      negotiated_do: booking.negotiated_do,
+      estimated_pu: booking.estimated_pu,
+      estimated_do: booking.estimated_do,
+      created_in_1click: booking.created_in_1click,
+      note: order.dig("order", "pickup", "note"),
+      funding_source: order.dig("order", "funding", "funding_source"),
+      purpose: order.dig("order", "funding", "purpose"),
+      booking_id: booking.id,
+      traveler: user&.email,
+      orig_addr: trip.origin.formatted_address,
+      orig_lat: trip.origin.lat,
+      orig_lng: trip.origin.lng,
+      dest_addr: trip.destination.formatted_address,
+      dest_lat: trip.destination.lat,
+      dest_lng: trip.destination.lng,
+      agency_name: agency&.name,
+      service_name: service&.name,
+      booking_client_id: user&.booking_profile&.external_user_id,
+      is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
+      sponsor: order.dig("order", "funding", "sponsor"),
+      companions: order.dig("order", "companions").to_i,
+      ecolane_error_message: nil,
+      pca: order.dig("order", "assistant"),
+      disposition_status: trip.disposition_status
+    )
+    new_snapshot.save!
+  
     begin
       resp = send_request(url, 'POST', order)
       if resp.content_type == 'application/xml'
@@ -201,74 +248,36 @@ class EcolaneAmbassador < BookingAmbassador
           booking.confirmation = confirmation
           booking.created_in_1click = true
           booking.save
+          new_snapshot.update(status: eco_trip.try(:with_indifferent_access).try(:[], :status), confirmation: confirmation, details: eco_trip.to_json)
         else
           error_messages = body_hash['status']['error'].map { |e| e['message'] }.join("; ")
           booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+          new_snapshot.update(ecolane_error_message: error_messages, disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
           @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         end
       else
         error_messages = JSON.parse(resp.body)['errors'].map { |e| e['message'] }.join("; ")
         booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+        new_snapshot.update(ecolane_error_message: error_messages, disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
     rescue REXML::ParseException => e
       Rails.logger.error("XML Parsing Error: #{e.message}")
       booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true)
+      new_snapshot.update(ecolane_error_message: "XML Parsing Error: #{e.message}", disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     rescue StandardError => e
       Rails.logger.error("Booking Error: #{e.message}")
       booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true)
+      new_snapshot.update(ecolane_error_message: "Booking Error: #{e.message}", disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     ensure
-      itinerary = booking.itinerary || self.itinerary
-      user = itinerary&.user
-      service = user&.booking_profile&.service
-      agency = service&.agency
-      booking_details = booking.details || {}
-      order_details = order
-  
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}"
       Rails.logger.info "Booking at ensure block: #{booking.inspect}"
       Rails.logger.info "Order at ensure block: #{order.inspect}"
       Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}"
-      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}"
-      Rails.logger.info "Order Details at ensure block: #{order_details.inspect}"
-  
-      new_snapshot = EcolaneBookingSnapshot.new(
-        trip_id: trip.id,
-        itinerary_id: itinerary&.id,
-        status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-        confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        details: eco_trip ? eco_trip.to_json : order.to_json,
-        earliest_pu: booking.earliest_pu,
-        latest_pu: booking.latest_pu,
-        negotiated_pu: booking.negotiated_pu,
-        negotiated_do: booking.negotiated_do,
-        estimated_pu: booking.estimated_pu,
-        estimated_do: booking.estimated_do,
-        created_in_1click: booking.created_in_1click,
-        note: order.dig("order", "pickup", "note"),
-        funding_source: order.dig("order", "funding", "funding_source"),
-        purpose: order.dig("order", "funding", "purpose"),
-        booking_id: booking.id,
-        traveler: user&.email,
-        orig_addr: trip.origin.formatted_address,
-        orig_lat: trip.origin.lat,
-        orig_lng: trip.origin.lng,
-        dest_addr: trip.destination.formatted_address,
-        dest_lat: trip.destination.lat,
-        dest_lng: trip.destination.lng,
-        agency_name: agency&.name,
-        service_name: service&.name,
-        booking_client_id: user&.booking_profile&.external_user_id,
-        is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: order.dig("order", "funding", "sponsor"),
-        companions: order.dig("order", "companions").to_i,
-        ecolane_error_message: booking.ecolane_error_message,
-        pca: order.dig("order", "assistant"),
-        disposition_status: trip.disposition_status
-      )
-      new_snapshot.save!
+      Rails.logger.info "Booking Details at ensure block: #{booking.details.inspect}"
+      Rails.logger.info "Order Details at ensure block: #{order.inspect}"
     end
   end
   
