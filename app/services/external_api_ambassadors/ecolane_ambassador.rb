@@ -201,32 +201,36 @@ class EcolaneAmbassador < BookingAmbassador
           booking.save
         else
           error_messages = body_hash['status']['error'].map { |e| e['message'] }.join("; ")
-          booking.update(ecolane_error_message: error_messages, created_in_1click: true, note: order.dig(:pickup, :note))
+          booking.update(ecolane_error_message: error_messages, created_in_1click: true)
           @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         end
       else
         error_messages = JSON.parse(resp.body)['errors'].map { |e| e['message'] }.join("; ")
-        booking.update(ecolane_error_message: error_messages, created_in_1click: true, note: order.dig(:pickup, :note))
+        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
     rescue REXML::ParseException => e
       Rails.logger.error("XML Parsing Error: #{e.message}")
-      booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true, note: order.dig(:pickup, :note))
+      booking.update(ecolane_error_message: "XML Parsing Error: #{e.message}", created_in_1click: true)
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     rescue StandardError => e
       Rails.logger.error("Booking Error: #{e.message}")
-      booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true, note: order.dig(:pickup, :note))
+      booking.update(ecolane_error_message: "Booking Error: #{e.message}", created_in_1click: true)
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
     ensure
       itinerary = booking.itinerary || self.itinerary
       user = itinerary&.user
       service = user&.booking_profile&.service
       agency = service&.agency
+      booking_details = booking.details || {}
+      order_details = order || {}
 
       Rails.logger.info "Itinerary at ensure block: #{itinerary.inspect}" # Logging the itinerary
       Rails.logger.info "Booking at ensure block: #{booking.inspect}" # Logging the booking
       Rails.logger.info "Order at ensure block: #{order.inspect}" # Logging the order
       Rails.logger.info "Eco Trip at ensure block: #{eco_trip.inspect}" # Logging the eco_trip
+      Rails.logger.info "Booking Details at ensure block: #{booking_details.inspect}" # Logging the booking details
+      Rails.logger.info "Order Details at ensure block: #{order_details.inspect}" # Logging the order details
 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
@@ -241,9 +245,9 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: order.dig(:pickup, :note),
-        funding_source: booking.details.try(:[], :funding_hash).try(:[], :funding_source),
-        purpose: booking.details.try(:[], :funding_hash).try(:[], :purpose),
+        note: order_details.dig(:pickup, :note),
+        funding_source: booking_details.dig(:funding_hash, :funding_source),
+        purpose: booking_details.dig(:funding_hash, :purpose),
         booking_id: booking.id,
         traveler: user&.email,
         orig_addr: trip.origin.formatted_address,
@@ -256,10 +260,10 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: service&.name,
         booking_client_id: user&.booking_profile&.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: booking.details.try(:[], :funding_hash).try(:[], :sponsor),
-        companions: order[:companions].to_i,
+        sponsor: booking_details.dig(:funding_hash, :sponsor),
+        companions: order_details[:companions].to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: order[:assistant],
+        pca: order_details[:assistant],
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
