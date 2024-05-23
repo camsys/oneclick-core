@@ -185,9 +185,8 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
-    order_result = build_order
-    order = order_result[:order_xml]
-  
+    order =  build_order
+      
     if order.nil?
       Rails.logger.error("Order is nil after build_order call")
       return
