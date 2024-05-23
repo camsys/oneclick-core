@@ -184,53 +184,78 @@ class EcolaneAmbassador < BookingAmbassador
   def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
+    eco_trip = nil
+    order = build_order
+    booking = self.booking
+  
+    itinerary = booking.itinerary || self.itinerary
+    trip = itinerary.trip
+  
+    # Retrieve the note directly from the itinerary
+    note = itinerary.note
+  
+    # Create a snapshot before attempting to book
+    new_snapshot = EcolaneBookingSnapshot.new(
+      trip_id: trip.id,
+      itinerary_id: itinerary.id,
+      status: nil,
+      confirmation: nil,
+      details: nil,
+      earliest_pu: booking.earliest_pu,
+      latest_pu: booking.latest_pu,
+      negotiated_pu: booking.negotiated_pu,
+      negotiated_do: booking.negotiated_do,
+      estimated_pu: booking.estimated_pu,
+      estimated_do: booking.estimated_do,
+      created_in_1click: booking.created_in_1click,
+      note: note, # Use the note from the itinerary
+      traveler: itinerary.user.email,
+      orig_addr: trip.origin.formatted_address,
+      orig_lat: trip.origin.lat,
+      orig_lng: trip.origin.lng,
+      dest_addr: trip.destination.formatted_address,
+      dest_lat: trip.destination.lat,
+      dest_lng: trip.destination.lng,
+      agency_name: itinerary.user.booking_profile.service.agency.name,
+      service_name: itinerary.user.booking_profile.service.name,
+      booking_client_id: itinerary.user.booking_profile.external_user_id,
+      is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
+      sponsor: nil,
+      companions: itinerary.companions.to_i,
+      ecolane_error_message: nil,
+      pca: itinerary.assistant,
+      disposition_status: trip.disposition_status,
+      booking_id: booking.id # Ensure snapshot references the booking
+    )
+    new_snapshot.save!
+  
     begin
-      order =  build_order
       resp = send_request(url, 'POST', order)
-    # NOTE: this seems like overkill, but Ecolane uses both JSON and
-    # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
-
-      # Initializing variables for the snapshot
-      eco_trip = nil
-      booking = self.booking
-      trip = itinerary.trip
-      booking_details = booking.details || {}
-      funding_hash = booking.details.fetch(:funding_hash, {})
-
+  
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
-        eco_trip  = fetch_order(confirmation)["order"]
-        booking = self.booking
+        confirmation = body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        eco_trip = fetch_order(confirmation)["order"]
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
         booking.confirmation = confirmation
         booking.created_in_1click = true
         booking.save
-        booking
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
-        booking = self.booking
         errors = body_hash['status']['error']
         errors = [errors] unless errors.is_a?(Array)
         error_messages = errors.map { |e| e['message'] }.join("; ")
-        self.booking.update(ecolane_error_message: error_messages, created_in_1click: true)
-        booking.ecolane_error_message = error_messages
-        booking.created_in_1click = true
+        booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         booking.save
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-        nil
       end
     rescue REXML::ParseException
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      self.booking.update(created_in_1click: true)
-      nil
-    # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
+      booking.update(created_in_1click: true)
     ensure
-      new_snapshot = EcolaneBookingSnapshot.new(
-        trip_id: trip.id,
-        itinerary_id: itinerary.id,
+      new_snapshot.update(
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
         confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
         details: eco_trip ? eco_trip.to_json : nil,
@@ -241,30 +266,17 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
-        funding_source: funding_hash[:funding_source],
-        purpose: funding_hash[:purpose],
-        booking_id: booking.id,
-        traveler: itinerary.user.email,
-        orig_addr: trip.origin.formatted_address,
-        orig_lat: trip.origin.lat,
-        orig_lng: trip.origin.lng,
-        dest_addr: trip.destination.formatted_address,
-        dest_lat: trip.destination.lat,
-        dest_lng: trip.destination.lng,
-        agency_name: itinerary.user.booking_profile.service.agency.name,
-        service_name: itinerary.user.booking_profile.service.name,
-        booking_client_id: itinerary.user.booking_profile.external_user_id,
-        is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: funding_hash[:sponsor],
-        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
+        note: note, # Ensure the note is set in the snapshot
+        sponsor: booking.details.dig(:funding_hash, :sponsor),
+        companions: itinerary.companions.to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-        disposition_status: trip.disposition_status
+        pca: itinerary.assistant,
+        disposition_status: trip.disposition_status,
+        booking_id: booking.id # Ensure snapshot references the booking
       )
-      new_snapshot.save!
     end
   end
+  
 
   # Get a list of customers
   def search_for_customers terms={}
