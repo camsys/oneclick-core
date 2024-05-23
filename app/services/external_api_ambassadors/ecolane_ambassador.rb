@@ -231,7 +231,7 @@ class EcolaneAmbassador < BookingAmbassador
       # Capture the data from the itinerary and order
       assistant = itinerary.assistant
       companions = itinerary.companions
-      note = order.dig(:pickup, :note) || itinerary.note # Capture the note from the order if not on the itinerary
+      note = itinerary.note
   
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
