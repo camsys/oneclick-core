@@ -185,8 +185,8 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
-    order =  build_order
-      
+    order = build_order
+  
     if order.nil?
       Rails.logger.error("Order is nil after build_order call")
       return
@@ -196,10 +196,14 @@ class EcolaneAmbassador < BookingAmbassador
     itinerary = booking.itinerary || self.itinerary
     trip = itinerary.trip
   
-    # Capture the data from the itinerary
+    # Capture the data from the itinerary and order
     assistant = itinerary.assistant
     companions = itinerary.companions
-    note = itinerary.note
+    note = order.dig(:pickup, :note) || itinerary.note # Capture the note from the order if not on the itinerary
+  
+    # Initialize booking details and funding hash
+    booking_details = booking.details || {}
+    funding_hash = booking.details.fetch(:funding_hash, {})
   
     # Create a snapshot before attempting to book
     new_snapshot = EcolaneBookingSnapshot.new(
@@ -215,7 +219,7 @@ class EcolaneAmbassador < BookingAmbassador
       estimated_pu: booking.estimated_pu,
       estimated_do: booking.estimated_do,
       created_in_1click: booking.created_in_1click,
-      note: note, # Ensure note is set from itinerary
+      note: note, # Ensure note is set from the order or itinerary
       traveler: itinerary.user.email,
       orig_addr: trip.origin.formatted_address,
       orig_lat: trip.origin.lat,
@@ -227,7 +231,7 @@ class EcolaneAmbassador < BookingAmbassador
       service_name: itinerary.user.booking_profile.service.name,
       booking_client_id: itinerary.user.booking_profile.external_user_id,
       is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-      sponsor: nil,
+      sponsor: funding_hash[:sponsor],
       companions: companions.to_i,
       ecolane_error_message: nil,
       pca: assistant,
@@ -270,6 +274,8 @@ class EcolaneAmbassador < BookingAmbassador
       )
     end
   end
+  
+  
   
   
 
