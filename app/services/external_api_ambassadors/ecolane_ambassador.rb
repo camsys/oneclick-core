@@ -185,13 +185,21 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
-    order = build_order
-    booking = self.booking
+    order_result = build_order
+    order = order_result[:order_xml]
   
+    if order.nil?
+      Rails.logger.error("Order is nil after build_order call")
+      return
+    end
+  
+    booking = self.booking
     itinerary = booking.itinerary || self.itinerary
     trip = itinerary.trip
   
-    # Retrieve the note directly from the itinerary
+    # Capture the data from the itinerary
+    assistant = itinerary.assistant
+    companions = itinerary.companions
     note = itinerary.note
   
     # Create a snapshot before attempting to book
@@ -208,7 +216,7 @@ class EcolaneAmbassador < BookingAmbassador
       estimated_pu: booking.estimated_pu,
       estimated_do: booking.estimated_do,
       created_in_1click: booking.created_in_1click,
-      note: note, # Use the note from the itinerary
+      note: note, # Ensure note is set from itinerary
       traveler: itinerary.user.email,
       orig_addr: trip.origin.formatted_address,
       orig_lat: trip.origin.lat,
@@ -221,9 +229,9 @@ class EcolaneAmbassador < BookingAmbassador
       booking_client_id: itinerary.user.booking_profile.external_user_id,
       is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
       sponsor: nil,
-      companions: itinerary.companions.to_i,
+      companions: companions.to_i,
       ecolane_error_message: nil,
-      pca: itinerary.assistant,
+      pca: assistant,
       disposition_status: trip.disposition_status,
       booking_id: booking.id # Ensure snapshot references the booking
     )
@@ -255,27 +263,15 @@ class EcolaneAmbassador < BookingAmbassador
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       booking.update(created_in_1click: true)
     ensure
+      # Ensure the snapshot is updated without overwriting important data
       new_snapshot.update(
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-        confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        details: eco_trip ? eco_trip.to_json : nil,
-        earliest_pu: booking.earliest_pu,
-        latest_pu: booking.latest_pu,
-        negotiated_pu: booking.negotiated_pu,
-        negotiated_do: booking.negotiated_do,
-        estimated_pu: booking.estimated_pu,
-        estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: note, # Ensure the note is set in the snapshot
-        sponsor: booking.details.dig(:funding_hash, :sponsor),
-        companions: itinerary.companions.to_i,
-        ecolane_error_message: booking.ecolane_error_message,
-        pca: itinerary.assistant,
         disposition_status: trip.disposition_status,
-        booking_id: booking.id # Ensure snapshot references the booking
       )
     end
   end
+  
   
 
   # Get a list of customers
