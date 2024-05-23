@@ -189,8 +189,8 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     trip = itinerary.trip
     booking_details = booking.details || {}
-    funding_hash = booking.details.fetch(:funding_hash, {})
-
+    funding_hash = booking_details.fetch(:funding_hash, {})
+    
     begin
       order =  build_order
       resp = send_request(url, 'POST', order)
