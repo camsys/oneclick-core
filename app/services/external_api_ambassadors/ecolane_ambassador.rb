@@ -195,6 +195,8 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     itinerary = booking.itinerary || self.itinerary
     trip = itinerary.trip
+    booking_details = booking.details || {}
+    funding_hash = booking.details.fetch(:funding_hash, {})
   
     begin
       resp = send_request(url, 'POST', order)
@@ -227,10 +229,6 @@ class EcolaneAmbassador < BookingAmbassador
       companions = itinerary.companions
       note = order.dig(:pickup, :note) || itinerary.note # Capture the note from the order if not on the itinerary
   
-      # Initialize booking details and funding hash
-      booking_details = booking.details || {}
-      funding_hash = booking.details.fetch(:funding_hash, {})
-  
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -245,6 +243,9 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
         note: note, # Ensure note is set from the order or itinerary
+        funding_source: funding_hash[:funding_source], # Ensure funding source is set from the funding hash
+        purpose: funding_hash[:purpose], # Ensure purpose is set from the funding hash
+        booking_id: booking.id,
         traveler: itinerary.user.email,
         orig_addr: trip.origin.formatted_address,
         orig_lat: trip.origin.lat,
@@ -256,21 +257,16 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: itinerary.user.booking_profile.service.name,
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: funding_hash[:sponsor],
-        companions: companions.to_i,
+        sponsor: funding_hash[:sponsor], # Ensure sponsor is set from the funding hash
+        companions: companions.to_i, # Ensure companions are set from the itinerary
         ecolane_error_message: booking.ecolane_error_message,
-        pca: assistant,
-        disposition_status: trip.disposition_status,
-        booking_id: booking.id # Ensure snapshot references the booking
+        pca: assistant, # Ensure PCA is set from the itinerary
+        disposition_status: trip.disposition_status
       )
       new_snapshot.save!
     end
   end
-  
-  
-  
-  
-  
+    
 
   # Get a list of customers
   def search_for_customers terms={}
