@@ -100,13 +100,21 @@ class TripPlanner
       # Find all the services that are available for your time and locations
       @available_services = @available_services.available_for(@trip, only_by: (@filters - [:purpose, :eligibility, :accommodation]))
 
-      # Pull out the relevant purposes, eligbilities, and accommodations of these services
+      # Pull out the relevant purposes and eligibilities of these services
       @relevant_purposes = (@available_services.collect { |service| service.purposes }).flatten.uniq
-      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
-      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by { |elig| elig.rank }
 
-      # Now finish filtering by purpose, eligibility, and accommodation
-      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility, :accommodation]))
+      # Now finish filtering by purpose and eligibility
+      @available_services = @available_services.available_for(@trip, only_by: (@filters & [:purpose, :eligibility]))
+
+      # Filter accommodations only for paratransit services
+      @relevant_accommodations = Accommodation.all.ordered_by_rank
+      paratransit_services = @available_services.where(type: 'Paratransit')
+      paratransit_services = paratransit_services.available_for(@trip, only_by: [:accommodation])
+
+      # Merge the filtered paratransit services back into @available_services
+      non_paratransit_services = @available_services.where.not(type: 'Paratransit')
+      @available_services = non_paratransit_services.or(paratransit_services)
     else
       # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
       options = {}
