@@ -184,6 +184,13 @@ class EcolaneAmbassador < BookingAmbassador
   def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
+
+    eco_trip = nil
+    booking = self.booking
+    trip = itinerary.trip
+    booking_details = booking.details || {}
+    funding_hash = booking.details.fetch(:funding_hash, {})
+
     begin
       order =  build_order
       resp = send_request(url, 'POST', order)
@@ -191,7 +198,6 @@ class EcolaneAmbassador < BookingAmbassador
     # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
 
-      # Initializing variables for the snapshot
       eco_trip = nil
       booking = self.booking
       trip = itinerary.trip
@@ -232,6 +238,7 @@ class EcolaneAmbassador < BookingAmbassador
       assistant = itinerary.assistant
       companions = itinerary.companions
       note = itinerary.note
+
   
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
