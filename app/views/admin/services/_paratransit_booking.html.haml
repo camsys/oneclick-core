@@ -42,6 +42,11 @@
         readonly: should_be_readonly,
         label: "Token",
         input_html: {value: booking_details[:token]}
+      =bd.input :api_key,
+        as: :string,
+        readonly: should_be_readonly,
+        label: "API Key",
+        input_html: {value: booking_details[:api_key]}
       =bd.input :home_counties,
         as: :string,
         readonly: should_be_readonly,

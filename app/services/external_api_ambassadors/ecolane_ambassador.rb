@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy
+  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy, :api_key
   require 'securerandom'
 
   def initialize(opts={})
@@ -18,6 +18,7 @@ class EcolaneAmbassador < BookingAmbassador
     @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
+    self.api_key = @service.booking_details[:api_key]
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
@@ -453,6 +454,8 @@ class EcolaneAmbassador < BookingAmbassador
 
       req.add_field 'X-ECOLANE-TOKEN', token
       req.add_field 'Content-Type', 'text/xml'
+      # Add the X-Ecolane-Api-Key header if api_key is set
+      req.add_field 'X-Ecolane-Api-Key', api_key if api_key.present?
 
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
