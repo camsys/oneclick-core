@@ -1,6 +1,6 @@
 class EcolaneAmbassador < BookingAmbassador
 
-  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy
+  attr_accessor :customer_number, :service, :confirmation, :system_id, :token, :trip, :customer_id, :guest_funding_sources, :dummy, :api_key
   require 'securerandom'
 
   def initialize(opts={})
@@ -18,6 +18,7 @@ class EcolaneAmbassador < BookingAmbassador
     @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
+    self.api_key = @service.booking_details[:api_key]
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
     get_booking_profile
@@ -180,17 +181,10 @@ class EcolaneAmbassador < BookingAmbassador
   ####################################################################
   ## Actual Calls to Ecolane 
   ####################################################################
-  
+
   def new_order
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
-
-    eco_trip = nil
-    booking = self.booking
-    trip = itinerary.trip
-    booking_details = booking.details || {}
-    funding_hash = booking_details.fetch(:funding_hash, {})
-    
     begin
       order =  build_order
       resp = send_request(url, 'POST', order)
@@ -198,6 +192,7 @@ class EcolaneAmbassador < BookingAmbassador
     # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
 
+      # Initializing variables for the snapshot
       eco_trip = nil
       booking = self.booking
       trip = itinerary.trip
@@ -234,12 +229,6 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     ensure
-      # Capture the data from the itinerary and order
-      assistant = itinerary.assistant
-      companions = itinerary.companions
-      note = itinerary.note
-
-  
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -253,7 +242,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: note,        
+        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
         funding_source: funding_hash[:funding_source],
         purpose: funding_hash[:purpose],
         booking_id: booking.id,
@@ -269,9 +258,9 @@ class EcolaneAmbassador < BookingAmbassador
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
         sponsor: funding_hash[:sponsor],
-        companions: companions.to_i,
+        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: assistant, 
+        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
@@ -472,7 +461,6 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info "X-Ecolane-Api-Key: #{api_key}" if api_key.present?
       Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
