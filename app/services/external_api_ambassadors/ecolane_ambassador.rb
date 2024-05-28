@@ -187,6 +187,7 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     begin
       order =  build_order
+      initial_note = order.dig("order", "pickup", "note") # Capture the note from the initial order
       resp = send_request(url, 'POST', order)
     # NOTE: this seems like overkill, but Ecolane uses both JSON and
     # ...XML for their responses, and failed responses are formatted as JSON
@@ -230,6 +231,9 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     ensure
+
+      note = initial_note || itinerary.note
+
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -243,7 +247,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: itinerary.note,
+        note: note,
         funding_source: funding_hash[:funding_source],
         purpose: funding_hash[:purpose],
         booking_id: booking.id,
