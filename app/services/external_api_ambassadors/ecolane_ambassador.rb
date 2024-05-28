@@ -198,6 +198,7 @@ class EcolaneAmbassador < BookingAmbassador
       trip = itinerary.trip
       booking_details = booking.details || {}
       funding_hash = booking.details.fetch(:funding_hash, {})
+      itinerary = self.itinerary
 
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
@@ -242,7 +243,7 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
+        note: itinerary.note,
         funding_source: funding_hash[:funding_source],
         purpose: funding_hash[:purpose],
         booking_id: booking.id,
@@ -258,9 +259,9 @@ class EcolaneAmbassador < BookingAmbassador
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
         sponsor: funding_hash[:sponsor],
-        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
+        companions: itinerary.companions,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
+        pca: itinerary.assistant,
         disposition_status: trip.disposition_status
       )
       new_snapshot.save!
