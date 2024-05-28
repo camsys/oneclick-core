@@ -472,6 +472,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
+      Rails.logger.info "X-Ecolane-Api-Key: #{api_key}" if api_key.present?
       Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
@@ -893,7 +894,8 @@ class EcolaneAmbassador < BookingAmbassador
       children: @booking_options[:children] || 0, 
       other_passengers: 0,
       pickup: pickup_hash,
-      dropoff: build_do_hash
+      dropoff: build_do_hash,
+      note: @booking_options[:note]
     }
 
     unless @customer_id.blank? && @dummy.blank?
