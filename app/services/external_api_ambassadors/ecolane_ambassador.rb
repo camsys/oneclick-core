@@ -192,6 +192,8 @@ class EcolaneAmbassador < BookingAmbassador
     # NOTE: this seems like overkill, but Ecolane uses both JSON and
     # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
+      order_hash = Hash.from_xml(order)
+      initial_note = order_hash.dig("order", "pickup", "note")
 
       # Initializing variables for the snapshot
       eco_trip = nil
@@ -232,6 +234,8 @@ class EcolaneAmbassador < BookingAmbassador
     # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     ensure
 
+      note = initial_note || itinerary.note
+
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -263,7 +267,8 @@ class EcolaneAmbassador < BookingAmbassador
         companions: itinerary.companions,
         ecolane_error_message: booking.ecolane_error_message,
         pca: itinerary.assistant,
-        disposition_status: trip.disposition_status
+        disposition_status: trip.disposition_status,
+        note: note
       )
       new_snapshot.save!
     end
