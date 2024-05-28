@@ -81,6 +81,8 @@ module Api
           user_profile: params[:user_profile],
           companions: params[:companions],
           assistant: params[:assistant],
+          note: params[:note],
+
           # trip_token: params[:trip_token],
           # optimize: params[:optimize],
           # max_walk_miles: params[:max_walk_miles],
