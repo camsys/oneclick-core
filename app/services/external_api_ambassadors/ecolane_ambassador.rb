@@ -273,7 +273,7 @@ class EcolaneAmbassador < BookingAmbassador
         ecolane_error_message: booking.ecolane_error_message,
         pca: initial_assistant || itinerary.assistant,
         disposition_status: trip.disposition_status,
-        initial_note: note
+        note: initial_note || itinerary.note
       )
       new_snapshot.save!
     end
