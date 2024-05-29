@@ -186,11 +186,21 @@ class EcolaneAmbassador < BookingAmbassador
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     begin
-      order =  build_order
+      order = build_order
+      Rails.logger.info "Order: #{order}"
       resp = send_request(url, 'POST', order)
-    # NOTE: this seems like overkill, but Ecolane uses both JSON and
-    # ...XML for their responses, and failed responses are formatted as JSON
+      # NOTE: this seems like overkill, but Ecolane uses both JSON and
+      # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
+
+      # Getting the initial values from the order for the snapshot
+      order_hash = Hash.from_xml(order)
+      initial_note = order_hash.dig("order", "pickup", "note")
+      initial_assistant = order_hash.dig("order", "assistant")
+      initial_companions = order_hash.dig("order", "companions")
+      initial_funding_source = order_hash.dig("order", "funding", "funding_source")
+      initial_purpose = order_hash.dig("order", "funding", "purpose")
+      initial_sponsor = order_hash.dig("order", "funding", "sponsor")
 
       # Initializing variables for the snapshot
       eco_trip = nil
@@ -198,6 +208,7 @@ class EcolaneAmbassador < BookingAmbassador
       trip = itinerary.trip
       booking_details = booking.details || {}
       funding_hash = booking.details.fetch(:funding_hash, {})
+      itinerary = self.itinerary
 
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
@@ -229,6 +240,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     ensure
+
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -243,8 +255,8 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
         note: eco_trip.try(:with_indifferent_access).try(:[], :pickup).try(:[], :note),
-        funding_source: funding_hash[:funding_source],
-        purpose: funding_hash[:purpose],
+        funding_source: initial_funding_source || funding_hash[:funding_source],
+        purpose: initial_purpose || funding_hash[:purpose],
         booking_id: booking.id,
         traveler: itinerary.user.email,
         orig_addr: trip.origin.formatted_address,
@@ -257,11 +269,12 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: itinerary.user.booking_profile.service.name,
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: funding_hash[:sponsor],
-        companions: eco_trip.try(:[], :companions).to_i + eco_trip.try(:[], :children).to_i,
+        sponsor: initial_sponsor || funding_hash[:sponsor],
+        companions: initial_companions || itinerary.companions,
         ecolane_error_message: booking.ecolane_error_message,
-        pca: eco_trip.try(:with_indifferent_access).try(:[], :assistant),
-        disposition_status: trip.disposition_status
+        pca: initial_assistant || itinerary.assistant,
+        disposition_status: trip.disposition_status,
+        note: note
       )
       new_snapshot.save!
     end
