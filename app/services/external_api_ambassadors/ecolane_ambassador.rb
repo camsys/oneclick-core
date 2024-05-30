@@ -9,6 +9,7 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
+    @service_id = opts[:service_id]
     if opts[:trip]
       self.trip = opts[:trip]
     end

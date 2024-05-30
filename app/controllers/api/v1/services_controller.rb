@@ -4,12 +4,22 @@ module Api
 
       # FOR ECOLANEs
       def ids_humanized
-        external_id_array = []
+        external_array = []
         Service.paratransit_services.published.is_ecolane.each do |service|
-          external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
+          service.booking_details[:home_counties].split(',').each do |county_name|
+            county_name = county_name.strip.humanize
+            # Include service ID and any other relevant details in the label
+            external_array << {
+              serviceId: service.id,
+              label: "#{service.name}",
+              countyName: county_name,
+              serviceName: service.name  # Adding service name for clarity on the frontend
+            }
+          end
         end
-        render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
-      end
+        grouped_by_county = external_array.group_by { |cs| cs[:countyName] }
+        render status: 200, json: { county_services: grouped_by_county }
+      end    
 
       # For Ecolane
       #Given a registered traveler.  Return the dates/hours that are allowed for booking
