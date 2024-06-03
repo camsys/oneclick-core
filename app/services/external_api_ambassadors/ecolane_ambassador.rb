@@ -480,14 +480,20 @@ class EcolaneAmbassador < BookingAmbassador
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
       return resp
-    rescue Exception=>e
-      Rails.logger.info("Sending Error")
-      return false, {'id'=>500, 'msg'=>e.to_s}
+    rescue SocketError => e
+      Rails.logger.error "Network error while calling Ecolane: #{e.message}"
+      raise "Network error while calling Ecolane: #{e.message}"
+    rescue Timeout::Error => e
+      Rails.logger.error "Timeout error while calling Ecolane: #{e.message}"
+      raise "Timeout error while calling Ecolane: #{e.message}"
+    rescue StandardError => e
+      Rails.logger.error "Error while calling Ecolane: #{e.message}"
+      raise "Error while calling Ecolane: #{e.message}"
     end
-  end
+  end  
+
 
   ###################################################################
   ## Helpers

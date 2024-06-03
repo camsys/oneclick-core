@@ -157,8 +157,9 @@ namespace :ecolane do
       # If anything went wrong, delete the new pois and reinstate the old_pois
       Landmark.is_new.delete_all
       Landmark.is_old.update_all(old: false)
+      # Send email notification
+      ErrorMailer.ecolane_error_notification(messages).deliver_now
     end
-    
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
