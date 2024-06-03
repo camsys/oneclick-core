@@ -1,5 +1,5 @@
 class ErrorMailer < ApplicationMailer
-  default from: 'noreply@1click.com'
+  default from: ENV['SMTP_USER_NAME']  # Use the verified email address
 
   def ecolane_error_notification(errors)
     @errors = errors
