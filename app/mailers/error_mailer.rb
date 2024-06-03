@@ -1,5 +1,5 @@
 class ErrorMailer < ApplicationMailer
-  default from: ENV['SMTP_USER_NAME']  # Use the verified email address
+  default from: (ENV['SMTP_FROM_ADDRESS'] || "1-Click@camsys.com")
 
   def ecolane_error_notification(errors)
     @errors = errors
