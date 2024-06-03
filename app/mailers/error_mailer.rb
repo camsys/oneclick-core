@@ -1,8 +1,8 @@
 class ErrorMailer < ApplicationMailer
-  default from: 'notifications@example.com'
+  default from: 'noreply@1click.com'
 
   def ecolane_error_notification(errors)
     @errors = errors
-    mail(to: ENV['ECOLANE_ERROR_NOTIFICATION_EMAILS'].split(','), subject: 'Ecolane POI Update Error')
+    mail(to: 'jalen.w.sowell@gmail.com', subject: 'Ecolane POI Update Error')
   end
 end
