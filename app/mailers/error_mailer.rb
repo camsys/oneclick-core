@@ -3,6 +3,6 @@ class ErrorMailer < ApplicationMailer
 
   def ecolane_error_notification(errors)
     @errors = errors
-    mail(to: 'jalen.w.sowell@gmail.com', subject: 'Ecolane POI Update Error')
+    mail(to: 'rbrown@camsys.com', subject: 'Ecolane POI Update Error')
   end
 end
