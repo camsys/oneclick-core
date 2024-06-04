@@ -2,7 +2,6 @@ namespace :ecolane do
 
   desc "Update Ecolane POIs"
   task :update_pois => :environment do
-
     # Check to see if another instance is already running
     is_already_running = false
     task_run_state = Config.find_or_create_by key: 'ecolane_task_is_running'
@@ -19,7 +18,7 @@ namespace :ecolane do
         puts "Running this instance."
       end
     end
-    
+
     messages = []
     local_error = false
 
@@ -45,9 +44,9 @@ namespace :ecolane do
     poi_with_no_city = 0
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
-    
+
     new_poi_names_set = Set.new
-    
+
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
@@ -60,7 +59,7 @@ namespace :ecolane do
         new_poi_hashes = service.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
+          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}, service_name: #{service.name}, service_agency_name: #{service&.agency&.name}. There is an issue with the service configuration. Please check the service configuration and try again."
           local_error = true
           puts messages.to_s
           break
@@ -73,7 +72,7 @@ namespace :ecolane do
         new_poi_hashes_sorted.each do |hash|
           poi_processed_count += 1
           puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
-          
+
           new_poi = Landmark.new hash
           new_poi.old = false
           new_poi.agency_id = agency_id
@@ -88,7 +87,7 @@ namespace :ecolane do
 
           # Skip POIs whose names contain "do not use" case insensitive
           next if new_poi.name =~ /do not use/i
-          
+
           # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           if new_poi.name.blank?
             # or new_poi.name.downcase == 'home'
@@ -119,7 +118,7 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        messages << "Error loading POIs for #{system}. #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
         local_error = true
         # Log if errors happen
         puts messages.to_s
