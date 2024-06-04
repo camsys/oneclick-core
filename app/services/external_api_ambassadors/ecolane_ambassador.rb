@@ -477,18 +477,29 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
       Rails.logger.info resp.body
-      return resp
+  
+      unless resp.is_a?(Net::HTTPSuccess)
+        error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
+        Rails.logger.error error_message
+        raise error_message
+      end
+  
+      resp
     rescue SocketError => e
-      Rails.logger.error "Network error while calling Ecolane: #{e.message}"
-      raise "Network error while calling Ecolane: #{e.message}"
+      error_message = "Network error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     rescue Timeout::Error => e
-      Rails.logger.error "Timeout error while calling Ecolane: #{e.message}"
-      raise "Timeout error while calling Ecolane: #{e.message}"
+      error_message = "Timeout error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     rescue StandardError => e
-      Rails.logger.error "Error while calling Ecolane: #{e.message}"
-      raise "Error while calling Ecolane: #{e.message}"
+      error_message = "Error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     end
   end
+  
     
 
 
@@ -691,7 +702,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error "Error fetching POIs from Ecolane: #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
       return nil
     end
-  end
+  end  
   
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
