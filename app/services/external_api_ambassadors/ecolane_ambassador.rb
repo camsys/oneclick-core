@@ -498,7 +498,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error error_message
       raise error_message
     end
-  end
+  end  
   
     
 
