@@ -841,12 +841,12 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def build_order(funding=true, funding_hash=nil)
-    itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
+    itin = self.itinerary || @trip&.selected_itinerary || @trip&.itineraries&.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
   
-    @trip.reload
+    @trip&.reload
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
   
@@ -880,37 +880,37 @@ class EcolaneAmbassador < BookingAmbassador
     initial_sponsor = order_hash.dig(:funding, :sponsor)
   
     new_snapshot = EcolaneBookingSnapshot.new(
-      trip_id: @trip.id,
-      itinerary_id: itin.id,
+      trip_id: @trip&.id,
+      itinerary_id: itin&.id,
       status: nil,
       confirmation: nil,
       details: order_hash.to_json,
-      earliest_pu: @booking.earliest_pu,
-      latest_pu: @booking.latest_pu,
-      negotiated_pu: @booking.negotiated_pu,
-      negotiated_do: @booking.negotiated_do,
-      estimated_pu: @booking.estimated_pu,
-      estimated_do: @booking.estimated_do,
-      created_in_1click: @booking.created_in_1click,
+      earliest_pu: @booking&.earliest_pu,
+      latest_pu: @booking&.latest_pu,
+      negotiated_pu: @booking&.negotiated_pu,
+      negotiated_do: @booking&.negotiated_do,
+      estimated_pu: @booking&.estimated_pu,
+      estimated_do: @booking&.estimated_do,
+      created_in_1click: @booking&.created_in_1click,
       funding_source: initial_funding_source,
       purpose: initial_purpose,
-      booking_id: @booking.id,
-      traveler: itin.user.email,
-      orig_addr: @trip.origin.formatted_address,
-      orig_lat: @trip.origin.lat,
-      orig_lng: @trip.origin.lng,
-      dest_addr: @trip.destination.formatted_address,
-      dest_lat: @trip.destination.lat,
-      dest_lng: @trip.destination.lng,
-      agency_name: itin.user.booking_profile.service.agency.name,
-      service_name: itin.user.booking_profile.service.name,
-      booking_client_id: itin.user.booking_profile.external_user_id,
-      is_round_trip: @trip.previous_trip.present? || @trip.next_trip.present?,
+      booking_id: @booking&.id,
+      traveler: itin&.user&.email,
+      orig_addr: @trip&.origin&.formatted_address,
+      orig_lat: @trip&.origin&.lat,
+      orig_lng: @trip&.origin&.lng,
+      dest_addr: @trip&.destination&.formatted_address,
+      dest_lat: @trip&.destination&.lat,
+      dest_lng: @trip&.destination&.lng,
+      agency_name: itin&.user&.booking_profile&.service&.agency&.name,
+      service_name: itin&.user&.booking_profile&.service&.name,
+      booking_client_id: itin&.user&.booking_profile&.external_user_id,
+      is_round_trip: @trip&.previous_trip.present? || @trip&.next_trip.present?,
       sponsor: initial_sponsor,
       companions: initial_companions,
-      ecolane_error_message: @booking.ecolane_error_message,
+      ecolane_error_message: @booking&.ecolane_error_message,
       pca: initial_assistant,
-      disposition_status: @trip.disposition_status,
+      disposition_status: @trip&.disposition_status,
       note: initial_note
     )
   
@@ -920,7 +920,7 @@ class EcolaneAmbassador < BookingAmbassador
   rescue REXML::ParseException
     Rails.logger.info "REXML::ParseException in build_order"
     [nil, new_snapshot]
-  end
+  end  
   
   # Build the hash for the pickup request
   def build_pu_hash
