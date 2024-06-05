@@ -192,6 +192,8 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     trip = itinerary.trip
     itinerary = self.itinerary
+    booking_details = booking.details || {}
+    funding_hash = booking_details.fetch(:funding_hash, {})
   
     Rails.logger.info "About to build order"
     order = build_order
@@ -199,6 +201,13 @@ class EcolaneAmbassador < BookingAmbassador
   
     order_hash = Hash.from_xml(order)
     Rails.logger.info "Order: #{order_hash}"
+  
+    initial_note = order_hash.dig("order", "pickup", "note")
+    initial_assistant = order_hash.dig("order", "assistant")
+    initial_companions = order_hash.dig("order", "companions")
+    initial_funding_source = order_hash.dig("order", "funding", "funding_source")
+    initial_purpose = order_hash.dig("order", "funding", "purpose")
+    initial_sponsor = order_hash.dig("order", "funding", "sponsor")
   
     begin
       Rails.logger.info "Sending request to Ecolane"
@@ -233,7 +242,8 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     ensure
       Rails.logger.info "Entering ensure block to create snapshot"
-      Rails.logger.info "funding_hash: #{funding_hash}" 
+      Rails.logger.info "funding_hash: #{funding_hash.inspect}" 
+  
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -273,6 +283,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
   
+ 
 
   # Get a list of customers
   def search_for_customers terms={}
