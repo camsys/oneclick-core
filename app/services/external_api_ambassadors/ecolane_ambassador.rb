@@ -190,11 +190,15 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     trip = itinerary.trip
     itinerary = self.itinerary
+    order = build_order
+    order_hash = Hash.from_xml(order)
+    Rails.logger.info "Order: #{order}"
   
     begin
       # Capture the order data for the snapshot
       order = build_order
       order_hash = Hash.from_xml(order)
+
   
       # Fetch funding options
       funding_options = get_funding_options
