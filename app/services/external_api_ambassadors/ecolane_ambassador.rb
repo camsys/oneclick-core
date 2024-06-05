@@ -384,12 +384,12 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_funding_hash
-    #TODO: Reduce call to Ecolane by saving the funding_hash after the first time we ask for it.
-    if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
+    if @service.booking_details["use_ecolane_funding_rules"].to_bool # Use Ecolane Rules
       fare, funding_hash = build_ecolane_funding_hash
-    else #use 1-Click Rules
+    else # Use 1-Click Rules
       funding_hash = build_1click_funding_hash
     end
+  
     if self.booking
       booking = self.booking 
       if booking.details 
@@ -399,8 +399,9 @@ class EcolaneAmbassador < BookingAmbassador
       end
       booking.save 
     end
-    funding_hash
-  end
+  
+    funding_hash.is_a?(Hash) ? funding_hash : {}
+  end  
 
 
   ##### 
@@ -920,7 +921,8 @@ class EcolaneAmbassador < BookingAmbassador
   rescue REXML::ParseException
     Rails.logger.info "REXML::ParseException in build_order"
     [nil, new_snapshot]
-  end  
+  end
+  
   
   # Build the hash for the pickup request
   def build_pu_hash
