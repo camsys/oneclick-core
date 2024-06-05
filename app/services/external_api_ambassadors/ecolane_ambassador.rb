@@ -189,26 +189,33 @@ class EcolaneAmbassador < BookingAmbassador
     eco_trip = nil
     booking = self.booking
     trip = itinerary.trip
-    booking_details = booking.details || {}
     itinerary = self.itinerary
+    funding_options = get_funding_options
+  
+    # Getting the initial values from the order for the snapshot
+    order = build_order
+    Rails.logger.info "Order: #{order}"
+    initial_note = order.dig("order", "pickup", "note")
+    initial_assistant = order.dig("order", "assistant")
+    initial_companions = order.dig("order", "companions")
+    initial_funding_source = order.dig("order", "funding", "funding_source")
+    initial_purpose = order.dig("order", "funding", "purpose")
+    initial_sponsor = order.dig("order", "funding", "sponsor")
   
     begin
-      order = build_order
+      if funding_options.is_a?(Hash) && funding_options[:error]
+        Rails.logger.info "Funding options error: #{funding_options[:error]}"
+        booking.update(ecolane_error_message: funding_options[:error], created_in_1click: true)
+        trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        raise StandardError.new(funding_options[:error])
+      end
+  
       Rails.logger.info "Order: #{order}"
       resp = send_request(url, 'POST', order)
-      body_hash = Hash.from_xml(resp.body)
-      order_hash = Hash.from_xml(order)
-      
-      # Getting the initial values from the order for the snapshot
-      initial_note = order_hash.dig("order", "pickup", "note")
-      initial_assistant = order_hash.dig("order", "assistant")
-      initial_companions = order_hash.dig("order", "companions")
-      initial_funding_source = order_hash.dig("order", "funding", "funding_source")
-      initial_purpose = order_hash.dig("order", "funding", "purpose")
-      initial_sponsor = order_hash.dig("order", "funding", "sponsor")
+      body_hash = JSON.parse(resp.body)
   
-      if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+      if body_hash['result'] == 'success'
+        confirmation = body_hash.dig('status', 'success', 'resource_id')
         eco_trip = fetch_order(confirmation)["order"]
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
@@ -217,14 +224,15 @@ class EcolaneAmbassador < BookingAmbassador
         booking.save
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
-        errors = body_hash['status']['error']
+        errors = body_hash['errors']
         errors = [errors] unless errors.is_a?(Array)
-        error_messages = errors.map { |e| e['message'] }.join("; ")
+        error_messages = errors.map { |e| e['detail'] || e['message'] }.join("; ")
         booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
         trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end
-    rescue REXML::ParseException
+    rescue REXML::ParseException => e
+      Rails.logger.error "REXML::ParseException during Ecolane order creation: #{e.message}"
       trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       booking.update(created_in_1click: true)
     rescue Exception => e
@@ -234,8 +242,8 @@ class EcolaneAmbassador < BookingAmbassador
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
-        status: eco_trip.try(:with_indifferent_access).try(:[], :status),
-        confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
+        status: eco_trip.try(:[], 'status'),
+        confirmation: eco_trip.try(:[], 'id'),
         details: eco_trip ? eco_trip.to_json : nil,
         earliest_pu: booking.earliest_pu,
         latest_pu: booking.latest_pu,
@@ -410,7 +418,8 @@ class EcolaneAmbassador < BookingAmbassador
     url = @url + url_options
     order =  build_order(funding=false)
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
-    resp.try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
+    return { error: resp.body } unless resp.is_a?(Net::HTTPSuccess)
+    Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
   end
 
   def get_funding_hash
