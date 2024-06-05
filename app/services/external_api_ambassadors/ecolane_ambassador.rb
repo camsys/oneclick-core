@@ -196,6 +196,7 @@ class EcolaneAmbassador < BookingAmbassador
 
       # Getting the initial values from the order for the snapshot
       order_hash = Hash.from_xml(order)
+      Rails.logger.info "Order Hash: #{order_hash}"
       initial_note = order_hash.dig("order", "pickup", "note")
       initial_assistant = order_hash.dig("order", "assistant")
       initial_companions = order_hash.dig("order", "companions")
