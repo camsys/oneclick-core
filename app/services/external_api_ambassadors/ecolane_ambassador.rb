@@ -190,7 +190,6 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     trip = itinerary.trip
     booking_details = booking.details || {}
-    funding_hash = booking.details.fetch(:funding_hash, {})
     itinerary = self.itinerary
   
     begin
@@ -231,6 +230,7 @@ class EcolaneAmbassador < BookingAmbassador
     rescue Exception => e
       Rails.logger.error "Exception during Ecolane order creation: #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
     ensure
+      # Ensure the snapshot is created no matter what
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
