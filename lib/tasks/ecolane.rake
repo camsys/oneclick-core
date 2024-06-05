@@ -48,14 +48,16 @@ namespace :ecolane do
       service_id = service.id
 
       begin
-        new_poi_hashes = service.booking_ambassador.get_pois
-        if new_poi_hashes.nil?
-          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}, service_name: #{service.name}, service_agency_name: #{service&.agency&.name}. There is an issue with the service configuration. Please check the service configuration and try again."
+        response = service.booking_ambassador.get_pois
+        if response[:error]
+          error_message = "Error loading POIs for System: #{system}, service_id: #{service.id}, service_name: #{service.name}, service_agency_name: #{service&.agency&.name}. #{response[:error]}"
+          messages << error_message
           local_error = true
           puts messages.to_s
           break
         end
 
+        new_poi_hashes = response[:data]
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }

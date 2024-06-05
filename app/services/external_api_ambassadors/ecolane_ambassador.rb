@@ -498,11 +498,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error error_message
       raise error_message
     end
-  end  
-  
-    
-
-
+  end
   ###################################################################
   ## Helpers
   ###################################################################
@@ -699,8 +695,9 @@ class EcolaneAmbassador < BookingAmbassador
       end
       hashes
     rescue Exception => e
-      Rails.logger.error "Error fetching POIs from Ecolane: #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
-      return nil
+      error_message = "Error fetching POIs from Ecolane: #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
+      Rails.logger.error error_message
+      { error: error_message }
     end
   end  
   
