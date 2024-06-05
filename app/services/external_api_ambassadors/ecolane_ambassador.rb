@@ -427,11 +427,6 @@ class EcolaneAmbassador < BookingAmbassador
     order =  build_order(funding=false)
     resp = Hash.from_xml(send_request(url, 'POST', order).body)
     resp.try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
-
-    # Create an EcolaneBookingSnapshot for the funding options
-    new_snapshot = EcolaneBookingSnapshot.new(
-
-
   end
 
   def get_funding_hash
@@ -486,8 +481,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      message_hash = Hash.from_xml(message)
-      Rails.logger.info "Message Hash: #{message_hash}
+      Rails.logger.info Hash.from_xml(message)
       resp = http.start {|http| http.request(req)}
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
