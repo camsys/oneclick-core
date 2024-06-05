@@ -184,52 +184,40 @@ class EcolaneAmbassador < BookingAmbassador
   ####################################################################
 
   def new_order
+    Rails.logger.info "Entering new_order method"
+    
     url_options = "/api/order/#{system_id}?overlaps=reject"
     url = @url + url_options
     eco_trip = nil
     booking = self.booking
     trip = itinerary.trip
     itinerary = self.itinerary
+    fare_hash = Hash.from_xml(resp.body).with_indifferent_access
+    Rails.logger.info "Fare hash: #{fare_hash}"
+  
+    Rails.logger.info "About to build order"
     order = build_order
+    Rails.logger.info "Order built"
+  
     order_hash = Hash.from_xml(order)
     Rails.logger.info "Order: #{order_hash}"
   
     begin
-      # Capture the order data for the snapshot
-      order = build_order
-      order_hash = Hash.from_xml(order)
-
-  
-      # Fetch funding options
-      funding_options = get_funding_options
-      if funding_options.nil?
-        error_message = "Error fetching funding options from Ecolane"
-        Rails.logger.info error_message
-        booking.update(ecolane_error_message: error_message, created_in_1click: true)
-        trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-        raise StandardError.new(error_message)
-      end
-  
-      Rails.logger.info "Order: #{order}"
+      Rails.logger.info "Sending request to Ecolane"
       resp = send_request(url, 'POST', order)
+      Rails.logger.info "Response received from Ecolane"
       body_hash = Hash.from_xml(resp.body)
-  
-      # Getting the initial values from the order for the snapshot
-      initial_note = order_hash.dig("order", "pickup", "note")
-      initial_assistant = order_hash.dig("order", "assistant")
-      initial_companions = order_hash.dig("order", "companions")
-      initial_funding_source = order_hash.dig("order", "funding", "funding_source")
-      initial_purpose = order_hash.dig("order", "funding", "purpose")
-      initial_sponsor = order_hash.dig("order", "funding", "sponsor")
+      Rails.logger.info "Body hash: #{body_hash}"
   
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
-        confirmation = body_hash.dig('status', 'success', 'resource_id')
+        confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
         eco_trip = fetch_order(confirmation)["order"]
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
         booking.confirmation = confirmation
         booking.created_in_1click = true
         booking.save
+        booking
       else
         Rails.logger.info "Failure response from Ecolane: #{resp.body}"
         errors = body_hash['status']['error']
@@ -237,16 +225,17 @@ class EcolaneAmbassador < BookingAmbassador
         error_messages = errors.map { |e| e['message'] }.join("; ")
         booking.update(ecolane_error_message: error_messages, created_in_1click: true)
         Rails.logger.info "Booking updated with failure message(s): #{error_messages}"
-        trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        nil
       end
-    rescue REXML::ParseException => e
-      Rails.logger.error "REXML::ParseException during Ecolane order creation: #{e.message}"
-      trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+    rescue REXML::ParseException
+      Rails.logger.info "REXML::ParseException occurred"
+      @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       booking.update(created_in_1click: true)
-    rescue Exception => e
-      Rails.logger.error "Exception during Ecolane order creation: #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
+      nil
     ensure
-      # Ensure the snapshot is created no matter what
+      Rails.logger.info "Entering ensure block to create snapshot"
+      Rails.logger.info "funding_hash: #{funding_hash}" 
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -260,8 +249,8 @@ class EcolaneAmbassador < BookingAmbassador
         estimated_pu: booking.estimated_pu,
         estimated_do: booking.estimated_do,
         created_in_1click: booking.created_in_1click,
-        funding_source: initial_funding_source,
-        purpose: initial_purpose,
+        funding_source: initial_funding_source || funding_hash[:funding_source],
+        purpose: initial_purpose || funding_hash[:purpose],
         booking_id: booking.id,
         traveler: itinerary.user.email,
         orig_addr: trip.origin.formatted_address,
@@ -274,16 +263,18 @@ class EcolaneAmbassador < BookingAmbassador
         service_name: itinerary.user.booking_profile.service.name,
         booking_client_id: itinerary.user.booking_profile.external_user_id,
         is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
-        sponsor: initial_sponsor,
+        sponsor: initial_sponsor || funding_hash[:sponsor],
         companions: initial_companions || itinerary.companions,
         ecolane_error_message: booking.ecolane_error_message,
         pca: initial_assistant || itinerary.assistant,
         disposition_status: trip.disposition_status,
         note: initial_note || itinerary.note
       )
+      Rails.logger.info "Snapshot created: #{new_snapshot.inspect}"
       new_snapshot.save!
     end
   end
+  
 
   # Get a list of customers
   def search_for_customers terms={}
