@@ -249,7 +249,7 @@ class EcolaneAmbassador < BookingAmbassador
         itinerary_id: itinerary.id,
         status: eco_trip.try(:with_indifferent_access).try(:[], :status),
         confirmation: eco_trip.try(:with_indifferent_access).try(:[], :id),
-        details: eco_trip ? eco_trip.to_json : nil,
+        details: eco_trip ? eco_trip.to_json : order_hash.to_json,
         earliest_pu: booking.earliest_pu,
         latest_pu: booking.latest_pu,
         negotiated_pu: booking.negotiated_pu,
@@ -282,6 +282,7 @@ class EcolaneAmbassador < BookingAmbassador
       new_snapshot.save!
     end
   end
+  
   
  
 
@@ -424,8 +425,65 @@ class EcolaneAmbassador < BookingAmbassador
   def get_funding_options
     url_options = "/api/order/#{system_id}/queryfunding"
     url = @url + url_options
-    order =  build_order(funding=false)
-    resp = Hash.from_xml(send_request(url, 'POST', order).body)
+    order = build_order(funding=false)
+    response = send_request(url, 'POST', order)
+    resp = Hash.from_xml(response.body)
+  
+    if resp.try(:[], :status).try(:[], :result) == "failure"
+      Rails.logger.info "Failure response from Ecolane: #{response.body}"
+      errors = resp['status']['errors']
+      errors = [errors] unless errors.is_a?(Array)
+      error_messages = errors.map { |e| e['message'] }.join("; ")
+      booking.update(ecolane_error_message: error_messages, created_in_1click: true)
+  
+      # Creating a snapshot with the order data on failure
+      order_hash = Hash.from_xml(order)
+      initial_note = order_hash.dig("order", "pickup", "note")
+      initial_assistant = order_hash.dig("order", "assistant")
+      initial_companions = order_hash.dig("order", "companions")
+      initial_funding_source = order_hash.dig("order", "funding", "funding_source")
+      initial_purpose = order_hash.dig("order", "funding", "purpose")
+      initial_sponsor = order_hash.dig("order", "funding", "sponsor")
+  
+      new_snapshot = EcolaneBookingSnapshot.new(
+        trip_id: trip.id,
+        itinerary_id: itinerary.id,
+        status: nil,
+        confirmation: nil,
+        details: order_hash.to_json,
+        earliest_pu: booking.earliest_pu,
+        latest_pu: booking.latest_pu,
+        negotiated_pu: booking.negotiated_pu,
+        negotiated_do: booking.negotiated_do,
+        estimated_pu: booking.estimated_pu,
+        estimated_do: booking.estimated_do,
+        created_in_1click: booking.created_in_1click,
+        funding_source: initial_funding_source,
+        purpose: initial_purpose,
+        booking_id: booking.id,
+        traveler: itinerary.user.email,
+        orig_addr: trip.origin.formatted_address,
+        orig_lat: trip.origin.lat,
+        orig_lng: trip.origin.lng,
+        dest_addr: trip.destination.formatted_address,
+        dest_lat: trip.destination.lat,
+        dest_lng: trip.destination.lng,
+        agency_name: itinerary.user.booking_profile.service.agency.name,
+        service_name: itinerary.user.booking_profile.service.name,
+        booking_client_id: itinerary.user.booking_profile.external_user_id,
+        is_round_trip: trip.previous_trip.present? || trip.next_trip.present?,
+        sponsor: initial_sponsor,
+        companions: initial_companions,
+        ecolane_error_message: booking.ecolane_error_message,
+        pca: initial_assistant,
+        disposition_status: trip.disposition_status,
+        note: initial_note
+      )
+      new_snapshot.save!
+  
+      return nil
+    end
+  
     resp.try(:with_indifferent_access).try(:[], :funding_options).try(:[], :option)
   end
 
