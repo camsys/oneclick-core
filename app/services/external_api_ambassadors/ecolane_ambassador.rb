@@ -192,8 +192,6 @@ class EcolaneAmbassador < BookingAmbassador
     booking = self.booking
     trip = itinerary.trip
     itinerary = self.itinerary
-    fare_hash = Hash.from_xml(resp.body).with_indifferent_access
-    Rails.logger.info "Fare hash: #{fare_hash}"
   
     Rails.logger.info "About to build order"
     order = build_order
