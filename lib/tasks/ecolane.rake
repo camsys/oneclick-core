@@ -18,6 +18,7 @@ namespace :ecolane do
 
     messages = []
     local_error = false
+    domain = ENV['MAIL_HOST'] || 'unknown domain'
 
     systems = []
     services = []
@@ -50,7 +51,7 @@ namespace :ecolane do
       begin
         response = service.booking_ambassador.get_pois
         if response[:error]
-          error_message = "Error loading POIs for System: #{system}, service_id: #{service.id}, service_name: #{service.name}, service_agency_name: #{service&.agency&.name}. #{response[:error]}"
+          error_message = "Error loading POIs for System: #{system}, service_id: #{service.id}, service_name: #{service.name}, service_agency_name: #{service&.agency&.name}. #{response[:error]} (Domain: #{domain})"
           messages << error_message
           local_error = true
           puts messages.to_s
@@ -102,7 +103,7 @@ namespace :ecolane do
         end
 
       rescue Exception => e
-        messages << "Error loading POIs for #{system}. #{e.message}. Backtrace: #{e.backtrace.join("\n")}"
+        messages << "Error loading POIs for #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         puts messages.to_s
         break
