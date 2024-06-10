@@ -8,7 +8,6 @@ module Api
         Service.paratransit_services.published.is_ecolane.each do |service|
           service.booking_details[:home_counties].split(',').each do |county_name|
             county_name = county_name.strip.humanize
-            # Include service ID and any other relevant details in the label
             external_array << {
               serviceId: service.id,
               label: "#{service.name}",
@@ -17,8 +16,7 @@ module Api
             }
           end
         end
-        grouped_by_county = external_array.group_by { |cs| cs[:countyName] }
-        render status: 200, json: { county_services: grouped_by_county }
+        render status: 200, json: { county_services: external_array.group_by { |cs| cs[:countyName] } }
       end    
 
       # For Ecolane
