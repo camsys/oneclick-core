@@ -31,6 +31,7 @@ class Service < ApplicationRecord
   # has_many :feedbacks, as: :feedbackable
   has_many :travel_pattern_services, dependent: :destroy
   has_many :travel_patterns, through: :travel_pattern_services
+  belongs_to :county, optional: true 
 
   # Only add this association after the db is loaded so we can check config
   # Changes to this config will require a serer restart... not ideal, maybe move it into a custom class method?

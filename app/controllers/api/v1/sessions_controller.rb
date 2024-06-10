@@ -12,18 +12,30 @@ module Api
 
       # Custom sign_in method renders JSON rather than HTML
       def create
+        Rails.logger.info "Received params: #{params.inspect}"
         email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
         ecolane_id = session_params[:ecolane_id]
         county = session_params[:county]
         dob = session_params[:dob]
+        service_id = session_params[:service_id]
+        Rails.logger.info "service_id: #{service_id}"
+        Rails.logger.info "ecolane_id: #{ecolane_id}"
+        Rails.logger.info "county: #{county}"
+        Rails.logger.info "dob: #{dob}"
+        Rails.logger.info "email: #{email}"
 
         ############## Custom Ecolane Stuff ######################
         if ecolane_id
-          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id})
+          ecolane_ambassador = EcolaneAmbassador.new({county: county, dob: dob, ecolane_id: ecolane_id, service_id: service_id})
+          
           @user = ecolane_ambassador.user
           if @user
+            unless @user.primary_service_id == service_id.to_i
+              render status: 401, json: { message: "Unauthorized access to the selected service." }
+              return
+            end
             #Last Trip
             @user.verify_default_booking_presence
             last_trip = @user.trips.order('created_at').last
@@ -70,6 +82,9 @@ module Api
         end
         return
 
+
+        Rails.logger.info "service_id: #{service_id}"
+
       end
 
       # Custom sign_out method renders JSON and handles invalid token errors.
@@ -91,7 +106,7 @@ module Api
 
       def session_params
         params[:session] = params.delete :user if params.has_key? :user
-        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob)
+        params.require(:session).permit(:email, :password, :ecolane_id, :county, :dob, :service_id)
       end
 
     end
