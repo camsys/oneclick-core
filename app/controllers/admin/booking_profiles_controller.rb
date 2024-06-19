@@ -7,16 +7,9 @@ class Admin::BookingProfilesController < ApplicationController
     if current_user.superuser?
       @booking_profiles = UserBookingProfile.all
     else
-      ag_ids = @agency_map.map { |name, id| id } # Get agency ids from the agency map
-      selected_agency_id = params[:agency][:id] if params[:agency].present?
-      
-      if selected_agency_id.present? && ag_ids.include?(selected_agency_id.to_i)
-        @booking_profiles = UserBookingProfile.includes(service: :agency)
-                                              .where(services: { agency_id: selected_agency_id.to_i })
-      else
-        @booking_profiles = UserBookingProfile.includes(service: :agency)
-                                              .where(services: { agency_id: ag_ids })
-      end
+      selected_agency_id = session[:selected_agency_id] || current_user.current_agency&.id
+      ag_ids = [selected_agency_id].compact
+      @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: ag_ids })
     end
   end
 
