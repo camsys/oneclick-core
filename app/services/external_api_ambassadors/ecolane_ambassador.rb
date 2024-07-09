@@ -863,6 +863,7 @@ class EcolaneAmbassador < BookingAmbassador
         Rails.logger.info "Found existing user with email: #{email}: #{existing_user.inspect}"
         user = existing_user
         @booking_profile = UserBookingProfile.find_by(service: @service, external_user_id: @customer_number)
+        Rails.logger.info "Booking profile for existing user: #{@booking_profile.inspect}"
       else
         Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
         @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
@@ -877,12 +878,12 @@ class EcolaneAmbassador < BookingAmbassador
           profile.booking_api = "ecolane"
           profile.user = user
         end
+        Rails.logger.info "Created booking profile: #{@booking_profile.inspect}"
       end
-  
-      Rails.logger.info "Booking profile: #{@booking_profile.inspect}"
   
       if @booking_profile
         # Update the user's booking profile with the user's county from login info.
+        Rails.logger.info "Updating booking profile details"
         if @booking_profile.details
           @booking_profile.details[:county] = @county
         else
@@ -907,6 +908,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
   
   
   
