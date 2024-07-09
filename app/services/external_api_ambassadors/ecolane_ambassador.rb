@@ -866,8 +866,20 @@ class EcolaneAmbassador < BookingAmbassador
         # Log service details
         Rails.logger.info "Service details: ID=#{@service.id}, Name=#{@service.name}, Booking API=#{@service.booking_api}"
         
+        # Check the user's booking profile directly by service_id
         @booking_profile = UserBookingProfile.find_by(service: @service, external_user_id: @customer_number)
         Rails.logger.info "Booking profile for existing user: #{@booking_profile.inspect}"
+        
+        if @booking_profile.nil?
+          Rails.logger.warn "Booking profile is nil. Checking for mismatched service_id."
+          profile_with_any_service = UserBookingProfile.find_by(user: user, external_user_id: @customer_number)
+          Rails.logger.info "Booking profile with any service: #{profile_with_any_service.inspect}"
+          
+          if profile_with_any_service
+            Rails.logger.warn "Mismatched service_id detected. Expected #{@service.id}, but found #{profile_with_any_service.service_id}."
+          end
+        end
+  
       else
         Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
         @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
@@ -912,6 +924,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
   
   
   
