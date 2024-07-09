@@ -849,8 +849,12 @@ class EcolaneAmbassador < BookingAmbassador
   ### Find or Create User
   def get_user
     valid_passenger, passenger = validate_passenger
+    Rails.logger.info "Passenger validation result: #{valid_passenger}, passenger: #{passenger.inspect}"
+  
     if valid_passenger
       email = "#{@customer_number.gsub(' ', '_')}_#{@county}@ecolane_user.com"
+      Rails.logger.info "Constructed email: #{email}"
+  
       Rails.logger.info "Checking for existing user with email: #{email} (case-insensitive)"
       existing_user = User.where('lower(email) = ?', email.downcase).first
       Rails.logger.info "Existing user: #{existing_user.inspect}"
@@ -862,6 +866,7 @@ class EcolaneAmbassador < BookingAmbassador
         Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
         @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
           random = SecureRandom.hex(8)
+          Rails.logger.info "Attempting to create new user with email: #{email}"
           user = User.create!(
             email: email,
             password: random,
@@ -880,18 +885,21 @@ class EcolaneAmbassador < BookingAmbassador
         @booking_profile.details = { county: @county }
       end
       @booking_profile.save
+      Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
   
       # Update the user's name
       user = @booking_profile.user
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]
       user.save
+      Rails.logger.info "User updated: #{user.inspect}"
   
       user
     else
       nil
     end
   end
+  
   
   
    
