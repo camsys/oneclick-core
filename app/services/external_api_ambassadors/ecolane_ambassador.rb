@@ -861,38 +861,40 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Existing user: #{existing_user.inspect}"
   
       begin
-        @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
-          random = SecureRandom.hex(8)
-          Rails.logger.info "Creating new user with email: #{email}"
-          user = User.create!(
-            email: email,
-            password: random,
-            password_confirmation: random
-          )
-          Rails.logger.info "New user created: #{user.inspect}"
+        ActiveRecord::Base.transaction do
+          @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
+            random = SecureRandom.hex(8)
+            Rails.logger.info "Creating new user with email: #{email}"
+            user = User.create!(
+              email: email,
+              password: random,
+              password_confirmation: random
+            )
+            Rails.logger.info "New user created: #{user.inspect}"
   
-          profile.details = { customer_id: passenger["id"] }
-          profile.booking_api = "ecolane"
-          profile.user = user
-          Rails.logger.info "New booking profile created: #{profile.inspect}"
+            profile.details = { customer_id: passenger["id"] }
+            profile.booking_api = "ecolane"
+            profile.user = user
+            Rails.logger.info "New booking profile created: #{profile.inspect}"
+          end
+  
+          Rails.logger.info "Booking profile found or created: #{@booking_profile.inspect}"
+  
+          if @booking_profile&.details
+            @booking_profile.details[:county] = @county
+          else
+            @booking_profile.details = { county: @county }
+          end
+          @booking_profile.save
+          Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
+  
+          user = @booking_profile.user
+          Rails.logger.info "Updating user details: #{user.inspect}"
+          user.first_name = passenger["first_name"]
+          user.last_name = passenger["last_name"]
+          user.save
+          Rails.logger.info "User updated: #{user.inspect}"
         end
-  
-        Rails.logger.info "Booking profile found or created: #{@booking_profile.inspect}"
-  
-        if @booking_profile&.details
-          @booking_profile.details[:county] = @county
-        else
-          @booking_profile.details = { county: @county }
-        end
-        @booking_profile.save
-        Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
-  
-        user = @booking_profile.user
-        Rails.logger.info "Updating user details: #{user.inspect}"
-        user.first_name = passenger["first_name"]
-        user.last_name = passenger["last_name"]
-        user.save
-        Rails.logger.info "User updated: #{user.inspect}"
       rescue ActiveRecord::RecordInvalid => e
         Rails.logger.error "Validation failed: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
@@ -909,6 +911,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
   
   
   
