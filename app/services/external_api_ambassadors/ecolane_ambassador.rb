@@ -862,6 +862,7 @@ class EcolaneAmbassador < BookingAmbassador
       if existing_user
         Rails.logger.info "Found existing user with email: #{email}: #{existing_user.inspect}"
         user = existing_user
+        @booking_profile = UserBookingProfile.find_by(service: @service, external_user_id: @customer_number)
       else
         Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
         @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
@@ -878,27 +879,35 @@ class EcolaneAmbassador < BookingAmbassador
         end
       end
   
-      # Update the user's booking profile with the user's county from login info.
-      if @booking_profile&.details
-        @booking_profile.details[:county] = @county
+      Rails.logger.info "Booking profile: #{@booking_profile.inspect}"
+  
+      if @booking_profile
+        # Update the user's booking profile with the user's county from login info.
+        if @booking_profile.details
+          @booking_profile.details[:county] = @county
+        else
+          @booking_profile.details = { county: @county }
+        end
+        @booking_profile.save
+        Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
+  
+        # Update the user's name
+        user = @booking_profile.user
+        user.first_name = passenger["first_name"]
+        user.last_name = passenger["last_name"]
+        user.save
+        Rails.logger.info "User updated: #{user.inspect}"
+  
+        user
       else
-        @booking_profile.details = { county: @county }
+        Rails.logger.error "Booking profile is nil after attempting to create or find it."
+        nil
       end
-      @booking_profile.save
-      Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
-  
-      # Update the user's name
-      user = @booking_profile.user
-      user.first_name = passenger["first_name"]
-      user.last_name = passenger["last_name"]
-      user.save
-      Rails.logger.info "User updated: #{user.inspect}"
-  
-      user
     else
       nil
     end
   end
+  
   
   
   
