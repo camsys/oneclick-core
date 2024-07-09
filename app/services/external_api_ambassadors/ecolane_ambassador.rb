@@ -853,9 +853,12 @@ class EcolaneAmbassador < BookingAmbassador
     Rails.logger.info "Passenger validation result: #{valid_passenger}, passenger: #{passenger.inspect}"
   
     if valid_passenger
-      user = nil
       email = "#{@customer_number.gsub(' ', '_')}_#{@county}@ecolane_user.com"
-      Rails.logger.info "Checking if user with email: #{email} already exists"
+      Rails.logger.info "Constructed email: #{email}"
+  
+      Rails.logger.info "Checking for existing user with email: #{email}"
+      existing_user = User.find_by(email: email)
+      Rails.logger.info "Existing user: #{existing_user.inspect}"
   
       begin
         @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
@@ -868,7 +871,7 @@ class EcolaneAmbassador < BookingAmbassador
           )
           Rails.logger.info "New user created: #{user.inspect}"
   
-          profile.details = {customer_id: passenger["id"]}
+          profile.details = { customer_id: passenger["id"] }
           profile.booking_api = "ecolane"
           profile.user = user
           Rails.logger.info "New booking profile created: #{profile.inspect}"
@@ -879,7 +882,7 @@ class EcolaneAmbassador < BookingAmbassador
         if @booking_profile&.details
           @booking_profile.details[:county] = @county
         else
-          @booking_profile.details = {county: @county}
+          @booking_profile.details = { county: @county }
         end
         @booking_profile.save
         Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
@@ -892,9 +895,11 @@ class EcolaneAmbassador < BookingAmbassador
         Rails.logger.info "User updated: #{user.inspect}"
       rescue ActiveRecord::RecordInvalid => e
         Rails.logger.error "Validation failed: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         return nil
       rescue => e
         Rails.logger.error "An error occurred: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         return nil
       end
   
@@ -904,6 +909,10 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
+  
+  
+  
    
 
   def build_order funding=true, funding_hash=nil
