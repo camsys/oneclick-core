@@ -848,86 +848,51 @@ class EcolaneAmbassador < BookingAmbassador
 
   ### Find or Create User
   def get_user
-    Rails.logger.info "Getting user for customer number: #{@customer_number}"
     valid_passenger, passenger = validate_passenger
-    Rails.logger.info "Passenger validation result: #{valid_passenger}, passenger: #{passenger.inspect}"
-  
     if valid_passenger
       email = "#{@customer_number.gsub(' ', '_')}_#{@county}@ecolane_user.com"
-      Rails.logger.info "Constructed email: #{email}"
-  
       Rails.logger.info "Checking for existing user with email: #{email} (case-insensitive)"
       existing_user = User.where('lower(email) = ?', email.downcase).first
       Rails.logger.info "Existing user: #{existing_user.inspect}"
   
-      if existing_user.nil?
-        Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
-      else
+      if existing_user
         Rails.logger.info "Found existing user with email: #{email}: #{existing_user.inspect}"
-      end
-  
-      begin
-        ActiveRecord::Base.transaction do
-          @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
-            random = SecureRandom.hex(8)
-            Rails.logger.info "Attempting to create new user with email: #{email}"
-            user = User.create!(
-              email: email,
-              password: random,
-              password_confirmation: random
-            )
-            Rails.logger.info "New user created: #{user.inspect}"
-  
-            profile.details = { customer_id: passenger["id"] }
-            profile.booking_api = "ecolane"
-            profile.user = user
-            Rails.logger.info "New booking profile created: #{profile.inspect}"
-          end
-  
-          Rails.logger.info "Booking profile found or created: #{@booking_profile.inspect}"
-  
-          if @booking_profile&.details
-            @booking_profile.details[:county] = @county
-          else
-            @booking_profile.details = { county: @county }
-          end
-          @booking_profile.save
-          Rails.logger.info "Booking profile saved: #{@booking_profile.inspect}"
-  
-          user = @booking_profile.user
-          Rails.logger.info "Updating user details: #{user.inspect}"
-          user.first_name = passenger["first_name"]
-          user.last_name = passenger["last_name"]
-          user.save
-          Rails.logger.info "User updated: #{user.inspect}"
+        user = existing_user
+      else
+        Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
+        @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
+          random = SecureRandom.hex(8)
+          user = User.create!(
+            email: email,
+            password: random,
+            password_confirmation: random
+          )
+          profile.details = { customer_id: passenger["id"] }
+          profile.booking_api = "ecolane"
+          profile.user = user
         end
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error "Validation failed: #{e.message}"
-        Rails.logger.error "Detailed errors: #{e.record.errors.full_messages.join(', ')}"
-        Rails.logger.error e.backtrace.join("\n")
-  
-        # Query the users table directly to check for any inconsistencies
-        users_with_email = User.where('lower(email) = ?', email.downcase)
-        Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
-  
-        return nil
-      rescue => e
-        Rails.logger.error "An error occurred: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
-  
-        # Query the users table directly to check for any inconsistencies
-        users_with_email = User.where('lower(email) = ?', email.downcase)
-        Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
-  
-        return nil
       end
+  
+      # Update the user's booking profile with the user's county from login info.
+      if @booking_profile&.details
+        @booking_profile.details[:county] = @county
+      else
+        @booking_profile.details = { county: @county }
+      end
+      @booking_profile.save
+  
+      # Update the user's name
+      user = @booking_profile.user
+      user.first_name = passenger["first_name"]
+      user.last_name = passenger["last_name"]
+      user.save
   
       user
     else
-      Rails.logger.info "Passenger validation failed."
       nil
     end
   end
+  
   
    
 
