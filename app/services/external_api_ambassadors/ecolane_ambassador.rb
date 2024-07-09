@@ -856,8 +856,8 @@ class EcolaneAmbassador < BookingAmbassador
       email = "#{@customer_number.gsub(' ', '_')}_#{@county}@ecolane_user.com"
       Rails.logger.info "Constructed email: #{email}"
   
-      Rails.logger.info "Checking for existing user with email: #{email}"
-      existing_user = User.find_by(email: email)
+      Rails.logger.info "Checking for existing user with email: #{email} (case-insensitive)"
+      existing_user = User.where('lower(email) = ?', email.downcase).first
       Rails.logger.info "Existing user: #{existing_user.inspect}"
   
       if existing_user.nil?
@@ -907,7 +907,7 @@ class EcolaneAmbassador < BookingAmbassador
         Rails.logger.error e.backtrace.join("\n")
   
         # Query the users table directly to check for any inconsistencies
-        users_with_email = User.where(email: email)
+        users_with_email = User.where('lower(email) = ?', email.downcase)
         Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
   
         return nil
@@ -916,7 +916,7 @@ class EcolaneAmbassador < BookingAmbassador
         Rails.logger.error e.backtrace.join("\n")
   
         # Query the users table directly to check for any inconsistencies
-        users_with_email = User.where(email: email)
+        users_with_email = User.where('lower(email) = ?', email.downcase)
         Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
   
         return nil
@@ -928,6 +928,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
    
 
   def build_order funding=true, funding_hash=nil
