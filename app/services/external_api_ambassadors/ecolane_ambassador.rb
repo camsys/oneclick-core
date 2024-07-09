@@ -862,6 +862,10 @@ class EcolaneAmbassador < BookingAmbassador
       if existing_user
         Rails.logger.info "Found existing user with email: #{email}: #{existing_user.inspect}"
         user = existing_user
+  
+        # Log service details
+        Rails.logger.info "Service details: ID=#{@service.id}, Name=#{@service.name}, Booking API=#{@service.booking_api}"
+        
         @booking_profile = UserBookingProfile.find_by(service: @service, external_user_id: @customer_number)
         Rails.logger.info "Booking profile for existing user: #{@booking_profile.inspect}"
       else
@@ -908,6 +912,8 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
+  
   
   
   
