@@ -860,11 +860,17 @@ class EcolaneAmbassador < BookingAmbassador
       existing_user = User.find_by(email: email)
       Rails.logger.info "Existing user: #{existing_user.inspect}"
   
+      if existing_user.nil?
+        Rails.logger.info "No existing user found with email: #{email}. Proceeding to create a new user."
+      else
+        Rails.logger.info "Found existing user with email: #{email}: #{existing_user.inspect}"
+      end
+  
       begin
         ActiveRecord::Base.transaction do
           @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
             random = SecureRandom.hex(8)
-            Rails.logger.info "Creating new user with email: #{email}"
+            Rails.logger.info "Attempting to create new user with email: #{email}"
             user = User.create!(
               email: email,
               password: random,
@@ -897,11 +903,22 @@ class EcolaneAmbassador < BookingAmbassador
         end
       rescue ActiveRecord::RecordInvalid => e
         Rails.logger.error "Validation failed: #{e.message}"
+        Rails.logger.error "Detailed errors: #{e.record.errors.full_messages.join(', ')}"
         Rails.logger.error e.backtrace.join("\n")
+  
+        # Query the users table directly to check for any inconsistencies
+        users_with_email = User.where(email: email)
+        Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
+  
         return nil
       rescue => e
         Rails.logger.error "An error occurred: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
+  
+        # Query the users table directly to check for any inconsistencies
+        users_with_email = User.where(email: email)
+        Rails.logger.error "Users with email #{email}: #{users_with_email.inspect}"
+  
         return nil
       end
   
@@ -911,11 +928,6 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
-  
-  
-  
-  
-  
    
 
   def build_order funding=true, funding_hash=nil
