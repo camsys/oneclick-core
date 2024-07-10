@@ -144,82 +144,98 @@ module Api
 
       #Built to Support Ecolane API/V1
       def trip_purposes
-
-        #If the user is registered with a service, use his/her trip purposes
-        trip_purposes  = []
+        Rails.logger.debug "Entering trip_purposes method"
+      
+        # If the user is registered with a service, use his/her trip purposes
+        trip_purposes = []
         trip_purposes_hash = []
         booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
-        if @traveler and booking_profile
+        if @traveler && booking_profile
           begin
             trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes
-          rescue Exception=>e
+            Rails.logger.debug "Retrieved trip purposes: #{trip_purposes.inspect}"
+            Rails.logger.debug "Retrieved trip purposes hash: #{trip_purposes_hash.inspect}"
+          rescue Exception => e
+            Rails.logger.error "Error retrieving trip purposes: #{e.message}"
             trip_purposes = []
             trip_purposes_hash = []
           end
         end
         purposes = trip_purposes.sort
-
-        #Append extra information to Top Trip Purposes Array
+        Rails.logger.debug "Sorted trip purposes: #{purposes.inspect}"
+      
+        # Append extra information to Top Trip Purposes Array
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
+        Rails.logger.debug "Retrieved bookings: #{bookings.pluck(:id).inspect}"
+        
         top_purposes = []
         bookings.each do |booking|
           purpose = booking.itinerary.trip.external_purpose
-          if purpose and not purpose.in? top_purposes
+          Rails.logger.debug "Processing booking ID #{booking.id} with purpose: #{purpose.inspect}"
+          if purpose && !purpose.in?(top_purposes)
             top_purposes << purpose
           end
-          if top_purposes.length > 3
-            break
-          end
+          break if top_purposes.length > 3
         end
-
-        #Make sure we have 4 purposes
+        Rails.logger.debug "Top purposes from bookings: #{top_purposes.inspect}"
+      
+        # Make sure we have 4 purposes
         purposes.each do |purpose|
-          if top_purposes.length > 3
-            break 
-          end
-          if not purpose.in? top_purposes
-            top_purposes << purpose 
+          Rails.logger.debug "Processing purpose: #{purpose.inspect}"
+          break if top_purposes.length > 3
+          unless purpose.in?(top_purposes)
+            top_purposes << purpose
           end
         end
-
-        #Make sure Top Purposes are still allowed
-        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
+        Rails.logger.debug "Final top purposes: #{top_purposes.inspect}"
+      
+        # Make sure Top Purposes are still allowed
+        top_purposes = top_purposes.map { |x| x.in?(purposes) ? x : 'DELETE' }
+        Rails.logger.debug "Top purposes after filtering: #{top_purposes.inspect}"
         top_purposes -= ['DELETE']
-
-        #Delete Duplicates
-        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
+        Rails.logger.debug "Top purposes after removing 'DELETE': #{top_purposes.inspect}"
+      
+        # Delete Duplicates
+        purposes = purposes.map { |x| x.in?(top_purposes) ? 'DELETE' : x }
+        Rails.logger.debug "Purposes after marking duplicates: #{purposes.inspect}"
         purposes -= ['DELETE']
-
+        Rails.logger.debug "Purposes after removing 'DELETE': #{purposes.inspect}"
+      
         purposes_hash = []
         purposes.each_with_index do |p, i|
+          Rails.logger.debug "Processing purpose for purposes_hash: #{p.inspect}"
           # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
+          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }.delete_if { |h| h[:valid_from].nil? }.min_by { |h| h[:valid_from] }
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
             valid_from = trip_purpose_hash[:valid_from]
             valid_until = trip_purpose_hash[:valid_until]
           end
-          purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
+          purposes_hash << { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
         end
-
+        Rails.logger.debug "Purposes hash: #{purposes_hash.inspect}"
+      
         top_purposes_hash = []
         top_purposes.each_with_index do |p, i|
+          Rails.logger.debug "Processing top purpose for top_purposes_hash: #{p.inspect}"
           # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
+          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }.delete_if { |h| h[:valid_from].nil? }.min_by { |h| h[:valid_from] }
           valid_from = nil
           valid_until = nil
           if trip_purpose_hash
             valid_from = trip_purpose_hash[:valid_from]
             valid_until = trip_purpose_hash[:valid_until]
           end
-          top_purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
+          top_purposes_hash << { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
         end
-
-        hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}
+        Rails.logger.debug "Top purposes hash: #{top_purposes_hash.inspect}"
+      
+        hash = { top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash }
+        Rails.logger.debug "Final hash: #{hash.inspect}"
         render json: hash
-
       end
+      
 
       #Looks up customer number from DOB, Name, and County in Ecolane
       def lookup 
