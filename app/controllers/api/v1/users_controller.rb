@@ -167,7 +167,7 @@ module Api
         # Append extra information to Top Trip Purposes Array
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         Rails.logger.debug "Retrieved bookings: #{bookings.pluck(:id).inspect}"
-        
+      
         top_purposes = []
         bookings.each do |booking|
           purpose = booking.itinerary.trip.external_purpose
@@ -179,6 +179,10 @@ module Api
         end
         Rails.logger.debug "Top purposes from bookings: #{top_purposes.inspect}"
       
+        # Log initial purposes and top purposes before filtering
+        Rails.logger.debug "Initial purposes: #{purposes.inspect}"
+        Rails.logger.debug "Initial top purposes: #{top_purposes.inspect}"
+      
         # Make sure we have 4 purposes
         purposes.each do |purpose|
           Rails.logger.debug "Processing purpose: #{purpose.inspect}"
@@ -187,7 +191,7 @@ module Api
             top_purposes << purpose
           end
         end
-        Rails.logger.debug "Final top purposes: #{top_purposes.inspect}"
+        Rails.logger.debug "Final top purposes before filtering: #{top_purposes.inspect}"
       
         # Make sure Top Purposes are still allowed
         top_purposes = top_purposes.map { |x| x.in?(purposes) ? x : 'DELETE' }
@@ -235,6 +239,7 @@ module Api
         Rails.logger.debug "Final hash: #{hash.inspect}"
         render json: hash
       end
+      
       
 
       #Looks up customer number from DOB, Name, and County in Ecolane
