@@ -9,6 +9,7 @@ class Landmark < Place
 
   ### Associations ###
   belongs_to :agency
+  belongs_to :service, optional: true
   has_many :landmark_set_landmarks, inverse_of: :landmark
   has_many :landmark_sets, through: :landmark_set_landmarks
 
