@@ -48,19 +48,14 @@ namespace :ecolane do
     
     new_poi_names_set = Set.new
     
-    services.each do |service|
-      local_error = false
-      system = service.booking_details[:external_id]
-      agency_id = service&.agency&.id
-      service_id = service.id
-
+    # Group services by Ecolane database and process each group
+    services.group_by { |s| s.booking_details[:external_id] }.each do |system, grouped_services|
       begin
-        # Get a Hash of new POIs from Ecolane
-        # NOTE: INCLUDES THE SERVICE'S AGENCY
-        new_poi_hashes = service.booking_ambassador.get_pois
+        # Get a Hash of new POIs from Ecolane for the first service in the group
+        new_poi_hashes = grouped_services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
+          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
           puts messages.to_s
           break
@@ -71,50 +66,24 @@ namespace :ecolane do
         # Import named pois before unnamed locations
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
-          poi_processed_count += 1
-          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
-          
           new_poi = Landmark.new hash
           new_poi.old = false
-          new_poi.agency_id = agency_id
-          new_poi.service_id = service_id # Assign the service ID here
-          # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
-          if new_poi.city.blank?
-            puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
-            puts hash.ai
-            poi_with_no_city += 1
-            next
+          next if new_poi.city.blank? || new_poi.name =~ /do not use/i
+
+          new_poi.name = new_poi.auto_name if new_poi.name.blank?
+          new_poi.search_text = "#{new_poi.name} #{new_poi.auto_name} #{new_poi.zip}"
+          next if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+
+          # Save the POI for each service in the group
+          grouped_services.each do |service|
+            new_poi_dup = new_poi.dup
+            new_poi_dup.agency_id = service&.agency&.id
+            new_poi_dup.service_id = service.id
+            new_poi_dup.save(validate: false)
           end
 
-          # Skip POIs whose names contain "do not use" case insensitive
-          next if new_poi.name =~ /do not use/i
-          
-          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
-          if new_poi.name.blank?
-            # or new_poi.name.downcase == 'home'
-            new_poi.name = new_poi.auto_name
-            poi_blank_name_count += 1
-            new_poi.search_text = ''
-          else
-            new_poi.search_text = "#{new_poi.name} "
-          end
-
-          # Use the name + address to determine duplicates
-          new_poi.search_text += "#{new_poi.auto_name}"
-          if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
-            new_poi_duplicate_count += 1
-            puts "Duplicate found: #{new_poi.search_text}"
-            next
-          end
-
-          new_poi.search_text += " #{new_poi.zip}"
-
-          # HACK: Because of FMRPA-153 we need to support duplicate names.
-          # Rather than change the model validation for all of 1-Click, just override it here for FMR.
-          if !new_poi.save(validate: false)
-            puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
-            puts "#{new_poi}"
-          end
+          poi_processed_count += 1
+          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
         end
 
       rescue Exception => e
