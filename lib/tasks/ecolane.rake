@@ -19,7 +19,7 @@ namespace :ecolane do
         puts "Running this instance."
       end
     end
-    
+
     messages = []
     local_error = false
 
@@ -44,15 +44,14 @@ namespace :ecolane do
     poi_with_no_city = 0
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
-    
-    new_poi_names_set = Set.new
-    
+
     # Process each service independently to ensure each one gets its POIs
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
       agency_id = service&.agency&.id
       service_id = service.id
+      service_poi_names_set = Set.new
 
       begin
         # Get a Hash of new POIs from Ecolane for the service
@@ -79,11 +78,18 @@ namespace :ecolane do
 
           new_poi.name = new_poi.auto_name if new_poi.name.blank?
           new_poi.search_text = "#{new_poi.name} #{new_poi.auto_name} #{new_poi.zip}"
-          next if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+
+          # Check for duplicates within the same service
+          if service_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+            new_poi_duplicate_count += 1
+            next
+          end
 
           new_poi.save(validate: false)
           poi_processed_count += 1
-          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
+          if poi_processed_count % 1000 == 0
+            puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities"
+          end
         end
 
       rescue Exception => e
