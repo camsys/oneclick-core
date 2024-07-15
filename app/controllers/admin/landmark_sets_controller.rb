@@ -67,6 +67,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   private
+
   def landmark_set_params
     params.require(:landmark_set).permit(
       :name,
@@ -85,12 +86,12 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def load_pois
-    if (params[:landmark_set] && params[:landmark_set][:landmark_set_landmarks_attributes])
+    if params[:landmark_set] && params[:landmark_set][:landmark_set_landmarks_attributes]
       changed_pois = params[:landmark_set][:landmark_set_landmarks_attributes].values
     else
       changed_pois = []
     end
-  
+
     unless @partial_path == "/admin/landmark_sets/_system_pois"
       @selected_pagy, @selected_pois = pagy(
         find_selected_pois(@selected_query),
@@ -99,19 +100,19 @@ class Admin::LandmarkSetsController < Admin::AdminController
         page_param: :selected_page,
         size: [1, 1, 2, 1]
       )
-  
+
       @selected_poi_count = @landmark_set.landmark_set_landmarks.count
       @removed_pois = LandmarkSetLandmark.where(
         id: changed_pois.reject { |poi| poi[:id].blank? && !poi[:_destroy] }
                         .map { |poi| poi[:id] }
       )
-  
+
       if params[:remove_all] == "true"
         @remove_all_pois = find_selected_pois(@selected_query).where.not(id: @removed_pois.map(&:id))
         @removed_pois += @remove_all_pois
       end
     end
-  
+
     unless @partial_path == "/admin/landmark_sets/_selected_pois"
       @system_pagy, @system_pois = pagy(
         find_system_pois(@system_query),
@@ -123,7 +124,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
         page_param: :system_page,
         size: [1, 1, 2, 1]
       )
-  
+
       @system_poi_count = Landmark.where(agency: @landmark_set.agency).count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
                                 .map { |poi| LandmarkSetLandmark.new(poi) }
@@ -131,12 +132,11 @@ class Admin::LandmarkSetsController < Admin::AdminController
       if params[:add_all] == "true"
         @add_all_pois = find_system_pois(@system_query).merge(
           Landmark.where.not(id: @added_pois.map(&:landmark_id) + @landmark_set.landmark_set_landmarks.pluck(:landmark_id))
-        ).distinct.on(:name, :agency_id)
+        ).select('DISTINCT ON (name, agency_id) landmarks.*')
         @added_pois += @add_all_pois
       end
     end
   end
-  
 
   def find_selected_pois(query)
     @landmark_set.landmark_set_landmarks
@@ -157,13 +157,14 @@ class Admin::LandmarkSetsController < Admin::AdminController
                           Landmark.where(agency: @landmark_set.agency)
                                   .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
                                   .order(:name)
-                        )
+                                  ).select('DISTINCT ON (name, agency_id) landmarks.*')
+                                  
   end
   
   def database_transaction
     success = false
     LandmarkSet.transaction do
-      if @landmark_set.save()
+      if @landmark_set.save
         @landmark_set.update_associated_regions
         success = true
       else
@@ -171,6 +172,6 @@ class Admin::LandmarkSetsController < Admin::AdminController
       end
     end
 
-    return success
+    success
   end
 end
