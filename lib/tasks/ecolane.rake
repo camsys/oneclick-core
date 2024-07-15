@@ -127,52 +127,60 @@ namespace :ecolane do
         break
       end
 
-      unless local_error	    unless local_error
-        # If we made it this far, then we have a new set of POIs and we can delete the old ones.		@@ -155,7 +133,7 @@ namespace :ecolane do
-        # Exclude any in use.	
-        # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.	
-        landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)	
-        Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all	
-        Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)	
-        new_poi_count = Landmark.count	
-        messages << "Successfully loaded #{new_poi_count} POIs"	
-        messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"	
-        messages << "count of pois with no city: #{poi_with_no_city}"	
-        messages << "count of pois with initial blank name: #{poi_blank_name_count}"	
-        puts messages.to_s	
-      end	
-  
-    ensure	
-      task_run_state.update(value: false) unless is_already_running	
-  
-      if local_error	
-        # If anything went wrong, delete the new pois and reinstate the old_pois	
-        Landmark.is_new.delete_all	      Landmark.is_new.delete_all
-        Landmark.is_old.update_all(old: false)	      Landmark.is_old.update_all(old: false)
-      end	    end
-  
-  
-    end #update_pois	  end #update_pois
-  
-    # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this	
-    desc "Update Waypoints with an incorrect township as the city to the correct city"	
-    task fix_townships_city: :environment do	
-      messages = []	
-      Trip::CORRECTED_CITIES_HASHES.each do |tp|	
-        puts "Updating waypoints for #{tp[:incorrect]}"	
-        wps = Waypoint.where(city: tp[:incorrect])	
-        incorrect_waypoints_length = wps.length	
-        wps.update_all(city: tp[:correct])	
-        messages << "Updated #{incorrect_waypoints_length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"	
-  
-        # Correct the Waypoint name if it includes the incorrect township.	
-        Waypoint.where("name like ?", "%#{tp[:incorrect]}%").map do |wp|	
-          puts "Updating waypoint name #{wp.name}"	
-          wp.name.gsub!(tp[:incorrect], tp[:correct])	
-          wp.save!	
-        end	
-      end	
-      puts messages.to_s	
-    end	
-  
-  end #ecolane	  
+      unless local_error
+        #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        new_poi_count = new_poi_hashes.count
+        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        poi_total_duplicate_count += new_poi_duplicate_count
+      end
+
+    end
+
+    unless local_error
+      # If we made it this far, then we have a new set of POIs and we can delete the old ones.
+      # Exclude any in use.
+      # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
+      landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
+      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
+      new_poi_count = Landmark.count
+      messages << "Successfully loaded #{new_poi_count} POIs"
+      messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
+      messages << "count of pois with no city: #{poi_with_no_city}"
+      messages << "count of pois with initial blank name: #{poi_blank_name_count}"
+      puts messages.to_s
+    end
+
+  ensure
+    task_run_state.update(value: false) unless is_already_running
+
+    if local_error
+      # If anything went wrong, delete the new pois and reinstate the old_pois
+      Landmark.is_new.delete_all
+      Landmark.is_old.update_all(old: false)
+    end
+
+  end #update_pois
+
+  # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
+  desc "Update Waypoints with an incorrect township as the city to the correct city"
+  task fix_townships_city: :environment do
+    messages = []
+    Trip::CORRECTED_CITIES_HASHES.each do |tp|
+      puts "Updating waypoints for #{tp[:incorrect]}"
+      wps = Waypoint.where(city: tp[:incorrect])
+      incorrect_waypoints_length = wps.length
+      wps.update_all(city: tp[:correct])
+      messages << "Updated #{incorrect_waypoints_length} waypoints with city name of #{tp[:incorrect]} to new city name of #{tp[:correct]}"
+
+      # Correct the Waypoint name if it includes the incorrect township.
+      Waypoint.where("name like ?", "%#{tp[:incorrect]}%").map do |wp|
+        puts "Updating waypoint name #{wp.name}"
+        wp.name.gsub!(tp[:incorrect], tp[:correct])
+        wp.save!
+      end
+    end
+    puts messages.to_s
+  end
+
+end #ecolane
