@@ -117,7 +117,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
       @system_pagy, @system_pois = pagy(
         find_system_pois(@system_query),
         items: (params[:system_per_page] || 10).to_i,
-        params: ->(params) { 
+        params: ->(params) {
           params.select { |key, value| ["agency_id", "system_page"].include?(key) }
                 .merge!(partial_path: "/admin/landmark_sets/_system_pois")
         },
@@ -132,7 +132,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
       if params[:add_all] == "true"
         @add_all_pois = find_system_pois(@system_query).merge(
           Landmark.where.not(id: @added_pois.map(&:landmark_id) + @landmark_set.landmark_set_landmarks.pluck(:landmark_id))
-        ).select('DISTINCT ON (name, agency_id) landmarks.*')
+        ).distinct.select('DISTINCT ON (landmarks.name, landmarks.agency_id) landmarks.*')
         @added_pois += @add_all_pois
       end
     end
@@ -149,17 +149,16 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def find_system_pois(query)
-    LandmarkSetLandmark.select('"landmark_set_landmarks".*, "landmarks"."id" AS landmark_id')
-                        .preload(:landmark)
-                        .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
-                        .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
-                        .merge(
-                          Landmark.where(agency: @landmark_set.agency)
-                                  .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
-                                  .order(:name)
-                                  ).select('DISTINCT ON (name, agency_id) landmarks.*')
-                                  
-  end
+    LandmarkSetLandmark.select('DISTINCT ON (landmarks.name, landmarks.agency_id) landmarks.*')
+                       .preload(:landmark)
+                       .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
+                       .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
+                       .merge(
+                         Landmark.where(agency: @landmark_set.agency)
+                                 .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
+                                 .order('landmarks.name')
+                       )
+  end  
   
   def database_transaction
     success = false
