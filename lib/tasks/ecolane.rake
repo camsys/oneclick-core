@@ -27,7 +27,7 @@ namespace :ecolane do
     # Order from oldest to newest.
     systems = []
     services = []
-    new_poi_names_set = Set.new
+    service_poi_names_sets = Hash.new { |hash, key| hash[key] = Set.new }
 
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
@@ -70,7 +70,7 @@ namespace :ecolane do
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
 
         new_poi_hashes_sorted.each do |hash|
-          # Check for duplicates based on name, service ID, and other relevant attributes
+          # Check for duplicates based on name, lat, lng, and service ID
           if Landmark.exists?(name: hash[:name], lat: hash[:lat], lng: hash[:lng], service_id: service_id)
             new_poi_duplicate_count += 1
             next # Skip to the next POI
@@ -102,9 +102,9 @@ namespace :ecolane do
             new_poi.search_text = "#{new_poi.name} "
           end
 
-          # Use the name + address to determine duplicates
+          # Use the name + address to determine duplicates within the same service
           new_poi.search_text += "#{new_poi.auto_name}"
-          if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+          if service_poi_names_sets[service_id].add?(new_poi.search_text.strip.downcase).nil?
             new_poi_duplicate_count += 1
             puts "Duplicate found: #{new_poi.search_text}"
             next
