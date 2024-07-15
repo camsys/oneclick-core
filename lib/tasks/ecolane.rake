@@ -70,20 +70,22 @@ namespace :ecolane do
         new_poi_hashes_sorted.each do |hash|
           new_poi = Landmark.new hash
           new_poi.old = false
+
+          # Check for duplicates based on name and service ID before assigning service ID and agency ID
+          if Landmark.exists?(name: new_poi.name, service_id: service_id)
+            new_poi_duplicate_count += 1
+            next
+          end
+
           new_poi.agency_id = agency_id
           new_poi.service_id = service_id
+
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           next if new_poi.city.blank? || new_poi.name =~ /do not use/i
 
           # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           new_poi.name = new_poi.auto_name if new_poi.name.blank?
           new_poi.search_text = "#{new_poi.name} #{new_poi.auto_name} #{new_poi.zip}"
-
-          # Check for duplicates based on name and service ID
-          if Landmark.exists?(name: new_poi.name, service_id: new_poi.service_id)
-            new_poi_duplicate_count += 1
-            next
-          end
 
           new_poi.save(validate: false)
           poi_processed_count += 1
