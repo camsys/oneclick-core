@@ -26,7 +26,7 @@ namespace :ecolane do
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
     # Order from oldest to newest.
     systems = []
-    services  = []
+    services = []
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
         not service.booking_details[:token].blank? and
@@ -45,13 +45,11 @@ namespace :ecolane do
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
 
-    # Process each service independently to ensure each one gets its POIs
     services.each do |service|
       local_error = false
       system = service.booking_details[:external_id]
       agency_id = service&.agency&.id
       service_id = service.id
-      service_poi_names_set = Set.new
 
       begin
         # Get a Hash of new POIs from Ecolane for the service
@@ -74,13 +72,15 @@ namespace :ecolane do
           new_poi.old = false
           new_poi.agency_id = agency_id
           new_poi.service_id = service_id
+          # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           next if new_poi.city.blank? || new_poi.name =~ /do not use/i
 
+          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
           new_poi.name = new_poi.auto_name if new_poi.name.blank?
           new_poi.search_text = "#{new_poi.name} #{new_poi.auto_name} #{new_poi.zip}"
 
-          # Check for duplicates within the same service
-          if service_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+          # Check for duplicates based on name and service ID
+          if Landmark.exists?(name: new_poi.name, service_id: new_poi.service_id)
             new_poi_duplicate_count += 1
             next
           end
@@ -132,7 +132,7 @@ namespace :ecolane do
       Landmark.is_new.delete_all
       Landmark.is_old.update_all(old: false)
     end
-    
+
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
