@@ -3,6 +3,8 @@ class Admin::LandmarksController < Admin::AdminController
 
   def index
     @landmarks = Landmark.all.order(:name)
+    # don't allow duplicate landmarks
+    @landmarks = @landmarks.uniq { |landmark| landmark.name, landmark.agency_id }
     @landmark = Landmark.new
   end
 
