@@ -3,11 +3,11 @@ class Admin::LandmarksController < Admin::AdminController
 
   def index
     @landmarks = Landmark.all.order(:name)
-    # don't allow duplicate landmarks
-    @landmarks = @landmarks.uniq { |landmark| landmark.name, landmark.agency_id }
+    # Don't allow duplicate landmarks based on name and agency_id
+    @landmarks = @landmarks.uniq { |landmark| [landmark.name, landmark.agency_id] }
     @landmark = Landmark.new
   end
-
+  
   def update_all
     info_msgs = []
     error_msgs = []
