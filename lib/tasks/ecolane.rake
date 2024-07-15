@@ -27,6 +27,8 @@ namespace :ecolane do
     # Order from oldest to newest.
     systems = []
     services = []
+    new_poi_names_set = Set.new
+
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
         not service.booking_details[:token].blank? and
@@ -120,20 +122,19 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        messages << "Error loading POIs for #{system}, Service: #{service.id} #{service.name}. #{e.message}."
         local_error = true
         # Log if errors happen
         puts messages.to_s
-        break
+        next
       end
 
       unless local_error
-        #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        # If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
-        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}, Service: #{service.id} #{service.name}."
         poi_total_duplicate_count += new_poi_duplicate_count
       end
-
     end
 
     unless local_error
