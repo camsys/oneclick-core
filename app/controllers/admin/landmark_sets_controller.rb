@@ -10,7 +10,6 @@ class Admin::LandmarkSetsController < Admin::AdminController
 
   def index
     @landmark_sets = @landmark_sets.for_user(current_user).order(:name)
-    @landmark_sets = @landmark_sets.uniq { |landmark_set| [landmark_set.name, landmark_set.agency_id] }
   end
 
   def new
@@ -91,7 +90,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
     else
       changed_pois = []
     end
-
+  
     unless @partial_path == "/admin/landmark_sets/_system_pois"
       @selected_pagy, @selected_pois = pagy(
         find_selected_pois(@selected_query),
@@ -100,43 +99,44 @@ class Admin::LandmarkSetsController < Admin::AdminController
         page_param: :selected_page,
         size: [1, 1, 2, 1]
       )
-
+  
       @selected_poi_count = @landmark_set.landmark_set_landmarks.count
       @removed_pois = LandmarkSetLandmark.where(
         id: changed_pois.reject { |poi| poi[:id].blank? && !poi[:_destroy] }
                         .map { |poi| poi[:id] }
       )
-
+  
       if params[:remove_all] == "true"
         @remove_all_pois = find_selected_pois(@selected_query).where.not(id: @removed_pois.map(&:id))
         @removed_pois += @remove_all_pois
       end
     end
-
+  
     unless @partial_path == "/admin/landmark_sets/_selected_pois"
       @system_pagy, @system_pois = pagy(
         find_system_pois(@system_query),
         items: (params[:system_per_page] || 10).to_i,
         params: ->(params) { 
-          params.select{ |key, value| ["agency_id", "system_page"].include?(key) }
+          params.select { |key, value| ["agency_id", "system_page"].include?(key) }
                 .merge!(partial_path: "/admin/landmark_sets/_system_pois")
         },
         page_param: :system_page,
         size: [1, 1, 2, 1]
       )
-
+  
       @system_poi_count = Landmark.where(agency: @landmark_set.agency).count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
-                                .map{ |poi| LandmarkSetLandmark.new(poi) }
+                                .map { |poi| LandmarkSetLandmark.new(poi) }
       
       if params[:add_all] == "true"
         @add_all_pois = find_system_pois(@system_query).merge(
           Landmark.where.not(id: @added_pois.map(&:landmark_id) + @landmark_set.landmark_set_landmarks.pluck(:landmark_id))
-        )
+        ).distinct.on(:name, :agency_id)
         @added_pois += @add_all_pois
       end
     end
   end
+  
 
   def find_selected_pois(query)
     @landmark_set.landmark_set_landmarks
