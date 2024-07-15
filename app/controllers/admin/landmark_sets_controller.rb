@@ -9,7 +9,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
   before_action :load_pois, only: [:new, :edit]
 
   def index
-    @landmark_sets = @landmark_sets.for_user(current_user).order(:name)
+    @landmark_sets = LandmarkSet.for_user(current_user).select('DISTINCT ON (name, agency_id) *').order(:name)
   end
 
   def new
