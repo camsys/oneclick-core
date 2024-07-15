@@ -68,15 +68,14 @@ namespace :ecolane do
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
 
         new_poi_hashes_sorted.each do |hash|
-          new_poi = Landmark.new hash
-          new_poi.old = false
-
-          # Check for duplicates based on name and service ID before assigning service ID and agency ID
-          if Landmark.exists?(name: new_poi.name, service_id: service_id)
+          # Check for duplicates based on name, service ID, and other relevant attributes
+          if Landmark.exists?(name: hash[:name], lat: hash[:lat], lng: hash[:lng], service_id: service_id)
             new_poi_duplicate_count += 1
-            next
+            next # Skip to the next POI
           end
 
+          new_poi = Landmark.new hash
+          new_poi.old = false
           new_poi.agency_id = agency_id
           new_poi.service_id = service_id
 
