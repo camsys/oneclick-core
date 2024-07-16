@@ -157,7 +157,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
                           Landmark.where(agency: @landmark_set.agency)
                                   .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
                                   .order(:name)
-                        )
+                        ).distinct_on(:name, :lat, :lng)
   end
   
   def database_transaction
