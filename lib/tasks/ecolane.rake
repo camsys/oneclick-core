@@ -101,11 +101,13 @@ namespace :ecolane do
             new_poi.search_text = "#{new_poi.name} "
           end
 
-          # Use the name + address to determine duplicates within the same service
-          new_poi.search_text += "#{new_poi.auto_name}"
-          if service_poi_names_sets[service_id].add?(new_poi.search_text.strip.downcase).nil?
+          # Generate a unique key for the POI based on its attributes and service ID
+          unique_poi_key = "#{hash[:name]}|#{hash[:street_number]}|#{hash[:route]}|#{hash[:city]}|#{hash[:state]}|#{hash[:zip]}|#{service_id}"
+
+          # Check for duplicates within the same service
+          if service_poi_names_sets[service_id].add?(unique_poi_key).nil?
             new_poi_duplicate_count += 1
-            puts "Duplicate found: #{new_poi.search_text}"
+            puts "Duplicate found: #{unique_poi_key}"
             next
           end
 
