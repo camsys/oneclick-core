@@ -142,8 +142,9 @@ namespace :ecolane do
       # Exclude any in use.
       # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
       landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
-      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
-      Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
+      # Only delete landmarks marked as old which are not part of the landmark_set_landmark_ids
+      Landmark.where(old: true).where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.where(old: true).where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       messages << "Successfully loaded #{new_poi_count} POIs"
       messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
@@ -157,8 +158,8 @@ namespace :ecolane do
 
     if local_error
       # If anything went wrong, delete the new pois and reinstate the old_pois
-      Landmark.is_new.delete_all
-      Landmark.is_old.update_all(old: false)
+      Landmark.where(old: false).delete_all
+      Landmark.where(old: true).update_all(old: false)
     end
 
   end #update_pois
