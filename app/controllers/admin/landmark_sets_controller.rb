@@ -149,11 +149,11 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def find_system_pois(query)
-    Landmark.joins("LEFT JOIN landmark_set_landmarks ON landmarks.id = landmark_set_landmarks.landmark_id")
+    Landmark.select('DISTINCT ON (landmarks.name) landmarks.*')
+            .joins('LEFT JOIN landmark_set_landmarks ON landmarks.id = landmark_set_landmarks.landmark_id')
             .where(agency: @landmark_set.agency)
             .where('CONCAT(name, \' \', street_number, \' \', route, \' \', city) ILIKE ?', "%#{query}%")
-            .order(:name)
-            .select('DISTINCT ON (landmarks.name) landmarks.*')
+            .order('landmarks.name')
   end
   
   
