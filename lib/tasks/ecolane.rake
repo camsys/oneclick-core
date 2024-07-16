@@ -71,8 +71,18 @@ namespace :ecolane do
 
         new_poi_hashes_sorted.each do |hash|
           # Check for duplicates based on name, address, and service_id
-          if Landmark.exists?(name: hash[:name], street_number: hash[:street_number], route: hash[:route], city: hash[:city], service_id: service_id)
+          existing_poi = Landmark.where(
+            name: hash[:name], 
+            street_number: hash[:street_number], 
+            route: hash[:route], 
+            city: hash[:city], 
+            service_id: service_id
+          ).first
+
+          if existing_poi
             new_poi_duplicate_count += 1
+            # Update existing POI to not be old
+            existing_poi.update(old: false)
             next
           end
 
