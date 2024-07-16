@@ -31,8 +31,8 @@ namespace :ecolane do
 
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
-        not service.booking_details[:token].blank? and
-        not service.agency.blank?
+         not service.booking_details[:token].blank? and
+         not service.agency.blank?
         systems << service.booking_details[:external_id] unless service.booking_details[:external_id].in? systems
         services << service
         puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
@@ -70,28 +70,18 @@ namespace :ecolane do
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
 
         new_poi_hashes_sorted.each do |hash|
-          # Check for duplicates based on name, address, and service_id
-          existing_poi = Landmark.where(
-            name: hash[:name], 
-            street_number: hash[:street_number], 
-            route: hash[:route], 
-            city: hash[:city], 
-            service_id: service_id
-          ).first
-
-          if existing_poi
+          # Check for duplicates based on exact match of name, address, and service_id
+          if Landmark.exists?(name: hash[:name], street_number: hash[:street_number], route: hash[:route], city: hash[:city], service_id: service_id)
             new_poi_duplicate_count += 1
-            # Update existing POI to not be old
-            existing_poi.update(old: false)
             next
           end
 
-          new_poi = Landmark.new hash
+          new_poi = Landmark.new(hash)
           new_poi.old = false
           new_poi.agency_id = agency_id
           new_poi.service_id = service_id
 
-          # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
+          # POIs should also have a city. If the POI doesn't have a city, skip it and log it in the console
           if new_poi.city.blank?
             puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
             puts hash.ai
@@ -102,9 +92,8 @@ namespace :ecolane do
           # Skip POIs whose names contain "do not use" case insensitive
           next if new_poi.name =~ /do not use/i
 
-          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          # All POIs need a name. If Ecolane doesn't define one, then name it after the Address
           if new_poi.name.blank?
-            # or new_poi.name.downcase == 'home'
             new_poi.name = new_poi.auto_name
             poi_blank_name_count += 1
             new_poi.search_text = ''
@@ -131,7 +120,7 @@ namespace :ecolane do
         end
 
       rescue Exception => e
-        # If anything goes wrong....
+        # If anything goes wrong...
         messages << "Error loading POIs for #{system}, Service: #{service.id} #{service.name}. #{e.message}."
         local_error = true
         # Log if errors happen
@@ -140,9 +129,9 @@ namespace :ecolane do
       end
 
       unless local_error
-        # If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        # If we made it this far, then we have a new set of POIs and we can delete the old ones
         new_poi_count = new_poi_hashes.count
-        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}, Service: #{service.id} #{service.name}."
+        messages << "Successfully loaded #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}, Service: #{service.id} #{service.name}."
         poi_total_duplicate_count += new_poi_duplicate_count
       end
     end
@@ -150,16 +139,15 @@ namespace :ecolane do
     unless local_error
       # If we made it this far, then we have a new set of POIs and we can delete the old ones.
       # Exclude any in use.
-      # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
       landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
       # Only delete landmarks marked as old which are not part of the landmark_set_landmark_ids
       Landmark.where(old: true).where.not(id: landmark_set_landmark_ids).destroy_all
       Landmark.where(old: true).where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       messages << "Successfully loaded #{new_poi_count} POIs"
-      messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
-      messages << "count of pois with no city: #{poi_with_no_city}"
-      messages << "count of pois with initial blank name: #{poi_blank_name_count}"
+      messages << "count of POIs with duplicate names: #{poi_total_duplicate_count}"
+      messages << "count of POIs with no city: #{poi_with_no_city}"
+      messages << "count of POIs with initial blank name: #{poi_blank_name_count}"
       puts messages.to_s
     end
 
@@ -167,14 +155,13 @@ namespace :ecolane do
     task_run_state.update(value: false) unless is_already_running
 
     if local_error
-      # If anything went wrong, delete the new pois and reinstate the old_pois
+      # If anything went wrong, delete the new POIs and reinstate the old POIs
       Landmark.where(old: false).delete_all
       Landmark.where(old: true).update_all(old: false)
     end
 
   end #update_pois
 
-  # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
   desc "Update Waypoints with an incorrect township as the city to the correct city"
   task fix_townships_city: :environment do
     messages = []
