@@ -1,6 +1,8 @@
 namespace :ecolane do
+
   desc "Update Ecolane POIs"
   task :update_pois => :environment do
+
     # Check to see if another instance is already running
     is_already_running = false
     task_run_state = Config.find_or_create_by key: 'ecolane_task_is_running'
@@ -17,7 +19,7 @@ namespace :ecolane do
         puts "Running this instance."
       end
     end
-
+    
     messages = []
     local_error = false
 
@@ -27,12 +29,14 @@ namespace :ecolane do
     services_by_system = Hash.new { |hash, key| hash[key] = [] }
 
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
-      next if service.booking_details[:external_id].blank? || service.booking_details[:token].blank? || service.agency.blank?
-
-      systems << service.booking_details[:external_id] unless systems.include?(service.booking_details[:external_id])
-      services_by_system[service.booking_details[:external_id]] << service
-
-      puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
+      if not service.booking_details[:external_id].blank? and
+        not service.booking_details[:external_id].in? systems and
+        not service.booking_details[:token].blank? and
+        not service.agency.blank?
+        systems << service.booking_details[:external_id]
+        services_by_system[service.booking_details[:external_id]] << service
+        puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
+      end
     end
 
     puts "starting sync"
@@ -42,32 +46,35 @@ namespace :ecolane do
     poi_with_no_city = 0
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
-
+    
+    new_poi_names_set = Set.new
+    
     systems.each do |system|
       services = services_by_system[system]
       services.each do |service|
         local_error = false
         agency_id = service&.agency&.id
         service_id = service.id
-
         begin
-          # Get a Hash of new POIs from Ecolane for the service
+          # Get a Hash of new POIs from Ecolane
+          # NOTE: INCLUDES THE SERVICE'S AGENCY
           new_poi_hashes = service.booking_ambassador.get_pois
           if new_poi_hashes.nil?
             # If anything goes wrong the new pois will be deleted and the old reinstated
             messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
             local_error = true
             puts messages.to_s
-            next
+            break
           end
 
-          puts "Processing #{new_poi_hashes.count} POIs for #{system}, Service: #{service.id} #{service.name}"
+          puts "Processing #{new_poi_hashes.count} POIs for #{system}"
           new_poi_duplicate_count = 0
           # Import named pois before unnamed locations
           new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
-
           new_poi_hashes_sorted.each do |hash|
-            # Check for exact duplicates considering name, address, and city
+            poi_processed_count += 1
+            puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
+            
             existing_poi = Landmark.where(
               name: hash[:name], 
               street_number: hash[:street_number], 
@@ -77,16 +84,18 @@ namespace :ecolane do
 
             if existing_poi
               # If the landmark already exists, just associate it with the current services
-              existing_poi.services << service unless existing_poi.services.include?(service)
+              services.each do |svc|
+                existing_poi.services << svc unless existing_poi.services.include?(svc)
+              end
               new_poi_duplicate_count += 1
               existing_poi.update(old: false)
               next
             end
-
-            new_poi = Landmark.new(hash)
+            
+            new_poi = Landmark.new hash
             new_poi.old = false
             new_poi.agency_id = agency_id
-
+            # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
             if new_poi.city.blank?
               puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
               puts hash.ai
@@ -96,9 +105,10 @@ namespace :ecolane do
 
             # Skip POIs whose names contain "do not use" case insensitive
             next if new_poi.name =~ /do not use/i
-
+            
             # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
             if new_poi.name.blank?
+              # or new_poi.name.downcase == 'home'
               new_poi.name = new_poi.auto_name
               poi_blank_name_count += 1
               new_poi.search_text = ''
@@ -121,6 +131,11 @@ namespace :ecolane do
             if !new_poi.save(validate: false)
               puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
               puts "#{new_poi}"
+            else
+              # Associate the new POI with all relevant services
+              services.each do |svc|
+                new_poi.services << svc
+              end
             end
           end
 
@@ -147,8 +162,8 @@ namespace :ecolane do
       # Exclude any in use.
       # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
       landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
-      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
-      Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
+      Landmark.where(old: true).where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.where(old: true).where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       messages << "Successfully loaded #{new_poi_count} POIs"
       messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
@@ -162,10 +177,10 @@ namespace :ecolane do
 
     if local_error
       # If anything went wrong, delete the new pois and reinstate the old_pois
-      Landmark.is_new.delete_all
-      Landmark.is_old.update_all(old: false)
+      Landmark.where(old: false).delete_all
+      Landmark.where(old: true).update_all(old: false)
     end
-
+    
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
