@@ -67,7 +67,7 @@ namespace :ecolane do
           new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
 
           new_poi_hashes_sorted.each do |hash|
-            # Check for exact duplicates considering name, address, and service_id
+            # Check for exact duplicates considering name, address, and city
             existing_poi = Landmark.where(
               name: hash[:name], 
               street_number: hash[:street_number], 
@@ -77,9 +77,7 @@ namespace :ecolane do
 
             if existing_poi
               # If the landmark already exists, just associate it with the current services
-              services.each do |svc|
-                existing_poi.services << svc unless existing_poi.services.include?(svc)
-              end
+              existing_poi.services << service unless existing_poi.services.include?(service)
               new_poi_duplicate_count += 1
               existing_poi.update(old: false)
               next
@@ -113,9 +111,7 @@ namespace :ecolane do
             new_poi.search_text += " #{new_poi.zip}"
 
             if new_poi.save(validate: false)
-              services.each do |svc|
-                new_poi.services << svc
-              end
+              new_poi.services << service
             else
               puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
               puts "#{new_poi}"
@@ -142,14 +138,15 @@ namespace :ecolane do
     unless local_error
       # If we made it this far, then we have a new set of POIs and we can delete the old ones.
       # Exclude any in use.
+      # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
       landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
-      Landmark.where(old: true).where.not(id: landmark_set_landmark_ids).destroy_all
-      Landmark.where(old: true).where(id: landmark_set_landmark_ids).update_all(old: false)
+      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       messages << "Successfully loaded #{new_poi_count} POIs"
-      messages << "count of POIs with duplicate names: #{poi_total_duplicate_count}"
-      messages << "count of POIs with no city: #{poi_with_no_city}"
-      messages << "count of POIs with initial blank name: #{poi_blank_name_count}"
+      messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
+      messages << "count of pois with no city: #{poi_with_no_city}"
+      messages << "count of pois with initial blank name: #{poi_blank_name_count}"
       puts messages.to_s
     end
 
