@@ -53,102 +53,94 @@ namespace :ecolane do
         begin
           # Get a Hash of new POIs from Ecolane for the service
           new_poi_hashes = service.booking_ambassador.get_pois
-            if new_poi_hashes.nil?
-              # If anything goes wrong the new pois will be deleted and the old reinstated
-              messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
-              local_error = true
-              puts messages.to_s
-              next
-            end
-
-            puts "Processing #{new_poi_hashes.count} POIs for #{system}, Service: #{service.id} #{service.name}"
-            new_poi_duplicate_count = 0
-            # Import named pois before unnamed locations
-            new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
-
-            new_poi_hashes_sorted.each do |hash|
-              # Check for exact duplicates considering name, address, and city
-              existing_poi = Landmark.where(
-                name: hash[:name], 
-                street_number: hash[:street_number], 
-                route: hash[:route], 
-                city: hash[:city]
-              ).first
-
-              if existing_poi
-                # If the landmark already exists, just associate it with the current services
-                existing_poi.services << service unless existing_poi.services.include?(service)
-                new_poi_duplicate_count += 1
-                existing_poi.update(old: false)
-                next
-              end
-
-              new_poi = Landmark.new(hash)
-              new_poi.old = false
-              new_poi.agency_id = agency_id
-
-              if new_poi.city.blank?
-                puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
-                puts hash.ai
-                poi_with_no_city += 1
-                next
-              end
-
-              # Skip POIs whose names contain "do not use" case insensitive
-              next if new_poi.name =~ /do not use/i
-
-              # All POIs need a name. If Ecolane doesn't define one, then name it after the Address
-              if new_poi.name.blank?
-                new_poi.name = new_poi.auto_name
-                poi_blank_name_count += 1
-                new_poi.search_text = ''
-              else
-                new_poi.search_text = "#{new_poi.name} "
-              end
-
-              # Use the name + address to determine duplicates
-              new_poi.search_text += "#{new_poi.auto_name}"
-              if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
-                new_poi_duplicate_count += 1
-                puts "Duplicate found: #{new_poi.search_text}"
-                next
-              end
-
-              new_poi.search_text += " #{new_poi.zip}"
-
-              # HACK: Because of FMRPA-153 we need to support duplicate names.
-              # Rather than change the model validation for all of 1-Click, just override it here for FMR.
-              if !new_poi.save(validate: false)
-                puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
-                puts "#{new_poi}"
-              end
-            end
-
-          rescue Exception => e
-            # If anything goes wrong....
-            messages << "Error loading POIs for #{system}. #{e.message}."
+          if new_poi_hashes.nil?
+            # If anything goes wrong the new pois will be deleted and the old reinstated
+            messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
             local_error = true
-            # Log if errors happen
-            puts messages.to_s
-            break
-          end
-
-          unless local_error
-            #If we made it this far, then we have a new set of POIs and we can delete the old ones.
-            new_poi_count = new_poi_hashes.count
-            messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
-            poi_total_duplicate_count += new_poi_duplicate_count
-          end
-
-          rescue Exception => e
-            messages << "Error loading POIs for #{system}, Service: #{service.id} #{service.name}. #{e.message}."
-            local_error = true
-            # Log if errors happen
             puts messages.to_s
             next
           end
+
+          puts "Processing #{new_poi_hashes.count} POIs for #{system}, Service: #{service.id} #{service.name}"
+          new_poi_duplicate_count = 0
+          # Import named pois before unnamed locations
+          new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
+
+          new_poi_hashes_sorted.each do |hash|
+            # Check for exact duplicates considering name, address, and city
+            existing_poi = Landmark.where(
+              name: hash[:name], 
+              street_number: hash[:street_number], 
+              route: hash[:route], 
+              city: hash[:city]
+            ).first
+
+            if existing_poi
+              # If the landmark already exists, just associate it with the current services
+              existing_poi.services << service unless existing_poi.services.include?(service)
+              new_poi_duplicate_count += 1
+              existing_poi.update(old: false)
+              next
+            end
+
+            new_poi = Landmark.new(hash)
+            new_poi.old = false
+            new_poi.agency_id = agency_id
+
+            if new_poi.city.blank?
+              puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
+              puts hash.ai
+              poi_with_no_city += 1
+              next
+            end
+
+             # Skip POIs whose names contain "do not use" case insensitive
+          next if new_poi.name =~ /do not use/i
+          
+          # All POIs need a name, if Ecolane doesn't define one, then name it after the Address
+          if new_poi.name.blank?
+            # or new_poi.name.downcase == 'home'
+            new_poi.name = new_poi.auto_name
+            poi_blank_name_count += 1
+            new_poi.search_text = ''
+          else
+            new_poi.search_text = "#{new_poi.name} "
+          end
+
+          # Use the name + address to determine duplicates
+          new_poi.search_text += "#{new_poi.auto_name}"
+          if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+            new_poi_duplicate_count += 1
+            puts "Duplicate found: #{new_poi.search_text}"
+            next
+          end
+
+          new_poi.search_text += " #{new_poi.zip}"
+
+          # HACK: Because of FMRPA-153 we need to support duplicate names.
+          # Rather than change the model validation for all of 1-Click, just override it here for FMR.
+          if !new_poi.save(validate: false)
+            puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
+            puts "#{new_poi}"
+          end
         end
+
+      rescue Exception => e
+        # If anything goes wrong....
+        messages << "Error loading POIs for #{system}. #{e.message}."
+        local_error = true
+        # Log if errors happen
+        puts messages.to_s
+        break
       end
+
+      unless local_error
+        #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        new_poi_count = new_poi_hashes.count
+        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        poi_total_duplicate_count += new_poi_duplicate_count
+      end
+
     end
 
     unless local_error
@@ -170,12 +162,14 @@ namespace :ecolane do
     task_run_state.update(value: false) unless is_already_running
 
     if local_error
-      # If anything went wrong, delete the new POIs and reinstate the old POIs
-      Landmark.where(old: false).delete_all
-      Landmark.where(old: true).update_all(old: false)
+      # If anything went wrong, delete the new pois and reinstate the old_pois
+      Landmark.is_new.delete_all
+      Landmark.is_old.update_all(old: false)
     end
-  end
+    
+  end #update_pois
 
+  # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
   desc "Update Waypoints with an incorrect township as the city to the correct city"
   task fix_townships_city: :environment do
     messages = []
@@ -195,4 +189,5 @@ namespace :ecolane do
     end
     puts messages.to_s
   end
-end # ecolane
+
+end #ecolane
