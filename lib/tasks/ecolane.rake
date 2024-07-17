@@ -110,12 +110,6 @@ namespace :ecolane do
 
             # Use the name + address to determine duplicates within the same service
             new_poi.search_text += "#{new_poi.auto_name}"
-            if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
-              new_poi_duplicate_count += 1
-              puts "Duplicate found: #{new_poi.search_text}"
-              next
-            end
-
             new_poi.search_text += " #{new_poi.zip}"
 
             if new_poi.save(validate: false)
