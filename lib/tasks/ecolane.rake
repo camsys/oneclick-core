@@ -106,17 +106,39 @@ namespace :ecolane do
               new_poi.search_text = "#{new_poi.name} "
             end
 
-            # Use the name + address to determine duplicates within the same service
+            # Use the name + address to determine duplicates
             new_poi.search_text += "#{new_poi.auto_name}"
+            if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+              new_poi_duplicate_count += 1
+              puts "Duplicate found: #{new_poi.search_text}"
+              next
+            end
+
             new_poi.search_text += " #{new_poi.zip}"
 
-            if new_poi.save(validate: false)
-              new_poi.services << service
-            else
+            # HACK: Because of FMRPA-153 we need to support duplicate names.
+            # Rather than change the model validation for all of 1-Click, just override it here for FMR.
+            if !new_poi.save(validate: false)
               puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
               puts "#{new_poi}"
             end
           end
+
+        rescue Exception => e
+          # If anything goes wrong....
+          messages << "Error loading POIs for #{system}. #{e.message}."
+          local_error = true
+          # Log if errors happen
+          puts messages.to_s
+          break
+        end
+
+        unless local_error
+          #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+          new_poi_count = new_poi_hashes.count
+          messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+          poi_total_duplicate_count += new_poi_duplicate_count
+        end
 
         rescue Exception => e
           messages << "Error loading POIs for #{system}, Service: #{service.id} #{service.name}. #{e.message}."
@@ -124,13 +146,6 @@ namespace :ecolane do
           # Log if errors happen
           puts messages.to_s
           next
-        end
-
-        unless local_error
-          # If we made it this far, then we have a new set of POIs and we can delete the old ones.
-          new_poi_count = new_poi_hashes.count
-          messages << "Successfully loaded #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}, Service: #{service.id} #{service.name}."
-          poi_total_duplicate_count += new_poi_duplicate_count
         end
       end
     end
