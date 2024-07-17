@@ -30,10 +30,9 @@ namespace :ecolane do
 
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
-        not service.booking_details[:external_id].in? systems and
         not service.booking_details[:token].blank? and
         not service.agency.blank?
-        systems << service.booking_details[:external_id]
+        systems << service.booking_details[:external_id] unless systems.include?(service.booking_details[:external_id])
         services_by_system[service.booking_details[:external_id]] << service
         puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
       end
@@ -64,7 +63,7 @@ namespace :ecolane do
             messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
             local_error = true
             puts messages.to_s
-            break
+            next
           end
 
           puts "Processing #{new_poi_hashes.count} POIs for #{system}"
@@ -145,7 +144,7 @@ namespace :ecolane do
           local_error = true
           # Log if errors happen
           puts messages.to_s
-          break
+          next
         end
 
         unless local_error
