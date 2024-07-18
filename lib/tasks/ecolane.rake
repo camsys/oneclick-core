@@ -50,9 +50,9 @@ namespace :ecolane do
     
     systems.each do |system|
       services = services_by_system[system]
+      agencies = services.map(&:agency).uniq
       services.each do |service|
         local_error = false
-        agency_id = service&.agency&.id
         service_id = service.id
         begin
           # Get a Hash of new POIs from Ecolane
@@ -82,18 +82,20 @@ namespace :ecolane do
             ).first
 
             if existing_poi
-              # If the landmark already exists, just associate it with the current services
+              # If the landmark already exists, just associate it with the current services and agencies
               services.each do |svc|
                 existing_poi.services << svc unless existing_poi.services.include?(svc)
+              end
+              agencies.each do |agency|
+                existing_poi.agencies << agency unless existing_poi.agencies.include?(agency)
               end
               new_poi_duplicate_count += 1
               existing_poi.update(old: false)
               next
             end
             
-            new_poi = Landmark.new hash
+            new_poi = Landmark.new(hash)
             new_poi.old = false
-            new_poi.agency_id = agency_id
             # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
             if new_poi.city.blank?
               puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
@@ -131,9 +133,12 @@ namespace :ecolane do
               puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
               puts "#{new_poi}"
             else
-              # Associate the new POI with all relevant services
+              # Associate the new POI with all relevant services and agencies
               services.each do |svc|
                 new_poi.services << svc
+              end
+              agencies.each do |agency|
+                new_poi.agencies << agency
               end
             end
           end

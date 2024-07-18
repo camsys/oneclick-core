@@ -8,7 +8,7 @@ class Landmark < Place
   acts_as_geo_ingredient attributes: [:name, :buffer]
 
   ### Associations ###
-  belongs_to :agency
+  has_and_belongs_to_many :agencies
   has_many :landmark_set_landmarks, inverse_of: :landmark
   has_many :landmark_sets, through: :landmark_set_landmarks
   has_and_belongs_to_many :services
