@@ -124,7 +124,10 @@ class Admin::LandmarkSetsController < Admin::AdminController
         size: [1, 1, 2, 1]
       )
   
-      @system_poi_count = Landmark.joins(:agencies).where(agencies: { id: @landmark_set.agency.id }).count
+      @system_poi_count = Landmark.joins(:agencies)
+      .where(agencies: { id: @landmark_set.agency.id })
+      .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE ?', "%#{query}%")
+      .count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
                                 .map { |poi| LandmarkSetLandmark.new(poi) }
       
@@ -149,16 +152,15 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def find_system_pois(query)
-    LandmarkSetLandmark.select('"landmark_set_landmarks".*, "landmarks"."id" AS landmark_id')
-                        .preload(:landmark)
-                        .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
-                        .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
-                        .merge(
-                          Landmark.where(agency: @landmark_set.agency)
-                                  .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
-                                  .order(:name)
-                        )
-  end
+    Landmark.joins(:agencies)
+            .select('"landmark_set_landmarks".*, "landmarks"."id" AS landmark_id')
+            .preload(:landmark)
+            .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
+            .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
+            .where(agencies: { id: @landmark_set.agency.id })
+            .where('CONCAT("name", \' \', "street_number", \' \', route, \' \', "city") ILIKE :query', query: "%#{query}%")
+            .order(:name)
+  end  
   
   def database_transaction
     success = false
