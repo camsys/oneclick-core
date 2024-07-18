@@ -90,7 +90,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
     else
       changed_pois = []
     end
-
+  
     unless @partial_path == "/admin/landmark_sets/_system_pois"
       @selected_pagy, @selected_pois = pagy(
         find_selected_pois(@selected_query),
@@ -99,19 +99,19 @@ class Admin::LandmarkSetsController < Admin::AdminController
         page_param: :selected_page,
         size: [1, 1, 2, 1]
       )
-
+  
       @selected_poi_count = @landmark_set.landmark_set_landmarks.count
       @removed_pois = LandmarkSetLandmark.where(
         id: changed_pois.reject { |poi| poi[:id].blank? && !poi[:_destroy] }
                         .map { |poi| poi[:id] }
       )
-
+  
       if params[:remove_all] == "true"
         @remove_all_pois = find_selected_pois(@selected_query).where.not(id: @removed_pois.map(&:id))
         @removed_pois += @remove_all_pois
       end
     end
-
+  
     unless @partial_path == "/admin/landmark_sets/_selected_pois"
       @system_pagy, @system_pois = pagy(
         find_system_pois(@system_query),
@@ -123,14 +123,15 @@ class Admin::LandmarkSetsController < Admin::AdminController
         page_param: :system_page,
         size: [1, 1, 2, 1]
       )
-
-      @system_poi_count = Landmark.where(agency: @landmark_set.agency).count
+  
+      @system_poi_count = Landmark.joins(:agencies).where(agencies: { id: @landmark_set.agency.id }).count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
-                                .map{ |poi| LandmarkSetLandmark.new(poi) }
+                                .map { |poi| LandmarkSetLandmark.new(poi) }
       
       if params[:add_all] == "true"
         @add_all_pois = find_system_pois(@system_query).merge(
-          Landmark.where.not(id: @added_pois.map(&:landmark_id) + @landmark_set.landmark_set_landmarks.pluck(:landmark_id))
+          Landmark.joins(:agencies).where(agencies: { id: @landmark_set.agency.id })
+                  .where.not(id: @added_pois.map(&:landmark_id) + @landmark_set.landmark_set_landmarks.pluck(:landmark_id))
         )
         @added_pois += @add_all_pois
       end
