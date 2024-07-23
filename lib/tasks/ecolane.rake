@@ -75,8 +75,11 @@ namespace :ecolane do
             puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
             
             existing_poi = Landmark.where(
-              'LOWER(name) = LOWER(?) AND LOWER(street_number) = LOWER(?) AND LOWER(route) = LOWER(?) AND LOWER(city) = LOWER(?)', 
-              hash[:name], hash[:street_number], hash[:route], hash[:city]
+              "LOWER(name) = ? AND LOWER(street_number) = ? AND LOWER(route) = ? AND LOWER(city) = ?",
+              hash[:name].downcase, 
+              hash[:street_number].downcase, 
+              hash[:route].downcase, 
+              hash[:city].downcase
             ).first
 
             if existing_poi
@@ -112,18 +115,18 @@ namespace :ecolane do
               poi_blank_name_count += 1
               new_poi.search_text = ''
             else
-              new_poi.search_text = "#{new_poi.name} "
+              new_poi.search_text = "#{new_poi.name.downcase} "
             end
 
             # Use the name + address to determine duplicates
-            new_poi.search_text += "#{new_poi.auto_name}"
-            if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+            new_poi.search_text += "#{new_poi.auto_name.downcase}"
+            if new_poi_names_set.add?(new_poi.search_text.strip).nil?
               new_poi_duplicate_count += 1
               puts "Duplicate found: #{new_poi.search_text}"
               next
             end
 
-            new_poi.search_text += " #{new_poi.zip}"
+            new_poi.search_text += " #{new_poi.zip.downcase}"
 
             # HACK: Because of FMRPA-153 we need to support duplicate names.
             # Rather than change the model validation for all of 1-Click, just override it here for FMR.
