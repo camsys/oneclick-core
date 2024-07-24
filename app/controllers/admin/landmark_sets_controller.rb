@@ -158,12 +158,16 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def find_system_pois(query)
-    Landmark.joins(:agencies)
-            .where('agencies_landmarks.agency_id = ?', @landmark_set.agency.id)
-            .where('CONCAT("landmarks"."name", \' \', "landmarks"."street_number", \' \', "landmarks"."route", \' \', "landmarks"."city") ILIKE :query', query: "%#{query}%")
-            .order(:name)
+    LandmarkSetLandmark.select('"landmark_set_landmarks".*, "landmarks"."id" AS landmark_id')
+                        .preload(:landmark)
+                        .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
+                        .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
+                        .joins('INNER JOIN "agencies_landmarks" ON "landmarks"."id" = "agencies_landmarks"."landmark_id"')
+                        .where('agencies_landmarks.agency_id = ?', @landmark_set.agency.id)
+                        .where('CONCAT("landmarks"."name", \' \', "landmarks"."street_number", \' \', "landmarks"."route", \' \', "landmarks"."city") ILIKE :query', query: "%#{query}%")
+                        .order('landmarks.name')
   end
-    
+  
   def database_transaction
     success = false
     LandmarkSet.transaction do
