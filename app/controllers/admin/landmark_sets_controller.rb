@@ -120,7 +120,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
   
     unless @partial_path == "/admin/landmark_sets/_selected_pois"
       @system_pagy, @system_pois = pagy(
-        find_system_pois(@system_query),
+        find_system_pois(@system_query).where.not(id: @landmark_set.landmark_set_landmarks.pluck(:landmark_id)),
         items: (params[:system_per_page] || 10).to_i,
         params: ->(params) { 
           params.select{ |key, value| ["agency_id", "system_page"].include?(key) }
@@ -158,16 +158,12 @@ class Admin::LandmarkSetsController < Admin::AdminController
   end
 
   def find_system_pois(query)
-    LandmarkSetLandmark.select('"landmark_set_landmarks".*, "landmarks"."id" AS landmark_id')
-                        .preload(:landmark)
-                        .from(@landmark_set.landmark_set_landmarks, :landmark_set_landmarks)
-                        .joins('RIGHT OUTER JOIN "landmarks" ON "landmark_set_landmarks"."landmark_id" = "landmarks"."id"')
-                        .joins('INNER JOIN "agencies_landmarks" ON "landmarks"."id" = "agencies_landmarks"."landmark_id"')
-                        .where('agencies_landmarks.agency_id = ?', @landmark_set.agency.id)
-                        .where('CONCAT("landmarks"."name", \' \', "landmarks"."street_number", \' \', "landmarks"."route", \' \', "landmarks"."city") ILIKE :query', query: "%#{query}%")
-                        .order('landmarks.name')
-  end  
-  
+    Landmark.joins(:agencies)
+            .where('agencies_landmarks.agency_id = ?', @landmark_set.agency.id)
+            .where('CONCAT("landmarks"."name", \' \', "landmarks"."street_number", \' \', "landmarks"."route", \' \', "landmarks"."city") ILIKE :query', query: "%#{query}%")
+            .order(:name)
+  end
+    
   def database_transaction
     success = false
     LandmarkSet.transaction do
