@@ -123,6 +123,7 @@ namespace :ecolane do
               agencies.each do |agency|
                 new_poi.agencies << agency
               end
+              existing_poi_names_set.add(search_text_lower) # Update the set with the new POI
             end
           end
 
