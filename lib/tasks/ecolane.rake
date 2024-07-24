@@ -75,8 +75,10 @@ namespace :ecolane do
             puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
             
             existing_poi = Landmark.where(
-              "LOWER(name) = ? AND LOWER(street_number) = ? AND LOWER(route) = ? AND LOWER(city) = ?", 
-              hash[:name].downcase, hash[:street_number].downcase, hash[:route].downcase, hash[:city].downcase
+              name: hash[:name], 
+              street_number: hash[:street_number], 
+              route: hash[:route], 
+              city: hash[:city]
             ).first
 
             if existing_poi
