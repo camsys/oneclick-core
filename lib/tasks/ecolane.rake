@@ -47,7 +47,8 @@ namespace :ecolane do
     poi_total_duplicate_count = 0
     
     new_poi_names_set = Set.new
-    
+    existing_poi_names_set = Set.new(Landmark.pluck(:search_text).map(&:downcase))
+
     systems.each do |system|
       services = services_by_system[system]
       agencies = services.map(&:agency).uniq
@@ -73,27 +74,7 @@ namespace :ecolane do
           new_poi_hashes_sorted.each do |hash|
             poi_processed_count += 1
             puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
-            
-            existing_poi = Landmark.where(
-              name: hash[:name], 
-              street_number: hash[:street_number], 
-              route: hash[:route], 
-              city: hash[:city]
-            ).first
 
-            if existing_poi
-              # If the landmark already exists, just associate it with the current services and agencies
-              services.each do |svc|
-                existing_poi.services << svc unless existing_poi.services.include?(svc)
-              end
-              agencies.each do |agency|
-                existing_poi.agencies << agency unless existing_poi.agencies.include?(agency)
-              end
-              new_poi_duplicate_count += 1
-              existing_poi.update(old: false)
-              next
-            end
-            
             new_poi = Landmark.new(hash)
             new_poi.old = false
             # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
@@ -119,7 +100,9 @@ namespace :ecolane do
 
             # Use the name + address to determine duplicates
             new_poi.search_text += "#{new_poi.auto_name}"
-            if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
+            search_text_lower = new_poi.search_text.strip.downcase
+
+            if existing_poi_names_set.include?(search_text_lower) || new_poi_names_set.add?(search_text_lower).nil?
               new_poi_duplicate_count += 1
               puts "Duplicate found: #{new_poi.search_text}"
               next
