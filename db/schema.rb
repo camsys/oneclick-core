@@ -10,11 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20230915180247) do
+ActiveRecord::Schema.define(version: 20240718125456) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
 
   create_table "accommodations", force: :cascade do |t|
@@ -58,8 +57,16 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.datetime "updated_at",                     null: false
     t.boolean  "published",      default: false
     t.integer  "agency_type_id"
+    t.string   "agency_code"
     t.index ["agency_type_id"], name: "index_agencies_on_agency_type_id", using: :btree
     t.index ["published"], name: "index_agencies_on_published", using: :btree
+  end
+
+  create_table "agencies_landmarks", id: false, force: :cascade do |t|
+    t.integer "landmark_id", null: false
+    t.integer "agency_id",   null: false
+    t.index ["agency_id"], name: "index_agencies_landmarks_on_agency_id", using: :btree
+    t.index ["landmark_id"], name: "index_agencies_landmarks_on_landmark_id", using: :btree
   end
 
   create_table "agency_oversight_agencies", force: :cascade do |t|
@@ -102,16 +109,17 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.string   "status"
     t.string   "confirmation"
     t.text     "details"
-    t.datetime "created_at",                        null: false
-    t.datetime "updated_at",                        null: false
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
     t.datetime "earliest_pu"
     t.datetime "latest_pu"
     t.datetime "negotiated_pu"
     t.datetime "negotiated_do"
     t.datetime "estimated_pu"
     t.datetime "estimated_do"
-    t.boolean  "created_in_1click", default: false
+    t.boolean  "created_in_1click",     default: false
     t.text     "note"
+    t.text     "ecolane_error_message"
     t.index ["created_in_1click"], name: "index_bookings_on_created_in_1click", using: :btree
     t.index ["itinerary_id"], name: "index_bookings_on_itinerary_id", using: :btree
   end
@@ -162,6 +170,45 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.text     "description"
     t.index ["agency_id"], name: "index_custom_geographies_on_agency_id", using: :btree
     t.index ["name"], name: "index_custom_geographies_on_name", using: :btree
+  end
+
+  create_table "ecolane_booking_snapshots", force: :cascade do |t|
+    t.integer  "itinerary_id"
+    t.string   "status"
+    t.string   "confirmation"
+    t.text     "details"
+    t.datetime "earliest_pu"
+    t.datetime "latest_pu"
+    t.datetime "negotiated_pu"
+    t.datetime "negotiated_do"
+    t.datetime "estimated_pu"
+    t.datetime "estimated_do"
+    t.boolean  "created_in_1click",     default: false
+    t.text     "note"
+    t.string   "traveler"
+    t.string   "orig_addr"
+    t.float    "orig_lat"
+    t.float    "orig_lng"
+    t.string   "dest_addr"
+    t.float    "dest_lat"
+    t.float    "dest_lng"
+    t.string   "agency_name"
+    t.string   "service_name"
+    t.integer  "booking_client_id"
+    t.boolean  "is_round_trip"
+    t.string   "sponsor"
+    t.integer  "companions"
+    t.string   "ecolane_error_message"
+    t.boolean  "pca"
+    t.string   "funding_source"
+    t.string   "purpose"
+    t.integer  "booking_id"
+    t.integer  "trip_id"
+    t.string   "disposition_status"
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
+    t.index ["booking_id"], name: "index_ecolane_booking_snapshots_on_booking_id", using: :btree
+    t.index ["trip_id"], name: "index_ecolane_booking_snapshots_on_trip_id", using: :btree
   end
 
   create_table "eligibilities", force: :cascade do |t|
@@ -288,8 +335,14 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.text     "search_text"
     t.index ["agency_id"], name: "index_landmarks_on_agency_id", using: :btree
     t.index ["geom"], name: "index_landmarks_on_geom", using: :gist
-    t.index ["name"], name: "index_landmarks_on_name", using: :btree
     t.index ["search_text"], name: "index_landmarks_on_search_text", using: :btree
+  end
+
+  create_table "landmarks_services", id: false, force: :cascade do |t|
+    t.integer "landmark_id", null: false
+    t.integer "service_id",  null: false
+    t.index ["landmark_id"], name: "index_landmarks_services_on_landmark_id", using: :btree
+    t.index ["service_id"], name: "index_landmarks_services_on_service_id", using: :btree
   end
 
   create_table "locales", force: :cascade do |t|
@@ -412,10 +465,10 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.datetime "created_at",                                               null: false
     t.datetime "updated_at",                                               null: false
     t.geometry "geom",       limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["geom"], name: "index_regions_on_geom", using: :gist
   end
 
-  create_table "request_logs", id: false, force: :cascade do |t|
-    t.serial   "id",          null: false
+  create_table "request_logs", force: :cascade do |t|
     t.string   "controller"
     t.string   "action"
     t.string   "status_code"
@@ -736,9 +789,9 @@ ActiveRecord::Schema.define(version: 20230915180247) do
     t.datetime "confirmation_sent_at"
     t.boolean  "subscribed_to_emails",              default: true
     t.integer  "age"
-    t.integer  "current_agency_id"
     t.string   "county"
     t.string   "paratransit_id"
+    t.integer  "current_agency_id"
     t.index ["authentication_token"], name: "index_users_on_authentication_token", unique: true, using: :btree
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
     t.index ["current_agency_id"], name: "index_users_on_current_agency_id", using: :btree
@@ -794,6 +847,8 @@ ActiveRecord::Schema.define(version: 20230915180247) do
   add_foreign_key "bookings", "itineraries"
   add_foreign_key "comments", "users", column: "commenter_id"
   add_foreign_key "custom_geographies", "agencies"
+  add_foreign_key "ecolane_booking_snapshots", "bookings"
+  add_foreign_key "ecolane_booking_snapshots", "trips"
   add_foreign_key "find_services_histories", "users"
   add_foreign_key "funding_sources", "agencies"
   add_foreign_key "itineraries", "services"
