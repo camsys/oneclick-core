@@ -130,10 +130,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
         size: [1, 1, 2, 1]
       )
 
-      @system_poi_count = Landmark.joins(:agencies)
-        .where('agencies_landmarks.agency_id = ?', @landmark_set.agency.id)
-        .where('CONCAT("landmarks"."name", \' \', "landmarks"."street_number", \' \', "landmarks"."route", \' \', "landmarks"."city") ILIKE ?', "%#{@system_query}%")
-        .count
+      @system_poi_count = Landmark.where(agency: @landmark_set.agency).count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
                                 .map{ |poi| LandmarkSetLandmark.new(poi) }
       
