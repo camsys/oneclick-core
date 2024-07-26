@@ -130,7 +130,7 @@ class Admin::LandmarkSetsController < Admin::AdminController
         size: [1, 1, 2, 1]
       )
 
-      @system_poi_count = Landmark.where(agency: @landmark_set.agency).count
+      @system_poi_count = Landmark.joins(:agencies).where(agencies: { id: @landmark_set.agency.id }).count
       @added_pois = changed_pois.select { |poi| poi[:id].blank? && !poi[:_destroy] }
                                 .map{ |poi| LandmarkSetLandmark.new(poi) }
       
