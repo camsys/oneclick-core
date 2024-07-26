@@ -47,7 +47,6 @@ namespace :ecolane do
     poi_total_duplicate_count = 0
     
     new_poi_names_set = Set.new
-    existing_poi_names_set = Set.new(Landmark.pluck(:search_text).map(&:downcase))
 
     systems.each do |system|
       services = services_by_system[system]
@@ -100,9 +99,7 @@ namespace :ecolane do
 
           # Use the name + address to determine duplicates
           new_poi.search_text += "#{new_poi.auto_name}"
-          search_text_lower = new_poi.search_text.strip.downcase
-
-          if existing_poi_names_set.include?(search_text_lower) || new_poi_names_set.add?(search_text_lower).nil?
+          if new_poi_names_set.add?(new_poi.search_text.strip.downcase).nil?
             new_poi_duplicate_count += 1
             puts "Duplicate found: #{new_poi.search_text}"
             next
