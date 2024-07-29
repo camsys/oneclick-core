@@ -26,14 +26,14 @@ namespace :ecolane do
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
     # Order from oldest to newest.
     systems = []
-    services  = []
+    services_by_system = Hash.new { |hash, key| hash[key] = [] }
+
     Service.paratransit_services.published.is_ecolane.order(:id).each do |service|
       if not service.booking_details[:external_id].blank? and
-        not service.booking_details[:external_id].in? systems and
         not service.booking_details[:token].blank? and
         not service.agency.blank?
-        systems << service.booking_details[:external_id]
-        services << service
+        systems << service.booking_details[:external_id] unless systems.include?(service.booking_details[:external_id])
+        services_by_system[service.booking_details[:external_id]] << service
         puts "Preparing to sync System: #{service.booking_details[:external_id]}, Service: #{service.id} #{service.name}, Agency: #{service&.agency&.id}"
       end
     end
@@ -47,18 +47,20 @@ namespace :ecolane do
     poi_total_duplicate_count = 0
     
     new_poi_names_set = Set.new
-    
-    services.each do |service|
+
+    systems.each do |system|
+      services = services_by_system[system]
+      agencies = services.map(&:agency).uniq
+      puts "Processing system: #{system} with services: #{services.map(&:id).join(', ')}"  # Log all services for the system
       local_error = false
-      system = service.booking_details[:external_id]
-      agency_id = service&.agency&.id
+
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
-        new_poi_hashes = service.booking_ambassador.get_pois
+        new_poi_hashes = services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
+          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
           puts messages.to_s
           break
@@ -74,7 +76,6 @@ namespace :ecolane do
           
           new_poi = Landmark.new hash
           new_poi.old = false
-          new_poi.agency_id = agency_id
           # POIS should also have a city, if the POI doesn't have a city then skip it and log it in the console
           if new_poi.city.blank?
             puts 'CITYLESS POI, EXCLUDING FROM WAYPOINTS'
@@ -111,6 +112,14 @@ namespace :ecolane do
           if !new_poi.save(validate: false)
             puts "Save failed for POI with errors #{new_poi.errors.full_messages}"
             puts "#{new_poi}"
+          else
+            # Associate the new POI with all relevant services and agencies
+            services.each do |svc|
+              new_poi.services << svc
+            end
+            agencies.each do |agency|
+              new_poi.agencies << agency
+            end
           end
         end
 
@@ -120,7 +129,7 @@ namespace :ecolane do
         local_error = true
         # Log if errors happen
         puts messages.to_s
-        break
+        next
       end
 
       unless local_error
@@ -129,7 +138,6 @@ namespace :ecolane do
         messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
         poi_total_duplicate_count += new_poi_duplicate_count
       end
-
     end
 
     unless local_error

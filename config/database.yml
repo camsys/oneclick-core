@@ -85,3 +85,5 @@ production:
   url: <%= ENV.fetch('DATABASE_URL', '').sub(/^postgres/, "postgis") %>
   username: oneclick-core
   password: <%= ENV['ONECLICK-CORE_DATABASE_PASSWORD'] %>
+  sslmode: 'verify-full'
+  sslrootcert: 'config/ca/global-bundle.pem'

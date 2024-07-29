@@ -19,6 +19,7 @@ class Service < ApplicationRecord
   serialize :fare_details
   has_many :user_booking_profiles
   has_many :itineraries, dependent: :nullify
+  has_and_belongs_to_many :landmarks
   has_many :schedules, dependent: :destroy do
     # Builds a consolidated schedule, destroys the old ones, and saves the new
     def consolidate
