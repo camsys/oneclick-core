@@ -2,6 +2,7 @@ namespace :ecolane do
 
   desc "Update Ecolane POIs"
   task :update_pois => :environment do
+    start_time = Time.now
 
     # Check to see if another instance is already running
     is_already_running = false
@@ -22,6 +23,7 @@ namespace :ecolane do
     
     messages = []
     local_error = false
+    domain = ENV['MAIL_HOST'] || 'unknown domain'
 
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
     # Order from oldest to newest.
@@ -45,6 +47,7 @@ namespace :ecolane do
     poi_with_no_city = 0
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
+    total_pois_loaded = 0
     
     new_poi_names_set = Set.new
 
@@ -53,6 +56,7 @@ namespace :ecolane do
       agencies = services.map(&:agency).uniq
       puts "Processing system: #{system} with services: #{services.map(&:id).join(', ')}"  # Log all services for the system
       local_error = false
+      system_start_time = Time.now
 
       begin
         # Get a Hash of new POIs from Ecolane
@@ -125,17 +129,19 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        messages << "Error loading POIs for #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
         puts messages.to_s
         next
       end
 
+      system_end_time = Time.now
       unless local_error
-        #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        # If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
-        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        total_pois_loaded += new_poi_count
+        messages << "Successfully loaded #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}. Processed in #{((system_end_time - system_start_time) / 60).round(2)} minutes."
         poi_total_duplicate_count += new_poi_duplicate_count
       end
     end
@@ -156,14 +162,28 @@ namespace :ecolane do
     end
 
   ensure
+    end_time = Time.now
+    total_time = end_time - start_time
+    total_hours = (total_time / 3600).to_i
+    total_minutes = ((total_time % 3600) / 60).round(2)
+    total_time_str = "#{total_hours} hours and #{total_minutes} minutes"
+
     task_run_state.update(value: false) unless is_already_running
 
     if local_error
       # If anything went wrong, delete the new pois and reinstate the old_pois
       Landmark.is_new.delete_all
       Landmark.is_old.update_all(old: false)
+      messages << "Total time spent: #{total_time_str}."
+      ErrorMailer.ecolane_error_notification(messages).deliver_now
+      DeveloperMailer.ecolane_summary_notification(messages, true).deliver_now
+    else
+      messages << "Total POIs processed: #{poi_processed_count}"
+      messages << "Total POIs loaded: #{total_pois_loaded}"
+      messages << "Total duplicates discarded: #{poi_total_duplicate_count}"
+      messages << "Total time spent: #{total_time_str}."
+      DeveloperMailer.ecolane_summary_notification(messages).deliver_now
     end
-    
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
