@@ -21,7 +21,8 @@ namespace :ecolane do
       end
     end
     
-    messages = []
+    summary_messages = []
+    error_messages = []
     local_error = false
     domain = ENV['MAIL_HOST'] || 'unknown domain'
 
@@ -54,7 +55,9 @@ namespace :ecolane do
     systems.each do |system|
       services = services_by_system[system]
       agencies = services.map(&:agency).uniq
-      puts "Processing system: #{system} with services: #{services.map(&:id).join(', ')}"  # Log all services for the system
+      services.each do |service|
+        puts "Processing system: #{system} with service: #{service.name}"  # Log all services for the system
+      end
       local_error = false
       system_start_time = Time.now
 
@@ -64,9 +67,9 @@ namespace :ecolane do
         new_poi_hashes = services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
+          error_messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
-          puts messages.to_s
+          puts error_messages.to_s
           break
         end
 
@@ -131,10 +134,10 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
+        error_messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
-        puts messages.to_s
+        puts error_messages.to_s
         next
       end
 
@@ -144,11 +147,11 @@ namespace :ecolane do
         new_poi_count = new_poi_hashes.count
         total_pois_loaded += new_poi_count
         service_names = services.map(&:name).join(", ")
-        messages << "<strong>System:</strong> #{system}<br>"
-        messages << "<strong>Services using this system:</strong> #{service_names}<br>"
-        messages << "POIs Loaded: #{new_poi_count}<br>"
-        messages << "Duplicates: #{new_poi_duplicate_count}<br>"
-        messages << "Processed in: #{((system_end_time - system_start_time) / 60).round(2)} minutes.<br><br>"
+        summary_messages << "<strong>System:</strong> #{system}<br>"
+        summary_messages << "<strong>Services using this system:</strong> #{service_names}<br>"
+        summary_messages << "POIs Loaded: #{new_poi_count}<br>"
+        summary_messages << "Duplicates: #{new_poi_duplicate_count}<br>"
+        summary_messages << "Processed in: #{((system_end_time - system_start_time) / 60).round(2)} minutes.<br><br>"
         poi_total_duplicate_count += new_poi_duplicate_count
       end
     end
@@ -161,11 +164,11 @@ namespace :ecolane do
       Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
       Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
-      messages << "<strong>Summary:</strong><br>"
-      messages << "Total POIs Loaded: #{new_poi_count}<br>"
-      messages << "Total Duplicates: #{poi_total_duplicate_count}<br>"
-      messages << "Total POIs with no city: #{poi_with_no_city}<br>"
-      messages << "Total POIs with initial blank name: #{poi_blank_name_count}<br>"
+      summary_messages << "<strong>Summary:</strong><br>"
+      summary_messages << "Total POIs Loaded: #{new_poi_count}<br>"
+      summary_messages << "Total Duplicates: #{poi_total_duplicate_count}<br>"
+      summary_messages << "Total POIs with no city: #{poi_with_no_city}<br>"
+      summary_messages << "Total POIs with initial blank name: #{poi_blank_name_count}<br>"
     end
 
   ensure
@@ -177,17 +180,13 @@ namespace :ecolane do
 
     task_run_state.update(value: false) unless is_already_running
 
-    if local_error
-      # If anything went wrong, delete the new pois and reinstate the old_pois
-      Landmark.is_new.delete_all
-      Landmark.is_old.update_all(old: false)
-      messages << "<strong>Total time spent:</strong> #{total_time_str}."
-      ErrorMailer.ecolane_error_notification(messages).deliver_now
-      DeveloperMailer.ecolane_summary_notification(messages, true).deliver_now
-    else
-      messages << "<strong>Total time spent:</strong> #{total_time_str}."
-      DeveloperMailer.ecolane_summary_notification(messages).deliver_now
+    if error_messages.any?
+      error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
+      ErrorMailer.ecolane_error_notification(error_messages).deliver_now
     end
+
+    summary_messages << "<strong>Total time spent:</strong> #{total_time_str}."
+    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
