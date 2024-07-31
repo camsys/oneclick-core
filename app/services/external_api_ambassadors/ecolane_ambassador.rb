@@ -694,8 +694,8 @@ class EcolaneAmbassador < BookingAmbassador
         }
       end
       hashes
-    rescue StandardError => e
-      error_message = "Error fetching POIs from Ecolane: #{e.message}. Full response: #{e.backtrace.join("\n")}"
+    rescue Exception => e
+      error_message = "Error fetching POIs from Ecolane: #{e.message}."
       Rails.logger.error error_message
       { error: error_message }
     end
