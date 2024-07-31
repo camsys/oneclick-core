@@ -134,6 +134,7 @@ namespace :ecolane do
             end
           end
         end
+      end
 
       system_end_time = Time.now
       unless local_error
