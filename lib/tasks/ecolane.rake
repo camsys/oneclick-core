@@ -131,7 +131,7 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}. (Domain: #{domain})"
+        messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
         puts messages.to_s
@@ -143,7 +143,9 @@ namespace :ecolane do
         # If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
         total_pois_loaded += new_poi_count
+        service_names = services.map(&:name).join(", ")
         messages << "<strong>System:</strong> #{system}<br>"
+        messages << "<strong>Services using this system:</strong> #{service_names}<br>"
         messages << "POIs Loaded: #{new_poi_count}<br>"
         messages << "Duplicates: #{new_poi_duplicate_count}<br>"
         messages << "Processed in: #{((system_end_time - system_start_time) / 60).round(2)} minutes.<br><br>"
