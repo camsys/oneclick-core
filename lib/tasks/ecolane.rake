@@ -55,25 +55,16 @@ namespace :ecolane do
     systems.each do |system|
       services = services_by_system[system]
       agencies = services.map(&:agency).uniq
+      system_start_time = Time.now
       services.each do |service|
         puts "Processing system: #{system} with service: #{service.name}"  # Log all services for the system
-      end
-      local_error = false
-      system_start_time = Time.now
-      new_poi_hashes = nil
-
-      # Try fetching POIs from the first available service
-      service = services.first
-      begin
+        begin
+          # Get a Hash of new POIs from Ecolane
+          # NOTE: INCLUDES THE SERVICE'S AGENCY
           new_poi_hashes = service.booking_ambassador.get_pois
           if new_poi_hashes.nil? || new_poi_hashes[:error]
             raise StandardError, new_poi_hashes[:error] || "Unable to retrieve POIs"
           end
-        rescue StandardError => e
-          error_messages << "Error loading POIs for System: #{system}, Service: #{service.name}. #{e.message}. (Domain: #{domain})"
-          local_error = true
-          next
-        end
 
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
@@ -134,8 +125,7 @@ namespace :ecolane do
           end
         end
 
-      system_end_time = Time.now
-      unless local_error
+        system_end_time = Time.now
         # If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
         total_pois_loaded += new_poi_count
@@ -146,6 +136,12 @@ namespace :ecolane do
         summary_messages << "Duplicates: #{new_poi_duplicate_count}<br>"
         summary_messages << "Processed in: #{((system_end_time - system_start_time) / 60).round(2)} minutes.<br><br>"
         poi_total_duplicate_count += new_poi_duplicate_count
+
+        rescue StandardError => e
+          # Capture the error and continue with the next service
+          error_messages << "Error loading POIs for System: #{system}, Service: #{service.name}. #{e.message}. (Domain: #{domain})"
+          next
+        end
       end
     end
 
