@@ -60,17 +60,14 @@ namespace :ecolane do
       end
       local_error = false
       system_start_time = Time.now
-      new_poi_hashes = nil
 
-      # Try fetching POIs from the first available service
-      service = services.first
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
         new_poi_hashes = services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          error_messages << "Error loading POIs for System: #{system}, Service: #{service.name}. #{e.message}. (Domain: #{domain})"
+          error_messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
           puts error_messages.to_s
           break
@@ -134,6 +131,14 @@ namespace :ecolane do
             end
           end
         end
+
+      rescue Exception => e
+        # If anything goes wrong....
+        error_messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
+        local_error = true
+        # Log if errors happen
+        puts error_messages.to_s
+        next
       end
 
       system_end_time = Time.now
