@@ -72,11 +72,13 @@ namespace :ecolane do
 
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
+        # Limit the number of POIs processed to 1000
+        new_poi_hashes = new_poi_hashes.first(1000)
         # Import named pois before unnamed locations
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
           poi_processed_count += 1
-          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
+          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 100 == 0
           
           new_poi = Landmark.new hash
           new_poi.old = false
