@@ -1,7 +1,5 @@
 <h1>Ecolane POI Update Summary</h1>
 <p>The nightly Ecolane POI update has completed. Here are the details:</p>
-<ul>
-  <% @summary.each do |message| %>
-    <li><%= message %></li>
-  <% end %>
-</ul>
+<% @summary.each do |message| %>
+  <p><%= message %></p>
+<% end %>
