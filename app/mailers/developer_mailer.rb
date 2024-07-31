@@ -3,7 +3,6 @@ class DeveloperMailer < ApplicationMailer
 
   def ecolane_summary_notification(summary, error_occurred = false)
     @summary = summary.map(&:html_safe)
-    subject = error_occurred ? 'Ecolane POI Update Summary (Errors Occurred)' : 'Ecolane POI Update Summary'
-    mail(to: 'jalen.w.sowell@gmail.com', subject: subject)
+    mail(to: 'jalen.w.sowell@gmail.com', subject: 'Ecolane POI Update Summary')
   end
 end
