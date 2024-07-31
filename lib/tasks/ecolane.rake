@@ -65,11 +65,11 @@ namespace :ecolane do
       # Try fetching POIs from the first available service
       service = services.first
       begin
-          new_poi_hashes = service.booking_ambassador.get_pois
-          if new_poi_hashes.nil? || new_poi_hashes[:error]
-            raise StandardError, new_poi_hashes[:error] || "Unable to retrieve POIs"
-          end
-        rescue StandardError => e
+        # Get a Hash of new POIs from Ecolane
+        # NOTE: INCLUDES THE SERVICE'S AGENCY
+        new_poi_hashes = services.first.booking_ambassador.get_pois
+        if new_poi_hashes.nil?
+          # If anything goes wrong the new pois will be deleted and the old reinstated
           error_messages << "Error loading POIs for System: #{system}, Service: #{service.name}. #{e.message}. (Domain: #{domain})"
           local_error = true
           puts error_messages.to_s
