@@ -671,35 +671,18 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get a list of all the points of interest for the service
   def get_pois
-    begin
-      locations = fetch_system_poi_list
-      if locations.nil?
-        Rails.logger.error "Failed to fetch system POI list from Ecolane"
-        return nil
-      end
-  
-      # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
-      hashes = []
-      locations.each do |location|
-        hashes << {
-          name: location["name"].to_s.strip,
-          city: location["city"].to_s.strip,
-          state: location["state"].to_s.strip,
-          zip: location["postcode"].to_s.strip,
-          lat: location["latitude"],
-          lng: location["longitude"],
-          county: location["county"].to_s.strip,
-          street_number: location["street_number"].to_s.strip,
-          route: location["street"].to_s.strip
-        }
-      end
-      hashes
-    rescue Exception => e
-      error_message = "Error fetching POIs from Ecolane: #{e.message}. Full response: #{e.backtrace.join("\n")}"
-      Rails.logger.error error_message
-      { error: error_message }
+    locations = fetch_system_poi_list
+    if locations.nil?
+      return nil
     end
-  end  
+
+    # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
+    hashes = []
+    locations.each do |location|
+      hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
+    end
+    hashes
+  end
   
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
