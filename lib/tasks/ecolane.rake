@@ -75,8 +75,6 @@ namespace :ecolane do
 
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
-        # Limit the number of POIs processed to 1000
-        new_poi_hashes = new_poi_hashes.first(1000)
         # Import named pois before unnamed locations
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
@@ -138,7 +136,7 @@ namespace :ecolane do
         local_error = true
         # Log if errors happen
         puts error_messages.to_s
-        next
+        break
       end
 
       system_end_time = Time.now
