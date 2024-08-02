@@ -186,6 +186,12 @@ module Api
         top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
         top_purposes -= ['DELETE']
 
+        #Ensure we still have at least 4 top purposes
+        if top_purposes.length < 4
+          additional_purposes = purposes - top_purposes
+          top_purposes.concat(additional_purposes.first(4 - top_purposes.length))
+        end
+      
         #Delete Duplicates
         purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
         purposes -= ['DELETE']
