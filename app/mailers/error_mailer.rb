@@ -4,6 +4,6 @@ class ErrorMailer < ApplicationMailer
   def ecolane_error_notification(errors)
     return unless ENV['JOB_NOTIFICATION_EMAIL'].present?
     @errors = errors.map(&:html_safe)
-    mail(to: ENV['JOB_NOTIFICATION_EMAIL'], subject: 'Ecolane POI Update Error')
+    mail(to: ENV['JOB_ERROR_NOTIFICATION_EMAIL'], subject: 'Ecolane POI Update Error')
   end
 end
