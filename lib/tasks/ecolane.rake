@@ -180,11 +180,11 @@ namespace :ecolane do
 
     if error_messages.any?
       error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
-      ErrorMailer.ecolane_error_notification(error_messages).deliver_now
+      ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
     end
 
     summary_messages << "<strong>Total time spent:</strong> #{total_time_str}."
-    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now
+    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
   end #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
