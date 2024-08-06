@@ -32,8 +32,6 @@ class Waypoint < Place
       raise e
     end
 
-    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name.inspect}, Short Name: #{short_name.inspect}"
-
     address_components = address_parts.split(',').map(&:strip)
     if address_components.include?(short_name)
       full_address = address_parts
