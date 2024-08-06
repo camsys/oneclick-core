@@ -22,12 +22,18 @@ class Waypoint < Place
   ## This is used for FMR given they often have names with pipes in them as well as addresses listed as the name
   # This prevents the name from being duplicated in the address and makes it clean for display
   def formatted_address
+    # Log the current waypoint being processed
+    Rails.logger.debug "Processing Waypoint: #{self.inspect}"
+  
+    # Construct address parts
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
+  
+    # Ensure full_name is not nil
     full_name = self.name || ''  # Fallback to empty string if name is nil
-
-    # Handle pipe filtering for the name
-    short_name = full_name.split('|').first.strip
-
+  
+    # Safely handle pipe filtering for the name
+    short_name = full_name.split('|').first&.strip || ''  # Ensure strip is called on a non-nil value
+  
     # Check if short name is already present in the address components
     address_components = address_parts.split(',').map(&:strip)
     if address_components.include?(short_name)
@@ -35,11 +41,14 @@ class Waypoint < Place
       full_address = address_parts
     else
       # Short name is not present, so include it in the full address
-      full_address = "#{short_name}, #{address_parts}"
+      full_address = "#{short_name}, #{address_parts}".strip
     end
-
+  
+    # Log the formatted address
+    Rails.logger.debug "Formatted Address: #{full_address}"
+  
     # Remove any duplicate spaces to clean up the address
     full_address.gsub(/\s+/, ' ')
-  end 
+  end
   
 end
