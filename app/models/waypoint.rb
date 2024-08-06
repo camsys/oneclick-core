@@ -26,7 +26,7 @@ class Waypoint < Place
     full_name = self.name || ''  # Fallback to empty string if name is nil
 
     # Handle pipe filtering for the name
-    short_name = full_name.split('|').first.strip
+    short_name = full_name.split('|').first&.strip || ''
 
     # Check if short name is already present in the address components
     address_components = address_parts.split(',').map(&:strip)
