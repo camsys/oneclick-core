@@ -24,12 +24,21 @@ class Waypoint < Place
   def formatted_address
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
     full_name = self.name || ''  # Fallback to empty string if name is nil
-    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name}, Short Name: #{short_name}"
-
-
+  
+    # Add logger statement to see the full name before splitting
+    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name.inspect}"
+  
     # Handle pipe filtering for the name
-    short_name = full_name.split('|').first.strip
-
+    begin
+      short_name = full_name.split('|').first&.strip || ''  # Safeguard against nil
+    rescue => e
+      Rails.logger.error "Error processing Waypoint ID: #{self.id}, Full Name: #{full_name.inspect}, Error: #{e.message}"
+      short_name = ''
+    end
+  
+    # Log the short name after processing
+    Rails.logger.debug "Processed Waypoint ID: #{self.id}, Short Name: #{short_name.inspect}"
+  
     # Check if short name is already present in the address components
     address_components = address_parts.split(',').map(&:strip)
     if address_components.include?(short_name)
@@ -37,12 +46,14 @@ class Waypoint < Place
       full_address = address_parts
     else
       # Short name is not present, so include it in the full address
-      full_address = "#{short_name}, #{address_parts}"
+      full_address = "#{short_name}, #{address_parts}".strip
     end
   
     # Remove any duplicate spaces to clean up the address
     full_address.gsub(/\s+/, ' ')
-  end 
+  end
+  
+  
   
   
 end
