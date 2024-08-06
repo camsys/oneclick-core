@@ -28,6 +28,9 @@ class Waypoint < Place
     # Handle pipe filtering for the name
     short_name = full_name.split('|').first.strip
 
+    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name}, Short Name: #{short_name}"
+
+
     # Check if short name is already present in the address components
     address_components = address_parts.split(',').map(&:strip)
     if address_components.include?(short_name)
@@ -37,9 +40,10 @@ class Waypoint < Place
       # Short name is not present, so include it in the full address
       full_address = "#{short_name}, #{address_parts}"
     end
-
+  
     # Remove any duplicate spaces to clean up the address
     full_address.gsub(/\s+/, ' ')
   end 
+  
   
 end
