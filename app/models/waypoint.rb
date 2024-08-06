@@ -51,5 +51,6 @@ class Waypoint < Place
       Rails.logger.error "Error processing Waypoint ID: #{self.id}, Error: #{e.message}, Backtrace: #{e.backtrace.join("\n")}"
       raise
     end
+  end
   
 end
