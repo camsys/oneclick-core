@@ -26,7 +26,7 @@ class Waypoint < Place
     full_name = self.name || ''  # Fallback to empty string if name is nil
 
     begin
-      short_name = full_name.split('|').first.strip
+      short_name = full_name.split('|').first&.strip || ''
     rescue => e
       Rails.logger.error "Error processing Waypoint ID: #{self.id}, Full Name: #{full_name.inspect}, Error: #{e.message}"
       raise e
