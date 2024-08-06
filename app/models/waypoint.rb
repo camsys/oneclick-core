@@ -24,12 +24,11 @@ class Waypoint < Place
   def formatted_address
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
     full_name = self.name || ''  # Fallback to empty string if name is nil
+    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name}, Short Name: #{short_name}"
+
 
     # Handle pipe filtering for the name
     short_name = full_name.split('|').first.strip
-
-    Rails.logger.debug "Processing Waypoint ID: #{self.id}, Full Name: #{full_name}, Short Name: #{short_name}"
-
 
     # Check if short name is already present in the address components
     address_components = address_parts.split(',').map(&:strip)
