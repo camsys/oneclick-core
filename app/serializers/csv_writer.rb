@@ -103,7 +103,7 @@ class CSVWriter
 
   # Writes a CSV file with a limited number of rows
   def write_file_with_limit(opts={})
-    batches_of = opts[:batches_of] || 1000
+    batches_of = opts[:batches_of] || 500  # Reduced batch size to 500
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
@@ -111,29 +111,21 @@ class CSVWriter
       start_time = Time.now
 
       # Write rows for all records in the collection, in batches as defined.
-      self.records.in_batches(of: batches_of) do |batch|
+      self.records.includes(:related_association).in_batches(of: batches_of) do |batch|
         Rails.logger.info "Processing batch starting at #{Time.now - start_time} seconds"
         
-        # Terminates the loop if number of rows written exceeds the specified limit
-        if row_count > opts[:limit]
-          break
-        end
-
-        batch.all.each do |record, idx|
-          if row_count > opts[:limit]
-            break
-          else
-            @record = record  # Set record instance variable to the current record from the batch
-            csv << self.write_row
-            if row_count == opts[:limit]
-              csv << ["Records have been limited to #{opts[:limit]}."]
-            end
-          end
+        batch.each do |record|
+          break if row_count > opts[:limit]
+          
+          @record = record  # Set record instance variable to the current record from the batch
+          csv << self.write_row
           row_count += 1
         end
         
         Rails.logger.info "Finished processing batch in #{Time.now - start_time} seconds"
       end
+
+      Rails.logger.info "Total records processed: #{row_count - 1}"
     end
   end
 
