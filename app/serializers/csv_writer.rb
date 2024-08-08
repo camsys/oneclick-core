@@ -112,7 +112,7 @@ class CSVWriter
 
       # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
-        logger.info "Processing batch starting at #{Time.now - start_time} seconds"
+        Rails.logger.info "Processing batch starting at #{Time.now - start_time} seconds"
         
         # Terminates the loop if number of rows written exceeds the specified limit
         if row_count > opts[:limit]
@@ -132,7 +132,7 @@ class CSVWriter
           row_count += 1
         end
         
-        logger.info "Finished processing batch in #{Time.now - start_time} seconds"
+        Rails.logger.info "Finished processing batch in #{Time.now - start_time} seconds"
       end
     end
   end
