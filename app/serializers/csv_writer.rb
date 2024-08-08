@@ -1,6 +1,6 @@
 # Inheritable class for writing records to CSV files
 class CSVWriter
-  
+
   ### HOW TO USE ###
   # 1. Create a model-specific CSV Writer that inherits from this class.
   # 2. Configure it using the class config methods below: list the columns,
@@ -23,11 +23,11 @@ class CSVWriter
   #################
   # CLASS METHODS #
   #################
-  
+
   class << self
     attr_reader :headers, :associated_tables # Sets class variables on the inheriting class
   end
-  
+
   ### CLASS CONFIGURATION METHODS ###
   # Configure inheriting classes by calling these methods in the class definition.
   # columns: This method is required. Must list all columns to include in the CSV.
@@ -36,10 +36,10 @@ class CSVWriter
   # header_names: Optional. Overwrite column headers with custom text.
   #               Use key-value pairs, like `ugly_col_name: "Pretty Column Name"`
   ###################################
-  
+
   # Config method for setting the columns to write to the file
   def self.columns(*cols)
-    
+
     # For each column, check if a method is already defined. If not,
     # define a default one that calls that method on the passed record.
     cols.each do |col_name|
@@ -55,99 +55,96 @@ class CSVWriter
     cols.each do |col_name|
       @headers[col_name] = col_name.to_s unless @headers[col_name]
     end
-      
+
   end
-  
+
   # Config method for identifying belongs_to tables to include in the query
   # Optional but highly recommended to improve performance--otherwise tables
   # are joined for each record in the collection
   def self.associations(*tables)
-    @associated_tables = tables 
+    @associated_tables = tables
   end
-  
+
   # Config method for overwriting default header names with custom text
   def self.header_names(dictionary={})
     @headers ||= {} # initialize @headers if not done so already
     dictionary.each { |k,v| @headers[k] = v }
   end
-  
-  
+
   ####################
   # INSTANCE METHODS #
   ####################
-  
+
   attr_reader :records # Sets an instance variable on instances of the inheriting class
-  
+
   # Initialize with a collection of the appropriate record type
   def initialize(records)
     @records = scope(records)
   end
-  
+
   # Writes an entire CSV file
   def write_file(opts={})
     batches_of = opts[:batches_of] || 1000
-    
+
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
 
       # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
-        batch.all.each do |record|
+        batch.each do |record|
           @record = record  # Set record instance variable to the current record from the batch
           csv << self.write_row
         end
       end
     end
-    
   end
 
   # Writes a CSV file with a limited number of rows
   def write_file_with_limit(opts={})
-    batches_of = opts[:batches_of] || 500  # Reduced batch size to 500
+    batches_of = opts[:batches_of] || 1000
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
       row_count = 1
-      start_time = Time.now
 
-      # Use eager loading to include related associations
-      self.records.includes(:user, :itineraries, :services).in_batches(of: batches_of) do |batch|
-        batch_start_time = Time.now
-        Rails.logger.info "Processing batch starting at #{batch_start_time - start_time} seconds"
-        
+      # Write rows for all records in the collection, in batches as defined.
+      self.records.in_batches(of: batches_of) do |batch|
+        # Terminates the loop if number of rows written exceeds the specified limit
+        if row_count > opts[:limit]
+          break
+        end
         batch.each do |record|
-          break if row_count > opts[:limit]
-          
-          @record = record  # Set record instance variable to the current record from the batch
-          csv << self.write_row
+          if row_count > opts[:limit]
+            break
+          else
+            @record = record  # Set record instance variable to the current record from the batch
+            csv << self.write_row
+            if row_count == opts[:limit]
+              csv << ["Records have been limited to #{opts[:limit]}."]
+            end
+          end
           row_count += 1
         end
-        
-        batch_end_time = Time.now
-        Rails.logger.info "Finished processing batch in #{batch_end_time - batch_start_time} seconds"
       end
-
-      Rails.logger.info "Total records processed: #{row_count - 1}"
     end
   end
 
+  public # Make the write_row method public
 
-  
-  protected
-  
-  # Wrapper method for returning the list of column header names
-  def headers
-    self.class.headers
-  end
-  
-  # Method scoping the records and joining to appropriate tables
-  def scope(records)
-    records.all.includes(self.class.associated_tables)
-  end
-    
   # Builds a CSV row for the current record
   def write_row
     headers.keys.map{ |h| self.send(h) }
   end
-  
+
+  protected
+
+  # Wrapper method for returning the list of column header names
+  def headers
+    self.class.headers
+  end
+
+  # Method scoping the records and joining to appropriate tables
+  def scope(records)
+    records.includes(self.class.associated_tables)
+  end
 end
