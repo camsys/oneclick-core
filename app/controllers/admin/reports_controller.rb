@@ -110,48 +110,12 @@ class Admin::ReportsController < Admin::AdminController
   end
 
   def trips_table
-    start_time = Time.now
-    Rails.logger.info "Starting trips_table method at #{start_time}"
-  
-    # Get trips for the current user's agency and role
-    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-    Rails.logger.info "Fetched trips for user in #{Time.now - start_time} seconds"
-  
-    # Filter trips based on inputs
-    @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    Rails.logger.info "Filtered trips by date in #{Time.now - start_time} seconds"
-  
-    @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-    Rails.logger.info "Filtered trips by purpose in #{Time.now - start_time} seconds" unless @purposes.empty?
-  
-    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
-    Rails.logger.info "Filtered trips by origin region in #{Time.now - start_time} seconds" unless @trip_origin_region.empty?
-  
-    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-    Rails.logger.info "Filtered trips by destination region in #{Time.now - start_time} seconds" unless @trip_destination_region.empty?
-  
-    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
-    Rails.logger.info "Filtered trips by oversight agency in #{Time.now - start_time} seconds" unless @oversight_agency.blank?
-  
-    if @trip_only_created_in_1click
-      @trips = @trips.joins(itineraries: :booking)
-                     .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
-      Rails.logger.info "Filtered trips by 1-click creation in #{Time.now - start_time} seconds"
-    end
-  
-    @trips = @trips.order(:trip_time)
-    Rails.logger.info "Ordered trips in #{Time.now - start_time} seconds"
-  
-    respond_to do |format|
-      format.csv do
-        Rails.logger.info "Starting to generate CSV at #{Time.now}"
-        send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
-        Rails.logger.info "Generated CSV in #{Time.now - start_time} seconds"
-      end
-    end
-  
-    total_time = Time.now - start_time
-    Rails.logger.info "Completed trips_table method in #{total_time} seconds"
+    set_file_headers
+    set_streaming_headers
+    response.status = 200
+
+    # Setting the body to an enumerator, rails will iterate this enumerator
+    self.response_body = csv_lines
   end
 
   def in_travel_patterns_mode?
@@ -221,6 +185,36 @@ class Admin::ReportsController < Admin::AdminController
   
   
   protected
+
+
+  def set_file_headers
+    file_name = "trips.csv"
+    headers["Content-Type"] = "text/csv"
+    headers["Content-disposition"] = "attachment; filename=\"#{file_name}\""
+  end
+
+  def set_streaming_headers
+    headers['X-Accel-Buffering'] = 'no'
+    headers["Cache-Control"] ||= "no-cache"
+    headers.delete("Content-Length")
+  end
+
+  def csv_lines
+    Enumerator.new do |y|
+      y << Admin::TripsReportCSVWriter.headers.values.to_csv
+
+      current_user.get_trips_for_staff_user.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+                 .with_purpose(Purpose.where(id: @purposes).pluck(:name))
+                 .origin_in(@trip_origin_region.geom)
+                 .destination_in(@trip_destination_region.geom)
+                 .oversight_agency_in(@oversight_agency)
+                 .order(:trip_time)
+                 .find_each(batch_size: CSVWriter::DEFAULT_RECORD_LIMIT) do |trip|
+        csv_writer = Admin::TripsReportCSVWriter.new([trip])
+        y << csv_writer.write_row.to_csv
+      end
+    end
+  end
 
   # Ensures that current_user has permission to view the reports
   def authorize_reports
