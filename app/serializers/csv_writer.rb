@@ -110,9 +110,10 @@ class CSVWriter
       row_count = 1
       start_time = Time.now
 
-      # Write rows for all records in the collection, in batches as defined.
-      self.records.includes(:related_association).in_batches(of: batches_of) do |batch|
-        Rails.logger.info "Processing batch starting at #{Time.now - start_time} seconds"
+      # Use eager loading to include related associations
+      self.records.includes(:user, :itineraries, :services).in_batches(of: batches_of) do |batch|
+        batch_start_time = Time.now
+        Rails.logger.info "Processing batch starting at #{batch_start_time - start_time} seconds"
         
         batch.each do |record|
           break if row_count > opts[:limit]
@@ -122,12 +123,14 @@ class CSVWriter
           row_count += 1
         end
         
-        Rails.logger.info "Finished processing batch in #{Time.now - start_time} seconds"
+        batch_end_time = Time.now
+        Rails.logger.info "Finished processing batch in #{batch_end_time - batch_start_time} seconds"
       end
 
       Rails.logger.info "Total records processed: #{row_count - 1}"
     end
   end
+
 
   
   protected
