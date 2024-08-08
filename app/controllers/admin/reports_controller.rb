@@ -111,55 +111,47 @@ class Admin::ReportsController < Admin::AdminController
 
   def trips_table
     start_time = Time.now
-    logger.info "Starting trips_table method at #{start_time}"
-
-    # Filter trips based on the current user's agency and role, and the given time frame
-    @trips = current_user.get_trips_for_staff_user
-    logger.info "Fetched trips for user in #{Time.now - start_time} seconds"
-
+    Rails.logger.info "Starting trips_table method at #{start_time}"
+  
+    # Get trips for the current user's agency and role
+    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
+    Rails.logger.info "Fetched trips for user in #{Time.now - start_time} seconds"
+  
+    # Filter trips based on inputs
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    logger.info "Filtered trips by date in #{Time.now - start_time} seconds"
-
-    # Apply additional filters
-    unless @purposes.empty?
-      @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name))
-      logger.info "Filtered trips by purpose in #{Time.now - start_time} seconds"
-    end
-
-    unless @trip_origin_region.empty?
-      @trips = @trips.origin_in(@trip_origin_region.geom)
-      logger.info "Filtered trips by origin region in #{Time.now - start_time} seconds"
-    end
-
-    unless @trip_destination_region.empty?
-      @trips = @trips.destination_in(@trip_destination_region.geom)
-      logger.info "Filtered trips by destination region in #{Time.now - start_time} seconds"
-    end
-
-    unless @oversight_agency.blank?
-      @trips = @trips.oversight_agency_in(@oversight_agency)
-      logger.info "Filtered trips by oversight agency in #{Time.now - start_time} seconds"
-    end
-
+    Rails.logger.info "Filtered trips by date in #{Time.now - start_time} seconds"
+  
+    @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
+    Rails.logger.info "Filtered trips by purpose in #{Time.now - start_time} seconds" unless @purposes.empty?
+  
+    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
+    Rails.logger.info "Filtered trips by origin region in #{Time.now - start_time} seconds" unless @trip_origin_region.empty?
+  
+    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
+    Rails.logger.info "Filtered trips by destination region in #{Time.now - start_time} seconds" unless @trip_destination_region.empty?
+  
+    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+    Rails.logger.info "Filtered trips by oversight agency in #{Time.now - start_time} seconds" unless @oversight_agency.blank?
+  
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)
-                    .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
-      logger.info "Filtered trips by 1-click creation in #{Time.now - start_time} seconds"
+                     .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
+      Rails.logger.info "Filtered trips by 1-click creation in #{Time.now - start_time} seconds"
     end
-
-    @trips = @trips.order(:trip_time).limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-    logger.info "Ordered and limited trips in #{Time.now - start_time} seconds"
-
+  
+    @trips = @trips.order(:trip_time)
+    Rails.logger.info "Ordered trips in #{Time.now - start_time} seconds"
+  
     respond_to do |format|
       format.csv do
-        logger.info "Starting to generate CSV at #{Time.now}"
+        Rails.logger.info "Starting to generate CSV at #{Time.now}"
         send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
-        logger.info "Generated CSV in #{Time.now - start_time} seconds"
+        Rails.logger.info "Generated CSV in #{Time.now - start_time} seconds"
       end
     end
-
+  
     total_time = Time.now - start_time
-    logger.info "Completed trips_table method in #{total_time} seconds"
+    Rails.logger.info "Completed trips_table method in #{total_time} seconds"
   end
 
   def in_travel_patterns_mode?
