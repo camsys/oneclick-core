@@ -111,56 +111,68 @@ class Admin::ReportsController < Admin::AdminController
   
   def trips_table
     start_time = Time.now
-    logger.info "Starting trips_table method at #{start_time}"
+    Rails.logger.info "Starting trips_table method at #{start_time}"
   
-    # Filter trips based on the current user's agency and role, and the given time frame
+    # Fetch trips based on the current user's agency and role
     @trips = current_user.get_trips_for_staff_user
-    logger.info "Fetched trips for user in #{Time.now - start_time} seconds"
+    Rails.logger.info "Fetched trips for user. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+    Rails.logger.info "First 200 trips: #{@trips.take(200).map(&:attributes)}"
   
+    # Filter trips by date range
     @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    logger.info "Filtered trips by date in #{Time.now - start_time} seconds"
+    Rails.logger.info "Filtered trips by date. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+    Rails.logger.info "First 200 trips after date filter: #{@trips.take(200).map(&:attributes)}"
   
     # Apply additional filters
     unless @purposes.empty?
       @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name))
-      logger.info "Filtered trips by purpose in #{Time.now - start_time} seconds"
+      Rails.logger.info "Filtered trips by purpose. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+      Rails.logger.info "First 200 trips after purpose filter: #{@trips.take(200).map(&:attributes)}"
     end
   
     unless @trip_origin_region.empty?
       @trips = @trips.origin_in(@trip_origin_region.geom)
-      logger.info "Filtered trips by origin region in #{Time.now - start_time} seconds"
+      Rails.logger.info "Filtered trips by origin region. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+      Rails.logger.info "First 200 trips after origin region filter: #{@trips.take(200).map(&:attributes)}"
     end
   
     unless @trip_destination_region.empty?
       @trips = @trips.destination_in(@trip_destination_region.geom)
-      logger.info "Filtered trips by destination region in #{Time.now - start_time} seconds"
+      Rails.logger.info "Filtered trips by destination region. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+      Rails.logger.info "First 200 trips after destination region filter: #{@trips.take(200).map(&:attributes)}"
     end
   
     unless @oversight_agency.blank?
       @trips = @trips.oversight_agency_in(@oversight_agency)
-      logger.info "Filtered trips by oversight agency in #{Time.now - start_time} seconds"
+      Rails.logger.info "Filtered trips by oversight agency. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+      Rails.logger.info "First 200 trips after oversight agency filter: #{@trips.take(200).map(&:attributes)}"
     end
   
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)
                      .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
-      logger.info "Filtered trips by 1-click creation in #{Time.now - start_time} seconds"
+      Rails.logger.info "Filtered trips by 1-click creation. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+      Rails.logger.info "First 200 trips after 1-click filter: #{@trips.take(200).map(&:attributes)}"
     end
   
+    # Order and limit the trips
     @trips = @trips.order(:trip_time).limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-    logger.info "Ordered and limited trips in #{Time.now - start_time} seconds"
+    Rails.logger.info "Ordered and limited trips. Number of trips: #{@trips.size}. Time elapsed: #{Time.now - start_time} seconds"
+    Rails.logger.info "First 2000 trips after ordering and limiting: #{@trips.take(2000).map(&:attributes)}"
   
+    # Generate the CSV
     respond_to do |format|
       format.csv do
-        logger.info "Starting to generate CSV at #{Time.now}"
+        Rails.logger.info "Starting to generate CSV at #{Time.now}"
         send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
-        logger.info "Generated CSV in #{Time.now - start_time} seconds"
+        Rails.logger.info "Generated CSV in #{Time.now - start_time} seconds"
       end
     end
   
     total_time = Time.now - start_time
-    logger.info "Completed trips_table method in #{total_time} seconds"
+    Rails.logger.info "Completed trips_table method in #{total_time} seconds"
   end
+  
 
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
