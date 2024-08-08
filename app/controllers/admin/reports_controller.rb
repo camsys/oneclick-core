@@ -202,22 +202,22 @@ class Admin::ReportsController < Admin::AdminController
   def csv_lines
     Enumerator.new do |y|
       y << Admin::TripsReportCSVWriter.headers.values.to_csv
-
+  
       trips = current_user.get_trips_for_staff_user
                           .from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-
+  
       trips = trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
       trips = trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
       trips = trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
       trips = trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.nil?
       trips = trips.order(:trip_time)
-
+  
       trips.find_each(batch_size: CSVWriter::DEFAULT_RECORD_LIMIT) do |trip|
-        csv_writer = Admin::TripsReportCSVWriter.new([trip])
+        csv_writer = Admin::TripsReportCSVWriter.new(Trip.where(id: trip.id))
         y << csv_writer.write_row.to_csv
       end
     end
-  end
+  end  
   
 
   # Ensures that current_user has permission to view the reports

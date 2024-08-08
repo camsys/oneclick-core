@@ -5,14 +5,14 @@ module CSVWritable
   def self.included(base)
     base.extend(ClassMethods)
   end
-  
+
   module ClassMethods
-    
+
     # Config method sets the CSVWriter class to use when writing to CSV
     def write_to_csv(opts={})
       @csv_writer = opts[:with]
     end
-    
+
     # Writes the current scope to a csv file
     def to_csv(opts={})
       csv_writer = opts[:with] || @csv_writer
@@ -23,7 +23,7 @@ module CSVWritable
         csv_writer.new(all).write_file(opts)
       end
     end
-    
+
   end
-  
+
 end
