@@ -108,13 +108,17 @@ class CSVWriter
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
       row_count = 1
+      start_time = Time.now
 
       # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
+        logger.info "Processing batch starting at #{Time.now - start_time} seconds"
+        
         # Terminates the loop if number of rows written exceeds the specified limit
         if row_count > opts[:limit]
           break
         end
+
         batch.all.each do |record, idx|
           if row_count > opts[:limit]
             break
@@ -127,9 +131,12 @@ class CSVWriter
           end
           row_count += 1
         end
+        
+        logger.info "Finished processing batch in #{Time.now - start_time} seconds"
       end
     end
   end
+
   
   protected
   
