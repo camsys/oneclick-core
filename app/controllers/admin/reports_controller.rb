@@ -129,7 +129,6 @@ class Admin::ReportsController < Admin::AdminController
 
       fetch_time = Time.now - start_time
       Rails.logger.info "Fetched, filtered, and fully loaded trips with all conditions applied. Number of trips: #{@trips.size}. Time elapsed: #{fetch_time} seconds"
-      Rails.logger.info "Trips loaded: #{@trips.map(&:attributes)}"
 
       # Log time right before CSV generation
       pre_csv_time = Time.now
