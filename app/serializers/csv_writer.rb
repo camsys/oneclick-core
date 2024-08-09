@@ -85,7 +85,7 @@ class CSVWriter
   
   # Writes an entire CSV file
   def write_file(opts={})
-  batches_of = opts[:batches_of] || 1000
+  batches_of = opts[:batches_of] || 10000
   
   CSV.generate(headers: true) do |csv|
     csv << headers.values # Header row
@@ -107,7 +107,7 @@ class CSVWriter
 end
 
 def write_file_with_limit(opts={})
-  batches_of = opts[:batches_of] || 1000
+  batches_of = opts[:batches_of] || 10000
   limit = opts[:limit] || DEFAULT_RECORD_LIMIT
 
   CSV.generate(headers: true) do |csv|
