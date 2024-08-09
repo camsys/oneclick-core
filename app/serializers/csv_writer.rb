@@ -85,42 +85,60 @@ class CSVWriter
   
   # Writes an entire CSV file
   def write_file(opts={})
-    batches_of = opts[:batches_of] || 1000
-    
-    CSV.generate(headers: true) do |csv|
-      csv << headers.values # Header row
+  batches_of = opts[:batches_of] || 1000
+  
+  CSV.generate(headers: true) do |csv|
+    csv << headers.values # Header row
 
-      # Stream rows directly from the database
-      self.records.find_each(batch_size: batches_of) do |record|
-        @record = record
-        csv << write_row
+    Rails.logger.info "Starting CSV streaming with batch size of #{batches_of}"
+
+    # Stream rows directly from the database
+    self.records.find_each(batch_size: batches_of).with_index(1) do |record, index|
+      @record = record
+      csv << write_row
+
+      if index % 1000 == 0
+        Rails.logger.info "Processed #{index} records so far."
       end
     end
+
+    Rails.logger.info "Completed CSV streaming."
   end
+end
 
-  # Writes a CSV file with a limited number of rows using streaming
-  def write_file_with_limit(opts={})
-    batches_of = opts[:batches_of] || 1000
-    limit = opts[:limit] || DEFAULT_RECORD_LIMIT
+def write_file_with_limit(opts={})
+  batches_of = opts[:batches_of] || 1000
+  limit = opts[:limit] || DEFAULT_RECORD_LIMIT
 
-    CSV.generate(headers: true) do |csv|
-      csv << headers.values # Header row
-      row_count = 0
+  CSV.generate(headers: true) do |csv|
+    csv << headers.values # Header row
+    row_count = 0
 
-      # Stream rows directly from the database with a limit
-      self.records.find_each(batch_size: batches_of) do |record|
-        break if row_count >= limit
+    Rails.logger.info "Starting CSV streaming with limit of #{limit} and batch size of #{batches_of}"
 
-        @record = record
-        csv << write_row
-        row_count += 1
-      end
+    # Stream rows directly from the database with a limit
+    self.records.find_each(batch_size: batches_of).with_index(1) do |record, index|
+      break if row_count >= limit
 
-      if row_count == limit
-        csv << ["Records have been limited to #{limit}."]
+      @record = record
+      csv << write_row
+      row_count += 1
+
+      if row_count % 1000 == 0
+        Rails.logger.info "Processed #{row_count} records so far."
       end
     end
+
+    if row_count == limit
+      csv << ["Records have been limited to #{limit}."]
+      Rails.logger.info "Reached record limit of #{limit}. Streaming stopped."
+    end
+
+    Rails.logger.info "Completed CSV streaming."
   end
+end
+
+
 
   
   protected
