@@ -86,47 +86,61 @@ class CSVWriter
   # Writes an entire CSV file
   def write_file(opts={})
   batches_of = opts[:batches_of] || 10000
-  
+  start_time = Time.now
+  Rails.logger.info "Starting CSV streaming with batch size of #{batches_of} at #{start_time}"
+
   CSV.generate(headers: true) do |csv|
     csv << headers.values # Header row
-
-    Rails.logger.info "Starting CSV streaming with batch size of #{batches_of}"
+    header_time = Time.now
+    Rails.logger.info "Header written at #{header_time}. Time elapsed: #{header_time - start_time} seconds"
 
     # Stream rows directly from the database
     self.records.find_each(batch_size: batches_of).with_index(1) do |record, index|
+      row_start_time = Time.now
       @record = record
       csv << write_row
+      row_end_time = Time.now
 
       if index % 1000 == 0
-        Rails.logger.info "Processed #{index} records so far."
+        Rails.logger.info "Processed #{index} records so far. Time for last 1000: #{row_end_time - row_start_time} seconds"
       end
+
+      Rails.logger.debug "Processed record #{index} in #{row_end_time - row_start_time} seconds"
     end
 
-    Rails.logger.info "Completed CSV streaming."
+    end_time = Time.now
+    Rails.logger.info "Completed CSV streaming at #{end_time}. Total time: #{end_time - start_time} seconds"
   end
 end
 
 def write_file_with_limit(opts={})
   batches_of = opts[:batches_of] || 10000
   limit = opts[:limit] || DEFAULT_RECORD_LIMIT
+  start_time = Time.now
+  Rails.logger.info "Starting CSV streaming with limit of #{limit} and batch size of #{batches_of} at #{start_time}"
 
   CSV.generate(headers: true) do |csv|
     csv << headers.values # Header row
-    row_count = 0
+    header_time = Time.now
+    Rails.logger.info "Header written at #{header_time}. Time elapsed: #{header_time - start_time} seconds"
 
-    Rails.logger.info "Starting CSV streaming with limit of #{limit} and batch size of #{batches_of}"
+    row_count = 0
 
     # Stream rows directly from the database with a limit
     self.records.find_each(batch_size: batches_of).with_index(1) do |record, index|
       break if row_count >= limit
 
+      row_start_time = Time.now
       @record = record
       csv << write_row
       row_count += 1
+      row_end_time = Time.now
 
       if row_count % 1000 == 0
-        Rails.logger.info "Processed #{row_count} records so far."
+        Rails.logger.info "Processed #{row_count} records so far. Time for last 1000: #{row_end_time - row_start_time} seconds"
       end
+
+      Rails.logger.debug "Processed record #{row_count} in #{row_end_time - row_start_time} seconds"
     end
 
     if row_count == limit
@@ -134,9 +148,11 @@ def write_file_with_limit(opts={})
       Rails.logger.info "Reached record limit of #{limit}. Streaming stopped."
     end
 
-    Rails.logger.info "Completed CSV streaming."
+    end_time = Time.now
+    Rails.logger.info "Completed CSV streaming at #{end_time}. Total time: #{end_time - start_time} seconds"
   end
 end
+
 
 
 

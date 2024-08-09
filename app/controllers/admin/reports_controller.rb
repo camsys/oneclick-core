@@ -124,7 +124,7 @@ class Admin::ReportsController < Admin::AdminController
                           .joins(itineraries: :booking)  # Join the necessary tables for the 1-click filter
                           .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })  # Apply the 1-click filter
                           .order(:trip_time)  # Ensure the trips are ordered by time
-                          .limit(50_000)  # Limit to the first 50,000 trips
+                          .limit(7000)  # Limit to the first 50,000 trips
                           .load  # Explicitly load the data to ensure it's fully retrieved
 
       fetch_time = Time.now - start_time
