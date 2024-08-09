@@ -117,53 +117,19 @@ class Admin::ReportsController < Admin::AdminController
       # Set a timeout for the database query (example for PostgreSQL)
       ActiveRecord::Base.connection.execute("SET statement_timeout = '60s'")
   
-      # Fetch trips for the current user within the specified time frame
+      # Fetch and filter trips in a single query
       @trips = current_user.get_trips_for_staff_user
                            .from_date(@trip_time_from_date)
                            .to_date(@trip_time_to_date)
-                           .load # Explicitly load the data to ensure it's fully retrieved
+                           .joins(itineraries: :booking)  # Join the necessary tables for the 1-click filter
+                           .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })  # Apply the 1-click filter
+                           .order(:trip_time)  # Ensure the trips are ordered by time
+                           .limit(50_000)  # Limit to the first 50,000 trips
+                           .load  # Explicitly load the data to ensure it's fully retrieved
   
       fetch_time = Time.now - start_time
-      Rails.logger.info "Fetched and fully loaded trips for user within time frame. Number of trips: #{@trips.size}. Time elapsed: #{fetch_time} seconds"
+      Rails.logger.info "Fetched, filtered, and fully loaded trips with all conditions applied. Number of trips: #{@trips.size}. Time elapsed: #{fetch_time} seconds"
       Rails.logger.info "Trips loaded: #{@trips.map(&:attributes)}"
-  
-      # Apply additional filters
-      unless @purposes.empty?
-        @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)).load
-        purpose_filter_time = Time.now - start_time
-        Rails.logger.info "Filtered and fully loaded trips by purpose. Number of trips: #{@trips.size}. Time elapsed: #{purpose_filter_time} seconds"
-      end
-  
-      unless @trip_origin_region.empty?
-        @trips = @trips.origin_in(@trip_origin_region.geom).load
-        origin_filter_time = Time.now - start_time
-        Rails.logger.info "Filtered and fully loaded trips by origin region. Number of trips: #{@trips.size}. Time elapsed: #{origin_filter_time} seconds"
-      end
-  
-      unless @trip_destination_region.empty?
-        @trips = @trips.destination_in(@trip_destination_region.geom).load
-        destination_filter_time = Time.now - start_time
-        Rails.logger.info "Filtered and fully loaded trips by destination region. Number of trips: #{@trips.size}. Time elapsed: #{destination_filter_time} seconds"
-      end
-  
-      unless @oversight_agency.blank?
-        @trips = @trips.oversight_agency_in(@oversight_agency).load
-        oversight_filter_time = Time.now - start_time
-        Rails.logger.info "Filtered and fully loaded trips by oversight agency. Number of trips: #{@trips.size}. Time elapsed: #{oversight_filter_time} seconds"
-      end
-  
-      if @trip_only_created_in_1click
-        @trips = @trips.joins(itineraries: :booking)
-                       .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
-                       .load
-        one_click_filter_time = Time.now - start_time
-        Rails.logger.info "Filtered and fully loaded trips by 1-click creation. Number of trips: #{@trips.size}. Time elapsed: #{one_click_filter_time} seconds"
-      end
-  
-      # Order and limit the trips
-      @trips = @trips.order(:trip_time).limit(CSVWriter::DEFAULT_RECORD_LIMIT).load
-      order_time = Time.now - start_time
-      Rails.logger.info "Ordered, limited, and fully loaded trips. Number of trips: #{@trips.size}. Time elapsed: #{order_time} seconds"
   
     rescue ActiveRecord::QueryCanceled => e
       Rails.logger.error "Query canceled due to timeout. Error: #{e.message}"
@@ -174,15 +140,10 @@ class Admin::ReportsController < Admin::AdminController
       ActiveRecord::Base.connection.execute("RESET statement_timeout")
     end
   
-    # Log time right before CSV generation
-    pre_csv_time = Time.now
-    Rails.logger.info "Starting CSV generation at #{pre_csv_time}. Time since start: #{pre_csv_time - start_time} seconds"
-  
-    # Generate the CSV
-  
     total_time = Time.now - start_time
     Rails.logger.info "Completed trips_table method in #{total_time} seconds"
   end
+  
    
   
   
