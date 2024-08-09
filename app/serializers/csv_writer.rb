@@ -90,49 +90,34 @@ class CSVWriter
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
 
-      # Write rows for all records in the collection, in batches as defined.
-      self.records.in_batches(of: batches_of) do |batch|
-        batch.all.each do |record|
-          @record = record  # Set record instance variable to the current record from the batch
-          csv << self.write_row
-        end
+      # Stream rows directly from the database
+      self.records.find_each(batch_size: batches_of) do |record|
+        @record = record
+        csv << write_row
       end
     end
-    
   end
 
-  # Writes a CSV file with a limited number of rows
+  # Writes a CSV file with a limited number of rows using streaming
   def write_file_with_limit(opts={})
     batches_of = opts[:batches_of] || 1000
+    limit = opts[:limit] || DEFAULT_RECORD_LIMIT
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
-      row_count = 1
-      start_time = Time.now
+      row_count = 0
 
-      # Write rows for all records in the collection, in batches as defined.
-      self.records.in_batches(of: batches_of) do |batch|
-        Rails.logger.info "Processing batch starting at #{Time.now - start_time} seconds"
-        
-        # Terminates the loop if number of rows written exceeds the specified limit
-        if row_count > opts[:limit]
-          break
-        end
+      # Stream rows directly from the database with a limit
+      self.records.find_each(batch_size: batches_of) do |record|
+        break if row_count >= limit
 
-        batch.all.each do |record, idx|
-          if row_count > opts[:limit]
-            break
-          else
-            @record = record  # Set record instance variable to the current record from the batch
-            csv << self.write_row
-            if row_count == opts[:limit]
-              csv << ["Records have been limited to #{opts[:limit]}."]
-            end
-          end
-          row_count += 1
-        end
-        
-        Rails.logger.info "Finished processing batch in #{Time.now - start_time} seconds"
+        @record = record
+        csv << write_row
+        row_count += 1
+      end
+
+      if row_count == limit
+        csv << ["Records have been limited to #{limit}."]
       end
     end
   end
