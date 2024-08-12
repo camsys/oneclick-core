@@ -142,10 +142,10 @@ class Admin::ReportsController < Admin::AdminController
         headers['Content-Type'] ||= 'text/csv'
   
         self.response_body = Enumerator.new do |yielder|
-          yielder << CSV.generate_line(TripsReportCSVWriter.headers.values)
+          yielder << CSV.generate_line(Admin::TripsReportCSVWriter.headers.values)
   
           @trips.find_each(batch_size: 1000) do |trip|
-            yielder << TripsReportCSVWriter.new([trip]).write_row.join("\t") + "\n"
+            yielder << Admin::TripsReportCSVWriter.new([trip]).write_row.join("\t") + "\n"
           end
         end
   
