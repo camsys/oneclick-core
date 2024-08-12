@@ -110,25 +110,44 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    # Get trips for the current user's agency and role
-    @trips = current_user.get_trips_for_staff_user.limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-
-    # Filter trips based on inputs
-    @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
-    @trips = @trips.with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-    @trips = @trips.origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
-    @trips = @trips.destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-    @trips = @trips.oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+    logger.info "Starting trips_table method"
+  
+    # Apply filters immediately and eager load the required associations
+    @trips = current_user.get_trips_for_staff_user
+                        .from_date(@trip_time_from_date)
+                        .to_date(@trip_time_to_date)
+                        .with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
+                        .origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
+                        .destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
+                        .oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
+                        .order(:trip_time)
+                        .limit(CSVWriter::DEFAULT_RECORD_LIMIT)
+                        .includes(:origin, :destination, :user, :selected_itinerary)
+  
+    # Additional filter for trips created in 1click
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)
-                     .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
+                     .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
     end
-    @trips = @trips.order(:trip_time)
+  
+    logger.info "Trips query executed successfully"
+  
     respond_to do |format|
-      format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
+      format.csv do
+        start_time = Time.now
+        logger.info "Starting CSV generation"
+  
+        csv_data = @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
+  
+        end_time = Time.now
+        logger.info "CSV generation completed in #{(end_time - start_time).round(2)} seconds"
+  
+        send_data csv_data
+      end
     end
   end
-
+  
+  
   def in_travel_patterns_mode?
     Config.dashboard_mode.to_sym == :travel_patterns
   end

@@ -84,52 +84,51 @@ class CSVWriter
   end
   
   # Writes an entire CSV file
-  def write_file(opts={})
+  def write_file(opts = {})
     batches_of = opts[:batches_of] || 1000
-    
+    logger.info "Starting write_file with batch size of #{batches_of}"
+
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
 
-      # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
-        batch.all.each do |record|
-          @record = record  # Set record instance variable to the current record from the batch
-          csv << self.write_row
+        logger.info "Processing batch of size #{batch.size}"
+
+        batch.pluck(*self.class.headers.keys).each do |record_values|
+          csv << record_values
         end
       end
     end
-    
   end
+
 
   # Writes a CSV file with a limited number of rows
-  def write_file_with_limit(opts={})
+  def write_file_with_limit(opts = {})
     batches_of = opts[:batches_of] || 1000
+    limit = opts[:limit] || DEFAULT_RECORD_LIMIT
+    row_count = 0
+    logger.info "Starting write_file_with_limit with batch size of #{batches_of} and limit of #{limit}"
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
-      row_count = 1
 
-      # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
-        # Terminates the loop if number of rows written exceeds the specified limit
-        if row_count > opts[:limit]
-          break
-        end
-        batch.all.each do |record, idx|
-          if row_count > opts[:limit]
-            break
-          else
-            @record = record  # Set record instance variable to the current record from the batch
-            csv << self.write_row
-            if row_count == opts[:limit]
-              csv << ["Records have been limited to #{opts[:limit]}."]
-            end
-          end
+        batch.pluck(*self.class.headers.keys).each do |record_values|
+          break if row_count >= limit
+
+          csv << record_values
           row_count += 1
         end
+
+        logger.info "Processed #{row_count} rows so far"
+
+        break if row_count >= limit
       end
+
+      csv << ["Records have been limited to #{limit}."] if row_count >= limit
     end
   end
+
   
   protected
   
