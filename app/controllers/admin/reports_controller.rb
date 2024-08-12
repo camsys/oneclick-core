@@ -110,14 +110,14 @@ class Admin::ReportsController < Admin::AdminController
   end
   
   def trips_table
-    logger.info "Starting trips_table method"
+    Rails.logger.info "Starting trips_table method"
   
     # Start with the base query and include necessary joins and eager loading
     @trips = current_user.get_trips_for_staff_user
                          .joins(:origin, :destination, :user, :selected_itinerary) # Add joins for relevant tables
                          .includes(:origin, :destination, :user, :selected_itinerary) # Eager load associated records
   
-    logger.info "Base query initialized"
+    Rails.logger.info "Base query initialized"
   
     # Apply date filters
     if @trip_time_from_date.present? && @trip_time_to_date.present?
@@ -151,13 +151,13 @@ class Admin::ReportsController < Admin::AdminController
                      .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
     end
   
-    logger.info "Filters applied successfully"
+    Rails.logger.info "Filters applied successfully"
   
     # Apply ordering, limit, and finalize query
     @trips = @trips.order(:trip_time)
                    .limit(CSVWriter::DEFAULT_RECORD_LIMIT)
   
-    logger.info "Query finalized, executing and generating CSV"
+    Rails.logger.info "Query finalized, executing and generating CSV"
   
     respond_to do |format|
       format.csv do
@@ -167,7 +167,7 @@ class Admin::ReportsController < Admin::AdminController
         csv_data = @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
   
         end_time = Time.now
-        logger.info "CSV generation completed in #{(end_time - start_time).round(2)} seconds"
+        Rails.logger.info "CSV generation completed in #{(end_time - start_time).round(2)} seconds"
   
         send_data csv_data
       end
