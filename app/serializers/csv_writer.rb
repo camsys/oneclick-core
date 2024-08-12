@@ -107,7 +107,7 @@ class CSVWriter
     batches_of = opts[:batches_of] || 1000
     limit = opts[:limit] || DEFAULT_RECORD_LIMIT
     row_count = 0
-    logger.info "Starting write_file_with_limit with batch size of #{batches_of} and limit of #{limit}"
+    Rails.logger.info "Starting write_file_with_limit with batch size of #{batches_of} and limit of #{limit}"
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
@@ -121,14 +121,14 @@ class CSVWriter
           begin
             csv << self.write_row
           rescue => e
-            logger.error "Error writing row for record ID: #{record.id}. Error: #{e.message}"
+            Rails.logger.error "Error writing row for record ID: #{record.id}. Error: #{e.message}"
             next
           end
 
           row_count += 1
         end
 
-        logger.info "Processed #{row_count} rows so far"
+        Rails.logger.info "Processed #{row_count} rows so far"
 
         break if row_count >= limit
       end
