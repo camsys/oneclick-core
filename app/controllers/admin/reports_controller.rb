@@ -112,31 +112,58 @@ class Admin::ReportsController < Admin::AdminController
   def trips_table
     logger.info "Starting trips_table method"
   
-    # Apply filters immediately and eager load the required associations
+    # Start with the base query and include necessary joins and eager loading
     @trips = current_user.get_trips_for_staff_user
-                        .from_date(@trip_time_from_date)
-                        .to_date(@trip_time_to_date)
-                        .with_purpose(Purpose.where(id: @purposes).pluck(:name)) unless @purposes.empty?
-                        .origin_in(@trip_origin_region.geom) unless @trip_origin_region.empty?
-                        .destination_in(@trip_destination_region.geom) unless @trip_destination_region.empty?
-                        .oversight_agency_in(@oversight_agency) unless @oversight_agency.blank?
-                        .order(:trip_time)
-                        .limit(CSVWriter::DEFAULT_RECORD_LIMIT)
-                        .includes(:origin, :destination, :user, :selected_itinerary)
+                         .joins(:origin, :destination, :user, :selected_itinerary) # Add joins for relevant tables
+                         .includes(:origin, :destination, :user, :selected_itinerary) # Eager load associated records
   
-    # Additional filter for trips created in 1click
+    logger.info "Base query initialized"
+  
+    # Apply date filters
+    if @trip_time_from_date.present? && @trip_time_to_date.present?
+      @trips = @trips.from_date(@trip_time_from_date).to_date(@trip_time_to_date)
+    end
+  
+    # Apply purpose filter
+    unless @purposes.empty?
+      purpose_names = Purpose.where(id: @purposes).pluck(:name)
+      @trips = @trips.with_purpose(purpose_names)
+    end
+  
+    # Apply origin region filter
+    unless @trip_origin_region.empty?
+      @trips = @trips.origin_in(@trip_origin_region.geom)
+    end
+  
+    # Apply destination region filter
+    unless @trip_destination_region.empty?
+      @trips = @trips.destination_in(@trip_destination_region.geom)
+    end
+  
+    # Apply oversight agency filter
+    unless @oversight_agency.blank?
+      @trips = @trips.oversight_agency_in(@oversight_agency)
+    end
+  
+    # Filter trips created in 1click with the necessary joins
     if @trip_only_created_in_1click
       @trips = @trips.joins(itineraries: :booking)
                      .where(itineraries: { trip_type: 'paratransit' }, bookings: { created_in_1click: true })
     end
   
-    logger.info "Trips query executed successfully"
+    logger.info "Filters applied successfully"
+  
+    # Apply ordering, limit, and finalize query
+    @trips = @trips.order(:trip_time)
+                   .limit(CSVWriter::DEFAULT_RECORD_LIMIT)
+  
+    logger.info "Query finalized, executing and generating CSV"
   
     respond_to do |format|
       format.csv do
         start_time = Time.now
-        logger.info "Starting CSV generation"
   
+        # Generate the CSV
         csv_data = @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?)
   
         end_time = Time.now
@@ -146,6 +173,7 @@ class Admin::ReportsController < Admin::AdminController
       end
     end
   end
+  
   
   
   def in_travel_patterns_mode?
