@@ -86,13 +86,13 @@ class CSVWriter
   # Writes an entire CSV file
   def write_file(opts = {})
     batches_of = opts[:batches_of] || 1000
-    logger.info "Starting write_file with batch size of #{batches_of}"
+    Rails.logger.info "Starting write_file with batch size of #{batches_of}"
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
 
       self.records.in_batches(of: batches_of) do |batch|
-        logger.info "Processing batch of size #{batch.size}"
+        Rails.logger.info "Processing batch of size #{batch.size}"
 
         batch.pluck(*self.class.headers.keys).each do |record_values|
           csv << record_values
@@ -107,7 +107,7 @@ class CSVWriter
     batches_of = opts[:batches_of] || 1000
     limit = opts[:limit] || DEFAULT_RECORD_LIMIT
     row_count = 0
-    logger.info "Starting write_file_with_limit with batch size of #{batches_of} and limit of #{limit}"
+    Rails.logger.info "Starting write_file_with_limit with batch size of #{batches_of} and limit of #{limit}"
 
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
@@ -120,7 +120,7 @@ class CSVWriter
           row_count += 1
         end
 
-        logger.info "Processed #{row_count} rows so far"
+        Rails.logger.info "Processed #{row_count} rows so far"
 
         break if row_count >= limit
       end
