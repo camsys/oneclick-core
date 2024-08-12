@@ -81,24 +81,27 @@ class CSVWriter
   # Initialize with a collection of the appropriate record type
   def initialize(records)
     @records = scope(records).includes(:origin, :destination, :user, :selected_itinerary).to_a
-  end
+  end  
   
   # Writes an entire CSV file
   def write_file(opts={})
     batches_of = opts[:batches_of] || 1000
-    
+
     CSV.generate(headers: true) do |csv|
       csv << headers.values # Header row
 
-      # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
-        batch.all.each do |record|
-          @record = record  # Set record instance variable to the current record from the batch
+        batch.each do |record|
+          @record = record
+          @booking_snapshot_cache = @record.ecolane_booking_snapshot # Cache the booking snapshot for reuse
           csv << self.write_row
         end
       end
     end
-    
+  end
+
+  def booking_snapshot
+    @booking_snapshot_cache ||= @record.ecolane_booking_snapshot
   end
 
   # Writes a CSV file with a limited number of rows
