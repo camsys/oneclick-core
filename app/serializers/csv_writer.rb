@@ -80,11 +80,12 @@ class CSVWriter
   
   # Initialize with a collection of the appropriate record type
   def initialize(records)
-    @records = scope(records)
+    @records = scope(records).includes(:origin, :destination, :user, :selected_itinerary).to_a
   end
   
   # Writes an entire CSV file
   def write_file(opts={})
+<<<<<<< Updated upstream
   batches_of = opts[:batches_of] || 10000
   start_time = Time.now
   Rails.logger.info "Starting CSV streaming with batch size of #{batches_of} at #{start_time}"
@@ -103,21 +104,48 @@ class CSVWriter
 
       if index % 1000 == 0
         Rails.logger.info "Processed #{index} records so far. Time for last 1000: #{row_end_time - row_start_time} seconds"
+=======
+    batches_of = opts[:batches_of] || 1000
+
+    CSV.generate(headers: true) do |csv|
+      csv << headers.values # Header row
+
+      self.records.in_batches(of: batches_of) do |batch|
+        batch.each do |record|
+          @record = record
+          @booking_snapshot_cache = @record.ecolane_booking_snapshot # Cache the booking snapshot for reuse
+          csv << self.write_row
+        end
+>>>>>>> Stashed changes
       end
 
       Rails.logger.debug "Processed record #{index} in #{row_end_time - row_start_time} seconds"
     end
+<<<<<<< Updated upstream
 
     end_time = Time.now
     Rails.logger.info "Completed CSV streaming at #{end_time}. Total time: #{end_time - start_time} seconds"
+=======
+>>>>>>> Stashed changes
   end
 end
 
+<<<<<<< Updated upstream
 def write_file_with_limit(opts={})
   batches_of = opts[:batches_of] || 10000
   limit = opts[:limit] || DEFAULT_RECORD_LIMIT
   start_time = Time.now
   Rails.logger.info "Starting CSV streaming with limit of #{limit} and batch size of #{batches_of} at #{start_time}"
+=======
+  def booking_snapshot
+    @booking_snapshot_cache ||= @record.ecolane_booking_snapshot
+  end
+
+
+  # Writes a CSV file with a limited number of rows
+  def write_file_with_limit(opts={})
+    batches_of = opts[:batches_of] || 1000
+>>>>>>> Stashed changes
 
   CSV.generate(headers: true) do |csv|
     csv << headers.values # Header row
@@ -171,7 +199,42 @@ end
     
   # Builds a CSV row for the current record
   def write_row
-    headers.keys.map{ |h| self.send(h) }
+    [
+      trip_id,
+      trip_time,
+      traveler,
+      user_type,
+      traveler_county,
+      traveler_paratransit_id,
+      arrive_by,
+      disposition_status,
+      purpose,
+      orig_addr,
+      orig_county,
+      orig_lat,
+      orig_lng,
+      dest_addr,
+      dest_county,
+      dest_lat,
+      dest_lng,
+      traveler_age,
+      traveler_ip,
+      traveler_accommodations,
+      traveler_eligibilities,
+      agency_name,
+      service_name,
+      booking_id,
+      booking_client_id,
+      is_round_trip,
+      booking_timestamp,
+      funding_source,
+      sponsor,
+      companions,
+      trip_note,
+      ecolane_error_message,
+      pca
+    ]
   end
+  
   
 end
