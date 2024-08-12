@@ -112,11 +112,11 @@ class Admin::ReportsController < Admin::AdminController
   def trips_table
     start_time = Time.now
     Rails.logger.info "Starting trips_table method at #{start_time}"
-
+  
     begin
       # Set a timeout for the database query (example for PostgreSQL)
       ActiveRecord::Base.connection.execute("SET statement_timeout = '60s'")
-
+  
       # Fetch and filter trips in a single query
       @trips = current_user.get_trips_for_staff_user
                           .from_date(@trip_time_from_date)
@@ -126,14 +126,14 @@ class Admin::ReportsController < Admin::AdminController
                           .order(:trip_time)  # Ensure the trips are ordered by time
                           .limit(7000)  # Limit to the first 50,000 trips
                           .load  # Explicitly load the data to ensure it's fully retrieved
-
+  
       fetch_time = Time.now - start_time
       Rails.logger.info "Fetched, filtered, and fully loaded trips with all conditions applied. Number of trips: #{@trips.size}. Time elapsed: #{fetch_time} seconds"
-
+  
       # Log time right before CSV generation
       pre_csv_time = Time.now
       Rails.logger.info "Starting CSV generation at #{pre_csv_time}. Time since start: #{pre_csv_time - start_time} seconds"
-
+  
       # Generate the CSV
       respond_to do |format|
         format.csv do
@@ -143,19 +143,20 @@ class Admin::ReportsController < Admin::AdminController
           Rails.logger.info "CSV generated in #{csv_time} seconds"
         end
       end
-
-    rescue ActiveRecord::QueryCanceled => e
-      Rails.logger.error "Query canceled due to timeout. Error: #{e.message}"
+  
+    rescue ActiveRecord::StatementInvalid => e
+      Rails.logger.error "Query canceled due to timeout or other database error. Error: #{e.message}"
       return render plain: "The query took too long and was canceled.", status: 503
-
+  
     ensure
       # Reset the statement timeout to its default
       ActiveRecord::Base.connection.execute("RESET statement_timeout")
     end
-
+  
     total_time = Time.now - start_time
     Rails.logger.info "Completed trips_table method in #{total_time} seconds"
   end
+  
   
    
   
