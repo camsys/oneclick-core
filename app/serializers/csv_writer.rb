@@ -80,7 +80,7 @@ class CSVWriter
   
   # Initialize with a collection of the appropriate record type
   def initialize(records)
-    @records = scope(records).includes(:origin, :destination, :user, :selected_itinerary).to_a
+    @records = scope(records) # Keep this as an ActiveRecord relation
   end  
   
   # Writes an entire CSV file
@@ -112,21 +112,17 @@ class CSVWriter
       csv << headers.values # Header row
       row_count = 1
 
-      # Write rows for all records in the collection, in batches as defined.
       self.records.in_batches(of: batches_of) do |batch|
         # Terminates the loop if number of rows written exceeds the specified limit
-        if row_count > opts[:limit]
-          break
-        end
-        batch.all.each do |record, idx|
-          if row_count > opts[:limit]
-            break
-          else
-            @record = record  # Set record instance variable to the current record from the batch
-            csv << self.write_row
-            if row_count == opts[:limit]
-              csv << ["Records have been limited to #{opts[:limit]}."]
-            end
+        break if row_count > opts[:limit]
+
+        batch.each do |record, idx|
+          break if row_count > opts[:limit]
+
+          @record = record  # Set record instance variable to the current record from the batch
+          csv << self.write_row
+          if row_count == opts[:limit]
+            csv << ["Records have been limited to #{opts[:limit]}."]
           end
           row_count += 1
         end
@@ -143,9 +139,9 @@ class CSVWriter
   
   # Method scoping the records and joining to appropriate tables
   def scope(records)
-    records.all.includes(self.class.associated_tables)
+    records.includes(self.class.associated_tables)
   end
-    
+
   # Builds a CSV row for the current record
   def write_row
     headers.keys.map{ |h| self.send(h) }
