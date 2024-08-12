@@ -145,8 +145,8 @@ class Admin::ReportsController < Admin::AdminController
           yielder << CSV.generate_line(Admin::TripsReportCSVWriter.headers.values)
   
           @trips.find_each(batch_size: 1000) do |trip|
-            csv_writer = Admin::TripsReportCSVWriter.new([trip])
-            csv_writer.instance_variable_set(:@record, trip) # Directly set @record to avoid using scope
+            csv_writer = Admin::TripsReportCSVWriter.new(nil) # Initialize without records
+            csv_writer.instance_variable_set(:@record, trip) # Directly set @record
             yielder << csv_writer.write_row.join("\t") + "\n"
           end
         end
@@ -155,9 +155,6 @@ class Admin::ReportsController < Admin::AdminController
       end
     end
   end
-  
-  
-  
   
   
   def in_travel_patterns_mode?
