@@ -145,7 +145,9 @@ class Admin::ReportsController < Admin::AdminController
           yielder << CSV.generate_line(Admin::TripsReportCSVWriter.headers.values)
   
           @trips.find_each(batch_size: 1000) do |trip|
-            yielder << Admin::TripsReportCSVWriter.new([trip]).write_row.join("\t") + "\n"
+            csv_writer = Admin::TripsReportCSVWriter.new([trip])
+            csv_writer.instance_variable_set(:@record, trip) # Directly set @record to avoid using scope
+            yielder << csv_writer.write_row.join("\t") + "\n"
           end
         end
   
@@ -153,6 +155,7 @@ class Admin::ReportsController < Admin::AdminController
       end
     end
   end
+  
   
   
   
