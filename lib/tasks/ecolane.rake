@@ -178,17 +178,22 @@ namespace :ecolane do
     total_hours = (total_time / 3600).to_i
     total_minutes = ((total_time % 3600) / 60).round(2)
     total_time_str = "#{total_hours} hours and #{total_minutes} minutes"
-
+  
     task_run_state.update(value: false) unless is_already_running
-
+  
     if error_messages.any?
       error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
       ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
     end
-
+  
+    puts "Preparing to send summary email..."  # <-- Add this line
+    puts "Summary Messages: #{summary_messages.inspect}"  # <-- Add this line
+    puts "JOB_SUMMARY_NOTIFICATION_EMAIL: #{ENV['JOB_SUMMARY_NOTIFICATION_EMAIL']}"  # <-- Add this line
+  
     summary_messages << "<strong>Total time spent:</strong> #{total_time_str}."
-    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
-  end #update_pois
+    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now if ENV['JOB_SUMMARY_NOTIFICATION_EMAIL'].present?
+  end
+   #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
   desc "Update Waypoints with an incorrect township as the city to the correct city"
