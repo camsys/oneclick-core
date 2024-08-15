@@ -64,7 +64,10 @@ namespace :ecolane do
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
-        new_poi_hashes = services.first.booking_ambassador.get_pois.limit(1000)
+        new_poi_hashes = services.first.booking_ambassador.get_pois
+
+        # Limit to the first 1000 POIs for processing
+        new_poi_hashes = new_poi_hashes.take(1000)        
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
           error_messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
