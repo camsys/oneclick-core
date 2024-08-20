@@ -850,13 +850,19 @@ class EcolaneAmbassador < BookingAmbassador
     
     if valid_passenger
       user = nil
+      sanitized_county = @county.gsub(/[^0-9A-Za-z]/, '_') # Replace non-alphanumeric characters with underscores
+      Rails.logger.info("Sanitized county: #{sanitized_county}")
+  
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
         Rails.logger.info("Generated email part: #{email}")
   
+        full_email = "#{email}_#{sanitized_county}@ecolane_user.com"
+        Rails.logger.info("Full email: #{full_email}")
+  
         user = User.create!(
-            email: "#{email}_#{@county}@ecolane_user.com", 
+            email: full_email, 
             password: random, 
             password_confirmation: random,            
           )
@@ -887,6 +893,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
   
 
   def build_order funding=true, funding_hash=nil
