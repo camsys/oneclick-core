@@ -16,7 +16,7 @@ module Api
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
         ecolane_id = session_params[:ecolane_id]
-        county = session_params[:county]
+        county = session_params[:county].gsub(' ', '_') # Replace spaces with underscores
         dob = session_params[:dob]
 
         ############## Custom Ecolane Stuff ######################
