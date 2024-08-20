@@ -845,40 +845,49 @@ class EcolaneAmbassador < BookingAmbassador
   ### Find or Create User
   def get_user
     valid_passenger, passenger = validate_passenger
+    Rails.logger.info("Valid passenger: #{valid_passenger}")
+    Rails.logger.info("Passenger details: #{passenger.inspect}")
+    
     if valid_passenger
       user = nil
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
+        Rails.logger.info("Generated email part: #{email}")
+  
         user = User.create!(
             email: "#{email}_#{@county}@ecolane_user.com", 
             password: random, 
             password_confirmation: random,            
           )
+        Rails.logger.info("Created user: #{user.inspect}")
+  
         profile.details = {customer_id: passenger["id"]}
         profile.booking_api = "ecolane"
         profile.user = user
-        # do not try to sync user here - reenters ecolane_ambassador ctor
       end
-      # Update the user's booking profile with the user's county from login info.
+      
       if @booking_profile&.details
         @booking_profile.details[:county] = @county
       else
         @booking_profile.details = {county: @county}
       end
       @booking_profile.save
-
-      # Update the user's name
+      Rails.logger.info("Booking profile saved with details: #{@booking_profile.details.inspect}")
+  
       user = @booking_profile.user 
       user.first_name = passenger["first_name"]
-      user.last_name = passenger["last_name"]     
+      user.last_name = passenger["last_name"]
       user.save
-
+  
+      Rails.logger.info("Final user object: #{user.inspect}")
       user
     else
+      Rails.logger.warn("Passenger validation failed")
       nil
     end
   end
+  
 
   def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
