@@ -23,7 +23,7 @@ module Api
         ecolane_id = session_params[:ecolane_id]
         Rails.logger.info("Ecolane ID from session_params: #{ecolane_id.inspect}")
       
-        county = session_params[:county]&.gsub(' ', '_')
+        county = session_params[:county]
         Rails.logger.info("County after gsub: #{county.inspect}")
       
         dob = session_params[:dob]
