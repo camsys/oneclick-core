@@ -8,7 +8,7 @@ module Api
         Service.paratransit_services.published.is_ecolane.each do |service|
           external_id_array += service.booking_details[:home_counties].split(',').map{ |x| x.strip }
         end
-        render status: 200, json: {service_ids: external_id_array.map(&:humanize).uniq.sort}
+        render status: 200, json: {service_ids: external_id_array.uniq.sort}
       end
 
       # For Ecolane
