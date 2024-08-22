@@ -8,32 +8,29 @@ class EcolaneAmbassador < BookingAmbassador
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]
-    Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
-    raise "County is required for EcolaneAmbassador initialization" if @county.blank?
-
     @dob = opts[:dob]
-    self.trip = opts[:trip] if opts[:trip]
+    if opts[:trip]
+      self.trip = opts[:trip]
+    end
     self.service = opts[:service] if opts[:service]
-    @customer_number = opts[:ecolane_id] # This is what the customer knows
-    @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
-
-    # Directly use the county name for service lookup without modification
+    @customer_number = opts[:ecolane_id] #This is what the customer knows
+    @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
     @service ||= county_map[@county]
-    raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
-
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     self.api_key = @service.booking_details[:api_key]
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
-
     get_booking_profile
     check_travelers_transit_agency
     add_missing_attributes
-
+    
     # Funding Rules Shortcuts
+    # nil is added to the ada_funding_sources, and the sponsors because, occasionally, a purpose will
+    # not specify one. In which case no funding source or sponsor is a valid option, but the lowest
+    # priority one.
     @preferred_funding_sources = @service.preferred_funding_source_names
-    @preferred_sponsors = @service.preferred_sponsor_names + [nil]
+    @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
     @ada_funding_sources = @service.ada_funding_source_names + [nil]
 
     # These aren't used right now, they will always be null FMRPA-200
@@ -52,9 +49,6 @@ class EcolaneAmbassador < BookingAmbassador
     @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
-
-
-
 
 
 
