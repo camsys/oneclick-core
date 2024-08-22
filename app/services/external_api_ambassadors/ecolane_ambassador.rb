@@ -4,39 +4,37 @@ class EcolaneAmbassador < BookingAmbassador
   require 'securerandom'
 
   def initialize(opts={})
-  super(opts)
-  @url ||= Config.ecolane_url
-  @county = opts[:county].to_s.strip  # Keep original formatting with minimal changes
-  @dob = opts[:dob]
-  
-  if opts[:trip]
-    self.trip = opts[:trip]
+    super(opts)
+    @url ||= Config.ecolane_url
+    @county = opts[:county].to_s.strip
+    
+    Rails.logger.info "County passed in: #{@county}"
+    
+    raise "County not provided" if @county.empty?
+
+    @dob = opts[:dob]
+    self.trip = opts[:trip] if opts[:trip]
+    self.service = opts[:service] if opts[:service]
+    
+    # Ensure the county key exists in the map
+    county_key = county_map.keys.find { |key| key.downcase == @county.downcase }
+    
+    if county_key.nil?
+      raise "Service not found for county #{@county}. Please ensure the county is correctly mapped."
+    end
+
+    @service ||= county_map[county_key]
+    self.system_id ||= @service.booking_details[:external_id]
+    self.token = @service.booking_details[:token]
+    self.api_key = @service.booking_details[:api_key]
+    @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
+    @purpose = @trip.external_purpose unless @trip.nil?
+    
+    get_booking_profile
+    check_travelers_transit_agency
+    add_missing_attributes
   end
 
-  self.service = opts[:service] if opts[:service]
-  @customer_number = opts[:ecolane_id] # This is what the customer knows
-  @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
-  
-  # Normalize county name for comparison (strip and remove extra spaces)
-  county_key = county_map.keys.find { |key| key.strip.downcase == @county.strip.downcase }
-
-  if county_key.nil?
-    raise "Service not found for county #{@county}. Please ensure the county is correctly mapped."
-  end
-
-  @service ||= county_map[county_key]
-
-  self.system_id ||= @service.booking_details[:external_id]
-  self.token = @service.booking_details[:token]
-  self.api_key = @service.booking_details[:api_key]
-  
-  @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
-  @purpose = @trip.external_purpose unless @trip.nil?
-
-  get_booking_profile
-  check_travelers_transit_agency
-  add_missing_attributes
-end
 
 
   #####################################################################
