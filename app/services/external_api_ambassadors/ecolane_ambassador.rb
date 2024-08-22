@@ -6,7 +6,7 @@ class EcolaneAmbassador < BookingAmbassador
   def initialize(opts={})
   super(opts)
   @url ||= Config.ecolane_url
-  @county = opts[:county].to_s.gsub(' ', '_').downcase # Normalize county
+  @county = opts[:county].to_s.strip  # Keep original formatting with minimal changes
   @dob = opts[:dob]
   
   if opts[:trip]
@@ -17,15 +17,14 @@ class EcolaneAmbassador < BookingAmbassador
   @customer_number = opts[:ecolane_id] # This is what the customer knows
   @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
   
-  # Log county_map and @county
-  Rails.logger.info "County Map: #{county_map.inspect}"
-  Rails.logger.info "Looking up service for county: #{@county}"
+  # Normalize county name for comparison (strip and remove extra spaces)
+  county_key = county_map.keys.find { |key| key.strip.downcase == @county.strip.downcase }
 
-  @service ||= county_map[@county]
-
-  if @service.nil?
+  if county_key.nil?
     raise "Service not found for county #{@county}. Please ensure the county is correctly mapped."
   end
+
+  @service ||= county_map[county_key]
 
   self.system_id ||= @service.booking_details[:external_id]
   self.token = @service.booking_details[:token]
