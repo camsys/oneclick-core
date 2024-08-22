@@ -4,51 +4,41 @@ class EcolaneAmbassador < BookingAmbassador
   require 'securerandom'
 
   def initialize(opts={})
-    #TODO Clean up this mess
-    super(opts)
-    @url ||= Config.ecolane_url
-    @county = opts[:county].to_s.gsub(' ', '_')
-    @dob = opts[:dob]
-    if opts[:trip]
-      self.trip = opts[:trip]
-    end
-    self.service = opts[:service] if opts[:service]
-    @customer_number = opts[:ecolane_id] #This is what the customer knows
-    @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
-    @service ||= county_map[@county]
-    self.system_id ||= @service.booking_details[:external_id]
-    self.token = @service.booking_details[:token]
-    self.api_key = @service.booking_details[:api_key]
-    @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
-    @purpose = @trip.external_purpose unless @trip.nil?
-    get_booking_profile
-    check_travelers_transit_agency
-    add_missing_attributes
-    
-    # Funding Rules Shortcuts
-    # nil is added to the ada_funding_sources, and the sponsors because, occasionally, a purpose will
-    # not specify one. In which case no funding source or sponsor is a valid option, but the lowest
-    # priority one.
-    @preferred_funding_sources = @service.preferred_funding_source_names
-    @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
-    @ada_funding_sources = @service.ada_funding_source_names + [nil]
-
-    # These aren't used right now, they will always be null FMRPA-200
-    @dummy = @service.booking_details.fetch(:dummy_user, nil)
-    @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources, nil)
-    if @guest_funding_sources
-      @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
-        { code: x.split(',').first.strip, desc: x.split(',').last.strip }
-      }
-    else
-      puts '*** no guest funding sources ***'
-      @guest_funding_sources = []
-    end
-    @guest_purpose = @service.booking_details.fetch(:guest_purpose, nil)
-
-    @booking_options = opts[:booking_options] || {}
-    @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
+  super(opts)
+  @url ||= Config.ecolane_url
+  @county = opts[:county].to_s.gsub(' ', '_').downcase # Normalize county
+  @dob = opts[:dob]
+  
+  if opts[:trip]
+    self.trip = opts[:trip]
   end
+
+  self.service = opts[:service] if opts[:service]
+  @customer_number = opts[:ecolane_id] # This is what the customer knows
+  @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
+  
+  # Log county_map and @county
+  Rails.logger.info "County Map: #{county_map.inspect}"
+  Rails.logger.info "Looking up service for county: #{@county}"
+
+  @service ||= county_map[@county]
+
+  if @service.nil?
+    raise "Service not found for county #{@county}. Please ensure the county is correctly mapped."
+  end
+
+  self.system_id ||= @service.booking_details[:external_id]
+  self.token = @service.booking_details[:token]
+  self.api_key = @service.booking_details[:api_key]
+  
+  @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
+  @purpose = @trip.external_purpose unless @trip.nil?
+
+  get_booking_profile
+  check_travelers_transit_agency
+  add_missing_attributes
+end
+
 
   #####################################################################
   ## Custom Setters
