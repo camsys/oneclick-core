@@ -20,8 +20,11 @@ class EcolaneAmbassador < BookingAmbassador
     Rails.logger.info "County Map Names: #{county_map.keys}"
     Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
 
-    # Attempt to directly map the county name without modification
-    @service ||= county_map[@county]
+    lowercase_county = @county.downcase
+
+    # Find the service using case-insensitive exact match
+    @service ||= county_map.find { |key, _| key.downcase == lowercase_county }&.second
+
     
     # Raise an error if the service is not found
     raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
