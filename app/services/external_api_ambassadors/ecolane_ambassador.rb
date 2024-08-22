@@ -8,6 +8,7 @@ class EcolaneAmbassador < BookingAmbassador
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]
+    lowercase_county = @county&.downcase
     @dob = opts[:dob]
     if opts[:trip]
       self.trip = opts[:trip]
@@ -19,8 +20,6 @@ class EcolaneAmbassador < BookingAmbassador
     # Log county map keys and initializing info
     Rails.logger.info "County Map Names: #{county_map.keys}"
     Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
-
-    lowercase_county = @county.downcase
 
     # Find the service using case-insensitive exact match
     @service ||= county_map.find { |key, _| key.downcase == lowercase_county }&.second
