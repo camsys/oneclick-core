@@ -7,7 +7,7 @@ class EcolaneAmbassador < BookingAmbassador
     #TODO Clean up this mess
     super(opts)
     @url ||= Config.ecolane_url
-    @county = opts[:county]
+    @county = opts[:county].to_s.gsub(' ', '_')
     @dob = opts[:dob]
     if opts[:trip]
       self.trip = opts[:trip]
