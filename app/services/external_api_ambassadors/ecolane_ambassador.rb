@@ -4,14 +4,15 @@ class EcolaneAmbassador < BookingAmbassador
   require 'securerandom'
 
   def initialize(opts={})
-  #TODO Clean up this mess
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
+
     if opts[:trip]
       self.trip = opts[:trip]
     end
+
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] # This is what the customer knows
     @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
@@ -20,8 +21,11 @@ class EcolaneAmbassador < BookingAmbassador
     Rails.logger.info "County Map Names: #{county_map.keys}"
     Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
 
+    # Ensure case-insensitive and trimmed comparison for county mapping
+    county_key = county_map.keys.find { |key| key.strip.downcase == @county.strip.downcase }
+
     # Attempt to directly map the county name without modification
-    @service ||= county_map[@county]
+    @service ||= county_map[county_key]
     
     # Raise an error if the service is not found
     raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
