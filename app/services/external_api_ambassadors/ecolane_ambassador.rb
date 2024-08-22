@@ -13,45 +13,49 @@ class EcolaneAmbassador < BookingAmbassador
     
     @dob = opts[:dob]
     if opts[:trip]
-        self.trip = opts[:trip]
+      self.trip = opts[:trip]
     end
     self.service = opts[:service] if opts[:service]
-    @customer_number = opts[:ecolane_id] #This is what the customer knows
-    @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
+    @customer_number = opts[:ecolane_id] # This is what the customer knows
+    @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
     
+    # Keeping this line as it was originally:
     @service ||= county_map[@county]
     raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
-    
+
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     self.api_key = @service.booking_details[:api_key]
     @user ||= @trip.nil? ? (@customer_number.nil? ? nil : get_user) : @trip.user
     @purpose = @trip.external_purpose unless @trip.nil?
+    
     get_booking_profile
     check_travelers_transit_agency
     add_missing_attributes
-    
+
     # Funding Rules Shortcuts
     @preferred_funding_sources = @service.preferred_funding_source_names
-    @preferred_sponsors =  @service.preferred_sponsor_names + [nil]
+    @preferred_sponsors = @service.preferred_sponsor_names + [nil]
     @ada_funding_sources = @service.ada_funding_source_names + [nil]
 
     # These aren't used right now, they will always be null FMRPA-200
     @dummy = @service.booking_details.fetch(:dummy_user, nil)
     @guest_funding_sources = @service.booking_details.fetch(:guest_funding_sources, nil)
     if @guest_funding_sources
-        @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
-            { code: x.split(',').first.strip, desc: x.split(',').last.strip }
-        }
+      @guest_funding_sources = @guest_funding_sources.split("\r\n").map { |x|
+        { code: x.split(',').first.strip, desc: x.split(',').last.strip }
+      }
     else
-        puts '*** no guest funding sources ***'
-        @guest_funding_sources = []
+      puts '*** no guest funding sources ***'
+      @guest_funding_sources = []
     end
     @guest_purpose = @service.booking_details.fetch(:guest_purpose, nil)
 
     @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
+
+
 
 
   #####################################################################
@@ -854,7 +858,7 @@ class EcolaneAmbassador < BookingAmbassador
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
-        sanitized_county = @county.gsub(' ', '_').downcase # Replace spaces and downcase the county name
+        sanitized_county = @county.gsub(/[^0-9A-Za-z]/, '_').downcase # Replace spaces and special characters with underscores
         user = User.create!(
             email: "#{email}_#{sanitized_county}@ecolane_user.com", 
             password: random, 
@@ -864,7 +868,7 @@ class EcolaneAmbassador < BookingAmbassador
         profile.booking_api = "ecolane"
         profile.user = user
         # do not try to sync user here - reenters ecolane_ambassador ctor
-      end
+      end    
       # Update the user's booking profile with the user's county from login info.
       if @booking_profile&.details
         @booking_profile.details[:county] = @county
@@ -884,6 +888,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     end
   end
+  
   
 
   def build_order funding=true, funding_hash=nil
