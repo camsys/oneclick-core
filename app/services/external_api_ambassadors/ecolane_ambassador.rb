@@ -9,11 +9,6 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
-    
-    Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
-    
-    raise "County is required for EcolaneAmbassador initialization" if @county.blank?
-
     if opts[:trip]
       self.trip = opts[:trip]
     end
@@ -21,9 +16,14 @@ class EcolaneAmbassador < BookingAmbassador
     @customer_number = opts[:ecolane_id] # This is what the customer knows
     @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
 
-    # Perform a case-sensitive lookup without altering the county name
+    # Log county map keys and initializing info
+    Rails.logger.info "County Map Names: #{county_map.keys}"
+    Rails.logger.info "Initializing EcolaneAmbassador with county: #{@county}"
+
+    # Attempt to directly map the county name without modification
     @service ||= county_map[@county]
     
+    # Raise an error if the service is not found
     raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
 
     self.system_id ||= @service.booking_details[:external_id]
@@ -58,6 +58,7 @@ class EcolaneAmbassador < BookingAmbassador
     @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
+
 
 
 
