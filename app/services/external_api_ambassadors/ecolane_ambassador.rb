@@ -12,17 +12,14 @@ class EcolaneAmbassador < BookingAmbassador
     raise "County is required for EcolaneAmbassador initialization" if @county.blank?
 
     @dob = opts[:dob]
-    if opts[:trip]
-      self.trip = opts[:trip]
-    end
+    self.trip = opts[:trip] if opts[:trip]
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] # This is what the customer knows
     @customer_id = nil # This is how Ecolane identifies the customer. This is set by get_user.
 
-    # Normalize the county name to remove spaces and special characters, and downcase it
-    formatted_county = @county.to_s.strip.gsub(/[^0-9A-Za-z]/, '_').downcase.capitalize
-    @service ||= county_map[formatted_county]
-    raise "Service not found for county #{formatted_county}. Please ensure the county is correctly mapped." if @service.nil?
+    # Directly use the county name for service lookup without modification
+    @service ||= county_map[@county]
+    raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
 
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
@@ -55,6 +52,7 @@ class EcolaneAmbassador < BookingAmbassador
     @booking_options = opts[:booking_options] || {}
     @use_ecolane_rules = @service.booking_details["use_ecolane_funding_rules"].to_bool
   end
+
 
 
 
