@@ -850,8 +850,9 @@ class EcolaneAmbassador < BookingAmbassador
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
+        sanitized_county = @county.gsub(' ', '_').downcase # Replace spaces and downcase the county name
         user = User.create!(
-            email: "#{email}_#{@county}@ecolane_user.com", 
+            email: "#{email}_#{sanitized_county}@ecolane_user.com", 
             password: random, 
             password_confirmation: random,            
           )
@@ -867,18 +868,19 @@ class EcolaneAmbassador < BookingAmbassador
         @booking_profile.details = {county: @county}
       end
       @booking_profile.save
-
+  
       # Update the user's name
       user = @booking_profile.user 
       user.first_name = passenger["first_name"]
       user.last_name = passenger["last_name"]     
       user.save
-
+  
       user
     else
       nil
     end
   end
+  
 
   def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
