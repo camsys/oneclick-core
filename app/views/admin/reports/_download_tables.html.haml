@@ -33,8 +33,11 @@
 
     
 =content_for :footer do
-  .btn.btn-primary.download-table-form-submit Download Table File
-    
+  .btn-group
+    .btn.btn-primary.download-table-form-submit Download Table File
+    #loading-indicator.d-none.spinner-border.text-primary.ml-2(role="status")
+      %span.sr-only Loading...
+
 :javascript
   $(document).ready(function() {
 
@@ -65,8 +68,15 @@
     // Form Submit handler
     $('.download-table-form-submit').click(function() {
       if($('select#download_table_table_name').val() !== "") {
+        // Show the loading spinner when the form is submitted
+        $('#loading-indicator').removeClass('d-none');
         $('form#form-download-tables').submit();
       }
+    });
+
+    // Hide the loading indicator after page load (just in case)
+    $(window).on('load', function() {
+      $('#loading-indicator').addClass('d-none');
     });
 
   });
