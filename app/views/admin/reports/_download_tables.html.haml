@@ -31,10 +31,19 @@
   .table-download-options.find-services.hidden
     =render partial: 'find_services_download_options', locals: {f: f}
 
-    
-=content_for :footer do
-  .btn.btn-primary.download-table-form-submit Download Table File
-    
+  .text-center.mt-3
+    .btn.btn-primary.download-table-form-submit Download Table File
+
+  .text-center.mt-3
+    # Add the loading indicator (using Bootstrap classes)
+    # Hidden by default; shown when the form is submitted
+    <div id="loading-indicator" class="d-none text-center mt-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p>Loading report, please wait...</p>
+    </div>
+
 :javascript
   $(document).ready(function() {
 
@@ -66,7 +75,14 @@
     $('.download-table-form-submit').click(function() {
       if($('select#download_table_table_name').val() !== "") {
         $('form#form-download-tables').submit();
+        // Show the loading indicator when the form is submitted
+        $('#loading-indicator').removeClass('d-none');
       }
+    });
+
+    // Hide the loading indicator when the report is fully loaded
+    $(window).on('load', function() {
+      $('#loading-indicator').addClass('d-none');
     });
 
   });
