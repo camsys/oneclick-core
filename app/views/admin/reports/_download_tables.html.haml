@@ -31,19 +31,20 @@
   .table-download-options.find-services.hidden
     =render partial: 'find_services_download_options', locals: {f: f}
 
-    
 =content_for :footer do
-  .btn-group
-    .btn.btn-primary.download-table-form-submit Download Table File
-    #loading-indicator.d-none.spinner-border.text-primary.ml-2(role="status")
-      %span.sr-only Loading...
+  .btn.btn-primary.download-table-form-submit Download Table File
+  
+  # Banner for "Please wait" message
+  # Initially hidden
+  #flash-message.d-none.alert.alert-info.mt-3(role="alert")
+    %strong Please wait...
+    The report is being generated.
 
 :javascript
   $(document).ready(function() {
-
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
-        
-    // Hides and disables all table options and then shows and enables the relevant ones.
+
+    // Show and enable relevant table options
     var showTableDownloadOptions = function(table) {
       console.log(table);
       $('.table-download-options').addClass('hidden');
@@ -54,29 +55,28 @@
         $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
       }
     }
-    
-    // Show table options on document ready if a table is selected.
+
+    // Show table options on document ready if a table is selected
     var initialTable = $('select#download_table_table_name').val();
     showTableDownloadOptions(initialTable);
-    
-    // Show appropriate table options when a new table is selected.
+
+    // Show appropriate table options when a new table is selected
     $('select#download_table_table_name').change(function() {
       var table = $(this).val();
       showTableDownloadOptions(table);
     });
-  
+
     // Form Submit handler
     $('.download-table-form-submit').click(function() {
-      if($('select#download_table_table_name').val() !== "") {
-        // Show the loading spinner when the form is submitted
-        $('#loading-indicator').removeClass('d-none');
+      if ($('select#download_table_table_name').val() !== "") {
+        // Show the flash message
+        $('.flash-message').removeClass('d-none');
         $('form#form-download-tables').submit();
       }
     });
 
-    // Hide the loading indicator after page load (just in case)
+    // Hide the flash message after page load (just in case)
     $(window).on('load', function() {
-      $('#loading-indicator').addClass('d-none');
+      $('.flash-message').addClass('d-none');
     });
-
   });
