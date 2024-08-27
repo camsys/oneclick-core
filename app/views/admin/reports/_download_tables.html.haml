@@ -33,12 +33,12 @@
 
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
-  
-  # Banner for "Please wait" message
-  # Initially hidden
-  #flash-message.d-none.alert.alert-info.mt-3(role="alert")
-    %strong Please wait...
-    The report is being generated.
+
+# This div will hold the custom flash message
+# It's hidden by default and will be shown by JavaScript when the button is clicked
+.flash-message.d-none.alert.alert-info.mt-3(role="alert")
+  %strong Please wait...
+  The report is being generated.
 
 :javascript
   $(document).ready(function() {
@@ -49,12 +49,12 @@
       console.log(table);
       $('.table-download-options').addClass('hidden');
       $('.table-download-options :input').prop('disabled', true);
-      if(table) {
+      if (table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
         $(tableDownloadOptionsSelector).removeClass('hidden');
         $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
       }
-    }
+    };
 
     // Show table options on document ready if a table is selected
     var initialTable = $('select#download_table_table_name').val();
@@ -67,11 +67,16 @@
     });
 
     // Form Submit handler
-    $('.download-table-form-submit').click(function() {
+    $('.download-table-form-submit').click(function(e) {
+      e.preventDefault();  // Prevent the default form submission
       if ($('select#download_table_table_name').val() !== "") {
-        // Show the flash message
+        // Show the custom flash message
         $('.flash-message').removeClass('d-none');
-        $('form#form-download-tables').submit();
+
+        // Submit the form after a short delay to ensure the message shows up
+        setTimeout(function() {
+          $('form#form-download-tables').submit();
+        }, 100); // Adjust the delay as needed
       }
     });
 
