@@ -34,11 +34,11 @@
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
 
-# This div will hold the custom flash message
-# It's hidden by default and will be shown by JavaScript when the button is clicked
-.flash-message.d-none.alert.alert-info.mt-3(role="alert")
-  %strong Please wait...
-  The report is being generated.
+  -# This div will hold the custom flash message
+  -# It's hidden by default and will be shown by JavaScript when the button is clicked
+  .flash-message.alert.alert-info.mt-3{class: "d-none", role: "alert"}
+    %strong Please wait...
+    | The report is being generated.
 
 :javascript
   $(document).ready(function() {
