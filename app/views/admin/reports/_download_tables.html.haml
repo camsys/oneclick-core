@@ -3,7 +3,7 @@
 
 =simple_form_for :download_table,
   url: download_table_admin_reports_path,
-  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
+  html: {class: 'form-horizontal', id: 'form-download-tables', multipart: true },
   authenticity_token: true do |f|
   
   =f.input :table_name, required: true, 
@@ -34,9 +34,8 @@
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
 
-  -# This div will hold the custom flash message
-  -# It's hidden by default and will be shown by JavaScript when the button is clicked
-  .flash-message.alert.alert-info.mt-3{class: "d-none", role: "alert"}
+  -# Flash message for "Please wait..."
+  .flash-message.alert.alert-info.mt-3{style: "display: none;", role: "alert"}
     %strong Please wait...
     | The report is being generated.
 
@@ -44,8 +43,8 @@
   $(document).ready(function() {
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
 
-    // Hide the flash message on page load
-    $('.flash-message').addClass('d-none');
+    // Hide the flash message explicitly on page load
+    $('.flash-message').hide();
 
     // Show and enable relevant table options
     var showTableDownloadOptions = function(table) {
@@ -73,8 +72,8 @@
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
       if ($('select#download_table_table_name').val() !== "") {
-        // Show the custom flash message
-        $('.flash-message').removeClass('d-none');
+        // Show the flash message
+        $('.flash-message').show();
 
         // Submit the form after a short delay to ensure the message shows up
         setTimeout(function() {
