@@ -44,6 +44,9 @@
   $(document).ready(function() {
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
 
+    // Hide the flash message on page load
+    $('.flash-message').addClass('d-none');
+
     // Show and enable relevant table options
     var showTableDownloadOptions = function(table) {
       console.log(table);
@@ -78,10 +81,5 @@
           $('form#form-download-tables').submit();
         }, 100); // Adjust the delay as needed
       }
-    });
-
-    // Hide the flash message after page load (just in case)
-    $(window).on('load', function() {
-      $('.flash-message').addClass('d-none');
     });
   });
