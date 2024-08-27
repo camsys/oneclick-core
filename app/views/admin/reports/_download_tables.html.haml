@@ -31,15 +31,10 @@
   .table-download-options.find-services.hidden
     =render partial: 'find_services_download_options', locals: {f: f}
 
-  .text-center.mt-3
-    .btn.btn-primary.download-table-form-submit Download Table File
-
-  .text-center.mt-3
-    #loading-indicator.d-none.text-center.mt-3
-      .spinner-border.text-primary(role="status")
-        %span.sr-only Loading...
-      %p Loading report, please wait...
-
+    
+=content_for :footer do
+  .btn.btn-primary.download-table-form-submit Download Table File
+    
 :javascript
   $(document).ready(function() {
 
@@ -71,14 +66,7 @@
     $('.download-table-form-submit').click(function() {
       if($('select#download_table_table_name').val() !== "") {
         $('form#form-download-tables').submit();
-        // Show the loading indicator when the form is submitted
-        $('#loading-indicator').removeClass('d-none');
       }
-    });
-
-    // Hide the loading indicator when the report is fully loaded
-    $(window).on('load', function() {
-      $('#loading-indicator').addClass('d-none');
     });
 
   });
