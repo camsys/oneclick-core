@@ -234,13 +234,16 @@ class EcolaneAmbassador < BookingAmbassador
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
       end
-    rescue REXML::ParseException
+    rescue REXML::ParseException => e
+      Rails.logger.error "XML Parse error while calling Ecolane: #{e.message}"
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       self.booking.update(created_in_1click: true)
       nil
     # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
+    rescue StandardError => e
+      Rails.logger.error "General error while calling Ecolane: #{e.message}"
+      raise "General error while calling Ecolane: #{e.message}"
     ensure
-
       new_snapshot = EcolaneBookingSnapshot.new(
         trip_id: trip.id,
         itinerary_id: itinerary.id,
@@ -482,9 +485,26 @@ class EcolaneAmbassador < BookingAmbassador
       # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
       return resp
-    rescue Exception=>e
-      Rails.logger.info("Sending Error")
-      return false, {'id'=>500, 'msg'=>e.to_s}
+
+      unless resp.is_a?(Net::HTTPSuccess)
+        error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
+        Rails.logger.error error_message
+        raise error_message
+      end
+
+      resp
+    rescue SocketError => e
+      error_message = "Network error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue Timeout::Error => e
+      error_message = "Timeout error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue StandardError => e
+      error_message = "Error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     end
   end
 
@@ -671,6 +691,11 @@ class EcolaneAmbassador < BookingAmbassador
         hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
       end
       hashes
+      rescue Exception => e
+        error_message = "Error fetching POIs from Ecolane: #{e.message}."
+        Rails.logger.error error_message
+        { error: error_message }
+      end
   end
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
