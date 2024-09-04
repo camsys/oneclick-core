@@ -13,6 +13,7 @@ module Api
       # Custom sign_in method renders JSON rather than HTML
       def create
         email = session_params[:email].try(:downcase) #params[:email] || (params[:user] && params[:user][:email])
+        Rails.logger.info "Logging in user with email: #{email}"
         password = session_params[:password] #params[:password] || (params[:user] && params[:user][:password])
         @user = User.find_by(email: email)
         ecolane_id = session_params[:ecolane_id]
