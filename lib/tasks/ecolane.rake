@@ -22,7 +22,7 @@ namespace :ecolane do
     
     messages = []
     local_error = false
-
+    domain = ENV['MAIL_HOST'] || 'unknown domain'
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
     # Order from oldest to newest.
     systems = []
@@ -57,10 +57,10 @@ namespace :ecolane do
       begin
         # Get a Hash of new POIs from Ecolane
         # NOTE: INCLUDES THE SERVICE'S AGENCY
-        new_poi_hashes = services.first.booking_ambassador.get_pois
+        new_poi_hashes = service.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
+          messages << "Error loading POIs for System: #{system}, service_id: #{service.id}. Unable to retrieve POIs"
           local_error = true
           puts messages.to_s
           break
@@ -125,7 +125,7 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        messages << "Error loading POIs for #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
         puts messages.to_s
@@ -162,6 +162,7 @@ namespace :ecolane do
       # If anything went wrong, delete the new pois and reinstate the old_pois
       Landmark.is_new.delete_all
       Landmark.is_old.update_all(old: false)
+      ErrorMailer.ecolane_error_notification(messages).deliver_now
     end
     
   end #update_pois
