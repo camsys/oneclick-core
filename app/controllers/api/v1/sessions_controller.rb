@@ -38,7 +38,7 @@ module Api
             end
             sign_in(:user, @user)
             @user.ensure_authentication_token
-            days_to_sync = 3
+            days_to_sync = 14
             # if user is new to db, run 14 day sync (user may have called in rides up to now)
             if (Time.now - @user.created_at) < 10.minutes
               days_to_sync = 14
