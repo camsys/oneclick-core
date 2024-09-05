@@ -3,7 +3,7 @@
 
 =simple_form_for :download_table,
   url: download_table_admin_reports_path,
-  html: {class: 'form-horizontal', id: 'form-download-tables', multipart: true },
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
   authenticity_token: true do |f|
   
   =f.input :table_name, required: true, 
