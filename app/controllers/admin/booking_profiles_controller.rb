@@ -11,7 +11,9 @@ class Admin::BookingProfilesController < ApplicationController
       ag_ids = @agency_map.map {|name, id| id} # Get agency ids from the agency map
       @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: {agency_id: ag_ids})
     else
-      @booking_profiles = current_user.user_booking_profiles
+      selected_agency_id = session[:selected_agency_id] || current_user.current_agency&.id
+      ag_ids = [selected_agency_id].compact
+      @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: ag_ids })
     end
   end
 
