@@ -29,6 +29,10 @@
       value_method: :id,
       label: "Planned By"
 
+-# Only Ecolane Denied Trips
+- if Config.dashboard_mode.to_sym == :travel_patterns
+  = f.input :ecolane_denied_trips_only, as: :boolean, label: "Only Ecolane Denied Trips", checked: true
+
 -# TRIP ORIGIN REGION BUILDER
 =render partial: 'admin/services/region_builder',
   locals: { wrapper_id: 'trip-origin-recipe', label_text: "Origin"}
