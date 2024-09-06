@@ -3,7 +3,7 @@
 
 =simple_form_for :download_table,
   url: download_table_admin_reports_path,
-  html: {class: 'form-horizontal', id: 'form-download-tables', multipart: true },
+  html: {class: 'form-horizontal', id: form_id_from_path, multipart: true },
   authenticity_token: true do |f|
   
   =f.input :table_name, required: true, 
@@ -31,54 +31,42 @@
   .table-download-options.find-services.hidden
     =render partial: 'find_services_download_options', locals: {f: f}
 
+    
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
-
-  -# Flash message for "Please wait..."
-  .flash-message.alert.alert-info.mt-3{style: "display: none;", role: "alert"}
-    %strong Please wait...
-    | The report is being generated.
-
+    
 :javascript
   $(document).ready(function() {
+
     $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
-
-    // Hide the flash message explicitly on page load
-    $('.flash-message').hide();
-
-    // Show and enable relevant table options
+        
+    // Hides and disables all table options and then shows and enables the relevant ones.
     var showTableDownloadOptions = function(table) {
       console.log(table);
       $('.table-download-options').addClass('hidden');
       $('.table-download-options :input').prop('disabled', true);
-      if (table) {
+      if(table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
         $(tableDownloadOptionsSelector).removeClass('hidden');
         $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
       }
-    };
-
-    // Show table options on document ready if a table is selected
+    }
+    
+    // Show table options on document ready if a table is selected.
     var initialTable = $('select#download_table_table_name').val();
     showTableDownloadOptions(initialTable);
-
-    // Show appropriate table options when a new table is selected
+    
+    // Show appropriate table options when a new table is selected.
     $('select#download_table_table_name').change(function() {
       var table = $(this).val();
       showTableDownloadOptions(table);
     });
-
+  
     // Form Submit handler
-    $('.download-table-form-submit').click(function(e) {
-      e.preventDefault();  // Prevent the default form submission
-      if ($('select#download_table_table_name').val() !== "") {
-        // Show the flash message
-        $('.flash-message').show();
-
-        // Submit the form after a short delay to ensure the message shows up
-        setTimeout(function() {
-          $('form#form-download-tables').submit();
-        }, 100); // Adjust the delay as needed
+    $('.download-table-form-submit').click(function() {
+      if($('select#download_table_table_name').val() !== "") {
+        $('form#form-download-tables').submit();
       }
     });
+
   });
