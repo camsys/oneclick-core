@@ -10,6 +10,7 @@ class EcolaneAmbassador < BookingAmbassador
     @county = opts[:county]
     lowercase_county = @county&.downcase
     @dob = opts[:dob]
+    @service_id = opts[:service_id]
     if opts[:trip]
       self.trip = opts[:trip]
     end
@@ -195,11 +196,8 @@ class EcolaneAmbassador < BookingAmbassador
       order = build_order
       Rails.logger.info "Order: #{order}"
       resp = send_request(url, 'POST', order)
-      # NOTE: this seems like overkill, but Ecolane uses both JSON and
-      # ...XML for their responses, and failed responses are formatted as JSON
       body_hash = Hash.from_xml(resp.body)
-
-      # Getting the initial values from the order for the snapshot
+  
       order_hash = Hash.from_xml(order)
       initial_note = order_hash.dig("order", "pickup", "note")
       initial_assistant = order_hash.dig("order", "assistant")
@@ -207,18 +205,17 @@ class EcolaneAmbassador < BookingAmbassador
       initial_funding_source = order_hash.dig("order", "funding", "funding_source")
       initial_purpose = order_hash.dig("order", "funding", "purpose")
       initial_sponsor = order_hash.dig("order", "funding", "sponsor")
-
-      # Initializing variables for the snapshot
+  
       eco_trip = nil
       booking = self.booking
       trip = itinerary.trip
       booking_details = booking.details || {}
       funding_hash = booking.details.fetch(:funding_hash, {})
       itinerary = self.itinerary
-
+  
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
-        eco_trip  = fetch_order(confirmation)["order"]
+        eco_trip = fetch_order(confirmation)["order"]
         booking = self.booking
         booking.update(occ_booking_hash(eco_trip))
         booking.itinerary = itinerary
@@ -245,7 +242,6 @@ class EcolaneAmbassador < BookingAmbassador
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       self.booking.update(created_in_1click: true)
       nil
-    # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
     rescue StandardError => e
       Rails.logger.error "General error while calling Ecolane: #{e.message}"
       raise "General error while calling Ecolane: #{e.message}"
@@ -454,30 +450,28 @@ class EcolaneAmbassador < BookingAmbassador
 
   ##### 
   ## Send the Requests
-  def send_request url, type='get', message=nil
-
+  def send_request(url, type='get', message=nil)
     if message 
       message = Nokogiri::XML(message).to_s
     end
-
+  
     url.sub! " ", "%20"
     begin
       uri = URI.parse(url)
       case type.downcase
-        when 'post'
-          req = Net::HTTP::Post.new(uri.path)
-          req.body = message
-        when 'delete'
-          req = Net::HTTP::Delete.new(uri.path)
-        else
-          req = Net::HTTP::Get.new(uri)
+      when 'post'
+        req = Net::HTTP::Post.new(uri.path)
+        req.body = message
+      when 'delete'
+        req = Net::HTTP::Delete.new(uri.path)
+      else
+        req = Net::HTTP::Get.new(uri)
       end
-
+  
       req.add_field 'X-ECOLANE-TOKEN', token
       req.add_field 'Content-Type', 'text/xml'
-      # Add the X-Ecolane-Api-Key header if api_key is set
       req.add_field 'X-Ecolane-Api-Key', api_key if api_key.present?
-
+  
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -485,32 +479,14 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
       Rails.logger.info Hash.from_xml(message)
-      resp = http.start {|http| http.request(req)}
+      resp = http.start { |http| http.request(req) }
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
       return resp
-
-      unless resp.is_a?(Net::HTTPSuccess)
-        error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
-        Rails.logger.error error_message
-        raise error_message
-      end
-
-      resp
-    rescue SocketError => e
-      error_message = "Network error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
-    rescue Timeout::Error => e
-      error_message = "Timeout error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
-    rescue StandardError => e
-      error_message = "Error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
+    rescue Exception=>e
+      Rails.logger.info("Sending Error")
+      return false, {'id'=>500, 'msg'=>e.to_s}
     end
   end
 
@@ -686,10 +662,10 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get a list of all the points of interest for the service
   def get_pois
-      locations = fetch_system_poi_list
-      if locations.nil?
-        return nil
-      end
+    locations = fetch_system_poi_list
+    if locations.nil?
+      return nil
+    end
 
       # Convert the Ecolane Locations to a Hash that Matches 1-Click Schema
       hashes = []
@@ -697,12 +673,8 @@ class EcolaneAmbassador < BookingAmbassador
         hashes << {name: location["name"].to_s.strip, city: location["city"].to_s.strip, state: location["state"].to_s.strip, zip: location["postcode"].to_s.strip, lat: location["latitude"], lng: location["longitude"], county: location["county"].to_s.strip, street_number: location["street_number"].to_s.strip, route: location["street"].to_s.strip}
       end
       hashes
-      rescue Exception => e
-        error_message = "Error fetching POIs from Ecolane: #{e.message}."
-        Rails.logger.error error_message
-        { error: error_message }
-      end
   end
+  
 
   # Lookup Customer Number from DOB (YYYY-MM-DD) and Last Name
   def lookup_customer_number params
