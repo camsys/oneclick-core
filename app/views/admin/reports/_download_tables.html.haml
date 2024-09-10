@@ -48,13 +48,12 @@
 
     // Show and enable relevant table options
     var showTableDownloadOptions = function(table) {
-      console.log(table);
       $('.table-download-options').addClass('hidden');
       $('.table-download-options :input').prop('disabled', true);
       if (table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
         $(tableDownloadOptionsSelector).removeClass('hidden');
-        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
+        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
       }
     };
 
@@ -68,17 +67,34 @@
       showTableDownloadOptions(table);
     });
 
-    // Form Submit handler
+    // Handle the form submit and flash message
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
-      if ($('select#download_table_table_name').val() !== "") {
-        // Show the flash message
-        $('.flash-message').show();
 
-        // Submit the form after a short delay to ensure the message shows up
+      if ($('select#download_table_table_name').val() !== "") {
+        // Show the initial "Downloading..." flash message
+        $('.flash-message').text('Downloading...').show();
+
+        // Create an iframe to handle the file download
+        var iframe = $('<iframe/>', { style: 'display:none' }).appendTo('body');
+
+        // Detect when the download is done by listening for the iframe load event
+        iframe.on('load', function() {
+          $('.flash-message').text('Download Complete!');
+
+          setTimeout(function() {
+            $('.flash-message').fadeOut();
+          }, 5000);  // 5 seconds delay to hide message
+        });
+
+        // Set iframe's source to initiate the download
+        iframe.attr('src', $('form#form-download-tables').attr('action') + "?" + $('form#form-download-tables').serialize());
+
+        // Allow form submission to continue after showing the flash
         setTimeout(function() {
           $('form#form-download-tables').submit();
-        }, 100); // Adjust the delay as needed
+        }, 100); 
       }
     });
   });
+
