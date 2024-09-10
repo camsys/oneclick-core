@@ -483,13 +483,28 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
       Rails.logger.info resp.body
-      return resp
-    rescue Exception=>e
-      Rails.logger.info("Sending Error")
-      return false, {'id'=>500, 'msg'=>e.to_s}
+  
+      unless resp.is_a?(Net::HTTPSuccess)
+        error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
+        Rails.logger.error error_message
+        raise error_message
+      end
+  
+      resp
+    rescue SocketError => e
+      error_message = "Network error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue Timeout::Error => e
+      error_message = "Timeout error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue StandardError => e
+      error_message = "Error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     end
   end
-
   ###################################################################
   ## Helpers
   ###################################################################

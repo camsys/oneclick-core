@@ -67,7 +67,7 @@ namespace :ecolane do
         new_poi_hashes = services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
+          error_messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
           puts error_messages.to_s
           break
@@ -132,10 +132,10 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        error_messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
-        puts error_messages.to_s
+        puts messages.to_s
         next
       end
 
@@ -177,11 +177,10 @@ namespace :ecolane do
     total_time_str = "#{total_hours} hours and #{total_minutes} minutes"
   
     task_run_state.update(value: false) unless is_already_running
-
-    if local_error
-      # If anything went wrong, delete the new pois and reinstate the old_pois
-      Landmark.is_new.delete_all
-      Landmark.is_old.update_all(old: false)
+  
+    if error_messages.any?
+      error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
+      ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
     end
   
     puts "Preparing to send summary email..."  # <-- Add this line
