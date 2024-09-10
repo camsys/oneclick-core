@@ -77,15 +77,23 @@
 
         // Submit the form after a short delay to ensure the message shows up
         setTimeout(function() {
-          $('form#form-download-tables').submit();
+          $('form#form-download-tables')[0].submit();
+          pollForDownloadCompletion(); // Start polling to check when download is done
         }, 100); // Adjust the delay as needed
       }
     });
 
-    // Ensure flash message hides after the report download is complete
-    $('form#form-download-tables').on('submit', function() {
-      $(this).on('ajax:complete', function() {
-        $('.flash-message').hide(); // Hide the flash message
-      });
-    });
+    // Function to poll for download completion and hide the flash message
+    function pollForDownloadCompletion() {
+      var downloadLink = $('form#form-download-tables').attr('action');
+
+      // Poll every 500ms to check if the download link is no longer pending
+      var checkInterval = setInterval(function() {
+        var iframe = $('iframe'); // If there is an iframe handling the download
+        if (iframe.length > 0 && iframe[0].contentWindow.document.readyState === 'complete') {
+          clearInterval(checkInterval);  // Stop polling
+          $('.flash-message').hide();    // Hide the flash message
+        }
+      }, 500);
+    }
   });
