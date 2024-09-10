@@ -72,13 +72,13 @@ class Admin::ReportsController < Admin::AdminController
     table_url = self.send("#{table_name}_table_admin_reports_path") + ".csv"
     filters = params.except(:table_name).to_h
     
+    response.headers['X-Download-Complete'] = 'true'
+
     redirect_to({
       controller: 'reports', 
       action: action_name, 
       format: :csv
     }.merge(filters))
-
-    response.headers['X-Download-Complete'] = 'true'
 
   end
 

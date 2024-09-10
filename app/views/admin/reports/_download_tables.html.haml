@@ -34,7 +34,7 @@
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
 
-  -# Flash message for "Please wait..."
+  -# Flash message for download
   .flash-message.alert.alert-info.mt-3{style: "display: none;", role: "alert"}
     %strong Please wait...
     | The report is being generated.
@@ -44,7 +44,7 @@
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
 
-      // Show the initial "Downloading..." flash message
+      // Show the "Downloading..." flash message
       $('.flash-message').text('Downloading...').show();
 
       // Create an invisible iframe to handle the download
@@ -52,13 +52,14 @@
 
       // Listen for the iframe to finish loading the download request
       iframe.on('load', function() {
-        // Check if the iframe content includes the 'X-Download-Complete' header
+        // Use custom header or page load to detect download completion
         var iframeDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
 
-        // Since we can't access headers directly from iframe due to cross-origin policy, we can check for the presence of text indicating the download is complete
-        if (iframeDoc.body && iframeDoc.body.innerText.includes('X-Download-Complete')) {
-          // Update flash message to "Download Complete"
+        // Check for 'X-Download-Complete' header in iframe (can't access headers directly)
+        if (iframeDoc && iframeDoc.body.textContent.includes('X-Download-Complete')) {
+          // Flash "Download Complete" once done
           $('.flash-message').text('Download Complete!');
+          
           // Optionally hide the message after a delay
           setTimeout(function() {
             $('.flash-message').fadeOut();
@@ -75,5 +76,3 @@
       }, 100);  // Adjust the delay as needed
     });
   });
-
-
