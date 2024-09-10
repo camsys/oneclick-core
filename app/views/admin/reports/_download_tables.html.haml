@@ -40,63 +40,63 @@
     | The report is being generated.
 
 :javascript
-$(document).ready(function() {
-    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+  $(document).ready(function() {
+      $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
 
-    // Hide the flash message explicitly on page load
-    $('.flash-message').hide();
+      // Hide the flash message explicitly on page load
+      $('.flash-message').hide();
 
-    // Show and enable relevant table options
-    var showTableDownloadOptions = function(table) {
-      console.log(table);
-      $('.table-download-options').addClass('hidden');
-      $('.table-download-options :input').prop('disabled', true);
-      if (table) {
-        var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
-        $(tableDownloadOptionsSelector).removeClass('hidden');
-        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
-      }
-    };
+      // Show and enable relevant table options
+      var showTableDownloadOptions = function(table) {
+        console.log(table);
+        $('.table-download-options').addClass('hidden');
+        $('.table-download-options :input').prop('disabled', true);
+        if (table) {
+          var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
+          $(tableDownloadOptionsSelector).removeClass('hidden');
+          $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
+        }
+      };
 
-    // Show table options on document ready if a table is selected
-    var initialTable = $('select#download_table_table_name').val();
-    showTableDownloadOptions(initialTable);
+      // Show table options on document ready if a table is selected
+      var initialTable = $('select#download_table_table_name').val();
+      showTableDownloadOptions(initialTable);
 
-    // Show appropriate table options when a new table is selected
-    $('select#download_table_table_name').change(function() {
-      var table = $(this).val();
-      showTableDownloadOptions(table);
-    });
-
-    // Form Submit handler
-    $('.download-table-form-submit').click(function(e) {
-      e.preventDefault();  // Prevent the default form submission
-
-      // Show the initial "Downloading..." flash message
-      $('.flash-message').text('Please wait... The report is being generated.').show();
-
-      // Create an invisible iframe to handle the download (without refreshing the page)
-      var iframe = $('<iframe/>', { style: 'display:none' }).appendTo('body');
-
-      // Set iframe's source to initiate the download
-      iframe.attr('src', $('form#form-download-tables').attr('action') + "?" + $('form#form-download-tables').serialize());
-
-      // Listen for the iframe to load and detect when the download is complete
-      iframe.on('load', function() {
-        // Since we cannot directly access headers from the iframe due to browser security, we'll assume completion after the iframe load
-        $('.flash-message').text('Download Complete!');
-        
-        // Optionally hide the message after a short delay
-        setTimeout(function() {
-          $('.flash-message').fadeOut();
-        }, 5000);  // Adjust the delay as needed
+      // Show appropriate table options when a new table is selected
+      $('select#download_table_table_name').change(function() {
+        var table = $(this).val();
+        showTableDownloadOptions(table);
       });
 
-      // After showing the flash message, allow form submission to trigger the download
-      setTimeout(function() {
-        $('form#form-download-tables').submit();
-      }, 100);  // Adjust the delay as needed
-    });
-});
+      // Form Submit handler
+      $('.download-table-form-submit').click(function(e) {
+        e.preventDefault();  // Prevent the default form submission
+
+        // Show the initial "Downloading..." flash message
+        $('.flash-message').text('Please wait... The report is being generated.').show();
+
+        // Create an invisible iframe to handle the download (without refreshing the page)
+        var iframe = $('<iframe/>', { style: 'display:none' }).appendTo('body');
+
+        // Set iframe's source to initiate the download
+        iframe.attr('src', $('form#form-download-tables').attr('action') + "?" + $('form#form-download-tables').serialize());
+
+        // Listen for the iframe to load and detect when the download is complete
+        iframe.on('load', function() {
+          // Since we cannot directly access headers from the iframe due to browser security, we'll assume completion after the iframe load
+          $('.flash-message').text('Download Complete!');
+          
+          // Optionally hide the message after a short delay
+          setTimeout(function() {
+            $('.flash-message').fadeOut();
+          }, 5000);  // Adjust the delay as needed
+        });
+
+        // After showing the flash message, allow form submission to trigger the download
+        setTimeout(function() {
+          $('form#form-download-tables').submit();
+        }, 100);  // Adjust the delay as needed
+      });
+  });
 
 
