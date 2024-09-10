@@ -34,10 +34,6 @@
 =content_for :footer do
   .btn.btn-primary.download-table-form-submit Download Table File
 
-  -# Flash message for "Please wait..."
-  .flash-message.alert.alert-info.mt-3{style: "display: none;", role: "alert"}
-    %strong Please wait...
-    | The report is being generated.
 
 :javascript
   $(document).ready(function() {
@@ -71,14 +67,5 @@
     // Form Submit handler
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
-      if ($('select#download_table_table_name').val() !== "") {
-        // Show the flash message
-        $('.flash-message').show();
-
-        // Submit the form after a short delay to ensure the message shows up
-        setTimeout(function() {
-          $('form#form-download-tables').submit();
-        }, 100); // Adjust the delay as needed
-      }
     });
   });
