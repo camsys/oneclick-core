@@ -67,6 +67,7 @@ class Admin::ReportsController < Admin::AdminController
   
   def download_table
     flash[:notice] = "Downloading table..."
+    
     params = download_table_params
     table_name = params[:table_name].parameterize.underscore
     action_name = table_name + "_table"
@@ -78,7 +79,6 @@ class Admin::ReportsController < Admin::AdminController
       action: action_name, 
       format: :csv
     }.merge(filters))
-    flash[:notice] = "Download complete."
   end
 
   def filter_download_tables
