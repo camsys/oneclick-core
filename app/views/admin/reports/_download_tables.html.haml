@@ -40,7 +40,35 @@
     | The report is being generated.
 
 :javascript
-  $(document).ready(function() {
+$(document).ready(function() {
+    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
+
+    // Hide the flash message explicitly on page load
+    $('.flash-message').hide();
+
+    // Show and enable relevant table options
+    var showTableDownloadOptions = function(table) {
+      console.log(table);
+      $('.table-download-options').addClass('hidden');
+      $('.table-download-options :input').prop('disabled', true);
+      if (table) {
+        var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
+        $(tableDownloadOptionsSelector).removeClass('hidden');
+        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
+      }
+    };
+
+    // Show table options on document ready if a table is selected
+    var initialTable = $('select#download_table_table_name').val();
+    showTableDownloadOptions(initialTable);
+
+    // Show appropriate table options when a new table is selected
+    $('select#download_table_table_name').change(function() {
+      var table = $(this).val();
+      showTableDownloadOptions(table);
+    });
+
+    // Form Submit handler
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
 
@@ -66,8 +94,9 @@
 
       // After showing the flash message, allow form submission to trigger the download
       setTimeout(function() {
-        $('form#form-download-tables')[0].submit();
+        $('form#form-download-tables').submit();
       }, 100);  // Adjust the delay as needed
     });
-  });
+});
+
 
