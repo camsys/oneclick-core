@@ -180,7 +180,7 @@ namespace :ecolane do
   
     if error_messages.any?
       error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
-      ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_NOTIFICATION_EMAIL'].present?
+      ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_ERROR_NOTIFICATION_EMAIL'].present?
     end
   
     puts "Preparing to send summary email..."  # <-- Add this line
