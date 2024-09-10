@@ -68,7 +68,7 @@
       showTableDownloadOptions(table);
     });
 
-    // Form Submit handler with iframe
+    // Form Submit handler
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
 
@@ -76,24 +76,15 @@
         // Show the flash message
         $('.flash-message').show();
 
-        // Create an iframe for the file download if not already present
-        if ($('#download-iframe').length === 0) {
-          $('body').append('<iframe id="download-iframe" style="display: none;"></iframe>');
-        }
+        // Submit the form after a short delay to ensure the message shows up
+        setTimeout(function() {
+          $('form#form-download-tables')[0].submit();
+        }, 100); // Adjust the delay as needed
 
-        // Set the iframe source to the form action with data
-        var $iframe = $('#download-iframe');
-        var formAction = $('form#form-download-tables').attr('action');
-        var formData = $('form#form-download-tables').serialize(); // Serialize form data
-
-        // Initiate the file download via the iframe
-        $iframe.attr('src', formAction + "?" + formData);
-
-        // Check iframe for download completion (onload event)
-        $iframe.on('load', function() {
-          // Hide the flash message when download is complete
+        // Automatically hide the message after a delay (e.g., 5 seconds)
+        setTimeout(function() {
           $('.flash-message').hide();
-        });
+        }, 5000); // Adjust the timeout to hide the message after a few seconds
       }
     });
   });
