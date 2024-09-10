@@ -75,6 +75,10 @@
         // Show the flash message
         $('.flash-message').show();
 
+        setTimeout(function() {
+          $('.flash-message').fadeOut();
+        }, 5000);
+
         // Submit the form after a short delay to ensure the message shows up
         setTimeout(function() {
           $('form#form-download-tables').submit();
