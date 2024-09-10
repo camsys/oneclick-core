@@ -66,7 +66,7 @@ class Admin::ReportsController < Admin::AdminController
   ### CSV TABLE DOWNLOADS ###
   
   def download_table
-    flash[:notice] = "Downloading trips report.. Please wait..."
+    flash[:warning] = "Downloading trips report.. Please wait..."
     params = download_table_params
     table_name = params[:table_name].parameterize.underscore
     action_name = table_name + "_table"
@@ -79,7 +79,6 @@ class Admin::ReportsController < Admin::AdminController
       format: :csv
     }.merge(filters))
 
-    flash.discard(:notice)
   end
 
   def filter_download_tables
