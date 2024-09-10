@@ -41,60 +41,39 @@
 
 :javascript
   $(document).ready(function() {
-    $('.datepicker').datepicker({format: 'yyyy-mm-dd'});
-
-    // Hide the flash message explicitly on page load
-    $('.flash-message').hide();
-
-    // Show and enable relevant table options
-    var showTableDownloadOptions = function(table) {
-      $('.table-download-options').addClass('hidden');
-      $('.table-download-options :input').prop('disabled', true);
-      if (table) {
-        var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
-        $(tableDownloadOptionsSelector).removeClass('hidden');
-        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
-      }
-    };
-
-    // Show table options on document ready if a table is selected
-    var initialTable = $('select#download_table_table_name').val();
-    showTableDownloadOptions(initialTable);
-
-    // Show appropriate table options when a new table is selected
-    $('select#download_table_table_name').change(function() {
-      var table = $(this).val();
-      showTableDownloadOptions(table);
-    });
-
-    // Handle the form submit and flash message
     $('.download-table-form-submit').click(function(e) {
       e.preventDefault();  // Prevent the default form submission
 
-      if ($('select#download_table_table_name').val() !== "") {
-        // Show the initial "Downloading..." flash message
-        $('.flash-message').text('Downloading...').show();
+      // Show the initial "Downloading..." flash message
+      $('.flash-message').text('Downloading...').show();
 
-        // Create an iframe to handle the file download
-        var iframe = $('<iframe/>', { style: 'display:none' }).appendTo('body');
+      // Create an invisible iframe to handle the download
+      var iframe = $('<iframe/>', { style: 'display:none' }).appendTo('body');
 
-        // Detect when the download is done by listening for the iframe load event
-        iframe.on('load', function() {
+      // Listen for the iframe to finish loading the download request
+      iframe.on('load', function() {
+        // Check if the iframe content includes the 'X-Download-Complete' header
+        var iframeDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+
+        // Since we can't access headers directly from iframe due to cross-origin policy, we can check for the presence of text indicating the download is complete
+        if (iframeDoc.body && iframeDoc.body.innerText.includes('X-Download-Complete')) {
+          // Update flash message to "Download Complete"
           $('.flash-message').text('Download Complete!');
-
+          // Optionally hide the message after a delay
           setTimeout(function() {
             $('.flash-message').fadeOut();
-          }, 5000);  // 5 seconds delay to hide message
-        });
+          }, 5000);  // Adjust the delay as needed
+        }
+      });
 
-        // Set iframe's source to initiate the download
-        iframe.attr('src', $('form#form-download-tables').attr('action') + "?" + $('form#form-download-tables').serialize());
+      // Set iframe's source to initiate the download
+      iframe.attr('src', $('form#form-download-tables').attr('action') + "?" + $('form#form-download-tables').serialize());
 
-        // Allow form submission to continue after showing the flash
-        setTimeout(function() {
-          $('form#form-download-tables').submit();
-        }, 100); 
-      }
+      // Allow form submission to continue after showing the flash
+      setTimeout(function() {
+        $('form#form-download-tables').submit();
+      }, 100);  // Adjust the delay as needed
     });
   });
+
 

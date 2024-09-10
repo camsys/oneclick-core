@@ -77,6 +77,9 @@ class Admin::ReportsController < Admin::AdminController
       action: action_name, 
       format: :csv
     }.merge(filters))
+
+    response.headers['X-Download-Complete'] = 'true'
+
   end
 
   def filter_download_tables
