@@ -81,4 +81,11 @@
         }, 100); // Adjust the delay as needed
       }
     });
+
+    // Ensure flash message hides after the report download is complete
+    $('form#form-download-tables').on('submit', function() {
+      $(this).on('ajax:complete', function() {
+        $('.flash-message').hide(); // Hide the flash message
+      });
+    });
   });
