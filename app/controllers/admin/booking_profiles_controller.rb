@@ -12,9 +12,9 @@ class Admin::BookingProfilesController < ApplicationController
       # Find selected agency
       selected_agency = Agency.find_by(id: selected_agency_id)
 
-      if selected_agency&.oversight?
+      if selected_agency.is_a?(OversightAgency)
         # If the selected agency is an oversight agency, get all booking profiles for its associated agencies
-        agency_ids = selected_agency.transportation_agencies.pluck(:id)
+        agency_ids = AgencyOversightAgency.where(oversight_agency_id: selected_agency.id).pluck(:transportation_agency_id)
         @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: agency_ids })
       else
         # Otherwise, get the booking profiles for the selected agency's services
