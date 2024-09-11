@@ -48,13 +48,19 @@
 
     // Show and enable relevant table options
     var showTableDownloadOptions = function(table) {
-      console.log(table);
       $('.table-download-options').addClass('hidden');
       $('.table-download-options :input').prop('disabled', true);
       if (table) {
         var tableDownloadOptionsSelector = '.' + table.toLowerCase().replace(' ', '-');
         $(tableDownloadOptionsSelector).removeClass('hidden');
-        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);        
+        $(tableDownloadOptionsSelector).find(':input').prop('disabled', false);
+
+        // Auto-check the Ecolane Denied Trips checkbox if "trips" is selected
+        if (table === 'trips') {
+          setTimeout(function() {
+            $('#download_table_ecolane_denied_trips_only').prop('checked', true);
+          }, 100); // Ensure checkbox is checked after rendering
+        }
       }
     };
 
@@ -66,11 +72,6 @@
     $('select#download_table_table_name').change(function() {
       var table = $(this).val();
       showTableDownloadOptions(table);
-
-      // Auto-check the Ecolane Denied Trips checkbox if the relevant section is shown
-      if (table === 'trips') {
-          $('#download_table_ecolane_denied_trips_only').prop('checked', true);
-      }
     });
 
     // Form Submit handler
@@ -91,3 +92,4 @@
       }
     });
   });
+
