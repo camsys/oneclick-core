@@ -66,6 +66,11 @@
     $('select#download_table_table_name').change(function() {
       var table = $(this).val();
       showTableDownloadOptions(table);
+
+      // Auto-check the Ecolane Denied Trips checkbox if the relevant section is shown
+      if (table === 'trips') {
+          $('#download_table_ecolane_denied_trips_only').prop('checked', true);
+      }
     });
 
     // Form Submit handler
