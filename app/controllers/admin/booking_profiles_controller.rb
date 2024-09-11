@@ -4,12 +4,22 @@ class Admin::BookingProfilesController < ApplicationController
   before_action :ensure_travel_patterns_mode
 
   def index
-    if current_user.superuser?
+    selected_agency_id = session[:selected_agency_id] || current_user.current_agency&.id
+
+    if current_user.superuser? || selected_agency_id.blank?
       @booking_profiles = UserBookingProfile.all
     else
-      selected_agency_id = session[:selected_agency_id] || current_user.current_agency&.id
-      ag_ids = [selected_agency_id].compact
-      @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: ag_ids })
+      # Find selected agency
+      selected_agency = Agency.find_by(id: selected_agency_id)
+
+      if selected_agency&.oversight?
+        # If the selected agency is an oversight agency, get all booking profiles for its associated agencies
+        agency_ids = selected_agency.transportation_agencies.pluck(:id)
+        @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: agency_ids })
+      else
+        # Otherwise, get the booking profiles for the selected agency's services
+        @booking_profiles = UserBookingProfile.includes(service: :agency).where(services: { agency_id: selected_agency.id })
+      end
     end
   end
 
