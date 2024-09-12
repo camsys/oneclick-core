@@ -14,7 +14,6 @@ module Api
         end
       
         past_trips_hash = past_trips_with_booking.flat_map do |trip|
-          # Safely handle both outbound and return trips
           trips_array = [filter_trip_name(trip)]
           trips_array << filter_trip_name(trip.next_trip) if trip.next_trip.present? && trip.next_trip.origin.present?
           trips_array
