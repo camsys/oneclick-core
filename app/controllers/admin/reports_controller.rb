@@ -123,6 +123,12 @@ class Admin::ReportsController < Admin::AdminController
       @trips = @trips.joins(itineraries: :booking)
                      .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
     end
+
+    # Apply filter for only Ecolane Denied Trips if in travel patterns mode
+    if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
+      @trips = @trips.where(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+    end
+
     @trips = @trips.order(:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
@@ -257,6 +263,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
+      :ecolane_denied_trips_only,
       :oversight_agency,
       
       # USER FILTERS

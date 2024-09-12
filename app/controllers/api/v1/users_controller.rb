@@ -189,6 +189,11 @@ module Api
         #Delete Duplicates
         purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
         purposes -= ['DELETE']
+        
+        # Ensure at least 4 purposes remain
+        while top_purposes.length < 4 && !purposes.empty?
+          top_purposes << purposes.shift
+        end
 
         purposes_hash = []
         purposes.each_with_index do |p, i|

@@ -2,6 +2,7 @@ namespace :ecolane do
 
   desc "Update Ecolane POIs"
   task :update_pois => :environment do
+    start_time = Time.now
 
     # Check to see if another instance is already running
     is_already_running = false
@@ -20,8 +21,10 @@ namespace :ecolane do
       end
     end
     
-    messages = []
+    summary_messages = []
+    error_messages = []
     local_error = false
+    domain = ENV['MAIL_HOST'] || 'unknown domain'
 
     # Ecolane POIs are broken down by system. First, get a list of all the unique Ecolane Systems.
     # Order from oldest to newest.
@@ -45,14 +48,18 @@ namespace :ecolane do
     poi_with_no_city = 0
     poi_blank_name_count = 0
     poi_total_duplicate_count = 0
+    total_pois_loaded = 0
     
     new_poi_names_set = Set.new
 
     systems.each do |system|
       services = services_by_system[system]
       agencies = services.map(&:agency).uniq
-      puts "Processing system: #{system} with services: #{services.map(&:id).join(', ')}"  # Log all services for the system
+      services.each do |service|
+        puts "Processing system: #{system} with service: #{service.name}"  # Log all services for the system
+      end
       local_error = false
+      system_start_time = Time.now
 
       begin
         # Get a Hash of new POIs from Ecolane
@@ -60,9 +67,9 @@ namespace :ecolane do
         new_poi_hashes = services.first.booking_ambassador.get_pois
         if new_poi_hashes.nil?
           # If anything goes wrong the new pois will be deleted and the old reinstated
-          messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
+          error_messages << "Error loading POIs for System: #{system}. Unable to retrieve POIs"
           local_error = true
-          puts messages.to_s
+          puts error_messages.to_s
           break
         end
 
@@ -72,7 +79,7 @@ namespace :ecolane do
         new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
         new_poi_hashes_sorted.each do |hash|
           poi_processed_count += 1
-          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 1000 == 0
+          puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 100 == 0
           
           new_poi = Landmark.new hash
           new_poi.old = false
@@ -125,17 +132,24 @@ namespace :ecolane do
 
       rescue Exception => e
         # If anything goes wrong....
-        messages << "Error loading POIs for #{system}. #{e.message}."
+        error_messages << "Error loading POIs for System: #{system}. #{e.message}. (Domain: #{domain})"
         local_error = true
         # Log if errors happen
         puts messages.to_s
         next
       end
 
+      system_end_time = Time.now
       unless local_error
-        #If we made it this far, then we have a new set of POIs and we can delete the old ones.
+        # If we made it this far, then we have a new set of POIs and we can delete the old ones.
         new_poi_count = new_poi_hashes.count
-        messages << "Successfully loaded  #{new_poi_count} POIs with #{new_poi_duplicate_count} duplicates for #{system}."
+        total_pois_loaded += new_poi_count
+        service_names = services.map(&:name).join(", ")
+        summary_messages << "<strong>System:</strong> #{system}<br>"
+        summary_messages << "<strong>Services using this system:</strong> #{service_names}<br>"
+        summary_messages << "POIs Loaded: #{new_poi_count}<br>"
+        summary_messages << "Duplicates: #{new_poi_duplicate_count}<br>"
+        summary_messages << "Processed in: #{((system_end_time - system_start_time) / 60).round(2)} minutes.<br><br>"
         poi_total_duplicate_count += new_poi_duplicate_count
       end
     end
@@ -148,23 +162,35 @@ namespace :ecolane do
       Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
       Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
-      messages << "Successfully loaded #{new_poi_count} POIs"
-      messages << "count of pois with duplicate names: #{poi_total_duplicate_count}"
-      messages << "count of pois with no city: #{poi_with_no_city}"
-      messages << "count of pois with initial blank name: #{poi_blank_name_count}"
-      puts messages.to_s
+      summary_messages << "<strong>Summary:</strong><br>"
+      summary_messages << "Total POIs Loaded: #{new_poi_count}<br>"
+      summary_messages << "Total Duplicates: #{poi_total_duplicate_count}<br>"
+      summary_messages << "Total POIs with no city: #{poi_with_no_city}<br>"
+      summary_messages << "Total POIs with initial blank name: #{poi_blank_name_count}<br>"
     end
 
   ensure
+    end_time = Time.now
+    total_time = end_time - start_time
+    total_hours = (total_time / 3600).to_i
+    total_minutes = ((total_time % 3600) / 60).round(2)
+    total_time_str = "#{total_hours} hours and #{total_minutes} minutes"
+  
     task_run_state.update(value: false) unless is_already_running
-
-    if local_error
-      # If anything went wrong, delete the new pois and reinstate the old_pois
-      Landmark.is_new.delete_all
-      Landmark.is_old.update_all(old: false)
+  
+    if error_messages.any?
+      error_messages << "<strong>Total time spent:</strong> #{total_time_str}."
+      ErrorMailer.ecolane_error_notification(error_messages).deliver_now if ENV['JOB_ERROR_NOTIFICATION_EMAIL'].present?
     end
-    
-  end #update_pois
+  
+    puts "Preparing to send summary email..."  # <-- Add this line
+    puts "Summary Messages: #{summary_messages.inspect}"  # <-- Add this line
+    puts "JOB_SUMMARY_NOTIFICATION_EMAIL: #{ENV['JOB_SUMMARY_NOTIFICATION_EMAIL']}"  # <-- Add this line
+  
+    summary_messages << "<strong>Total time spent:</strong> #{total_time_str}."
+    DeveloperMailer.ecolane_summary_notification(summary_messages).deliver_now if ENV['JOB_SUMMARY_NOTIFICATION_EMAIL'].present?
+  end
+   #update_pois
 
   # [PAMF-751] NOTE: This is all hard-coded, ideally there's be a better way to do this
   desc "Update Waypoints with an incorrect township as the city to the correct city"

@@ -9,6 +9,7 @@ class EcolaneAmbassador < BookingAmbassador
     @url ||= Config.ecolane_url
     @county = opts[:county]
     @dob = opts[:dob]
+    @service_id = opts[:service_id]
     if opts[:trip]
       self.trip = opts[:trip]
     end
@@ -234,11 +235,14 @@ class EcolaneAmbassador < BookingAmbassador
         @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
         nil
       end
-    rescue REXML::ParseException
+    rescue REXML::ParseException => e
+      Rails.logger.error "XML Parse error while calling Ecolane: #{e.message}"
       @trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
       self.booking.update(created_in_1click: true)
       nil
-    # Regardless of the outcome, we want to create a snapshot of the booking for FMR to use in reports (FMRPA-236)
+    rescue StandardError => e
+      Rails.logger.error "General error while calling Ecolane: #{e.message}"
+      raise "General error while calling Ecolane: #{e.message}"
     ensure
 
       new_snapshot = EcolaneBookingSnapshot.new(
@@ -476,18 +480,32 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
       Rails.logger.info Hash.from_xml(message)
-      resp = http.start {|http| http.request(req)}
+      resp = http.start { |http| http.request(req) }
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
-      # TODO: Figure out how to get only JSON or only XML responses for Ecolane
       Rails.logger.info resp.body
-      return resp
-    rescue Exception=>e
-      Rails.logger.info("Sending Error")
-      return false, {'id'=>500, 'msg'=>e.to_s}
+  
+      unless resp.is_a?(Net::HTTPSuccess)
+        error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
+        Rails.logger.error error_message
+        raise error_message
+      end
+  
+      resp
+    rescue SocketError => e
+      error_message = "Network error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue Timeout::Error => e
+      error_message = "Timeout error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
+    rescue StandardError => e
+      error_message = "Error while calling Ecolane: #{e.message}"
+      Rails.logger.error error_message
+      raise error_message
     end
   end
-
   ###################################################################
   ## Helpers
   ###################################################################

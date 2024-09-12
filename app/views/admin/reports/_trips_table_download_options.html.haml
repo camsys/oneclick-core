@@ -29,6 +29,10 @@
       value_method: :id,
       label: "Planned By"
 
+-# Only Ecolane Denied Trips
+- if Config.dashboard_mode.to_sym == :travel_patterns
+  = f.input :ecolane_denied_trips_only, as: :boolean, label: "Only Ecolane Denied Trips", checked: true
+
 -# TRIP ORIGIN REGION BUILDER
 =render partial: 'admin/services/region_builder',
   locals: { wrapper_id: 'trip-origin-recipe', label_text: "Origin"}
@@ -47,7 +51,7 @@
 
 :javascript
   $(document).ready(function() {
-
+    
     
     // Set up serializer and autocomplete for region builders
     
@@ -65,4 +69,9 @@
       ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
     });
 
+    // Auto-check the Ecolane Denied Trips checkbox on page load if in travel patterns mode
+    if ($('#download_table_ecolane_denied_trips_only').length) {
+      $('#download_table_ecolane_denied_trips_only').prop('checked', true);
+    }
+    
   });
