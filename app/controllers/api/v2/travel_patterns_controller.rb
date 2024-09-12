@@ -5,7 +5,7 @@ module Api
 
       def index
         agency = @traveler.transportation_agency
-        service = @traveler.current_service
+        service = session[:service]
         purpose = query_params.delete(:purpose)
         funding_source_names = @traveler.get_funding_data(service)[purpose]
         date = query_params.delete(:date)
