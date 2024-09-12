@@ -263,7 +263,7 @@ class Admin::ReportsController < Admin::AdminController
       :trip_only_created_in_1click,
       :trip_destination_recipe,
       {purposes: []},
-      :ecolane_denied_trips_only, # Added this line
+      :ecolane_denied_trips_only,
       :oversight_agency,
       
       # USER FILTERS
