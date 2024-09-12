@@ -232,8 +232,9 @@ class User < ApplicationRecord
   # TODO(Drew) write documentation comment
   # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
   def current_service
-    get_services.first
-  end
+    booking_profile = user_booking_profiles.find_by(service_id: service.id)
+    booking_profile&.service
+  end  
 
   ##
   # TODO(Drew) write documentation comment
