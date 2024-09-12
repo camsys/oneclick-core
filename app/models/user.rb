@@ -228,8 +228,8 @@ class User < ApplicationRecord
   def get_funding_data(service=nil)
     funding_hash = {}
     profile = service ? booking_profile_for(service) : booking_profile
-    return funding_hash unless profile
-  
+    return funding_hash unless profile 
+
     get_funding = true
     customer = profile.booking_ambassador
                       .fetch_customer_information(get_funding)
@@ -238,20 +238,19 @@ class User < ApplicationRecord
       customer.fetch('funding', {})
               .fetch('funding_source', {})
     ].flatten
-  
+    
     funding_options.each do |funding_source|
       allowed_purposes = [funding_source['allowed']].flatten
-  
       allowed_purposes.each do |allowed_purpose|
-        # Skip if allowed_purpose is missing or invalid
-        next if allowed_purpose.nil? || allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
-  
+        # Skip any allowed_purpose that is missing or blank
+        next if allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
+        
         purpose = allowed_purpose['purpose'].strip
         funding_hash[purpose] ||= []
         funding_hash[purpose].push(funding_source['name'].strip)
       end
     end
-  
+
     funding_hash
   end
   
