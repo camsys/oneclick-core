@@ -429,14 +429,6 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_funding_hash
-
-    funding_combinations = valid_funding_source_combinations
-
-    # Stop the process and raise an error if no valid funding sources are found
-    if funding_combinations.empty?
-      raise "Travel Pattern Violation: No valid funding sources found for this trip."
-    end
-    
     #TODO: Reduce call to Ecolane by saving the funding_hash after the first time we ask for it.
     if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
       fare, funding_hash = build_ecolane_funding_hash
