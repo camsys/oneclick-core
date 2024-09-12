@@ -5,8 +5,9 @@ module Api
 
       def index
         agency = @traveler.transportation_agency
-        service = session[:service]
+        service = @traveler.current_service
         purpose = query_params.delete(:purpose)
+        service = query_params.delete(:service)
         funding_source_names = @traveler.get_funding_data(service)[purpose]
         date = query_params.delete(:date)
       
@@ -64,7 +65,8 @@ module Api
           :start_time,
           :end_time,
           origin: [:lat, :lng],
-          destination: [:lat, :lng]
+          destination: [:lat, :lng],
+          :service
         )
       end
 
