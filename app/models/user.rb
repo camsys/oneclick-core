@@ -194,24 +194,39 @@ class User < ApplicationRecord
     self.eligibilities << eligs
   end
 
-
   def get_services
     county = nil
-
-    # First, check the most recent booking profile to get the county, if available.
+    Rails.logger.debug "Starting get_services for user_id: #{id}"
+  
+    # Check the most recent booking profile to get the county, if available.
     most_recent_booking_profile = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first
-    if most_recent_booking_profile && most_recent_booking_profile.details[:county].present?
-      county = most_recent_booking_profile.details[:county]&.downcase&.capitalize
+    if most_recent_booking_profile
+      Rails.logger.debug "Found most recent booking profile with service_id: #{most_recent_booking_profile.service_id}"
+      
+      if most_recent_booking_profile.details[:county].present?
+        county = most_recent_booking_profile.details[:county]&.downcase&.capitalize
+        Rails.logger.debug "County found from booking profile: #{county}"
+      else
+        Rails.logger.debug "County not found in booking profile details."
+      end
+    else
+      Rails.logger.debug "No recent booking profile found."
     end
-
+  
     # Fetch services associated with the user's traveler transit agency.
-    Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
-            .merge(TravelerTransitAgency.where(user_id: id))
-            .with_home_county(county)
-            .paratransit_services
-            .published
-            .is_ecolane
+    services = Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
+                      .merge(TravelerTransitAgency.where(user_id: id))
+                      .with_home_county(county)
+                      .paratransit_services
+                      .published
+                      .is_ecolane
+  
+    Rails.logger.debug "Found services: #{services.map(&:name)}" if services.any?
+    Rails.logger.debug "No services found for user_id: #{id}" if services.empty?
+  
+    services
   end
+  
 
   ##
   # TODO(Drew) write documentation comment
