@@ -51,7 +51,7 @@
 
 :javascript
   $(document).ready(function() {
-
+    
     
     // Set up serializer and autocomplete for region builders
     
@@ -69,4 +69,9 @@
       ingredientLabelTag: '#{escape_javascript render partial: "admin/geographies/ingredient_label"}'
     });
 
+    // Auto-check the Ecolane Denied Trips checkbox on page load if in travel patterns mode
+    if ($('#download_table_ecolane_denied_trips_only').length) {
+      $('#download_table_ecolane_denied_trips_only').prop('checked', true);
+    }
+    
   });
