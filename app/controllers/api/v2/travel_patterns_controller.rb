@@ -62,11 +62,11 @@ module Api
         @query ||= params.permit(
           :purpose,
           :date,
+          :service,
           :start_time,
           :end_time,
           origin: [:lat, :lng],
           destination: [:lat, :lng],
-          :service
         )
       end
 
