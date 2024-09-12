@@ -243,8 +243,8 @@ class User < ApplicationRecord
       allowed_purposes = [funding_source['allowed']].flatten
       allowed_purposes.each do |allowed_purpose|
         # Skip any allowed_purpose that is missing or blank
-        next if allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
-        
+        next if allowed_purpose.nil? || allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
+
         purpose = allowed_purpose['purpose'].strip
         funding_hash[purpose] ||= []
         funding_hash[purpose].push(funding_source['name'].strip)
