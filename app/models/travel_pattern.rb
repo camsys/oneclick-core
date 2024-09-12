@@ -20,6 +20,8 @@ class TravelPattern < ApplicationRecord
   # @param [Service] service The +Service+ used to select Travel Patterns.
   scope :with_service, -> (service) do
     raise TypeError.new("#{service.class} can't be coerced into Service") unless service.is_a?(Service)
+    Rails.logger.info("TravelPattern#with_service: Checking travel patterns for service with ID #{service.id} and name #{service.name}")
+
     joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
   end
 
@@ -154,6 +156,8 @@ class TravelPattern < ApplicationRecord
   validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :travel_pattern_funding_sources, :travel_pattern_purposes, :travel_pattern_service_schedules
 
   def to_api_response(start_date, end_date, valid_from = nil, valid_until = nil)
+    Rails.logger.info("Building API response for TravelPattern ##{id} (Service: #{services.first&.name || 'No Service'})")
+
     travel_pattern_opts = { 
       only: [:id, :agency_id, :name, :description]
     }
