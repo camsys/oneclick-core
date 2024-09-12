@@ -9,10 +9,15 @@ module Api
       # GET trips/past_trips
       # Returns past trips associated with logged in user, limit by max_results param
       def past_trips
-        past_trips_hash = @traveler.past_trips(params[:max_results] || 25)
-                                   .outbound
-                                   .map {|t| filter_trip_name(t)}
-        render status: 200, json: {trips: past_trips_hash}
+        past_trips_with_booking = @traveler.past_trips(params[:max_results] || 25).select do |trip|
+          trip.booking.present? && trip.booking.confirmation.present?
+        end
+      
+        past_trips_hash = past_trips_with_booking.flat_map do |trip|
+          [filter_trip_name(trip), filter_trip_name(trip.next_trip)].compact
+        end
+      
+        render status: 200, json: { trips: past_trips_hash }
       end
 
       # GET trips/future_trips
