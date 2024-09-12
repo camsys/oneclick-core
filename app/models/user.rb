@@ -194,22 +194,19 @@ class User < ApplicationRecord
     self.eligibilities << eligs
   end
 
-  ##
-  # TODO(Drew) write documentation comment
+
   def get_services
-    county = county_name_if_ecolane_email
-    if county.nil?
-      # County name may be null if user has set email to a non-Ecolane email address.
-      # Search for county that user logged in as from most recent user booking profile.
-      # User booking profile is updated with county at login.
-      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first&.details
-      if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
-        county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
-      end
+    county = nil
+
+    # First, check the most recent booking profile to get the county, if available.
+    most_recent_booking_profile = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first
+    if most_recent_booking_profile && most_recent_booking_profile.details[:county].present?
+      county = most_recent_booking_profile.details[:county]&.downcase&.capitalize
     end
-    # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
+
+    # Fetch services associated with the user's traveler transit agency.
     Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
-            .merge( TravelerTransitAgency.where(user_id: id) )
+            .merge(TravelerTransitAgency.where(user_id: id))
             .with_home_county(county)
             .paratransit_services
             .published
