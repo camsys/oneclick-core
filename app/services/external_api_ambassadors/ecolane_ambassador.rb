@@ -8,7 +8,6 @@ class EcolaneAmbassador < BookingAmbassador
     super(opts)
     @url ||= Config.ecolane_url
     @county = opts[:county]
-    lowercase_county = @county&.downcase
     @dob = opts[:dob]
     @service_id = opts[:service_id]
     if opts[:trip]
@@ -17,12 +16,7 @@ class EcolaneAmbassador < BookingAmbassador
     self.service = opts[:service] if opts[:service]
     @customer_number = opts[:ecolane_id] #This is what the customer knows
     @customer_id = nil #This is how Ecolane identifies the customer. This is set by get_user.
-    # Find the service using case-insensitive exact match
-    @service ||= county_map.find { |key, _| key.downcase == lowercase_county }&.second
- 
-    # Raise an error if the service is not found
-    raise "Service not found for county #{@county}. Please ensure the county is correctly mapped." if @service.nil?
-
+    @service ||= county_map[@county]
     self.system_id ||= @service.booking_details[:external_id]
     self.token = @service.booking_details[:token]
     self.api_key = @service.booking_details[:api_key]
@@ -868,9 +862,8 @@ class EcolaneAmbassador < BookingAmbassador
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
-        sanitized_county = @county.gsub(/[^0-9A-Za-z]/, '_').downcase # Replace spaces and special characters with underscores
         user = User.create!(
-            email: "#{email}_#{sanitized_county}@ecolane_user.com", 
+            email: "#{email}_#{@county}@ecolane_user.com", 
             password: random, 
             password_confirmation: random,            
           )
@@ -878,7 +871,7 @@ class EcolaneAmbassador < BookingAmbassador
         profile.booking_api = "ecolane"
         profile.user = user
         # do not try to sync user here - reenters ecolane_ambassador ctor
-      end    
+      end
       # Update the user's booking profile with the user's county from login info.
       if @booking_profile&.details
         @booking_profile.details[:county] = @county
