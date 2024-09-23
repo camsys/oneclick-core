@@ -70,7 +70,8 @@ class Trip < ApplicationRecord
     fixed_route_saved: 'Saved fixed route trip',
     fixed_route_denied: 'Fixed route denial',
     ecolane_booked: 'Successfully booked in Ecolane',
-    ecolane_denied: 'Ecolane booking denial'
+    ecolane_denied: 'Ecolane booking denial',
+    cancelled_round_trip_booking_denial: 'Cancelled for round trip booking denial',
   }
 
 

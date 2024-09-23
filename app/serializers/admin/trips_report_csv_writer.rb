@@ -37,9 +37,13 @@ module Admin
       end
     end
 
-    # Helper method to access booking snapshot
-    def booking_snapshot
-      @record.ecolane_booking_snapshot
+    def disposition_status
+      # Check the disposition on the actual booking first, then fall back to the snapshot
+      actual_booking_status = @record.selected_itinerary&.booking&.disposition_status
+      snapshot_booking_status = booking_snapshot&.disposition_status
+      
+      # Prioritize the actual booking disposition if present, otherwise use the snapshot
+      actual_booking_status || snapshot_booking_status || @record.disposition_status || 'Unknown Disposition'
     end
 
     def trip_id
