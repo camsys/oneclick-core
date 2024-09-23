@@ -141,11 +141,8 @@ module Admin
     end
 
     def disposition_status
-      actual_disposition_status = @record.selected_itinerary&.booking&.disposition_status
-      snapshot_disposition_status = booking_snapshot&.disposition_status
-    
-      actual_disposition_status || snapshot_disposition_status || @record.disposition_status || 'Unknown Disposition'
-    end    
+     @record.disposition_status || booking_snapshot&.disposition_status || 'Unknown Disposition'
+    end
 
     def orig_addr
       booking_snapshot&.orig_addr || @record.origin&.formatted_address
