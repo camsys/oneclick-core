@@ -141,28 +141,16 @@ module Admin
     end
 
     def disposition_status
-      current_disposition = @record.disposition_status || booking_snapshot&.disposition_status
-    
-      if current_disposition == Trip::DISPOSITION_STATUSES[:ecolane_denied] && booking_snapshot&.disposition_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
-        return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
-      end
-    
-      current_disposition || 'Unknown Disposition'
-    end
-    
+      actual_status = @record.disposition_status
+      initial_status = booking_snapshot&.disposition_status
 
-    def disposition_status
-      Rails.logger.debug "Booking Snapshot: #{booking_snapshot.inspect}"
-      Rails.logger.debug "Record Disposition: #{@record.disposition_status}"
-    
-      snapshot_disposition = booking_snapshot&.disposition_status
-      record_disposition = @record.disposition_status
-    
-      if snapshot_disposition == "Successfully booked in Ecolane" && record_disposition == "Ecolane booking denial"
-        return "Cancelled round trip booking denial"
+      # If the actual booking shows ecolane denial but the snapshot shows success, mark it as a round-trip denial.
+      if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && initial_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
+        return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
+      else
+        return actual_status || initial_status || 'Unknown Disposition'
       end
-    
-      record_disposition || snapshot_disposition || 'Unknown Disposition'
+
     end
 
     def orig_addr
