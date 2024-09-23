@@ -129,6 +129,7 @@ class Admin::ReportsController < Admin::AdminController
       @trips = @trips.joins(:ecolane_booking_snapshot)
                      .where(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
                      .where(ecolane_booking_snapshots: { disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied] })
+                     .distinct
     end    
 
     @trips = @trips.order(:trip_time)
