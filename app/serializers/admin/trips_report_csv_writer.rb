@@ -141,6 +141,17 @@ module Admin
     end
 
     def disposition_status
+      current_disposition = @record.disposition_status || booking_snapshot&.disposition_status
+    
+      if current_disposition == Trip::DISPOSITION_STATUSES[:ecolane_denied] && booking_snapshot&.disposition_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
+        return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
+      end
+    
+      current_disposition || 'Unknown Disposition'
+    end
+    
+
+    def disposition_status
       actual_disposition = @record.selected_itinerary&.booking&.disposition_status
       snapshot_disposition = booking_snapshot&.disposition_status
     
