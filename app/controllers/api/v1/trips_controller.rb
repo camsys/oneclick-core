@@ -13,22 +13,34 @@ module Api
           trip.booking.present? && trip.booking.confirmation.present?
         end
       
-        # Build a list of trips, including next_trip if valid
+        # Initialize an empty hash to track unique trips based on trip IDs
+        trip_ids = {}
+        
+        # Iterate over the filtered trips and handle both outbound and return trips
         past_trips_hash = past_trips_with_booking.map do |trip|
-          result = [filter_trip_name(trip)]
-          if trip.next_trip.present? && trip.next_trip.origin.present?
-            result << filter_trip_name(trip.next_trip)
+          trips_array = []
+      
+          # Add the trip if it hasn't been added yet
+          unless trip_ids[trip.id]
+            trips_array << filter_trip_name(trip)
+            trip_ids[trip.id] = true
           end
-          result
+      
+          # Add the next trip if it exists, has an origin, and hasn't been added yet
+          if trip.next_trip.present? && trip.next_trip.origin.present? && !trip_ids[trip.next_trip.id]
+            trips_array << filter_trip_name(trip.next_trip)
+            trip_ids[trip.next_trip.id] = true
+          end
+      
+          trips_array
         end
       
+        # Flatten the resulting array of arrays
         past_trips_hash.flatten!
       
-        past_trips_hash = past_trips_hash.uniq { |trip| trip[:trip_id] }
-      
         render status: 200, json: { trips: past_trips_hash }
-      end      
-      
+      end
+            
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
