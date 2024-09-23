@@ -126,14 +126,26 @@ class Admin::ReportsController < Admin::AdminController
 
     # Apply filter for only Ecolane Denied Trips if in travel patterns mode
     if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
-      @trips = @trips.select do |trip|
+      # Initialize an empty array for the denied trips
+      @denied_trips = []
+    
+      # Iterate through the trips
+      @trips.each do |trip|
+        # Get the actual and initial statuses
         actual_status = trip.disposition_status
-        snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
-        
-        # Only include trips where both statuses are 'Ecolane Denied'
-        actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] &&
-          snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+        snapshot = trip.ecolane_booking_snapshot
+        initial_status = snapshot&.disposition_status
+    
+        # Check the conditions for including the trip in the denied_trips array
+        if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && initial_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+          @denied_trips << trip
+        elsif actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && initial_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
+          # If the trip was booked successfully in the snapshot but denied later, apply the round-trip denial logic
+          @denied_trips << trip if trip.disposition_status == Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
+        end
       end
+    
+      @trips = @denied_trips
     end
 
     @trips = @trips.order(:trip_time)
