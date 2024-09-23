@@ -14,18 +14,14 @@ module Api
         end
       
         past_trips_hash = past_trips_with_booking.flat_map do |trip|
-          trips_array = [filter_trip_name(trip)]
-          
-          # Ensure the next trip is not already included to avoid duplication
-          if trip.next_trip.present? && trip.next_trip.origin.present? && trip.id != trip.next_trip.id
-            trips_array << filter_trip_name(trip.next_trip)
-          end
-      
-          trips_array
+          [filter_trip_name(trip), filter_trip_name(trip.next_trip)].compact
         end
       
+        # Remove duplicate trips
+        past_trips_hash.uniq! { |trip| trip[:trip_id] }
+      
         render status: 200, json: { trips: past_trips_hash }
-      end      
+      end       
 
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
