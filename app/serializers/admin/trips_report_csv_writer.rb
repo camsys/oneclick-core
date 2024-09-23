@@ -145,7 +145,7 @@ module Admin
       snapshot_disposition = booking_snapshot&.disposition_status
     
       # If booking is denied but snapshot shows successful, mark it as round-trip denial
-      if actual_disposition == 'ecolane_denied' && snapshot_disposition == 'ecolane_booked'
+      if actual_disposition == Trip::DISPOSITION_STATUSES[:ecolane_denied] && snapshot_disposition == Trip::DISPOSITION_STATUSES[:ecolane_booked]
         return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
       end
     
