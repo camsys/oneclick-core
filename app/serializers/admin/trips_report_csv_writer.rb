@@ -141,7 +141,16 @@ module Admin
     end
 
     def disposition_status
-     @record.disposition_status || booking_snapshot&.disposition_status || 'Unknown Disposition'
+      actual_disposition = @record.selected_itinerary&.booking&.disposition_status
+      snapshot_disposition = booking_snapshot&.disposition_status
+    
+      # If booking is denied but snapshot shows successful, mark it as round-trip denial
+      if actual_disposition == 'ecolane_denied' && snapshot_disposition == 'ecolane_booked'
+        return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
+      end
+    
+      # Otherwise, return the actual booking status or fallback
+      actual_disposition || snapshot_disposition || @record.disposition_status || 'Unknown Disposition'
     end
 
     def orig_addr
