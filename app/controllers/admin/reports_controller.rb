@@ -125,29 +125,36 @@ class Admin::ReportsController < Admin::AdminController
     end
 
     if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
-      Rails.logger.info "Starting trip selection for Ecolane Denied trips only"
+      logger.info "Starting trip selection for Ecolane Denied trips only"
     
       matching_trip_ids = @trips.select do |trip|
         actual_status = trip.disposition_status
         snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
     
-        Rails.logger.info "Trip ID: #{trip.id}, Actual Status: #{actual_status}, Snapshot Status: #{snapshot_status}"
+        logger.info "Trip ID: #{trip.id}, Actual Status: #{actual_status}, Snapshot Status: #{snapshot_status}"
     
-        # Log when trip is excluded
-        if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && snapshot_status != Trip::DISPOSITION_STATUSES[:ecolane_denied]
-          Rails.logger.info "Excluding trip ID: #{trip.id} due to mismatched disposition statuses"
-          false
+        # If the actual status is Ecolane Denied, we include the trip only if:
+        # - The snapshot status is either nil or also Ecolane Denied.
+        if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+          if snapshot_status.nil? || snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+            logger.info "Including trip ID: #{trip.id} (Denied with matching snapshot or no snapshot)"
+            true
+          else
+            logger.info "Excluding trip ID: #{trip.id} due to mismatched statuses"
+            false
+          end
         else
-          Rails.logger.info "Including trip ID: #{trip.id}"
-          true
+          # Exclude all trips that are not denied
+          logger.info "Excluding trip ID: #{trip.id} (Successfully booked or other status)"
+          false
         end
       end.map(&:id)
     
-      Rails.logger.info "Final list of matching trip IDs: #{matching_trip_ids}"
+      logger.info "Final list of matching trip IDs: #{matching_trip_ids}"
     
       @trips = @trips.where(id: matching_trip_ids)
-      Rails.logger.info "Number of trips after filtering: #{@trips.count}"
-    end  
+      logger.info "Number of trips after filtering: #{@trips.count}"
+    end    
 
     @trips = @trips.order(:trip_time)
     respond_to do |format|
