@@ -126,11 +126,16 @@ class Admin::ReportsController < Admin::AdminController
 
     # Apply filter for only Ecolane Denied Trips if in travel patterns mode
     if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
-      @trips = @trips.joins(:ecolane_booking_snapshot).where(trips: { disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied] })
-                     .where.not(ecolane_booking_snapshots: { disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked] })
+      @trips = @trips.select do |trip|
+        actual_status = trip.disposition_status
+        snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
+  
+        # Skip trips if they have a successful booking in the snapshot
+        !(actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_booked])
+      end
     end
-
-    @trips = @trips.order(:trip_time)
+  
+    @trips = @trips.sort_by(&:trip_time)
     respond_to do |format|
       format.csv { send_data @trips.to_csv(limit: CSVWriter::DEFAULT_RECORD_LIMIT, in_travel_patterns_mode: in_travel_patterns_mode?) }
     end
