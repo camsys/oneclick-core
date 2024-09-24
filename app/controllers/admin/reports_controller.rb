@@ -124,15 +124,17 @@ class Admin::ReportsController < Admin::AdminController
                      .where(itineraries:{trip_type: 'paratransit'}, bookings:{created_in_1click: true})
     end
 
-    # Apply filter for only Ecolane Denied Trips if in travel patterns mode
     if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
       matching_trip_ids = @trips.select do |trip|
         actual_status = trip.disposition_status
         snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
     
-        # Only keep trips where both actual and snapshot status are Ecolane Denied
-        actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] &&
-          snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+        # Only exclude trips where the actual status is Ecolane Denied but the snapshot status is NOT Ecolane Denied
+        if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+          snapshot_status.nil? || snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+        else
+          true
+        end
       end.map(&:id)
     
       @trips = @trips.where(id: matching_trip_ids)
