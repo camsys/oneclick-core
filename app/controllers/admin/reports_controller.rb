@@ -129,16 +129,15 @@ class Admin::ReportsController < Admin::AdminController
         actual_status = trip.disposition_status
         snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
     
-        # Only exclude trips where the actual status is Ecolane Denied but the snapshot status is NOT Ecolane Denied
-        if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
-          snapshot_status.nil? || snapshot_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
-        else
-          true
-        end
+        # Include trips if either:
+        # - The actual status is not 'ecolane_denied'
+        # - Or the actual status is 'ecolane_denied' and the snapshot status matches or is nil
+        !(actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] &&
+          snapshot_status != Trip::DISPOSITION_STATUSES[:ecolane_denied])
       end.map(&:id)
     
       @trips = @trips.where(id: matching_trip_ids)
-    end
+    end    
 
     @trips = @trips.order(:trip_time)
     respond_to do |format|
