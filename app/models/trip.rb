@@ -175,6 +175,17 @@ class Trip < ApplicationRecord
     pluck(:origin_id, :destination_id).flatten.compact.uniq
   end
 
+  def self.filter_ecolane_denied_with_mismatched_status(trips)
+    trips.reject do |trip|
+      snapshot_status = trip.ecolane_booking_snapshot&.disposition_status
+      actual_status = trip.disposition_status
+
+      # Skip trip if snapshot disposition is success but actual disposition is denial
+      snapshot_status == DISPOSITION_STATUSES[:ecolane_booked] &&
+        actual_status == DISPOSITION_STATUSES[:ecolane_denied]
+    end
+  end
+
   ### INSTANCE METHODS ###
   def unselect
     self.update(selected_itinerary: nil)
