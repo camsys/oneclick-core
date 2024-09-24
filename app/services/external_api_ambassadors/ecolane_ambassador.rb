@@ -1001,6 +1001,8 @@ class EcolaneAmbassador < BookingAmbassador
     trip_date = @outbound_trip.trip_time.to_date
     start_time = @outbound_trip.trip_time - @outbound_trip.trip_time.midnight
 
+    Rails.logger.info "Checking travel pattern funding sources for trip on #{trip_date} from #{origin} to #{destination}"
+
     # inbound_trip could be nil for one-way trips
     if @inbound_trip
       end_time = @inbound_trip.trip_time - @inbound_trip.trip_time.midnight
@@ -1030,6 +1032,9 @@ class EcolaneAmbassador < BookingAmbassador
                      travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) }
                    ).distinct.pluck(:name)
     ).to_a
+
+    Rails.logger.info "Valid funding sources found for travel patterns: #{verified_funding_sources}"
+
     #verified_funding_sources = Set.new(
     #  FundingSource.joins(:travel_patterns)
     #                .where(
@@ -1051,6 +1056,7 @@ class EcolaneAmbassador < BookingAmbassador
       best_funding = nil
       best_sponsor= nil
       travel_pattern_funding_sources = get_travel_pattern_funding_sources
+      Rails.logger.info "Found travel pattern funding sources: #{travel_pattern_funding_sources}"
 
       # If configured to use travel patterns, return if they have no funding.
       return {} if travel_pattern_funding_sources.blank?
@@ -1089,18 +1095,30 @@ class EcolaneAmbassador < BookingAmbassador
     best_index = nil
     potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
     arrayify(get_funding_options).each do |option|
+      Rails.logger.info "Checking option funding source: #{option['funding_source']} for purpose: #{option['purpose']}"
+
       option_funding_source = option["funding_source"].strip
       # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
       if option["type"] != "valid" || option["purpose"] != @purpose ||
         (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
+        Rails.logger.info "Skipping invalid option: #{option}"
+
         next
       end
+
+      Rails.logger.info "Valid funding source option: #{option}"
+
       if option_funding_source.in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
         best_index = @preferred_funding_sources.index(option_funding_source)
-        potential_options = [option] 
+        potential_options = [option]
+        Rails.logger.info "Added funding source to potential options: #{option['funding_source']}"
+ 
       elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
         potential_options << option 
       end
+      
+      Rails.logger.info "Potential funding options after filtering: #{potential_options.map { |opt| opt['funding_source'] }}"
+
     end
 
     best_option = nil
