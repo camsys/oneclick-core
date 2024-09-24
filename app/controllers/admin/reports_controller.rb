@@ -127,7 +127,6 @@ class Admin::ReportsController < Admin::AdminController
     # Apply filter for only Ecolane Denied Trips if in travel patterns mode
     if Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
       @trips = @trips.where(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
-      @trips = Trip.filter_ecolane_denied_with_mismatched_status(@trips)
     end
   end
 

@@ -147,9 +147,11 @@ module Admin
       # If the actual booking shows ecolane denial but the snapshot shows success, mark it as a round-trip denial.
       if actual_status == Trip::DISPOSITION_STATUSES[:ecolane_denied] && initial_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
         return Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial]
-      else
-        return actual_status || initial_status || 'Unknown Disposition'
+      elsif Config.dashboard_mode.to_sym == :travel_patterns && params[:ecolane_denied_trips_only].to_bool
+        return nil if initial_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
       end
+
+      actual_status || initial_status || 'Unknown Disposition'
 
     end
 
