@@ -525,47 +525,73 @@ class EcolaneAmbassador < BookingAmbassador
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
-
+  
+    Rails.logger.info "Fetching customer information for purposes on #{current_date}"
+  
     # Retrieve the maximum booking notice from Config or default to 59 if not set
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+    Rails.logger.info "Maximum booking notice days set to #{max_booking_notice_days}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
+      Rails.logger.info "Checking funding source: #{funding_source['name']}"
+  
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
   
       # Skip if the funding source has expired
-      next if valid_until && valid_until < current_date
+      if valid_until && valid_until < current_date
+        Rails.logger.info "Skipping funding source: #{funding_source['name']} as it is expired (valid_until: #{valid_until})"
+        next
+      end
   
       # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
-      next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+      if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+        Rails.logger.info "Skipping funding source: #{funding_source['name']} as it is not valid yet (valid_from: #{valid_from})"
+        next
+      end
   
       if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
+        Rails.logger.info "Skipping funding source: #{funding_source['name']} as it is not in the preferred funding sources"
         next 
       end
+  
+      Rails.logger.info "Processing allowed purposes for funding source: #{funding_source['name']}"
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
-
+  
+        Rails.logger.info "Checking purpose: #{purpose} with sponsor: #{allowed['sponsor']}"
+  
         # Skip if the sponsor is not in the list of preferred sponsors
-        next unless @preferred_sponsors.include?(allowed["sponsor"])
-
+        unless @preferred_sponsors.include?(allowed["sponsor"])
+          Rails.logger.info "Skipping purpose: #{purpose} as sponsor #{allowed['sponsor']} is not in the preferred sponsors"
+          next
+        end
+  
         # Add the date range for which the purpose is eligible, if available.
         purpose_hash = {
           code: allowed["purpose"],
           valid_from: valid_from.to_s, # Ensuring it's always populated
           valid_until: valid_until&.to_s # Handling nil case gracefully
         }
-        
-        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
+        Rails.logger.info "Purpose: #{purpose}, Valid from: #{valid_from}, Valid until: #{valid_until}"
+  
+        unless purpose.in? purposes
           purposes.append(purpose)
+          Rails.logger.info "Added purpose: #{purpose} to the valid purposes list"
         end
         purposes_hash << purpose_hash
       end
     end
-
+  
     banned_purposes = @service.banned_purpose_names
+    Rails.logger.info "Banned purposes for service: #{banned_purposes}"
+  
     purposes = purposes.sort.uniq - banned_purposes
+    Rails.logger.info "Final list of valid purposes: #{purposes}"
+  
     [purposes, purposes_hash]
   end
+  
 
 
   ##
@@ -1116,7 +1142,7 @@ class EcolaneAmbassador < BookingAmbassador
       elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
         potential_options << option 
       end
-      
+
       Rails.logger.info "Potential funding options after filtering: #{potential_options.map { |opt| opt['funding_source'] }}"
 
     end
