@@ -321,6 +321,8 @@ class TravelPattern < ApplicationRecord
   # @option query_params [String, Integer] :start_time The starting time of a potential trip represented  as number of seconds since midnight.
   # @option query_params [String, Integer] :end_time The ending time of a potential trip represented  as number of seconds since midnight.
   def self.available_for(query_params)
+    Rails.logger.info "Query Params for Travel Patterns: #{query_params.inspect}"
+  
     filters = [
       :agency, 
       :service, 
@@ -331,17 +333,24 @@ class TravelPattern < ApplicationRecord
       :date
     ]
     query = self.all
-
+  
     # First filter by all provided params
     filters.each do |filter|
       method_name = ("with_" + filter.to_s).to_sym
       param = query_params[filter]
-
-      query = query.send(method_name, param) unless param.nil?
+  
+      if param
+        Rails.logger.info "Filtering by #{filter}: #{param.inspect}"
+        query = query.send(method_name, param)
+      end
     end
-
+  
     travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
+  
+    Rails.logger.info "Filtered Travel Patterns: #{travel_patterns.map(&:id).inspect}"
+    travel_patterns
   end
+  
 
   def self.to_api_response(travel_patterns, service, valid_from = nil, valid_until = nil)
     business_days = service.business_days

@@ -448,7 +448,7 @@ class EcolaneAmbassador < BookingAmbassador
   
     Rails.logger.info "Final Funding Hash: #{funding_hash.inspect}"
     funding_hash
-  end  
+  end   
 
 
   ##### 
@@ -695,7 +695,6 @@ class EcolaneAmbassador < BookingAmbassador
     funding_source_combinations
   end
   
-
   # Get a list of all the points of interest for the service
   def get_pois
       locations = fetch_system_poi_list
@@ -1069,52 +1068,39 @@ class EcolaneAmbassador < BookingAmbassador
     Rails.logger.info "Building 1-Click Funding Hash"
   
     travel_pattern_funding_sources = get_travel_pattern_funding_sources
-    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
+    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources.inspect}"
   
-    best_index = nil
-    potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
-    arrayify(get_funding_options).each do |option|
-      option_funding_source = option["funding_source"].strip
-      Rails.logger.info "Checking option: #{option}"
+    if Config.dashboard_mode == 'travel_patterns'
+      best_funding = nil
+      best_sponsor= nil
+      return {} if travel_pattern_funding_sources.blank?
   
-      # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
-      if option["type"] != "valid" || option["purpose"] != @purpose ||
-        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
-        next
+      # Now Narrow it down based on funding sources and sponsors
+      @preferred_funding_sources.detect { |preferred_funding_source|
+        best_funding = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
+        }&.fetch(:funding_source, nil)
+      }
+  
+      Rails.logger.info "Best Funding Source: #{best_funding}"
+  
+      @preferred_sponsors.detect { |preferred_sponsor|
+        best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
+        }&.fetch(:sponsor, nil)
+      }
+  
+      Rails.logger.info "Best Sponsor: #{best_sponsor}"
+  
+      if best_funding
+        return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
+      else
+        return {}
       end
-  
-      if option_funding_source.in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
-        best_index = @preferred_funding_sources.index(option_funding_source)
-        potential_options = [option] 
-      elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
-        potential_options << option 
-      end
-    end
-  
-    best_option = nil
-    best_index = nil
-    # Now narrow it down based on sponsor
-    potential_options.each do |option|
-      if best_index == nil and option["sponsor"].in? @preferred_sponsors
-        best_index = @preferred_sponsors.index(option["sponsor"])
-        best_option = option 
-      elsif option["sponsor"].in? @preferred_sponsors and @preferred_sponsors.index(option["sponsor"]) < best_index
-        best_index = @preferred_sponsors.index(option["sponsor"])
-        best_option = option
-      end
-    end
-  
-    Rails.logger.info "Best option: #{best_option}"
-  
-    if potential_options.blank?
-      {}
-    else
-      Rails.logger.info "Selected funding source: #{best_option['funding_source']}, Purpose: #{@purpose}, Sponsor: #{best_option['sponsor']}"
-      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
     end
   end
   
-  
+    
 
   def build_ecolane_funding_hash
     url_options =  "/api/order/#{system_id}/query_preferred_fares"
