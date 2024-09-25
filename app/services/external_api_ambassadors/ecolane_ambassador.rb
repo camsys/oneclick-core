@@ -1067,37 +1067,52 @@ class EcolaneAmbassador < BookingAmbassador
   ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
     Rails.logger.info "Building 1-Click Funding Hash"
-  
     travel_pattern_funding_sources = get_travel_pattern_funding_sources
     Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources.inspect}"
   
-    if Config.dashboard_mode == 'travel_patterns'
-      best_funding = nil
-      best_sponsor= nil
-      return {} if travel_pattern_funding_sources.blank?
+    best_index = nil
+    potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
+    arrayify(get_funding_options).each do |option|
+      option_funding_source = option["funding_source"].strip
   
-      # Now Narrow it down based on funding sources and sponsors
-      @preferred_funding_sources.detect { |preferred_funding_source|
-        best_funding = travel_pattern_funding_sources.detect { |valid_combination|
-          valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
-        }&.fetch(:funding_source, nil)
-      }
+      Rails.logger.info "Checking option: #{option.inspect}"
   
-      Rails.logger.info "Best Funding Source: #{best_funding}"
-  
-      @preferred_sponsors.detect { |preferred_sponsor|
-        best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
-          valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
-        }&.fetch(:sponsor, nil)
-      }
-  
-      Rails.logger.info "Best Sponsor: #{best_sponsor}"
-  
-      if best_funding
-        return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
-      else
-        return {}
+      # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
+      if option["type"] != "valid" || option["purpose"] != @purpose ||
+         (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
+        Rails.logger.info "Skipping option: #{option_funding_source} - invalid or not in travel patterns"
+        next
       end
+  
+      if option_funding_source.in? @preferred_funding_sources && (potential_options == [] || @preferred_funding_sources.index(option_funding_source) < best_index)
+        best_index = @preferred_funding_sources.index(option_funding_source)
+        potential_options = [option]
+      elsif option_funding_source.in? @preferred_funding_sources && @preferred_funding_sources.index(option_funding_source) == best_index
+        potential_options << option
+      end
+    end
+  
+    best_option = nil
+    best_index = nil
+    # Now narrow it down based on sponsor
+    potential_options.each do |option|
+      if best_index.nil? && option["sponsor"].in? @preferred_sponsors
+        best_index = @preferred_sponsors.index(option["sponsor"])
+        best_option = option
+      elsif option["sponsor"].in? @preferred_sponsors && @preferred_sponsors.index(option["sponsor"]) < best_index
+        best_index = @preferred_sponsors.index(option["sponsor"])
+        best_option = option
+      end
+    end
+  
+    Rails.logger.info "Best Option Selected: #{best_option.inspect}"
+  
+    if potential_options.blank?
+      Rails.logger.info "No valid funding options found."
+      {}
+    else
+      Rails.logger.info "Returning funding hash: #{best_option.inspect}"
+      { funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"] }
     end
   end
   
