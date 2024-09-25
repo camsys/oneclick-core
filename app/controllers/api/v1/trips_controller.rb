@@ -229,7 +229,7 @@ module Api
           next booking_request unless itin
           
           # If a return_time param was passed, build a return itinerary
-          return_time = booking_request.delete(:return_time).try(:to_datetime)
+          return_time = booking_request.delete(:return_time).try(:to_datetime) || Time.now.end_of_day.change({ hour: 0, min: 0 })
           if return_time
             return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
                           .plan.try(:selected_itinerary)
@@ -268,25 +268,39 @@ module Api
 
           # Update Trip Disposition Status to ecolane succeeded
           itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
-          itin.trip.ecolane_booking_snapshot.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])
+          itin.trip.ecolane_booking_snapshot.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_booked])      
           # Package it in a response hash as per API V1 docs
           next response.merge(booking_response_hash(booking))
         end
         
         # If any of the itineraries failed, cancel them all and return failures
-        if failed 
+        if failed
           responses = []
           itins.each do |itin|
             itin.booked? ? itin.cancel : itin.unselect
-
-            # Update Trip Disposition Status with ecolane denied if it failed
-            itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        
+            # Check if the return trip is denied and the first trip was successful
+            if itin.trip.next_trip.present? && itin.trip.next_trip.disposition_status == Trip::DISPOSITION_STATUSES[:ecolane_denied]
+              # Check if the first trip was successfully booked; if so, mark it as cancelled due to round trip failure
+              if itin.trip.disposition_status == Trip::DISPOSITION_STATUSES[:ecolane_booked]
+                itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:cancelled_round_trip_booking_denial])
+              end
+        
+              # Also update the return trip's status to ecolane_denied if not already done
+              itin.trip.next_trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+        
+            else
+              # If both trips fail, keep the first trip's status as ecolane_denied
+              itin.trip.update(disposition_status: Trip::DISPOSITION_STATUSES[:ecolane_denied])
+            end
+        
             responses << booking_response_base(itin).merge({booked: false})
           end
           render status: 500, json: {booking_results: responses}
         else
           render status: 200, json: {booking_results: responses}
         end
+        
 
       end
 
