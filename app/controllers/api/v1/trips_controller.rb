@@ -229,7 +229,7 @@ module Api
           next booking_request unless itin
           
           # If a return_time param was passed, build a return itinerary
-          return_time = booking_request.delete(:return_time).try(:to_datetime) || Time.now.end_of_day.change({ hour: 0, min: 0 })
+          return_time = booking_request.delete(:return_time).try(:to_datetime)
           if return_time
             return_itin = ReturnTripPlanner.new(itin.trip, {trip_time: return_time})
                           .plan.try(:selected_itinerary)
