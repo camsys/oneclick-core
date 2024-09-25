@@ -428,12 +428,14 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_funding_hash
-    #TODO: Reduce call to Ecolane by saving the funding_hash after the first time we ask for it.
-    if @service.booking_details["use_ecolane_funding_rules"].to_bool #use Ecolane Rules
+    Rails.logger.info "Fetching funding hash using #{@service.booking_details['use_ecolane_funding_rules'] ? 'Ecolane' : '1-Click'} rules."
+  
+    if @service.booking_details["use_ecolane_funding_rules"].to_bool
       fare, funding_hash = build_ecolane_funding_hash
-    else #use 1-Click Rules
+    else
       funding_hash = build_1click_funding_hash
     end
+  
     if self.booking
       booking = self.booking 
       if booking.details 
@@ -443,8 +445,10 @@ class EcolaneAmbassador < BookingAmbassador
       end
       booking.save 
     end
+  
+    Rails.logger.info "Final Funding Hash: #{funding_hash.inspect}"
     funding_hash
-  end
+  end  
 
 
   ##### 
@@ -609,7 +613,9 @@ class EcolaneAmbassador < BookingAmbassador
   def valid_funding_source_combinations
     funding_source_combinations = get_customer_funding_data
     return funding_source_combinations if funding_source_combinations.blank?
-
+  
+    Rails.logger.info "Funding Source Combinations for Trip: #{funding_source_combinations.inspect}"
+  
     if @trip
       start_time = @outbound_trip.trip_time
       end_time = (@inbound_trip || @outbound_trip).trip_time
@@ -617,64 +623,78 @@ class EcolaneAmbassador < BookingAmbassador
       start_time = Time.now
       end_time = Time.now
     end
-
-    # Rejects any expired or unstarted funding source/purpose combinations
+  
+    # Reject expired or unstarted funding source/purpose combinations
     funding_source_combinations.reject! do |combination|
       if combination[:valid_from]
         invalid_start = Time.parse(combination[:valid_from]) > start_time
       else
         invalid_start = false
       end
-
+  
       if combination[:valid_until]
         invalid_end = Time.parse(combination[:valid_until]) < end_time
       else
         invalid_end = false
       end
-
+  
+      Rails.logger.info "Rejecting combination due to invalid start/end dates: #{combination}" if invalid_start || invalid_end
+  
       invalid_start || invalid_end
     end
-
+  
+    # Log the purpose of the trip
+    Rails.logger.info "Trip Purpose: #{@purpose}"
+  
     if @purpose
-      # Rejects funding source combinationss with non-matching purposes
+      # Reject funding source combinations with non-matching purposes
       funding_source_combinations.reject! do |combination|
+        Rails.logger.info "Checking purpose: #{combination[:purpose_code]} vs #{@purpose}"
         combination[:purpose_code] != Purpose.format_string_to_code(@purpose)
       end
     end
-
+  
     if @service
-      # Rejects funding sources combinations with purposes banned by the Service
+      # Reject funding sources combinations with banned purposes
       banned_purpose_codes = Set.new(
         @service.banned_purpose_names
                 .map { |purpose| Purpose.format_string_to_code(purpose) }
       )
+  
       funding_source_combinations.reject! do |combination|
+        Rails.logger.info "Checking if purpose is banned: #{combination[:purpose_code]} banned: #{banned_purpose_codes}"
         banned_purpose_codes.include?(combination[:purpose_code])
       end
-
-      # Keeps funding sources combinations with funding sources permitted by the Service
+  
+      # Keep funding source combinations with funding sources permitted by the Service
       permitted_funding_sources = Set.new(
         @preferred_funding_sources.map { |funding_source| 
           funding_source&.parameterize&.underscore
         }
       )
+  
       funding_source_combinations.select! do |combination|
+        Rails.logger.info "Checking if funding source is permitted: #{combination[:funding_source]} permitted: #{permitted_funding_sources}"
         permitted_funding_sources.include?(combination[:funding_source]&.parameterize&.underscore)
       end
-
-      # Keeps funding sources combinations with sponsors permitted by the Service
+  
+      # Keep funding source combinations with sponsors permitted by the Service
       permitted_sponsors = Set.new(
         @preferred_sponsors.map { |sponsor| 
           sponsor&.parameterize&.underscore
         }
       )
+  
       funding_source_combinations.select! do |combination|
+        Rails.logger.info "Checking if sponsor is permitted: #{combination[:sponsor]} permitted: #{permitted_sponsors}"
         permitted_sponsors.include?(combination[:sponsor]&.parameterize&.underscore)
       end
     end
-
-    return funding_source_combinations
+  
+    Rails.logger.info "Valid Funding Source Combinations: #{funding_source_combinations.inspect}"
+    funding_source_combinations
   end
+  
 
   # Get a list of all the points of interest for the service
   def get_pois
@@ -1046,83 +1066,41 @@ class EcolaneAmbassador < BookingAmbassador
 
   ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
-    travel_pattern_funding_sources = []
+    Rails.logger.info "Building 1-Click Funding Hash"
+  
+    travel_pattern_funding_sources = get_travel_pattern_funding_sources
+    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources.inspect}"
+  
     if Config.dashboard_mode == 'travel_patterns'
       best_funding = nil
       best_sponsor= nil
-      travel_pattern_funding_sources = get_travel_pattern_funding_sources
-
-      # If configured to use travel patterns, return if they have no funding.
       return {} if travel_pattern_funding_sources.blank?
-
-      # TODO: Commenting out this newer workflow until it can be tested more.
-      # Putting it back to match earlier workflow for OCC-1075.
-      # @preferred_funding_sources comes straight from the service's booking details
-      # so the funding source names are already in priority order.
-      #funding_found = @preferred_funding_sources.detect { |preferred_funding_source|
-      #  best_funding = travel_pattern_funding_sources.detect { |valid_combination|
-      #    valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
-      #  }&.fetch(:funding_source, nil)
-      #}
-
-      # Now we can get rid of anything that's not the best funding_source
-      #travel_pattern_funding_sources.select! { |valid_combination|
-      #  valid_combination[:funding_source] == best_funding
-      #}
-
-      # @preferred_sponsors comes straight from the service's booking details
-      # so the sponsors are already in priority order.
-      #@preferred_sponsors.detect { |preferred_sponsor|
-      #  best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
-      #    valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
-      #  }&.fetch(:sponsor, nil)
-      #}
-
-      #if funding_found
-      #  return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
-      #else
-      #  return {}
-      #end
-    end
-
-    # Find the options that include the best funding source
-    best_index = nil
-    potential_options = [] # A list of options. Each one will be ultimately be the same funding source with potentially multiple sponsors
-    arrayify(get_funding_options).each do |option|
-      option_funding_source = option["funding_source"].strip
-      # Check if the funding source exists in the trip's matching travel patterns. If not, skip it.
-      if option["type"] != "valid" || option["purpose"] != @purpose ||
-        (Config.dashboard_mode == 'travel_patterns' && travel_pattern_funding_sources.index(option_funding_source).nil?)
-        next
-      end
-      if option_funding_source.in? @preferred_funding_sources and (potential_options == [] or @preferred_funding_sources.index(option_funding_source) < best_index)
-        best_index = @preferred_funding_sources.index(option_funding_source)
-        potential_options = [option] 
-      elsif option_funding_source.in? @preferred_funding_sources and @preferred_funding_sources.index(option_funding_source) == best_index
-        potential_options << option 
+  
+      # Now Narrow it down based on funding sources and sponsors
+      @preferred_funding_sources.detect { |preferred_funding_source|
+        best_funding = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:funding_source]&.parameterize&.underscore == preferred_funding_source&.parameterize&.underscore
+        }&.fetch(:funding_source, nil)
+      }
+  
+      Rails.logger.info "Best Funding Source: #{best_funding}"
+  
+      @preferred_sponsors.detect { |preferred_sponsor|
+        best_sponsor = travel_pattern_funding_sources.detect { |valid_combination|
+          valid_combination[:sponsor]&.parameterize&.underscore == preferred_sponsor&.parameterize&.underscore
+        }&.fetch(:sponsor, nil)
+      }
+  
+      Rails.logger.info "Best Sponsor: #{best_sponsor}"
+  
+      if best_funding
+        return {funding_source: best_funding, purpose: @purpose, sponsor: best_sponsor}
+      else
+        return {}
       end
     end
-
-    best_option = nil
-    best_index = nil
-    # Now Narrow it down based on sponsor
-    potential_options.each do |option|
-      if best_index == nil and option["sponsor"].in? @preferred_sponsors
-        best_index = @preferred_sponsors.index(option["sponsor"])
-        best_option = option 
-      elsif option["sponsor"].in? @preferred_sponsors and @preferred_sponsors.index(option["sponsor"]) < best_index
-        best_index = @preferred_sponsors.index(option["sponsor"])
-        best_option = option
-      end
-    end
-
-    if potential_options.blank?
-      {}
-    else
-      {funding_source: best_option["funding_source"], purpose: @purpose, sponsor: best_option["sponsor"]}
-    end
-
   end
+  
 
   def build_ecolane_funding_hash
     url_options =  "/api/order/#{system_id}/query_preferred_fares"
