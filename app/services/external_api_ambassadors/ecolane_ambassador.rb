@@ -391,31 +391,32 @@ class EcolaneAmbassador < BookingAmbassador
     build_ecolane_funding_hash[0]
   end
 
-  def get_1click_fare funding_hash=nil
-    url_options =  "/api/order/#{system_id}/queryfare"
+  def get_1click_fare(funding_hash = nil)
+    url_options = "/api/order/#{system_id}/queryfare"
     url = @url + url_options
-    
+  
+    # Build the order based on whether a funding hash is provided
     if funding_hash && !funding_hash.empty?
       order = build_order(true, funding_hash)
     else
-      order = build_order 
+      order = build_order
     end
-    # err on new qa is response didn't finish building
+  
+    # Send the request and capture the response
     resp = send_request(url, 'POST', order)
-    return nil if resp.code != "200"
-    if resp.body.nil? || resp.body.empty?
-      Rails.logger.error "Received an empty or incomplete response body from Ecolane."
+  
+    # Check for non-successful response and handle it gracefully
+    if resp.nil? || resp.code != "200"
+      Rails.logger.error "Error from Ecolane: Received #{resp.code}. Response: #{resp.body}"
       return nil
     end
+  
+    # Parse the response and calculate the fare
     resp = Hash.from_xml(resp.body) || {}
-    
     fare = resp.with_indifferent_access.fetch(:fare, {})
-    if fare.blank?
-      Rails.logger.error "Fare information missing from Ecolane response."
-      return nil
-    end
     (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
   end
+  
 
   # Find the fare for a trip.
   def get_fare
