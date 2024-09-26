@@ -403,8 +403,17 @@ class EcolaneAmbassador < BookingAmbassador
     # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
     return nil if resp.code != "200"
+    if resp.body.nil? || resp.body.empty?
+      Rails.logger.error "Received an empty or incomplete response body from Ecolane."
+      return nil
+    end
     resp = Hash.from_xml(resp.body) || {}
+    
     fare = resp.with_indifferent_access.fetch(:fare, {})
+    if fare.blank?
+      Rails.logger.error "Fare information missing from Ecolane response."
+      return nil
+    end
     (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
   end
 
