@@ -453,37 +453,35 @@ class EcolaneAmbassador < BookingAmbassador
 
   ##### 
   ## Send the Requests
-  def send_request url, type='get', message=nil
-
-    if message 
+  def send_request(url, type='get', message=nil)
+    if message
       message = Nokogiri::XML(message).to_s
     end
-
+  
     url.sub! " ", "%20"
     begin
       uri = URI.parse(url)
       case type.downcase
-        when 'post'
-          req = Net::HTTP::Post.new(uri.path)
-          req.body = message
-        when 'delete'
-          req = Net::HTTP::Delete.new(uri.path)
-        else
-          req = Net::HTTP::Get.new(uri)
+      when 'post'
+        req = Net::HTTP::Post.new(uri.path)
+        req.body = message
+      when 'delete'
+        req = Net::HTTP::Delete.new(uri.path)
+      else
+        req = Net::HTTP::Get.new(uri)
       end
-
+  
       req.add_field 'X-ECOLANE-TOKEN', token
       req.add_field 'Content-Type', 'text/xml'
-      # Add the X-Ecolane-Api-Key header if api_key is set
       req.add_field 'X-Ecolane-Api-Key', api_key if api_key.present?
-
+  
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       Rails.logger.info '----------Calling Ecolane-----------'
       Rails.logger.info "#{type}: #{url}"
       Rails.logger.info "X-ECOLANE-TOKEN: #{token}"
-      Rails.logger.info Hash.from_xml(message)
+      Rails.logger.info "Request body: #{message}" # Log the message being sent
       resp = http.start { |http| http.request(req) }
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
@@ -496,20 +494,12 @@ class EcolaneAmbassador < BookingAmbassador
       end
   
       resp
-    rescue SocketError => e
-      error_message = "Network error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
-    rescue Timeout::Error => e
-      error_message = "Timeout error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
     rescue StandardError => e
-      error_message = "Error while calling Ecolane: #{e.message}"
-      Rails.logger.error error_message
-      raise error_message
+      Rails.logger.error "General error while calling Ecolane: #{e.message}"
+      raise "General error while calling Ecolane: #{e.message}"
     end
   end
+  
   ###################################################################
   ## Helpers
   ###################################################################
@@ -917,16 +907,18 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order funding=true, funding_hash=nil
+  def build_order(funding = true, funding_hash = nil)
+    Rails.logger.info "Building order with funding: #{funding}, funding_hash: #{funding_hash}"
+  
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
-
+  
     @trip.reload
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
-
+  
     order_hash = {
       assistant: @booking_options[:assistant], 
       companions: @booking_options[:companions] || 0, 
@@ -935,21 +927,27 @@ class EcolaneAmbassador < BookingAmbassador
       pickup: pickup_hash,
       dropoff: build_do_hash
     }
-
+  
+    Rails.logger.info "Order hash so far: #{order_hash}"
+  
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
+  
     begin
       if funding_hash && !funding_hash.empty?
         order_hash[:funding] = funding_hash
       elsif funding
         order_hash[:funding] = get_funding_hash
       elsif @purpose
-        order_hash[:funding] = {purpose: @purpose}
+        order_hash[:funding] = { purpose: @purpose }
       end
-
-      order_hash.to_xml(root: 'order', :dasherize => false)
+  
+      Rails.logger.info "Final order hash with funding: #{order_hash}"
+  
+      order_hash.to_xml(root: 'order', dasherize: false)
     rescue REXML::ParseException
+      Rails.logger.error "Error parsing XML in build_order"
       nil
     end
   end
