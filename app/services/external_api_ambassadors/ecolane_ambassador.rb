@@ -402,7 +402,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
     # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
-    return nil if resp.code != "200"
+    return nil if resp.nil? || resp.code != "200"
     resp = Hash.from_xml(resp.body) || {}
     fare = resp.with_indifferent_access.fetch(:fare, {})
     (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
