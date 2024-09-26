@@ -503,7 +503,7 @@ class EcolaneAmbassador < BookingAmbassador
     rescue StandardError => e
       error_message = "Error while calling Ecolane: #{e.message}"
       Rails.logger.error error_message
-      raise error_message
+      return nil
     end
   end
   ###################################################################
