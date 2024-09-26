@@ -499,6 +499,8 @@ class EcolaneAmbassador < BookingAmbassador
       end
   
       resp
+    rescue StandardError => e
+      Rails.logger.error "General error while calling Ecolane: #{e.message}"
     end
   end
   
