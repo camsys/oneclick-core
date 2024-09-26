@@ -391,32 +391,31 @@ class EcolaneAmbassador < BookingAmbassador
     build_ecolane_funding_hash[0]
   end
 
-  def get_1click_fare(funding_hash = nil)
-    url_options = "/api/order/#{system_id}/queryfare"
+  def get_1click_fare funding_hash=nil
+    url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
-  
-    # Build the order based on whether a funding hash is provided
+    
     if funding_hash && !funding_hash.empty?
       order = build_order(true, funding_hash)
     else
-      order = build_order
+      order = build_order 
     end
-  
-    # Send the request and capture the response
+    # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
-  
-    # Check for non-successful response and handle it gracefully
-    if resp.nil? || resp.code != "200"
-      Rails.logger.error "Error from Ecolane: Received #{resp.code}. Response: #{resp.body}"
+    return nil if resp.code != "200"
+    if resp.body.nil? || resp.body.empty?
+      Rails.logger.error "Received an empty or incomplete response body from Ecolane."
       return nil
     end
-  
-    # Parse the response and calculate the fare
     resp = Hash.from_xml(resp.body) || {}
+    
     fare = resp.with_indifferent_access.fetch(:fare, {})
+    if fare.blank?
+      Rails.logger.error "Fare information missing from Ecolane response."
+      return nil
+    end
     (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
   end
-  
 
   # Find the fare for a trip.
   def get_fare
@@ -501,6 +500,12 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info '------Response from Ecolane---------'
       Rails.logger.info "Code: #{resp.code}"
       Rails.logger.info resp.body
+
+      if resp.body.nil? || resp.body.empty?
+        error_message = "Error: Received empty or incomplete response body from Ecolane."
+        Rails.logger.error error_message
+        raise error_message # Halt the process here by raising an error
+      end
   
       unless resp.is_a?(Net::HTTPSuccess)
         error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
