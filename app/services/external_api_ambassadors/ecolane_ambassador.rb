@@ -429,11 +429,16 @@ class EcolaneAmbassador < BookingAmbassador
 
   def get_funding_hash
     Rails.logger.info "Fetching funding hash using #{@service.booking_details['use_ecolane_funding_rules'] ? 'Ecolane' : '1-Click'} rules."
-  
+    
     if @service.booking_details["use_ecolane_funding_rules"].to_bool
       fare, funding_hash = build_ecolane_funding_hash
     else
       funding_hash = build_1click_funding_hash
+    end
+  
+    if funding_hash.blank? || funding_hash[:purpose].nil?
+      Rails.logger.warn "No valid funding or purpose found, setting default funding hash"
+      funding_hash = { purpose: "default_purpose" } # This is a fallback, replace with appropriate purpose
     end
   
     if self.booking
@@ -448,7 +453,7 @@ class EcolaneAmbassador < BookingAmbassador
   
     Rails.logger.info "Final Funding Hash: #{funding_hash.inspect}"
     funding_hash
-  end   
+  end    
 
 
   ##### 
@@ -494,9 +499,6 @@ class EcolaneAmbassador < BookingAmbassador
       end
   
       resp
-    rescue StandardError => e
-      Rails.logger.error "General error while calling Ecolane: #{e.message}"
-      raise "General error while calling Ecolane: #{e.message}"
     end
   end
   
@@ -941,6 +943,8 @@ class EcolaneAmbassador < BookingAmbassador
         order_hash[:funding] = get_funding_hash
       elsif @purpose
         order_hash[:funding] = { purpose: @purpose }
+      else
+        order_hash[:funding] = { purpose: "default_purpose" } # Fallback purpose to prevent crashes
       end
   
       Rails.logger.info "Final order hash with funding: #{order_hash}"
@@ -950,7 +954,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error "Error parsing XML in build_order"
       nil
     end
-  end
+  end  
   
   # Build the hash for the pickup request
   def build_pu_hash
