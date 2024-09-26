@@ -960,6 +960,7 @@ class EcolaneAmbassador < BookingAmbassador
         # Check if funding_source is missing and stop request early if required
         if order_hash[:funding][:funding_source].blank?
           raise "Funding source is required but missing"
+          return nil
         end
       elsif @purpose
         order_hash[:funding] = { purpose: @purpose }
