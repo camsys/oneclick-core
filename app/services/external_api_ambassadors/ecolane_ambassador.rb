@@ -956,6 +956,11 @@ class EcolaneAmbassador < BookingAmbassador
         order_hash[:funding] = funding_hash
       elsif funding
         order_hash[:funding] = get_funding_hash
+  
+        # Check if funding_source is missing and stop request early if required
+        if order_hash[:funding][:funding_source].blank?
+          raise "Funding source is required but missing"
+        end
       elsif @purpose
         order_hash[:funding] = { purpose: @purpose }
       else
@@ -969,7 +974,7 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.error "Error parsing XML in build_order"
       nil
     end
-  end  
+  end
   
   # Build the hash for the pickup request
   def build_pu_hash
