@@ -504,6 +504,7 @@ class EcolaneAmbassador < BookingAmbassador
       error_message = "Error while calling Ecolane: #{e.message}"
       Rails.logger.error error_message
       return nil
+      raise error_message
     end
   end
   ###################################################################
