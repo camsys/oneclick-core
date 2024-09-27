@@ -520,53 +520,65 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
-  # Get a list of trip purposes for a customer
+  
   def get_trip_purposes
-    Rails.logger.info "Getting Trip Purposes from the Ecolane API"
+    Rails.logger.info "Starting get_trip_purposes method"
     
     # Fetch funding sources from travel patterns
     travel_pattern_funding_sources = get_travel_pattern_funding_source_names
     travel_pattern_funding_source_names = travel_pattern_funding_sources.map(&:name)
     Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_source_names}"
-    
+
     purposes = []
     purposes_hash = []
+    
+    Rails.logger.info "Fetching customer information from Ecolane API"
     customer_information = fetch_customer_information(funding=true)
+
     current_date = Date.today
 
     # Retrieve the maximum booking notice from Config or default to 59 if not set
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
 
-    arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
+    arrayify(customer_information["customer"]["funding"]["funding_source"]).each_with_index do |funding_source, idx|
+      Rails.logger.info "Processing funding source #{idx + 1}: #{funding_source.inspect}"
+
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
 
-      # Skip if the funding source has expired
-      next if valid_until && valid_until < current_date
+      # Process each allowed sponsor under the funding source
+      arrayify(funding_source["allowed"]).each_with_index do |allowed, allowed_idx|
+        sponsor_name = allowed["sponsor"].to_s.strip
+        Rails.logger.info "Comparing sponsor name #{sponsor_name} from allowed entry #{allowed_idx + 1}"
 
-      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
-      next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+        # Log the travel pattern funding sources and preferred sponsors
+        Rails.logger.info "Travel Pattern Funding Source Names: #{travel_pattern_funding_source_names.inspect}"
+        Rails.logger.info "Preferred Sponsors: #{@preferred_sponsors.inspect}"
 
-      # Check each allowed sponsor name from the funding source against the travel pattern's funding source names
-      arrayify(funding_source["allowed"]).each do |allowed|
-        sponsor_name = allowed["sponsor"]
+        # Check if sponsor name matches either the travel pattern's funding source names or preferred sponsors
+        if travel_pattern_funding_source_names.include?(sponsor_name)
+          Rails.logger.info "Accepted Sponsor (Matched Travel Pattern): #{sponsor_name}"
+        elsif @preferred_sponsors.include?(sponsor_name)
+          Rails.logger.info "Accepted Sponsor (Matched Preferred Sponsor): #{sponsor_name}"
+        else
+          Rails.logger.info "Discarded Sponsor: #{sponsor_name}"
+          next
+        end
 
-        # Ensure sponsor name matches travel patterns' funding source names or preferred sponsors
-        next unless sponsor_name.present? && (
-          travel_pattern_funding_source_names.include?(sponsor_name) || @preferred_sponsors.include?(sponsor_name)
-        )
-
+        # If accepted, process the purpose
         purpose = allowed["purpose"]
+        Rails.logger.info "Accepted Purpose: #{purpose}"
 
         # Add the date range for which the purpose is eligible, if available
         purpose_hash = {
           code: purpose,
-          valid_from: valid_from.to_s, # Ensuring it's always populated
-          valid_until: valid_until&.to_s # Handling nil case gracefully
+          valid_from: valid_from.to_s,
+          valid_until: valid_until&.to_s
         }
 
         unless purposes.include?(purpose)
           purposes.append(purpose)
+          Rails.logger.info "Added Purpose: #{purpose}"
         end
 
         purposes_hash << purpose_hash
@@ -574,9 +586,14 @@ class EcolaneAmbassador < BookingAmbassador
     end
 
     banned_purposes = @service.banned_purpose_names
+    Rails.logger.info "Banned Purposes: #{banned_purposes.inspect}"
+
     purposes = purposes.sort.uniq - banned_purposes
+    Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
+
     [purposes, purposes_hash]
   end
+
 
   ##
   # TODO(Drew) write documentation comment
