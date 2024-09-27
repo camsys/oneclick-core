@@ -520,96 +520,114 @@ class EcolaneAmbassador < BookingAmbassador
 
 
     # Get a list of trip purposes for a customer
-    # Get a list of trip purposes for a customer
     def get_trip_purposes
       Rails.logger.info "Starting get_trip_purposes method"
 
       # Fetch only eligible travel patterns for the current ride
-      Rails.logger.info "Fetching eligible travel patterns"
-      eligible_travel_patterns = TravelPattern.available_for(query_params)
-      eligible_funding_sources = eligible_travel_patterns.map(&:funding_sources).flatten.uniq
-      eligible_funding_source_names = eligible_funding_sources.map(&:name)
-
-      Rails.logger.info "Eligible Travel Pattern Funding Sources: #{eligible_funding_source_names}"
+      begin
+        Rails.logger.info "Fetching eligible travel patterns"
+        eligible_travel_patterns = TravelPattern.available_for(query_params)
+        Rails.logger.info "Fetched eligible travel patterns successfully: #{eligible_travel_patterns.map(&:id)}"
+        
+        eligible_funding_sources = eligible_travel_patterns.map(&:funding_sources).flatten.uniq
+        eligible_funding_source_names = eligible_funding_sources.map(&:name)
+        Rails.logger.info "Eligible Travel Pattern Funding Sources: #{eligible_funding_source_names}"
+      rescue => e
+        Rails.logger.error "Error fetching eligible travel patterns: #{e.message}"
+        return []  # Return empty array or handle it according to your requirements
+      end
 
       purposes = []
       purposes_hash = []
 
-      Rails.logger.info "Fetching customer information from Ecolane API"
-      customer_information = fetch_customer_information(funding=true)
+      # Fetch customer information
+      begin
+        Rails.logger.info "Fetching customer information from Ecolane API"
+        customer_information = fetch_customer_information(funding=true)
+        Rails.logger.info "Fetched customer information successfully"
+      rescue => e
+        Rails.logger.error "Error fetching customer information from Ecolane API: #{e.message}"
+        return []  # Return empty array or handle it accordingly
+      end
 
       current_date = Date.today
 
       # Retrieve the maximum booking notice from Config or default to 59 if not set
-      max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
-
-      # Process each funding source from the Ecolane API response
-      arrayify(customer_information["customer"]["funding"]["funding_source"]).each_with_index do |funding_source, idx|
-        funding_source_name = funding_source['name']
-        Rails.logger.info "Processing funding source #{idx + 1}: #{funding_source_name}"
-
-        valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
-        valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
-
-        # Skip expired funding sources
-        if valid_until && valid_until < current_date
-          Rails.logger.info "Skipping funding source #{funding_source_name} because it has expired"
-          next
-        end
-
-        # Skip future funding sources beyond the maximum booking notice
-        if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
-          Rails.logger.info "Skipping funding source #{funding_source_name} because valid_from is too far in the future"
-          next
-        end
-
-        # Only proceed if this funding source matches one of the eligible travel pattern's funding sources
-        if eligible_funding_source_names.include?(funding_source_name)
-          Rails.logger.info "Accepted funding source: #{funding_source_name}"
-        else
-          Rails.logger.info "Discarded funding source: #{funding_source_name} (not part of eligible travel patterns)"
-          next
-        end
-
-        # Process each allowed purpose for the accepted funding source
-        arrayify(funding_source["allowed"]).each_with_index do |allowed, allowed_idx|
-          purpose = allowed["purpose"]
-          Rails.logger.info "Processing allowed purpose #{allowed_idx + 1}: #{purpose}"
-
-          # Add the date range for which the purpose is eligible, if available
-          purpose_hash = {
-            code: purpose,
-            valid_from: valid_from.to_s,
-            valid_until: valid_until&.to_s
-          }
-
-          unless purposes.include?(purpose)
-            purposes.append(purpose)
-            Rails.logger.info "Added Purpose: #{purpose}"
-          end
-
-          purposes_hash << purpose_hash
-        end
+      begin
+        max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+        Rails.logger.info "Max booking notice days: #{max_booking_notice_days}"
+      rescue => e
+        Rails.logger.error "Error fetching maximum booking notice: #{e.message}"
+        max_booking_notice_days = 59
       end
 
-      banned_purposes = @service.banned_purpose_names
-      Rails.logger.info "Banned Purposes: #{banned_purposes.inspect}"
+      # Process each funding source from the Ecolane API response
+      begin
+        arrayify(customer_information["customer"]["funding"]["funding_source"]).each_with_index do |funding_source, idx|
+          funding_source_name = funding_source['name']
+          Rails.logger.info "Processing funding source #{idx + 1}: #{funding_source_name}"
 
-      purposes = purposes.sort.uniq - banned_pur
+          valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
+          valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
 
+          # Skip expired funding sources
+          if valid_until && valid_until < current_date
+            Rails.logger.info "Skipping funding source #{funding_source_name} because it has expired"
+            next
+          end
 
+          # Skip future funding sources beyond the maximum booking notice
+          if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+            Rails.logger.info "Skipping funding source #{funding_source_name} because valid_from is too far in the future"
+            next
+          end
 
+          # Only proceed if this funding source matches one of the eligible travel pattern's funding sources
+          if eligible_funding_source_names.include?(funding_source_name)
+            Rails.logger.info "Accepted funding source: #{funding_source_name}"
+          else
+            Rails.logger.info "Discarded funding source: #{funding_source_name} (not part of eligible travel patterns)"
+            next
+          end
+
+          # Process each allowed purpose for the accepted funding source
+          arrayify(funding_source["allowed"]).each_with_index do |allowed, allowed_idx|
+            purpose = allowed["purpose"]
+            Rails.logger.info "Processing allowed purpose #{allowed_idx + 1}: #{purpose}"
+
+            # Add the date range for which the purpose is eligible, if available
+            purpose_hash = {
+              code: purpose,
+              valid_from: valid_from.to_s,
+              valid_until: valid_until&.to_s
+            }
+
+            unless purposes.include?(purpose)
+              purposes.append(purpose)
+              Rails.logger.info "Added Purpose: #{purpose}"
+            end
+
+            purposes_hash << purpose_hash
+          end
+        end
+      rescue => e
+        Rails.logger.error "Error processing funding sources: #{e.message}"
+      end
+
+      # Fetch banned purposes
+      begin
         banned_purposes = @service.banned_purpose_names
         Rails.logger.info "Banned Purposes: #{banned_purposes.inspect}"
 
         purposes = purposes.sort.uniq - banned_purposes
         Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
-
-        [purposes, purposes_hash]
+      rescue => e
+        Rails.logger.error "Error fetching or filtering banned purposes: #{e.message}"
       end
 
+      [purposes, purposes_hash]
+    end
 
-  ##
   # TODO(Drew) write documentation comment
   def get_customer_funding_data
     funding_data = []
