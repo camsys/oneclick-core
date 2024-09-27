@@ -392,29 +392,54 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_1click_fare funding_hash=nil
-    url_options =  "/api/order/#{system_id}/queryfare"
+    Rails.logger.info "Calling get_1click_fare with funding_hash: #{funding_hash.inspect}"
+
     url = @url + url_options
-    
+
     if funding_hash && !funding_hash.empty?
+      Rails.logger.info "Building order with funding_hash"
       order = build_order(true, funding_hash)
     else
-      order = build_order 
+      Rails.logger.info "Building order without funding_hash"
+      order = build_order
     end
-    # err on new qa is response didn't finish building
+  
+    Rails.logger.info "Sending request to URL: #{url}"
     resp = send_request(url, 'POST', order)
-    return nil if resp.code != "200"
+    
+    if resp.nil? || resp.code != "200"
+      Rails.logger.error "Error: Response code is #{resp&.code}, expected 200"
+      return nil
+    end
+    
+    Rails.logger.info "Response code is 200, processing fare..."
     resp = Hash.from_xml(resp.body) || {}
     fare = resp.with_indifferent_access.fetch(:fare, {})
-    (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
+    
+    client_copay = fare[:client_copay].to_f
+    additional_passenger = fare[:additional_passenger].to_f
+  
+    Rails.logger.info "Calculated fare: Client Copay = #{client_copay}, Additional Passenger = #{additional_passenger}"
+    (client_copay + additional_passenger) / 100
   end
 
   # Find the fare for a trip.
   def get_fare
-    return unless @customer_id #If there is no user, then just return nil
-    return if @purpose.blank? # Skip if purpose is missing
-    if @use_ecolane_rules #use Ecolane Rules
+    Rails.logger.info "Calling get_fare for customer: #{@customer_id}, purpose: #{@purpose}, ecolane rules: #{@use_ecolane_rules}"
+  
+    return unless @customer_id # If there is no user, return nil
+    Rails.logger.info "Customer ID is present"
+  
+    if @purpose.blank?
+      Rails.logger.warn "No purpose provided, skipping fare calculation"
+      return nil
+    end
+  
+    if @use_ecolane_rules # Use Ecolane Rules
+      Rails.logger.info "Using Ecolane rules for fare calculation"
       get_ecolane_fare
     else
+      Rails.logger.info "Using 1-click fare calculation"
       get_1click_fare
     end
   end
