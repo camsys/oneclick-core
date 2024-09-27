@@ -555,8 +555,11 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
   
-    # Retrieve the funding sources associated with the travel pattern
-    travel_pattern_funding_sources = @trip.travel_patterns.map(&:funding_sources).flatten.map(&:name).map(&:strip)
+    # Retrieve the maximum booking notice from Config or default to 59 if not set
+    max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+  
+    # Get eligible funding sources for travel patterns
+    travel_pattern_funding_sources = TravelPattern.where(id: relevant_travel_patterns).map { |tp| tp.funding_sources.pluck(:name) }.flatten.uniq
     Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
@@ -566,10 +569,10 @@ class EcolaneAmbassador < BookingAmbassador
       # Skip if the funding source has expired
       next if valid_until && valid_until < current_date
   
-      # Skip if valid_from is more than the maximum booking notice into the future
+      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
   
-      # Skip if the funding source is not associated with the current travel pattern
+      # Cross-reference funding sources with the travel pattern's eligible funding sources
       next unless travel_pattern_funding_sources.include?(funding_source["name"].strip)
   
       arrayify(funding_source["allowed"]).each do |allowed|
@@ -584,7 +587,6 @@ class EcolaneAmbassador < BookingAmbassador
           valid_from: valid_from.to_s, # Ensuring it's always populated
           valid_until: valid_until&.to_s # Handling nil case gracefully
         }
-        
         unless purpose.in? purposes
           purposes.append(purpose)
         end
@@ -594,12 +596,8 @@ class EcolaneAmbassador < BookingAmbassador
   
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
-  
     [purposes, purposes_hash]
   end
-  
-  
-
 
   ##
   # TODO(Drew) write documentation comment
