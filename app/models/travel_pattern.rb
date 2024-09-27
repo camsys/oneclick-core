@@ -78,6 +78,7 @@ class TravelPattern < ApplicationRecord
   # @param [Purpose] purpose The +Purpose+ used to select Travel Patterns.
   scope :with_purpose, -> (purpose) do
     raise TypeError.new("#{purpose.class} can't be coerced into Purpose") unless purpose.is_a?(Purpose)
+    Rails.logger.info "Filtering TravelPatterns by purpose: #{purpose.inspect}"
     joins(:travel_pattern_purposes).where(travel_pattern_purposes: {purpose_id: purpose.id}).distinct
   end
 
@@ -101,6 +102,8 @@ class TravelPattern < ApplicationRecord
     unless funding_sources.is_a?(ActiveRecord::Relation) && funding_sources.model == FundingSource
       raise TypeError.new("#{funding_sources.class} can't be coerced into ActiveRecord::Relation<FundingSource>")
     end
+    
+    Rails.logger.info "Filtering TravelPatterns by funding sources: #{funding_sources.inspect}"
 
     joins(:travel_pattern_funding_sources).where(travel_pattern_funding_sources: {funding_source: funding_sources}).distinct
   end
