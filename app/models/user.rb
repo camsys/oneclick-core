@@ -226,6 +226,7 @@ class User < ApplicationRecord
   ##
   # TODO(Drew) write documentation comment
   def get_funding_data(service=nil)
+    Rails.logger.debug "User#get_funding_data is where it's happening"
     funding_hash = {}
     profile = service ? booking_profile_for(service) : booking_profile
     return funding_hash unless profile 

@@ -550,6 +550,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Get a list of trip purposes for a customer
   def get_trip_purposes
+    Rails.logger.info "Getting trip purposes for customer #{@customer_id}"
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
