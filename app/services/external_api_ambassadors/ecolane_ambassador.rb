@@ -411,6 +411,7 @@ class EcolaneAmbassador < BookingAmbassador
   # Find the fare for a trip.
   def get_fare
     return unless @customer_id #If there is no user, then just return nil
+    return if @purpose.blank? # Skip if purpose is missing
     if @use_ecolane_rules #use Ecolane Rules
       get_ecolane_fare
     else
