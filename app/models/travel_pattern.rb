@@ -160,22 +160,22 @@ class TravelPattern < ApplicationRecord
     travel_pattern_opts = { 
       only: [:id, :agency_id, :name, :description]
     }
+  
     valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String)
-    valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)    
+    valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)
+    
     start_date = [start_date, valid_from].compact.max if valid_from
     end_date = [end_date, valid_until].compact.min if valid_until
   
     calendar_data = self.to_calendar(start_date, end_date, valid_from, valid_until)
   
-    # Adjust the calendar data for serialization
     adjusted_calendar_data = calendar_data.transform_values do |time_ranges|
-      # Transform each time range in the array into a serializable format, if necessary
       time_ranges.map { |range| { start_time: range[:start_time], end_time: range[:end_time] } }
     end
   
-    self.as_json(travel_pattern_opts).merge({,
+    self.as_json(travel_pattern_opts).merge({
       "to_calendar" => adjusted_calendar_data,
-      "travel_pattern_id" => self.id,
+      "travel_pattern_id" => self.id # Add travel_pattern_id to the response
     })
   end  
 
