@@ -555,11 +555,8 @@ class EcolaneAmbassador < BookingAmbassador
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
   
-    # Retrieve the maximum booking notice from Config or default to 59 if not set
-    max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
-    
-    # Fetch eligible funding sources for travel patterns
-    travel_pattern_funding_sources = get_travel_pattern_funding_sources
+    # Retrieve the funding sources associated with the travel pattern
+    travel_pattern_funding_sources = @trip.travel_patterns.map(&:funding_sources).flatten.map(&:name).map(&:strip)
     Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
@@ -569,16 +566,11 @@ class EcolaneAmbassador < BookingAmbassador
       # Skip if the funding source has expired
       next if valid_until && valid_until < current_date
   
-      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
+      # Skip if valid_from is more than the maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
   
-      # Skip funding sources that are not in the travel pattern's eligible funding sources
-      next unless travel_pattern_funding_sources.include?(funding_source["name"])
-  
-      # Check if we should use Ecolane rules and skip invalid sources
-      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
-        next 
-      end
+      # Skip if the funding source is not associated with the current travel pattern
+      next unless travel_pattern_funding_sources.include?(funding_source["name"].strip)
   
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
@@ -602,8 +594,10 @@ class EcolaneAmbassador < BookingAmbassador
   
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
+  
     [purposes, purposes_hash]
   end
+  
   
 
 
@@ -648,6 +642,8 @@ class EcolaneAmbassador < BookingAmbassador
   def valid_funding_source_combinations
     funding_source_combinations = get_customer_funding_data
     return funding_source_combinations if funding_source_combinations.blank?
+
+    Rails.logger.info "Funding Source Combinations: #{funding_source_combinations}"
 
     if @trip
       start_time = @outbound_trip.trip_time
