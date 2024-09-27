@@ -520,6 +520,7 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
+  # Get a list of trip purposes for a customer
   def get_trip_purposes
     Rails.logger.info "Getting Trip Purposes from the Ecolane API"
     
@@ -549,14 +550,13 @@ class EcolaneAmbassador < BookingAmbassador
       # Check each allowed sponsor name from the funding source against the travel pattern's funding source names
       arrayify(funding_source["allowed"]).each do |allowed|
         sponsor_name = allowed["sponsor"]
-        
-        # Only proceed if sponsor name exists and is included in the travel pattern's funding source names
-        next unless sponsor_name.present? && travel_pattern_funding_source_names.include?(sponsor_name)
+
+        # Ensure sponsor name matches travel patterns' funding source names or preferred sponsors
+        next unless sponsor_name.present? && (
+          travel_pattern_funding_source_names.include?(sponsor_name) || @preferred_sponsors.include?(sponsor_name)
+        )
 
         purpose = allowed["purpose"]
-
-        # Skip if the sponsor is not in the list of preferred sponsors
-        next unless @preferred_sponsors.include?(sponsor_name)
 
         # Add the date range for which the purpose is eligible, if available
         purpose_hash = {
@@ -577,10 +577,6 @@ class EcolaneAmbassador < BookingAmbassador
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
-
-
-
-
 
   ##
   # TODO(Drew) write documentation comment
