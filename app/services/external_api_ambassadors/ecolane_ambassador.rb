@@ -520,7 +520,7 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
-  def get_trip_purposes(valid_funding_sources = [])
+  def get_trip_purposes(travel_pattern_ids = [])
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
@@ -528,15 +528,25 @@ class EcolaneAmbassador < BookingAmbassador
   
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
   
+    # Fetch valid funding sources from travel patterns
+    valid_funding_sources = TravelPattern.joins(:funding_sources)
+                                         .where(id: travel_pattern_ids)
+                                         .pluck('funding_sources.name')
+    Rails.logger.info "Valid funding sources for travel pattern IDs: #{valid_funding_sources}"
+  
+    # Loop through funding sources from the Ecolane API response
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
   
+      # Skip expired funding sources
       next if valid_until && valid_until < current_date
+      # Skip funding sources starting more than max booking days in the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
   
       Rails.logger.info "Checking funding source: #{funding_source['name']}"
   
+      # Check if the funding source is in the valid funding sources list from travel patterns
       if valid_funding_sources.include?(funding_source["name"])
         Rails.logger.info "Accepted funding source: #{funding_source['name']}"
       else
@@ -544,6 +554,7 @@ class EcolaneAmbassador < BookingAmbassador
         next
       end
   
+      # Process allowed purposes for each funding source
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
   
@@ -553,6 +564,7 @@ class EcolaneAmbassador < BookingAmbassador
           valid_until: valid_until&.to_s
         }
   
+        # Append unique purposes
         unless purposes.include?(purpose)
           purposes.append(purpose)
           Rails.logger.info "Added Purpose: #{purpose}"
@@ -562,12 +574,14 @@ class EcolaneAmbassador < BookingAmbassador
       end
     end
   
+    # Filter out banned purposes
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
   
     [purposes, purposes_hash]
   end
+  
   
 
 
