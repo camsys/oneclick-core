@@ -24,6 +24,7 @@ module Api
           if booking_profile
             begin
               travel_pattern_ids = travel_patterns.pluck(:id)
+              Rails.logger.info("Travel Pattern IDs being passed: #{travel_pattern_ids}")
               trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
               puts "Trip Purposes Count: #{trip_purposes.count}"
               puts "Trip Purposes Hash Count: #{trip_purposes_hash.count}"
