@@ -560,6 +560,7 @@ class EcolaneAmbassador < BookingAmbassador
     
     # Fetch eligible funding sources for travel patterns
     travel_pattern_funding_sources = get_travel_pattern_funding_sources
+    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
