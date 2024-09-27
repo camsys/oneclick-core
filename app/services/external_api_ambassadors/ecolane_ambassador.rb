@@ -522,6 +522,8 @@ class EcolaneAmbassador < BookingAmbassador
   # Get a list of trip purposes for a customer
   def get_trip_purposes 
    Rails.logger.info "Getting Trip Purposes from the Ecolane API"
+   testing = get_travel_pattern_funding_sources
+    Rails.logger.info "Trip Purposes from ecolane: #{testing}"
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
