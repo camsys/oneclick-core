@@ -520,15 +520,18 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
-  def get_trip_purposes 
-   Rails.logger.info "Getting Trip Purposes from the Ecolane API"
-   testing = get_travel_pattern_funding_sources
-    Rails.logger.info "Trip Purposes from ecolane: #{testing}"
+  def get_trip_purposes
+    Rails.logger.info "Getting Trip Purposes from the Ecolane API"
+  
+    # Fetch funding sources from travel patterns
+    travel_pattern_funding_sources = get_travel_pattern_funding_source_names
+    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
+  
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
-
+  
     # Retrieve the maximum booking notice from Config or default to 59 if not set
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
   
@@ -542,33 +545,35 @@ class EcolaneAmbassador < BookingAmbassador
       # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
   
-      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
-        next 
-      end
+      # Check if the funding source matches the travel pattern's funding sources
+      next unless travel_pattern_funding_sources.map(&:name).include?(funding_source["name"])
+  
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
-
+  
         # Skip if the sponsor is not in the list of preferred sponsors
         next unless @preferred_sponsors.include?(allowed["sponsor"])
-
-        # Add the date range for which the purpose is eligible, if available.
+  
+        # Add the date range for which the purpose is eligible, if available
         purpose_hash = {
           code: allowed["purpose"],
           valid_from: valid_from.to_s, # Ensuring it's always populated
           valid_until: valid_until&.to_s # Handling nil case gracefully
         }
-        
-        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
+  
+        unless purpose.in? purposes
           purposes.append(purpose)
         end
+  
         purposes_hash << purpose_hash
       end
     end
-
+  
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
+
 
 
   ##
@@ -990,6 +995,18 @@ class EcolaneAmbassador < BookingAmbassador
     end
     mapping
   end
+
+  def get_travel_pattern_funding_source_names
+    travel_patterns = @service.travel_patterns.includes(:funding_sources)
+    funding_sources = []
+  
+    travel_patterns.each do |pattern|
+      funding_sources.concat(pattern.funding_sources)
+    end
+  
+    funding_sources
+  end
+  
 
   ### Return array of unique funding source names from the trip's matching travel patterns.
   ### Returns an empty array if no matches found.
