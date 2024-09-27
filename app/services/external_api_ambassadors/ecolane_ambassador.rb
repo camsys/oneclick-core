@@ -430,7 +430,7 @@ class EcolaneAmbassador < BookingAmbassador
     return unless @customer_id # If there is no user, return nil
     Rails.logger.info "Customer ID is present"
   
-    if @purpose.blank?
+    if @funding_source.blank?
       Rails.logger.warn "No purpose provided, skipping fare calculation"
       return nil
     end
