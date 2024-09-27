@@ -540,6 +540,7 @@ class EcolaneAmbassador < BookingAmbassador
       # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
 
+      Rails.logger.info "Travel pattern IDs: #{travel_pattern_ids}"
       # New: Check if the funding source is associated with the passed-in travel_pattern_ids
       associated_travel_patterns = TravelPattern.joins(:funding_sources)
                                                 .where(id: travel_pattern_ids, funding_sources: { name: funding_source["name"] })
