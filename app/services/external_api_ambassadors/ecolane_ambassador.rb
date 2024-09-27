@@ -425,7 +425,7 @@ class EcolaneAmbassador < BookingAmbassador
 
   # Find the fare for a trip.
   def get_fare
-    Rails.logger.info "Calling get_fare for customer: #{@customer_id}, purpose: #{@purpose}, ecolane rules: #{@use_ecolane_rules}"
+    Rails.logger.info "Calling get_fare for customer: #{@customer_id}, purpose: #{@purpose}, ecolane rules: #{@use_ecolane_rules}, funding source: #{@funding_source}, sponsor: #{@sponsor}"
   
     return unless @customer_id # If there is no user, return nil
     Rails.logger.info "Customer ID is present"
