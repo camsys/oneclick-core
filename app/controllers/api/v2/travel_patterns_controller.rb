@@ -9,68 +9,52 @@ module Api
         purpose = query_params.delete(:purpose)
         funding_source_names = @traveler.get_funding_data(service)[purpose]
         date = query_params.delete(:date)
-      
+
         query_params[:agency] = agency
         query_params[:service] = service
         query_params[:purpose] = Purpose.find_or_initialize_by(agency: agency, name: purpose.strip) if purpose
-        query_params[:funding_sources] = FundingSource.where(name: funding_source_names) if purpose # check funding sources only if there's also a trip purpose
+        query_params[:funding_sources] = FundingSource.where(name: funding_source_names) if purpose
         query_params[:date] = Date.strptime(query_params[:date], '%Y-%m-%d') if date
-      
+
         Rails.logger.info("Filtering through Travel Patterns with the following filters: #{query_params}")
         travel_patterns = TravelPattern.available_for(query_params)
-      
-        if purpose
-          booking_profile = @traveler.booking_profiles.first
-          if booking_profile
-            begin
-              travel_pattern_ids = travel_patterns.pluck(:id)
-              Rails.logger.info("Travel Pattern IDs being passed: #{travel_pattern_ids}")
-              trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
-              puts "Trip Purposes Count: #{trip_purposes.count}"
-              puts "Trip Purposes Hash Count: #{trip_purposes_hash.count}"
-            rescue Exception => e
-              trip_purposes = []
-              trip_purposes_hash = []
-            end
-      
-            trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == purpose }.delete_if { |h| h[:valid_from].nil? }.min_by { |h| h[:valid_from] }
-      
-            if trip_purpose_hash
-              valid_from = trip_purpose_hash[:valid_from]
-              valid_until = trip_purpose_hash[:valid_until]
-      
-              puts "Valid From: #{valid_from}, Valid Until: #{valid_until}"
-            end
-          end
-        end
-      
+
         if travel_patterns.any?
-          travel_pattern_ids = travel_patterns.map { |t| t['id'] } # Get travel pattern IDs
+          travel_pattern_ids = travel_patterns.pluck(:id)
           Rails.logger.info("Found the following matching Travel Patterns: #{travel_pattern_ids}")
-        
-          # Call to_api_response with travel patterns and pass the ids into the ambassador later
-          api_response = travel_patterns.map { |pattern| TravelPattern.to_api_response(pattern, service, valid_from, valid_until) }
-          
-          # If there's a booking profile, pass the travel_pattern_ids to the ambassador
+
+          # Call to_api_response and collect valid funding sources
+          api_response = travel_patterns.map do |pattern|
+            TravelPattern.to_api_response(pattern, service, valid_from, valid_until)
+            Rails.logger.info("Travel Pattern API Response: #{api_response}")
+          end
+
+          valid_funding_sources = FundingSource.joins(:travel_patterns)
+                                               .where(travel_patterns: { id: travel_pattern_ids })
+                                               .distinct
+                                               .pluck(:name)
+
+          Rails.logger.info("Valid Funding Sources: #{valid_funding_sources}")
+
+          # Pass valid funding sources to the ambassador
           if booking_profile
             begin
-              Rails.logger.info("Passing travel_pattern_ids to ambassador: #{travel_pattern_ids}")
-              trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
+              Rails.logger.info("Passing valid funding sources to ambassador: #{valid_funding_sources}")
+              trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(valid_funding_sources)
             rescue Exception => e
               Rails.logger.error("Error fetching trip purposes: #{e.message}")
               trip_purposes = []
               trip_purposes_hash = []
             end
           end
-        
+
           render status: :ok, json: { status: "success", data: api_response }
         else
           Rails.logger.info("No matching Travel Patterns found")
           render fail_response(status: 404, message: "Not found")
         end
-        
       end
-            
+
       protected
 
       def query_params
@@ -83,7 +67,6 @@ module Api
           destination: [:lat, :lng]
         )
       end
-
     end
   end
 end

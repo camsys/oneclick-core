@@ -173,8 +173,9 @@ class TravelPattern < ApplicationRecord
       time_ranges.map { |range| { start_time: range[:start_time], end_time: range[:end_time] } }
     end
   
-    self.as_json(travel_pattern_opts).merge({
-      "to_calendar" => adjusted_calendar_data
+    self.as_json(travel_pattern_opts).merge({,
+      "to_calendar" => adjusted_calendar_data,
+      "travel_pattern_id" => self.id,
     })
   end  
 

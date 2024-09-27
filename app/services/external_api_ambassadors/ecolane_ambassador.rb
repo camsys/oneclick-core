@@ -520,63 +520,55 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
-  def get_trip_purposes(travel_pattern_ids = [])
+  def get_trip_purposes(valid_funding_sources = [])
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
-
-    # Retrieve the maximum booking notice from Config or default to 59 if not set
+  
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
-
-    # Extract funding sources from Ecolane API response
+  
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
-
-      # Skip if the funding source has expired
+  
       next if valid_until && valid_until < current_date
-
-      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
-
-      Rails.logger.info "Travel pattern IDs: #{travel_pattern_ids}"
-      # New: Check if the funding source is associated with the passed-in travel_pattern_ids
-      associated_travel_patterns = TravelPattern.joins(:funding_sources)
-                                                .where(id: travel_pattern_ids, funding_sources: { name: funding_source["name"] })
-      if associated_travel_patterns.any?
-        Rails.logger.info "Accepted funding source: #{funding_source["name"]} for travel pattern IDs: #{travel_pattern_ids}"
+  
+      Rails.logger.info "Checking funding source: #{funding_source['name']}"
+  
+      if valid_funding_sources.include?(funding_source["name"])
+        Rails.logger.info "Accepted funding source: #{funding_source['name']}"
       else
-        Rails.logger.info "Discarded funding source: #{funding_source["name"]} (not part of travel pattern IDs)"
+        Rails.logger.info "Discarded funding source: #{funding_source['name']} (not part of valid funding sources)"
         next
       end
-
-      # Process the allowed purposes for the accepted funding source
+  
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
-
-        # Add the date range for which the purpose is eligible, if available.
+  
         purpose_hash = {
           code: allowed["purpose"],
-          valid_from: valid_from.to_s, # Ensure it's always populated
-          valid_until: valid_until&.to_s # Handle nil case gracefully
+          valid_from: valid_from.to_s,
+          valid_until: valid_until&.to_s
         }
-
+  
         unless purposes.include?(purpose)
           purposes.append(purpose)
           Rails.logger.info "Added Purpose: #{purpose}"
         end
-
+  
         purposes_hash << purpose_hash
       end
     end
-
+  
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
-
+  
     [purposes, purposes_hash]
   end
+  
 
 
   ##
