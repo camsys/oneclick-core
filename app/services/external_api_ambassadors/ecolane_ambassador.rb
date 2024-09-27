@@ -519,115 +519,66 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
 
-    # Get a list of trip purposes for a customer
-    def get_trip_purposes
-      Rails.logger.info "Starting get_trip_purposes method"
+  # Get a list of trip purposes for a customer
+  def get_trip_purposes(travel_pattern_ids = [])
+    purposes = []
+    purposes_hash = []
+    customer_information = fetch_customer_information(funding=true)
+    current_date = Date.today
 
-      # Fetch only eligible travel patterns for the current ride
-      begin
-        Rails.logger.info "Fetching eligible travel patterns"
-        eligible_travel_patterns = TravelPattern.available_for(query_params)
-        Rails.logger.info "Fetched eligible travel patterns successfully: #{eligible_travel_patterns.map(&:id)}"
-        
-        eligible_funding_sources = eligible_travel_patterns.map(&:funding_sources).flatten.uniq
-        eligible_funding_source_names = eligible_funding_sources.map(&:name)
-        Rails.logger.info "Eligible Travel Pattern Funding Sources: #{eligible_funding_source_names}"
-      rescue => e
-        Rails.logger.error "Error fetching eligible travel patterns: #{e.message}"
-        return []  # Return empty array or handle it according to your requirements
+    # Retrieve the maximum booking notice from Config or default to 59 if not set
+    max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+
+    # Extract funding sources from Ecolane API response
+    arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
+      valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
+      valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
+
+      # Skip if the funding source has expired
+      next if valid_until && valid_until < current_date
+
+      # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
+      next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
+
+      # New: Check if the funding source is associated with the passed-in travel_pattern_ids
+      associated_travel_patterns = TravelPattern.joins(:funding_sources)
+                                                .where(id: travel_pattern_ids, funding_sources: { name: funding_source["name"] })
+      if associated_travel_patterns.any?
+        Rails.logger.info "Accepted funding source: #{funding_source["name"]} for travel pattern IDs: #{travel_pattern_ids}"
+      else
+        Rails.logger.info "Discarded funding source: #{funding_source["name"]} (not part of travel pattern IDs)"
+        next
       end
 
-      purposes = []
-      purposes_hash = []
+      # Process the allowed purposes for the accepted funding source
+      arrayify(funding_source["allowed"]).each do |allowed|
+        purpose = allowed["purpose"]
 
-      # Fetch customer information
-      begin
-        Rails.logger.info "Fetching customer information from Ecolane API"
-        customer_information = fetch_customer_information(funding=true)
-        Rails.logger.info "Fetched customer information successfully"
-      rescue => e
-        Rails.logger.error "Error fetching customer information from Ecolane API: #{e.message}"
-        return []  # Return empty array or handle it accordingly
-      end
+        # Add the date range for which the purpose is eligible, if available.
+        purpose_hash = {
+          code: allowed["purpose"],
+          valid_from: valid_from.to_s, # Ensure it's always populated
+          valid_until: valid_until&.to_s # Handle nil case gracefully
+        }
 
-      current_date = Date.today
-
-      # Retrieve the maximum booking notice from Config or default to 59 if not set
-      begin
-        max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
-        Rails.logger.info "Max booking notice days: #{max_booking_notice_days}"
-      rescue => e
-        Rails.logger.error "Error fetching maximum booking notice: #{e.message}"
-        max_booking_notice_days = 59
-      end
-
-      # Process each funding source from the Ecolane API response
-      begin
-        arrayify(customer_information["customer"]["funding"]["funding_source"]).each_with_index do |funding_source, idx|
-          funding_source_name = funding_source['name']
-          Rails.logger.info "Processing funding source #{idx + 1}: #{funding_source_name}"
-
-          valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
-          valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
-
-          # Skip expired funding sources
-          if valid_until && valid_until < current_date
-            Rails.logger.info "Skipping funding source #{funding_source_name} because it has expired"
-            next
-          end
-
-          # Skip future funding sources beyond the maximum booking notice
-          if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
-            Rails.logger.info "Skipping funding source #{funding_source_name} because valid_from is too far in the future"
-            next
-          end
-
-          # Only proceed if this funding source matches one of the eligible travel pattern's funding sources
-          if eligible_funding_source_names.include?(funding_source_name)
-            Rails.logger.info "Accepted funding source: #{funding_source_name}"
-          else
-            Rails.logger.info "Discarded funding source: #{funding_source_name} (not part of eligible travel patterns)"
-            next
-          end
-
-          # Process each allowed purpose for the accepted funding source
-          arrayify(funding_source["allowed"]).each_with_index do |allowed, allowed_idx|
-            purpose = allowed["purpose"]
-            Rails.logger.info "Processing allowed purpose #{allowed_idx + 1}: #{purpose}"
-
-            # Add the date range for which the purpose is eligible, if available
-            purpose_hash = {
-              code: purpose,
-              valid_from: valid_from.to_s,
-              valid_until: valid_until&.to_s
-            }
-
-            unless purposes.include?(purpose)
-              purposes.append(purpose)
-              Rails.logger.info "Added Purpose: #{purpose}"
-            end
-
-            purposes_hash << purpose_hash
-          end
+        unless purposes.include?(purpose)
+          purposes.append(purpose)
+          Rails.logger.info "Added Purpose: #{purpose}"
         end
-      rescue => e
-        Rails.logger.error "Error processing funding sources: #{e.message}"
+
+        purposes_hash << purpose_hash
       end
-
-      # Fetch banned purposes
-      begin
-        banned_purposes = @service.banned_purpose_names
-        Rails.logger.info "Banned Purposes: #{banned_purposes.inspect}"
-
-        purposes = purposes.sort.uniq - banned_purposes
-        Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
-      rescue => e
-        Rails.logger.error "Error fetching or filtering banned purposes: #{e.message}"
-      end
-
-      [purposes, purposes_hash]
     end
 
+    banned_purposes = @service.banned_purpose_names
+    purposes = purposes.sort.uniq - banned_purposes
+    Rails.logger.info "Final filtered purposes: #{purposes.inspect}"
+
+    [purposes, purposes_hash]
+  end
+
+
+  ##
   # TODO(Drew) write documentation comment
   def get_customer_funding_data
     funding_data = []
@@ -1046,18 +997,6 @@ class EcolaneAmbassador < BookingAmbassador
     end
     mapping
   end
-
-  def get_travel_pattern_funding_source_names
-    travel_patterns = @service.travel_patterns.includes(:funding_sources)
-    funding_sources = []
-  
-    travel_patterns.each do |pattern|
-      funding_sources.concat(pattern.funding_sources)
-    end
-  
-    funding_sources
-  end
-  
 
   ### Return array of unique funding source names from the trip's matching travel patterns.
   ### Returns an empty array if no matches found.
