@@ -402,7 +402,7 @@ class EcolaneAmbassador < BookingAmbassador
     end
     # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
-    return nil if resp.nil? || resp.code != "200"
+    return nil if resp.code != "200"
     resp = Hash.from_xml(resp.body) || {}
     fare = resp.with_indifferent_access.fetch(:fare, {})
     (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
@@ -504,7 +504,6 @@ class EcolaneAmbassador < BookingAmbassador
       error_message = "Error while calling Ecolane: #{e.message}"
       Rails.logger.error error_message
       return nil
-      raise error_message
     end
   end
   ###################################################################
@@ -899,41 +898,51 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order funding=true, funding_hash=nil
+  def build_order(funding = true, funding_hash = nil)
+    # Ensure the itinerary and trip are loaded properly
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
-
+  
     @trip.reload
+  
+    # Make sure a purpose is present in the funding hash, if required
+    if funding_hash && funding_hash[:purpose].blank?
+      raise 'Purpose is missing from funding hash'
+    elsif @purpose.blank?
+      Rails.logger.error 'Purpose is missing. Cannot proceed with funding query.'
+      return nil
+    end
+  
+    # Build pickup and dropoff hashes
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
-
+  
     order_hash = {
-      assistant: @booking_options[:assistant], 
-      companions: @booking_options[:companions] || 0, 
-      children: @booking_options[:children] || 0, 
+      assistant: @booking_options[:assistant],
+      companions: @booking_options[:companions] || 0,
+      children: @booking_options[:children] || 0,
       other_passengers: 0,
       pickup: pickup_hash,
       dropoff: build_do_hash
     }
-
+  
+    # Set customer ID and funding if available
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
-    begin
-      if funding_hash && !funding_hash.empty?
-        order_hash[:funding] = funding_hash
-      elsif funding
-        order_hash[:funding] = get_funding_hash
-      elsif @purpose
-        order_hash[:funding] = {purpose: @purpose}
-      end
-
-      order_hash.to_xml(root: 'order', :dasherize => false)
-    rescue REXML::ParseException
-      nil
+  
+    if funding_hash && !funding_hash.empty?
+      order_hash[:funding] = funding_hash
+    elsif funding
+      order_hash[:funding] = get_funding_hash
+    elsif @purpose
+      order_hash[:funding] = { purpose: @purpose }
     end
+  
+    # Convert to XML for sending
+    order_hash.to_xml(root: 'order', dasherize: false)
   end
   
   # Build the hash for the pickup request
