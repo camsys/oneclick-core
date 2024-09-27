@@ -392,53 +392,28 @@ class EcolaneAmbassador < BookingAmbassador
   end
 
   def get_1click_fare funding_hash=nil
-    Rails.logger.info "Calling get_1click_fare with funding_hash: #{funding_hash.inspect}"
-
+    url_options =  "/api/order/#{system_id}/queryfare"
     url = @url + url_options
-
+    
     if funding_hash && !funding_hash.empty?
-      Rails.logger.info "Building order with funding_hash"
       order = build_order(true, funding_hash)
     else
-      Rails.logger.info "Building order without funding_hash"
-      order = build_order
+      order = build_order 
     end
-  
-    Rails.logger.info "Sending request to URL: #{url}"
+    # err on new qa is response didn't finish building
     resp = send_request(url, 'POST', order)
-    
-    if resp.nil? || resp.code != "200"
-      Rails.logger.error "Error: Response code is #{resp&.code}, expected 200"
-      return nil
-    end
-    
-    Rails.logger.info "Response code is 200, processing fare..."
+    return nil if resp.code != "200"
     resp = Hash.from_xml(resp.body) || {}
     fare = resp.with_indifferent_access.fetch(:fare, {})
-    
-    client_copay = fare[:client_copay].to_f
-    additional_passenger = fare[:additional_passenger].to_f
-  
-    Rails.logger.info "Calculated fare: Client Copay = #{client_copay}, Additional Passenger = #{additional_passenger}"
-    (client_copay + additional_passenger) / 100
+    (fare[:client_copay].to_f + fare[:additional_passenger].to_f) / 100
   end
 
   # Find the fare for a trip.
   def get_fare
-    Rails.logger.info "Calling get_fare for customer: #{@customer_id}, purpose: #{@purpose}, ecolane rules: #{@use_ecolane_rules}, funding source: #{@funding_source}, sponsor: #{@sponsor}"
-  
-    return unless @customer_id # If there is no user, return nil
-    Rails.logger.info "Customer ID is present"
-  
-    if @funding_source.blank?
-      Rails.logger.warn "No purpose provided, skipping fare calculation"
-    end
-  
-    if @use_ecolane_rules # Use Ecolane Rules
-      Rails.logger.info "Using Ecolane rules for fare calculation"
+    return unless @customer_id #If there is no user, then just return nil
+    if @use_ecolane_rules #use Ecolane Rules
       get_ecolane_fare
     else
-      Rails.logger.info "Using 1-click fare calculation"
       get_1click_fare
     end
   end
@@ -513,11 +488,7 @@ class EcolaneAmbassador < BookingAmbassador
       unless resp.is_a?(Net::HTTPSuccess)
         error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
         Rails.logger.error error_message
-        if resp.code == "400"
-          raise "400 Bad Request Error from Ecolane: #{resp.body}"
-        else
-          raise error_message
-        end
+        raise error_message
       end
   
       resp
@@ -532,7 +503,7 @@ class EcolaneAmbassador < BookingAmbassador
     rescue StandardError => e
       error_message = "Error while calling Ecolane: #{e.message}"
       Rails.logger.error error_message
-      return nil
+      raise error_message
     end
   end
   ###################################################################
@@ -549,19 +520,14 @@ class EcolaneAmbassador < BookingAmbassador
 
 
   # Get a list of trip purposes for a customer
-  def get_trip_purposes
-    Rails.logger.info "Getting trip purposes for customer #{@customer_id}"
+  def get_trip_purposes 
     purposes = []
     purposes_hash = []
     customer_information = fetch_customer_information(funding=true)
     current_date = Date.today
-  
+
     # Retrieve the maximum booking notice from Config or default to 59 if not set
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
-  
-    # Get eligible funding sources for travel patterns
-    travel_pattern_funding_sources = TravelPattern.where(id: relevant_travel_patterns).map { |tp| tp.funding_sources.pluck(:name) }.flatten.uniq
-    Rails.logger.info "Travel Pattern Funding Sources: #{travel_pattern_funding_sources}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
@@ -573,32 +539,34 @@ class EcolaneAmbassador < BookingAmbassador
       # Skip if valid_from is more than the greater of 59 days or maximum booking notice into the future
       next if valid_from && valid_from > current_date + [59, max_booking_notice_days].max.days
   
-      # Cross-reference funding sources with the travel pattern's eligible funding sources
-      next unless travel_pattern_funding_sources.include?(funding_source["name"].strip)
-  
+      if not @use_ecolane_rules and not funding_source["name"].strip.in? @preferred_funding_sources
+        next 
+      end
       arrayify(funding_source["allowed"]).each do |allowed|
         purpose = allowed["purpose"]
-  
+
         # Skip if the sponsor is not in the list of preferred sponsors
         next unless @preferred_sponsors.include?(allowed["sponsor"])
-  
+
         # Add the date range for which the purpose is eligible, if available.
         purpose_hash = {
           code: allowed["purpose"],
           valid_from: valid_from.to_s, # Ensuring it's always populated
           valid_until: valid_until&.to_s # Handling nil case gracefully
         }
-        unless purpose.in? purposes
+        
+        unless purpose.in? purposes #or purpose.downcase.strip.in? (disallowed_purposes.map { |p| p.downcase.strip } || "")
           purposes.append(purpose)
         end
         purposes_hash << purpose_hash
       end
     end
-  
+
     banned_purposes = @service.banned_purpose_names
     purposes = purposes.sort.uniq - banned_purposes
     [purposes, purposes_hash]
   end
+
 
   ##
   # TODO(Drew) write documentation comment
@@ -641,8 +609,6 @@ class EcolaneAmbassador < BookingAmbassador
   def valid_funding_source_combinations
     funding_source_combinations = get_customer_funding_data
     return funding_source_combinations if funding_source_combinations.blank?
-
-    Rails.logger.info "Funding Source Combinations: #{funding_source_combinations}"
 
     if @trip
       start_time = @outbound_trip.trip_time
@@ -932,51 +898,41 @@ class EcolaneAmbassador < BookingAmbassador
     end
   end
 
-  def build_order(funding = true, funding_hash = nil)
-    # Ensure the itinerary and trip are loaded properly
+  def build_order funding=true, funding_hash=nil
     itin = self.itinerary || @trip.selected_itinerary || @trip.itineraries.first
     @booking_options[:assistant] ||= yes_or_no(itin&.assistant)
     @booking_options[:companions] ||= itin&.companions
     @booking_options[:note] ||= itin&.note
-  
+
     @trip.reload
-  
-    # Make sure a purpose is present in the funding hash, if required
-    if funding_hash && funding_hash[:purpose].blank?
-      raise 'Purpose is missing from funding hash'
-    elsif @purpose.blank?
-      Rails.logger.error 'Purpose is missing. Cannot proceed with funding query.'
-      return nil
-    end
-  
-    # Build pickup and dropoff hashes
     pickup_hash = build_pu_hash
     pickup_hash[:note] = @booking_options[:note]
-  
+
     order_hash = {
-      assistant: @booking_options[:assistant],
-      companions: @booking_options[:companions] || 0,
-      children: @booking_options[:children] || 0,
+      assistant: @booking_options[:assistant], 
+      companions: @booking_options[:companions] || 0, 
+      children: @booking_options[:children] || 0, 
       other_passengers: 0,
       pickup: pickup_hash,
       dropoff: build_do_hash
     }
-  
-    # Set customer ID and funding if available
+
     unless @customer_id.blank? && @dummy.blank?
       order_hash[:customer_id] = @customer_id || @dummy
     end
-  
-    if funding_hash && !funding_hash.empty?
-      order_hash[:funding] = funding_hash
-    elsif funding
-      order_hash[:funding] = get_funding_hash
-    elsif @purpose
-      order_hash[:funding] = { purpose: @purpose }
+    begin
+      if funding_hash && !funding_hash.empty?
+        order_hash[:funding] = funding_hash
+      elsif funding
+        order_hash[:funding] = get_funding_hash
+      elsif @purpose
+        order_hash[:funding] = {purpose: @purpose}
+      end
+
+      order_hash.to_xml(root: 'order', :dasherize => false)
+    rescue REXML::ParseException
+      nil
     end
-  
-    # Convert to XML for sending
-    order_hash.to_xml(root: 'order', dasherize: false)
   end
   
   # Build the hash for the pickup request
@@ -1036,41 +992,37 @@ class EcolaneAmbassador < BookingAmbassador
   ### Returns an empty array if no matches found.
   def get_travel_pattern_funding_sources
     agency = @user&.transportation_agency
-    unless @user && @trip && @outbound_trip && @purpose && @service && agency
-      Rails.logger.info "Missing required data: User: #{@user.inspect}, Trip: #{@trip.inspect}, Outbound Trip: #{@outbound_trip.inspect}, Purpose: #{@purpose.inspect}, Service: #{@service.inspect}, Agency: #{agency.inspect}"
-      return []
-    end
-  
+    return [] unless @user && @trip && @outbound_trip && @purpose && @service && agency
+
     origin = { lat: @outbound_trip.origin&.lat, lng: @outbound_trip.origin&.lng }
     destination = { lat: @outbound_trip.destination&.lat, lng: @outbound_trip.destination&.lng }
     funding_source_combinations = valid_funding_source_combinations
-    Rails.logger.info "Valid funding source combinations: #{funding_source_combinations.inspect}"
-  
-    funding_source_names = funding_source_combinations.map { |combo| combo[:funding_source] }
+    funding_source_names = funding_source_combinations.map{|combo| combo[:funding_source]}
     trip_date = @outbound_trip.trip_time.to_date
     start_time = @outbound_trip.trip_time - @outbound_trip.trip_time.midnight
-  
+
     # inbound_trip could be nil for one-way trips
     if @inbound_trip
       end_time = @inbound_trip.trip_time - @inbound_trip.trip_time.midnight
     else
       end_time = nil
     end
-  
+    
     query_params = {
       agency: agency,
       service: @service,
       purpose: Purpose.find_or_initialize_by(name: @purpose, agency: agency),
       origin: origin,
       destination: destination,
-      # Uncomment these lines once the new workflow is tested
-      # date: trip_date,
-      # start_time: start_time,
-      # end_time: end_time,
+      # TODO: Commenting out this newer workflow until it can be tested more.
+      # Putting it back to match earlier workflow for OCC-1075.
+      #date: trip_date,
+      #start_time: start_time,
+      #end_time: end_time,
     }
-  
-    Rails.logger.info "Query params for filtering travel patterns: #{query_params.inspect}"
-  
+
+    # TODO: Commenting out this newer workflow until it can be tested more.
+    # Putting it back to match earlier workflow for OCC-1075.
     verified_funding_sources = Set.new(
       FundingSource.joins(:travel_patterns)
                    .where(
@@ -1078,17 +1030,19 @@ class EcolaneAmbassador < BookingAmbassador
                      travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) }
                    ).distinct.pluck(:name)
     ).to_a
-  
-    Rails.logger.info "Verified funding sources based on travel patterns: #{verified_funding_sources.inspect}"
-  
-    # Uncomment this once the workflow can be tested
-    # funding_source_combinations.select { |combination|
-    #   verified_funding_sources.include?(combination[:funding_source])
-    # }
-  
-    verified_funding_sources
+    #verified_funding_sources = Set.new(
+    #  FundingSource.joins(:travel_patterns)
+    #                .where(
+    #                  agency_id: agency.id,
+    #                  travel_patterns: { id: TravelPattern.available_for(query_params).map(&:id) },
+    #                  name: funding_source_names
+    #                ).distinct.pluck(:name)
+    #)
+    
+    #funding_source_combinations.select { |combination|
+    #  verified_funding_sources.include?(combination[:funding_source])
+    #}
   end
-  
 
   ### Build a Funding Hash for the Trip using 1-Click's Rules
   def build_1click_funding_hash
