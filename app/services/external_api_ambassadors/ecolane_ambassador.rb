@@ -514,7 +514,11 @@ class EcolaneAmbassador < BookingAmbassador
       unless resp.is_a?(Net::HTTPSuccess)
         error_message = "Error from Ecolane: Code #{resp.code}, Message: #{resp.body}"
         Rails.logger.error error_message
-        raise error_message
+        if resp.code == "400"
+          raise "400 Bad Request Error from Ecolane: #{resp.body}"
+        else
+          raise error_message
+        end
       end
   
       resp
