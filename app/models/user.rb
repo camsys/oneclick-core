@@ -197,7 +197,6 @@ class User < ApplicationRecord
   ##
   # TODO(Drew) write documentation comment
   def get_services
-    county = county_name_if_ecolane_email
     if county.nil?
       # County name may be null if user has set email to a non-Ecolane email address.
       # Search for county that user logged in as from most recent user booking profile.
