@@ -23,6 +23,9 @@ module Api
           travel_pattern_ids = travel_patterns.map { |t| t['id'] } # Get travel pattern IDs
           Rails.logger.info("Found the following matching Travel Patterns: #{travel_pattern_ids}")
 
+          # Store travel_pattern_ids in the session
+          session[:travel_pattern_ids] = travel_pattern_ids
+
           valid_from, valid_until = nil, nil # Initialize valid_from and valid_until to avoid errors
 
           # Call to_api_response and pass service along with dates

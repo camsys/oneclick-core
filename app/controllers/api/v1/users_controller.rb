@@ -151,7 +151,10 @@ module Api
         booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
         if @traveler and booking_profile
           begin
-            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes
+
+            travel_pattern_ids = session[:travel_pattern_ids] || []
+            Rails.logger.info("Passing travel_pattern_ids to ambassador: #{travel_pattern_ids}")
+            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
             Rails.logger.info("Trip Purposes: #{trip_purposes}")
             Rails.logger.info("Trip Purposes Hash: #{trip_purposes_hash}")
           rescue Exception=>e
