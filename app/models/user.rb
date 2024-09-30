@@ -197,32 +197,24 @@ class User < ApplicationRecord
   ##
   # TODO(Drew) write documentation comment
   def get_services
-    if county.nil?
-      # County name may be null if user has set email to a non-Ecolane email address.
-      # Search for county that user logged in as from most recent user booking profile.
-      # User booking profile is updated with county at login.
-      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first&.details
-      if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
-        county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
-      end
+    # Find the most recent booking profile with a service
+    most_recent_booking_profile = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first
+  
+    if most_recent_booking_profile
+      service = most_recent_booking_profile.service
+      Rails.logger.info "Service found via booking profile: #{service.name}"
+      [service] # Return the service in an array to match original return type
+    else
+      Rails.logger.info "No service found for user #{id}"
+      []
     end
-    # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
-    Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
-            .merge( TravelerTransitAgency.where(user_id: id) )
-            .with_home_county(county)
-            .paratransit_services
-            .published
-            .is_ecolane
   end
-
-  ##
-  # TODO(Drew) write documentation comment
-  # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
+  
   def current_service
-    get_services.first
-    # log the service
-    Rails.logger.info("Current Service: #{get_services.first}") 
-  end
+    service = get_services.first
+    Rails.logger.info "Current service for user #{id}: #{service&.name || 'No service found'}"
+    service
+  end  
 
   ##
   # TODO(Drew) write documentation comment
