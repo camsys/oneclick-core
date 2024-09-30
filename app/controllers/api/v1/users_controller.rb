@@ -144,91 +144,60 @@ module Api
 
       #Built to Support Ecolane API/V1
       def trip_purposes
+        # Trip purposes passed from the previous controller (TravelPatternsController)
+        trip_purposes = params[:trip_purposes] || []
+        trip_purposes_hash = params[:trip_purposes_hash] || []
 
-        #If the user is registered with a service, use his/her trip purposes
-        trip_purposes  = []
-        trip_purposes_hash = []
-        booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
-        if @traveler and booking_profile
-          begin
+        Rails.logger.info("Received trip purposes: #{trip_purposes}")
 
-            travel_pattern_ids = session[:travel_pattern_ids] || []
-            Rails.logger.info("Passing travel_pattern_ids to ambassador: #{travel_pattern_ids}")
-            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
-            Rails.logger.info("Trip Purposes: #{trip_purposes}")
-            Rails.logger.info("Trip Purposes Hash: #{trip_purposes_hash}")
-          rescue Exception=>e
-            trip_purposes = []
-            trip_purposes_hash = []
-          end
-        end
         purposes = trip_purposes.sort
 
-        #Append extra information to Top Trip Purposes Array
+        # Append extra information to Top Trip Purposes Array
         bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
         top_purposes = []
         bookings.each do |booking|
           purpose = booking.itinerary.trip.external_purpose
-          if purpose and not purpose.in? top_purposes
-            top_purposes << purpose
-          end
-          if top_purposes.length > 3
-            break
-          end
+          top_purposes << purpose if purpose && !top_purposes.include?(purpose)
+          break if top_purposes.length > 3
         end
 
-        #Make sure we have 4 purposes
+        # Ensure we have at least 4 purposes
         purposes.each do |purpose|
-          if top_purposes.length > 3
-            break 
-          end
-          if not purpose.in? top_purposes
-            top_purposes << purpose 
-          end
+          break if top_purposes.length > 3
+          top_purposes << purpose unless top_purposes.include?(purpose)
         end
 
-        #Make sure Top Purposes are still allowed
-        top_purposes = top_purposes.map{ |x| (x.in? purposes) ? x : 'DELETE' }
-        top_purposes -= ['DELETE']
+        # Ensure top purposes are still allowed
+        top_purposes = top_purposes.select { |p| purposes.include?(p) }
 
-        #Delete Duplicates
-        purposes = purposes.map{ |x| (x.in? top_purposes) ? 'DELETE' : x }
-        purposes -= ['DELETE']
-        
         # Ensure at least 4 purposes remain
         while top_purposes.length < 4 && !purposes.empty?
           top_purposes << purposes.shift
         end
 
-        purposes_hash = []
-        purposes.each_with_index do |p, i|
-          # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
-          valid_from = nil
-          valid_until = nil
-          if trip_purpose_hash
-            valid_from = trip_purpose_hash[:valid_from]
-            valid_until = trip_purpose_hash[:valid_until]
-          end
-          purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
+        # Process purposes into the hash format
+        purposes_hash = purposes.map.with_index do |p, i|
+          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }
+                                                .min_by { |h| h[:valid_from] }
+          valid_from = trip_purpose_hash&.[](:valid_from)
+          valid_until = trip_purpose_hash&.[](:valid_until)
+          { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
         end
 
-        top_purposes_hash = []
-        top_purposes.each_with_index do |p, i|
-          # Select the earliest purpose date range.
-          trip_purpose_hash = trip_purposes_hash.select {|h| h[:code] == p}.delete_if { |h| h[:valid_from].nil? }.min_by {|h| h[:valid_from]}
-          valid_from = nil
-          valid_until = nil
-          if trip_purpose_hash
-            valid_from = trip_purpose_hash[:valid_from]
-            valid_until = trip_purpose_hash[:valid_until]
-          end
-          top_purposes_hash << {name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until}
+        # Handle top purposes hash similarly
+        top_purposes_hash = top_purposes.map.with_index do |p, i|
+          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }
+                                                .min_by { |h| h[:valid_from] }
+          valid_from = trip_purpose_hash&.[](:valid_from)
+          valid_until = trip_purpose_hash&.[](:valid_until)
+          { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
         end
 
-        hash = {top_trip_purposes: top_purposes_hash, trip_purposes: purposes_hash}
-        render json: hash
-
+        # Prepare the response hash
+        render json: {
+          top_trip_purposes: top_purposes_hash,
+          trip_purposes: purposes_hash
+        }
       end
 
       #Looks up customer number from DOB, Name, and County in Ecolane
