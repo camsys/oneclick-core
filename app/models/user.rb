@@ -221,6 +221,8 @@ class User < ApplicationRecord
   # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
   def current_service
     get_services.first
+    # log the service
+    Rails.logger.info("Current Service: #{get_services.first}") 
   end
 
   ##
