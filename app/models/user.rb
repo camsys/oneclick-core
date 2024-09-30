@@ -197,6 +197,7 @@ class User < ApplicationRecord
   ##
   # TODO(Drew) write documentation comment
   def get_services
+    county = county_name_if_ecolane_email
     if county.nil?
       # County name may be null if user has set email to a non-Ecolane email address.
       # Search for county that user logged in as from most recent user booking profile.
@@ -219,16 +220,8 @@ class User < ApplicationRecord
   # TODO(Drew) write documentation comment
   # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
   def current_service
-    service = get_services.first
-  
-    if service
-      Rails.logger.info "Current service for user #{id}: #{service.name}"
-    else
-      Rails.logger.info "No service found for user #{id}"
-    end
-  
-    service
-  end  
+    get_services.first
+  end
 
   ##
   # TODO(Drew) write documentation comment
