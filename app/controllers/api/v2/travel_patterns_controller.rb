@@ -20,37 +20,16 @@ module Api
         travel_patterns = TravelPattern.available_for(query_params)
 
         if travel_patterns.any?
-          travel_pattern_ids = travel_patterns.map { |t| t['id'] }
+          travel_pattern_ids = travel_patterns.map(&:id) # Get travel pattern IDs
           Rails.logger.info("Found the following matching Travel Patterns: #{travel_pattern_ids}")
 
+          # We pass the travel_pattern_ids to the frontend response
           valid_from, valid_until = nil, nil
-
-          # Fetch purposes from the ambassador
-          booking_profile = @traveler.booking_profiles.first
-          trip_purposes = []
-          trip_purposes_hash = []
-
-          if booking_profile
-            begin
-              Rails.logger.info("Passing travel_pattern_ids to ambassador: #{travel_pattern_ids}")
-              trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
-              Rails.logger.info("Trip Purposes: #{trip_purposes}")
-            rescue Exception => e
-              Rails.logger.error("Error fetching trip purposes: #{e.message}")
-            end
-          end
-
-          # Generate API response including trip purposes
           api_response = travel_patterns.map do |pattern|
             TravelPattern.to_api_response(pattern, service, valid_from, valid_until)
           end
 
-          render status: :ok, json: {
-            status: "success",
-            data: api_response,
-            trip_purposes: trip_purposes,
-            trip_purposes_hash: trip_purposes_hash
-          }
+          render status: :ok, json: { status: "success", data: api_response, travel_pattern_ids: travel_pattern_ids }
         else
           Rails.logger.info("No matching Travel Patterns found")
           render fail_response(status: 404, message: "Not found")

@@ -144,60 +144,31 @@ module Api
 
       #Built to Support Ecolane API/V1
       def trip_purposes
-        # Trip purposes passed from the previous controller (TravelPatternsController)
-        trip_purposes = params[:trip_purposes] || []
-        trip_purposes_hash = params[:trip_purposes_hash] || []
+        trip_purposes = []
+        trip_purposes_hash = []
 
-        Rails.logger.info("Received trip purposes: #{trip_purposes}")
+        # Get travel pattern IDs from params passed by the frontend
+        travel_pattern_ids = params[:travel_pattern_ids] || []
 
-        purposes = trip_purposes.sort
+        booking_profile = @traveler.booking_profiles.where.not(service_id: nil).first
+        if @traveler && booking_profile && travel_pattern_ids.any?
+          begin
+            Rails.logger.info("Using travel_pattern_ids: #{travel_pattern_ids}")
 
-        # Append extra information to Top Trip Purposes Array
-        bookings = @traveler.bookings.where('bookings.created_at > ?', Time.now - 6.months).order(created_at: :desc)
-        top_purposes = []
-        bookings.each do |booking|
-          purpose = booking.itinerary.trip.external_purpose
-          top_purposes << purpose if purpose && !top_purposes.include?(purpose)
-          break if top_purposes.length > 3
+            # Fetch trip purposes from the ambassador using travel pattern IDs
+            trip_purposes, trip_purposes_hash = booking_profile.booking_ambassador.get_trip_purposes(travel_pattern_ids)
+            Rails.logger.info("Trip Purposes: #{trip_purposes}")
+          rescue Exception => e
+            Rails.logger.error("Error fetching trip purposes: #{e.message}")
+            trip_purposes = []
+            trip_purposes_hash = []
+          end
+        else
+          Rails.logger.info("No travel_pattern_ids provided or no booking_profile found")
         end
 
-        # Ensure we have at least 4 purposes
-        purposes.each do |purpose|
-          break if top_purposes.length > 3
-          top_purposes << purpose unless top_purposes.include?(purpose)
-        end
-
-        # Ensure top purposes are still allowed
-        top_purposes = top_purposes.select { |p| purposes.include?(p) }
-
-        # Ensure at least 4 purposes remain
-        while top_purposes.length < 4 && !purposes.empty?
-          top_purposes << purposes.shift
-        end
-
-        # Process purposes into the hash format
-        purposes_hash = purposes.map.with_index do |p, i|
-          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }
-                                                .min_by { |h| h[:valid_from] }
-          valid_from = trip_purpose_hash&.[](:valid_from)
-          valid_until = trip_purpose_hash&.[](:valid_until)
-          { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
-        end
-
-        # Handle top purposes hash similarly
-        top_purposes_hash = top_purposes.map.with_index do |p, i|
-          trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == p }
-                                                .min_by { |h| h[:valid_from] }
-          valid_from = trip_purpose_hash&.[](:valid_from)
-          valid_until = trip_purpose_hash&.[](:valid_until)
-          { name: p, code: p, sort_order: i, valid_from: valid_from, valid_until: valid_until }
-        end
-
-        # Prepare the response hash
-        render json: {
-          top_trip_purposes: top_purposes_hash,
-          trip_purposes: purposes_hash
-        }
+        # Return the purposes and filtered data as needed
+        render json: { trip_purposes: trip_purposes, trip_purposes_hash: trip_purposes_hash }
       end
 
       #Looks up customer number from DOB, Name, and County in Ecolane
