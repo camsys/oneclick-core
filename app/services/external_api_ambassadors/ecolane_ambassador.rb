@@ -699,10 +699,16 @@ class EcolaneAmbassador < BookingAmbassador
     booking_id = eco_trip[:id]
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
   
-    if eco_trip[:status] == "canceled" && itinerary && !itinerary.selected?
-      Rails.logger.info "Ecolane trip #{booking_id} is canceled and not selected. Skipping update."
+    if eco_trip[:status] == "canceled" && itinerary
+      Rails.logger.info "Ecolane trip #{booking_id} is canceled. Updating status in FMR."
+      booking = itinerary.booking 
+      booking.update(status: 'canceled') # Force updating the status
+      itinerary.unselect if itinerary.selected?
+      trip = itinerary.trip
+      trip.selected_itinerary = nil
+      trip.save
       return
-    end
+    end    
   
     # Log the update if the trip exists in FMR
     if itinerary
