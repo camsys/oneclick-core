@@ -699,8 +699,18 @@ class EcolaneAmbassador < BookingAmbassador
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
-    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" && itinerary && !itinerary.selected?
-      Rails.logger.info "Ecolane trip #{booking_id} is canceled and not selected. Skipping update."
+    # Always update if the trip is canceled, regardless of whether the itinerary is selected
+    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled"
+      if itinerary
+        Rails.logger.info "Ecolane trip #{booking_id} is canceled. Updating status."
+        booking = itinerary.booking
+        booking.update(occ_booking_hash(eco_trip))
+        trip = itinerary.trip
+        trip.selected_itinerary = nil
+        trip.save
+        booking.save
+        itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
+      end
       return
     end
 
