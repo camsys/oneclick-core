@@ -695,21 +695,38 @@ class EcolaneAmbassador < BookingAmbassador
   end
   
   ### Create OCC Trip from Ecolane Trip ###
-  def occ_trip_from_ecolane_trip eco_trip
+  def occ_trip_from_ecolane_trip(eco_trip)
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
-    itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+    status = eco_trip.try(:with_indifferent_access).try(:[], :status)
+    
+    Rails.logger.info "Processing Ecolane trip ID: #{booking_id} with status: #{status}"
 
-    # Always update if the trip is canceled, regardless of whether the itinerary is selected
-    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled"
+    # Log the user itinerary data
+    itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+    if itinerary
+      Rails.logger.info "Found existing itinerary for booking confirmation: #{booking_id}, status: #{itinerary.booking.status}"
+    else
+      Rails.logger.info "No existing itinerary found for booking confirmation: #{booking_id}"
+    end
+
+    # If the trip is canceled, ensure we update it regardless of selection
+    if status == "canceled"
       if itinerary
-        Rails.logger.info "Ecolane trip #{booking_id} is canceled. Updating status."
+        Rails.logger.info "Ecolane trip #{booking_id} is canceled. Updating status in FMR."
         booking = itinerary.booking
         booking.update(occ_booking_hash(eco_trip))
+        
+        # Clear the selected itinerary if canceled
         trip = itinerary.trip
         trip.selected_itinerary = nil
         trip.save
+
+        Rails.logger.info "Trip #{trip.id} is updated to canceled in FMR."
+
         booking.save
         itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
+      else
+        Rails.logger.info "Canceled trip #{booking_id} has no corresponding itinerary in FMR."
       end
       return
     end
@@ -719,34 +736,40 @@ class EcolaneAmbassador < BookingAmbassador
       Rails.logger.info "Updating itinerary for trip #{booking_id} with status: #{eco_trip[:status]}"
       booking = itinerary.booking 
       booking.update(occ_booking_hash(eco_trip))
+      Rails.logger.info "Booking for trip #{booking_id} updated with status #{booking.status}"
+
       if booking.status == "canceled"
         trip = itinerary.trip 
         trip.selected_itinerary = nil
         trip.save
-        # For some reason itinerary.unselect doesn't work here.
+        Rails.logger.info "Booking #{booking_id} marked as canceled."
       end
+
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
-      nil
-    # This Trip needs to be added to OCC
     else
       Rails.logger.info "Creating a new trip for Ecolane order ID: #{booking_id}"
       trip = Trip.create!(occ_trip_hash(eco_trip))
+      
       # Make the Itinerary
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
       itinerary.trip = trip
       itinerary.save 
       itinerary.select
 
+      Rails.logger.info "Itinerary created and selected for trip ID #{trip.id}, booking confirmation #{booking_id}"
+
       # Make the Booking
       booking = Booking.new(occ_booking_hash(eco_trip))
       booking.itinerary = itinerary
       if booking.status == 'canceled'
         itinerary.unselect
+        Rails.logger.info "New booking #{booking_id} marked as canceled and unselected."
       end
       booking.save 
     end
   end
+
 
   def occ_place_from_eco_place eco_place
     Waypoint.create!(occ_place_hash(eco_place))
