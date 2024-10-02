@@ -38,14 +38,28 @@ module Api
       # GET trips/future_trips
       # Returns future trips associated with logged in user, limit by max_results param
       def future_trips
+        Rails.logger.info "Retrieving future trips for user #{@traveler.id}"
+
         # Only return trips that have been booked properly
         future_trips_with_booking = @traveler.future_trips(params[:max_results] || 25).select do |trip|
-          trip.booking.present? && trip.booking.confirmation.present?
+          if trip.booking.nil?
+            Rails.logger.info "Trip #{trip.id} has no booking, skipping."
+            next
+          elsif trip.booking.confirmation.nil?
+            Rails.logger.info "Trip #{trip.id} has no confirmation, skipping."
+            next
+          else
+            Rails.logger.info "Trip #{trip.id} with booking #{trip.booking.confirmation} found, status: #{trip.booking.status}"
+            true
+          end
         end
 
-        future_trips_hash = future_trips_with_booking.map { |t| filter_trip_name(t) }
+        future_trips_hash = future_trips_with_booking.compact.map { |t| filter_trip_name(t) }
+        Rails.logger.info "Filtered future trips for response: #{future_trips_hash.map { |t| {trip_id: t[:trip_id], status: t[:status]} }}"
+
         render status: 200, json: {trips: future_trips_hash}
       end
+
 
       # POST trips/, POST itineraries/plan
       def create
