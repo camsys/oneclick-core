@@ -130,8 +130,11 @@ class EcolaneAmbassador < BookingAmbassador
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
 
-    (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
-      occ_trip_from_ecolane_trip order
+    ecolane_orders = arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))
+  
+    ecolane_orders.each do |order|
+      Rails.logger.info "Processing Ecolane Order ID: #{order[:id]} with status: #{order[:status]}"
+      occ_trip_from_ecolane_trip(order)
     end
 
     # For trips that are round trips, make sure that they point to each other.
@@ -696,12 +699,14 @@ class EcolaneAmbassador < BookingAmbassador
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
     itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
-    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" and itinerary and not itinerary.selected?
-      return 
+    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" && itinerary && !itinerary.selected?
+      Rails.logger.info "Ecolane trip #{booking_id} is canceled and not selected. Skipping update."
+      return
     end
 
-    # This Trip has already been created, just update it with new times/status etc.
+    # Log the update if the trip exists in FMR
     if itinerary
+      Rails.logger.info "Updating itinerary for trip #{booking_id} with status: #{eco_trip[:status]}"
       booking = itinerary.booking 
       booking.update(occ_booking_hash(eco_trip))
       if booking.status == "canceled"
@@ -715,7 +720,7 @@ class EcolaneAmbassador < BookingAmbassador
       nil
     # This Trip needs to be added to OCC
     else
-      # Make the Trip
+      Rails.logger.info "Creating a new trip for Ecolane order ID: #{booking_id}"
       trip = Trip.create!(occ_trip_hash(eco_trip))
       # Make the Itinerary
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))

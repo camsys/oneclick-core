@@ -152,8 +152,10 @@ class User < ApplicationRecord
   # Returns the user's (count) future trips, in descending order of trip time
   def future_trips(count=nil)
     # Sync up with any booking services
-    sync 
-    trips.selected.future.limit(count)
+    sync
+    future_trips = trips.selected.future.limit(count)
+    Rails.logger.info "Future trips retrieved: #{future_trips.map { |t| {id: t.id, status: t.booking.status} }}"
+    future_trips
   end
 
   # Returns an unordered collection of the traveler's waypoints
@@ -203,7 +205,7 @@ class User < ApplicationRecord
     if most_recent_booking_profile
       service = most_recent_booking_profile.service
       Rails.logger.info "Service found via booking profile: #{service.name}"
-      [service] # Return the service in an array to match original return type
+      [service] 
     else
       Rails.logger.info "No service found for user #{id}"
       []
