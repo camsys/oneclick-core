@@ -701,42 +701,40 @@ class EcolaneAmbassador < BookingAmbassador
     # Find all bookings with the same confirmation number
     bookings = Booking.where(confirmation: booking_id)
   
-    if bookings.any?
-      bookings.each do |booking|
-        itinerary = booking.itinerary
-        next unless itinerary
+    bookings.each do |booking|
+      itinerary = booking.itinerary
+      next unless itinerary
   
-        if eco_trip[:status] == "canceled" && !itinerary.selected?
-          Rails.logger.info "Ecolane trip #{booking_id} is canceled and not selected for itinerary #{itinerary.id}. Skipping update."
-          next
-        end
-  
-        # Log the update for each booking
-        Rails.logger.info "Updating itinerary #{itinerary.id} for trip #{booking_id} with status: #{eco_trip[:status]}"
-        booking.update(occ_booking_hash(eco_trip))
-        Rails.logger.info "Booking #{booking.id} for trip #{booking_id} updated with status #{booking.status}"
-  
-        if booking.status == "canceled"
-          trip = itinerary.trip
-          trip.selected_itinerary = nil
-          trip.save
-          Rails.logger.info "Trip #{trip.id} deselected because it was canceled."
-        end
-  
-        itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
+      if eco_trip[:status] == "canceled" && !itinerary.selected?
+        Rails.logger.info "Ecolane trip #{booking_id} is canceled and not selected. Skipping update for booking #{booking.id}."
+        next
       end
-    else
-      # If no bookings are found, create a new trip, itinerary, and booking
+  
+      # Log the update for each booking
+      Rails.logger.info "Updating itinerary #{itinerary.id} for trip #{booking_id} with status: #{eco_trip[:status]}"
+      booking.update(occ_booking_hash(eco_trip))
+      Rails.logger.info "Booking #{booking.id} for trip #{booking_id} updated with status #{booking.status}"
+  
+      if booking.status == "canceled"
+        trip = itinerary.trip
+        trip.selected_itinerary = nil
+        trip.save
+        Rails.logger.info "Trip #{trip.id} deselected because it was canceled."
+      end
+  
+      itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
+    end
+  
+    # If no bookings are found, create a new trip, itinerary, and booking
+    if bookings.empty?
       Rails.logger.info "Creating a new trip for Ecolane order ID: #{booking_id}"
       trip = Trip.create!(occ_trip_hash(eco_trip))
-  
-      # Create the Itinerary
+      
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
       itinerary.trip = trip
       itinerary.save
       itinerary.select
   
-      # Create the Booking
       booking = Booking.new(occ_booking_hash(eco_trip))
       booking.itinerary = itinerary
       if booking.status == 'canceled'
