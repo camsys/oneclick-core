@@ -58,10 +58,15 @@ module Api
             data: api_response
           }
         else
-          Rails.logger.info("No matching Travel Patterns found")
-          render fail_response(status: 404, message: "Not found")
+          Rails.logger.info("No matching Travel Patterns found, returning 0 dates")
+          # Send 0 dates if no matching funding sources are found
+          render status: :ok, json: {
+            status: "success",
+            data: []
+          }
         end
       end
+      
             
       protected
 
