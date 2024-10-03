@@ -42,9 +42,17 @@ module Api
           end
         end
       
-        if travel_patterns.any?
-          Rails.logger.info("Found the following matching Travel Patterns: #{travel_patterns.map { |t| t['id'] }}")
-          api_response = travel_patterns.map { |pattern| TravelPattern.to_api_response(pattern, service, valid_from, valid_until) }
+        # Log funding sources for travel patterns
+        valid_patterns = travel_patterns.select do |pattern|
+          Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
+          Rails.logger.info "Attached Funding Sources: #{pattern.funding_sources.pluck(:name).join(', ')}"
+          Rails.logger.info "Eligible Funding Sources from Ecolane: #{funding_source_names.join(', ')}"
+          pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
+        end
+      
+        if valid_patterns.any?
+          Rails.logger.info("Found the following matching Travel Patterns: #{valid_patterns.map { |t| t['id'] }}")
+          api_response = valid_patterns.map { |pattern| TravelPattern.to_api_response(pattern, service, valid_from, valid_until) }
           render status: :ok, json: {
             status: "success",
             data: api_response
