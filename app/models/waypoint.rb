@@ -27,10 +27,9 @@ class Waypoint < Place
 
     # Handle pipe filtering for the name
     short_name = full_name.split('|').first&.strip || ''
-
-    # Check if short name is already present in the address components
-    address_components = address_parts.split(',').map(&:strip)
-    if address_components.include?(short_name)
+  
+    # Check if short name is already present or identical to the street address
+    if address_parts.include?(short_name) || self.route&.include?(short_name)
       # Short name is already present, so use address_parts as is
       full_address = address_parts
     else
