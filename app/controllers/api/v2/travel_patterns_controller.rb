@@ -46,7 +46,7 @@ module Api
         valid_patterns = travel_patterns.select do |pattern|
           Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
           Rails.logger.info "Attached Funding Sources: #{pattern.funding_sources.pluck(:name).join(', ')}"
-          Rails.logger.info "Eligible Funding Sources from Ecolane: #{funding_source_names.join(', ')}"
+          Rails.logger.info "Eligible Funding Sources from Ecolane: #{funding_source_names}"
           pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
         end
       
