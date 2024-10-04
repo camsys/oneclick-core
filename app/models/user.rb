@@ -154,7 +154,6 @@ class User < ApplicationRecord
     # Sync up with any booking services
     sync
     future_trips = trips.selected.future.limit(count)
-    Rails.logger.info "Future trips retrieved: #{future_trips.map { |t| {id: t.id, status: t.booking.status} }}"
     future_trips
   end
 
