@@ -212,6 +212,13 @@ class EcolaneAmbassador < BookingAmbassador
   
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        
+        existing_booking = Booking.find_by(confirmation: confirmation)
+        if existing_booking
+          Rails.logger.warn "Pre-existing booking found with confirmation number #{confirmation}. Existing booking ID: #{existing_booking.id}, Itinerary ID: #{existing_booking.itinerary_id}"
+          Rails.logger.info "Existing trip ID: #{existing_booking.itinerary.trip.id}, Origin: #{existing_booking.itinerary.trip.origin.formatted_address}, Destination: #{existing_booking.itinerary.trip.destination.formatted_address}"
+        end
+  
         eco_trip = fetch_order(confirmation)["order"]
         booking = self.booking
         booking.update(occ_booking_hash(eco_trip))
