@@ -31,8 +31,10 @@ module Api
               trip_purposes_hash = []
             end
       
-            trip_purpose_hash = trip_purposes_hash.select { |h| h[:code] == purpose }.delete_if { |h| h[:valid_from].nil? }.min_by { |h| h[:valid_from] }
-      
+            trip_purpose_hash = trip_purposes_hash
+            .select { |h| h[:code] == purpose }
+            .min_by { |h| h[:valid_from] || Date.new(1900, 1, 1) }
+
             if trip_purpose_hash
               valid_from = trip_purpose_hash[:valid_from]
               valid_until = trip_purpose_hash[:valid_until]
