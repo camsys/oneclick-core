@@ -46,14 +46,18 @@ module Api
         Rails.logger.info("Found the following valid travel patterns: #{travel_patterns.map { |t| t['id'] }}")
         valid_patterns = travel_patterns.select do |pattern|
           Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
+          Rails.logger.info "Funding sources for travel pattern: #{pattern.funding_sources.pluck(:name)}"
+          Rails.logger.info "Funding sources from Ecolane: #{funding_source_names}"
         
           if pattern.funding_sources.present? && funding_source_names.present?
-            pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
+            match_found = pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
+            Rails.logger.info "Match found: #{match_found}"
+            match_found
           else
             Rails.logger.info "No valid funding sources found for Travel Pattern ID: #{pattern.id}"
             false
           end
-        end
+        end        
         
       
         if valid_patterns.any?
