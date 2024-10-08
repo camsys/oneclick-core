@@ -242,12 +242,13 @@ class User < ApplicationRecord
         # Skip any allowed_purpose that is missing or blank
         Rails.logger.info "Allowed Purpose: #{allowed_purpose}"
         next if allowed_purpose.nil? || allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
-        Rail.logger.info "skipped allowed_purpose because it was nil or blank"
         purpose = allowed_purpose['purpose'].strip
         funding_hash[purpose] ||= []
         funding_hash[purpose].push(funding_source['name'].strip)
       end
     end
+
+    Rails.logger.info "Funding Hash: #{funding_hash}"
 
     funding_hash
   end
