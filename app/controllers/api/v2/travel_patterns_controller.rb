@@ -20,6 +20,7 @@ module Api
         travel_patterns = TravelPattern.available_for(query_params)
       
         if purpose
+          Rails.logger.info("Looking for the valid date range for purpose: #{purpose}")
           booking_profile = @traveler.booking_profiles.first
           if booking_profile
             begin
