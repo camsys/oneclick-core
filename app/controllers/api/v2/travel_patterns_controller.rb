@@ -8,6 +8,7 @@ module Api
         service = @traveler.current_service
         purpose = query_params.delete(:purpose)
         funding_source_names = @traveler.get_funding_data(service)[purpose]
+        Rails.logger.info("Funding Source Names: #{funding_source_names}")
         date = query_params.delete(:date)
       
         query_params[:agency] = agency
