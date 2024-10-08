@@ -44,6 +44,7 @@ module Api
       
         # Log funding sources for travel patterns
         valid_patterns = travel_patterns.select do |pattern|
+          Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
         
           if pattern.funding_sources.present? && funding_source_names.present?
             pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
@@ -62,12 +63,8 @@ module Api
             data: api_response
           }
         else
-          Rails.logger.info("No matching Travel Patterns found, returning 0 dates")
-          # Send 0 dates if no matching funding sources are found
-          render status: :ok, json: {
-            status: "success",
-            data: []
-          }
+          Rails.logger.info("No matching Travel Patterns found")
+          render fail_response(status: 404, message: "Not found")
         end
       end
       
