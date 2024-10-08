@@ -43,6 +43,7 @@ module Api
         end
       
         # Log funding sources for travel patterns
+        Rails.logger.info("Found the following valid travel patterns: #{travel_patterns.map { |t| t['id'] }}")
         valid_patterns = travel_patterns.select do |pattern|
           Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
         
