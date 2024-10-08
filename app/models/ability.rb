@@ -139,6 +139,7 @@ class Ability
         can :manage, Purpose, agency_id: user.staff_agency.try(:id)
         can :manage, FundingSource, agency_id: user.staff_agency.try(:id)
         can :manage, BookingWindow, agency_id: user.staff_agency.try(:id)
+        can :manage, GeographyRecord
 
         # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Service,
