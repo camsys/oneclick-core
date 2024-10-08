@@ -17,7 +17,7 @@
     .add-ingredient
       .ingredient-input
         .input-group
-          %input.form-control.string.optional.region-input{type: 'text', placeholder: 'Add region(s) or point(s)', readonly: (cannot? :update, @service)}
+          %input.form-control.string.optional.region-input{type: 'text', placeholder: 'Add region(s) or point(s)', readonly: (cannot? :update, @od_zone)}
         .dropdown.region-results{style: 'position:absolute; z-index:500'}
     .pull-right.btn.btn-link.disabled
       %span.glyphicon.glyphicon-plus
