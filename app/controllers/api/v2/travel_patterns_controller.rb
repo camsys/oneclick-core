@@ -44,9 +44,6 @@ module Api
       
         # Log funding sources for travel patterns
         valid_patterns = travel_patterns.select do |pattern|
-          Rails.logger.info "Checking Travel Pattern ID: #{pattern.id}"
-          Rails.logger.info "Attached Funding Sources: #{pattern.funding_sources.pluck(:name).inspect}"
-          Rails.logger.info "Eligible Funding Sources from Ecolane: #{funding_source_names.inspect}"
         
           if pattern.funding_sources.present? && funding_source_names.present?
             pattern.funding_sources.any? { |fs| funding_source_names.include?(fs.name) }
