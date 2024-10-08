@@ -7,20 +7,13 @@ module Api
         agency = @traveler.transportation_agency
         service = @traveler.current_service
         purpose = query_params.delete(:purpose)
-        funding_source_names = @traveler.get_funding_data(service)[purpose]
-        Rails.logger.info("Funding Source Names: #{funding_source_names}")
-        date = query_params.delete(:date)
-      
-        query_params[:agency] = agency
-        query_params[:service] = service
-        query_params[:purpose] = Purpose.find_or_initialize_by(agency: agency, name: purpose.strip) if purpose
-        query_params[:funding_sources] = FundingSource.where(name: funding_source_names) if purpose # check funding sources only if there's also a trip purpose
-        query_params[:date] = Date.strptime(query_params[:date], '%Y-%m-%d') if date
-      
-        Rails.logger.info("Filtering through Travel Patterns with the following filters: #{query_params}")
-        travel_patterns = TravelPattern.available_for(query_params)
-      
+        funding_source_names = nil
+
         if purpose
+          Rails.logger.info("Purpose: #{purpose}")
+          funding_source_names = @traveler.get_funding_data(service)[purpose]
+          Rails.logger.info("Funding Source Names: #{funding_source_names}")
+
           booking_profile = @traveler.booking_profiles.first
           if booking_profile
             begin
@@ -33,18 +26,28 @@ module Api
             end
       
             trip_purpose_hash = trip_purposes_hash
-            .select { |h| h[:code] == purpose }
-            .min_by { |h| h[:valid_from] || Date.new(1900, 1, 1) }
+              .select { |h| h[:code] == purpose }
+              .min_by { |h| h[:valid_from] || Date.new(1900, 1, 1) }
 
             if trip_purpose_hash
               valid_from = trip_purpose_hash[:valid_from]
               valid_until = trip_purpose_hash[:valid_until]
-      
               puts "Valid From: #{valid_from}, Valid Until: #{valid_until}"
             end
           end
         end
+
+        date = query_params.delete(:date)
       
+        query_params[:agency] = agency
+        query_params[:service] = service
+        query_params[:purpose] = Purpose.find_or_initialize_by(agency: agency, name: purpose.strip) if purpose
+        query_params[:funding_sources] = FundingSource.where(name: funding_source_names) if purpose # only filter funding sources if there's a purpose
+        query_params[:date] = Date.strptime(query_params[:date], '%Y-%m-%d') if date
+      
+        Rails.logger.info("Filtering through Travel Patterns with the following filters: #{query_params}")
+        travel_patterns = TravelPattern.available_for(query_params)
+
         # Log funding sources for travel patterns
         Rails.logger.info("Found the following valid travel patterns: #{travel_patterns.map { |t| t['id'] }}")
         valid_patterns = travel_patterns.select do |pattern|
@@ -62,7 +65,6 @@ module Api
           end
         end        
         
-      
         if valid_patterns.any?
           Rails.logger.info("Found the following matching Travel Patterns: #{valid_patterns.map { |t| t['id'] }}")
           api_response = valid_patterns.map { |pattern| TravelPattern.to_api_response(pattern, service, valid_from, valid_until) }
@@ -75,8 +77,7 @@ module Api
           render fail_response(status: 404, message: "Not found")
         end
       end
-      
-            
+
       protected
 
       def query_params
@@ -89,7 +90,6 @@ module Api
           destination: [:lat, :lng]
         )
       end
-
     end
   end
 end
