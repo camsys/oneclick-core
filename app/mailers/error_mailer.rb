@@ -5,7 +5,7 @@ class ErrorMailer < ApplicationMailer
     return unless ENV['JOB_ERROR_NOTIFICATION_EMAIL'].present?
 
     @errors = errors.map(&:html_safe)
-    environment_name = ENV['AWS_BUCKET'] || 'Unknown environment'
+    environment_name = ENV['MAIL_HOST'] || 'Unknown environment'
     mail(
       to: ENV['JOB_ERROR_NOTIFICATION_EMAIL'],
       subject: "Ecolane POI Update Error (#{environment_name})"
