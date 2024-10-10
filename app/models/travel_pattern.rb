@@ -43,7 +43,7 @@ class TravelPattern < ApplicationRecord
       .or(
         travel_patterns[:destination_zone_id].in(origin_zone_ids)
         .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
-        .and(travel_patterns[:origin_zone_id].not_in(origin_zone_ids)) # Ensure the origin is not the same as the destination
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id]))
       )
     )
   }
@@ -68,7 +68,7 @@ class TravelPattern < ApplicationRecord
       .or(
         travel_patterns[:origin_zone_id].in(destination_zone_ids)
         .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
-        .and(travel_patterns[:destination_zone_id].not_in(destination_zone_ids)) # Ensure the destination is not the same as the origin
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) 
       )
     )
   }
