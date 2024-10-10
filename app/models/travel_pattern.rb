@@ -39,9 +39,14 @@ class TravelPattern < ApplicationRecord
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
   
     Rails.logger.info "Filtering Travel Patterns by Origin Zone IDs: #{origin_zone_ids}"
-    
+  
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
+        .or(
+          travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
+            travel_patterns[:allow_reverse_sequence_trips].eq(true)
+          )
+        )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
     end
@@ -63,9 +68,14 @@ class TravelPattern < ApplicationRecord
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
   
     Rails.logger.info "Filtering Travel Patterns by Destination Zone IDs: #{destination_zone_ids}"
-    
+  
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
+        .or(
+          travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
+            travel_patterns[:allow_reverse_sequence_trips].eq(true)
+          )
+        )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
