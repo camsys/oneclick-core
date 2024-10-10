@@ -37,9 +37,10 @@ class TravelPattern < ApplicationRecord
     
     travel_patterns = TravelPattern.arel_table
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
-
+  
     where(
-      travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
+      travel_patterns[:origin_zone_id].in(origin_zone_ids)
+      .or(
         travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
           travel_patterns[:allow_reverse_sequence_trips].eq(true)
         )
@@ -63,7 +64,8 @@ class TravelPattern < ApplicationRecord
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
 
     where(
-      travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
+      travel_patterns[:destination_zone_id].in(destination_zone_ids)
+      .or(
         travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
           travel_patterns[:allow_reverse_sequence_trips].eq(true)
         )
