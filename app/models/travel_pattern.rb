@@ -36,7 +36,12 @@ class TravelPattern < ApplicationRecord
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
   
     travel_patterns = TravelPattern.arel_table
-    origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+    origin_zones = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat]))
+  
+    # Log details about the origin zones
+    Rails.logger.info "Origin Zones: #{origin_zones.map { |zone| "#{zone.name} (ID: #{zone.id})" }.join(', ')}"
+  
+    origin_zone_ids = origin_zones.pluck(:id)
   
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
@@ -61,14 +66,19 @@ class TravelPattern < ApplicationRecord
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
   
     travel_patterns = TravelPattern.arel_table
-    destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+    destination_zones = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat]))
+  
+    # Log details about the destination zones
+    Rails.logger.info "Destination Zones: #{destination_zones.map { |zone| "#{zone.name} (ID: #{zone.id})" }.join(', ')}"
+  
+    destination_zone_ids = destination_zones.pluck(:id)
   
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
       .or(
         travel_patterns[:origin_zone_id].in(destination_zone_ids)
         .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
-        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) 
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id]))
       )
     )
   }
