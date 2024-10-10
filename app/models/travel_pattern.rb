@@ -32,18 +32,18 @@ class TravelPattern < ApplicationRecord
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
   # @option origin [Number] :lat The latitude of the trip's starting point.
   # @option origin [Number] :lng The longitude of the trip's starting point.
-  scope :with_origin, -> (origin) {
+  scope :with_origin, ->(origin) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
-    
+  
     travel_patterns = TravelPattern.arel_table
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
   
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
       .or(
-        travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
+        travel_patterns[:destination_zone_id].in(origin_zone_ids)
+        .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
+        .and(travel_patterns[:origin_zone_id].not_in(origin_zone_ids)) # Ensure the origin is not the same as the destination
       )
     )
   }
@@ -57,18 +57,18 @@ class TravelPattern < ApplicationRecord
   # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
   # @option destination [Number] :lat The latitude of the trip's ending point.
   # @option destination [Number] :lng The longitude of the trip's ending point.
-  scope :with_destination, -> (destination) {
+  scope :with_destination, ->(destination) {
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
-
+  
     travel_patterns = TravelPattern.arel_table
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
-
+  
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
       .or(
-        travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
+        travel_patterns[:origin_zone_id].in(destination_zone_ids)
+        .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
+        .and(travel_patterns[:destination_zone_id].not_in(destination_zone_ids)) # Ensure the destination is not the same as the origin
       )
     )
   }
