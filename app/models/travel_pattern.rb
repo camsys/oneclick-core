@@ -55,8 +55,11 @@ class TravelPattern < ApplicationRecord
         if pattern.origin_zone_id == pattern.destination_zone_id
           Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin and destination zones are the same"
           false
+        elsif !origin_zone_ids.include?(pattern.origin_zone_id)
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin zone ID #{pattern.origin_zone_id} is not in #{origin_zone_ids}"
+          false
         else
-          Rails.logger.info "Allowing pattern ID: #{pattern.id} because origin and destination zones are different"
+          Rails.logger.info "Allowing pattern ID: #{pattern.id} because origin and destination zones are different and origin zone is valid"
           true
         end
       end
