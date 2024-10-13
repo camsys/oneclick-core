@@ -28,7 +28,7 @@ class TravelPattern < ApplicationRecord
   # origin_zone_id, or where the destination_zone_id is used if allow_reverse_sequence_trips is set to true.
   # 
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
-  # @option origin [Number] :lat The latitude of the trip's starting point.
+    # @option origin [Number] :lng The longitude of the trip's starting point.
   scope :with_origin, ->(origin) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
   
@@ -81,6 +81,29 @@ class TravelPattern < ApplicationRecord
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
       result.each do |pattern|
         Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
+      end
+    end
+  }
+  
+  # Ensure that the origin and destination zones are not the same unless explicitly allowed
+  scope :valid_trip, ->(origin, destination) {
+    origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+    destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+  
+    Rails.logger.info "Validating trip with Origin Zone IDs: #{origin_zone_ids} and Destination Zone IDs: #{destination_zone_ids}"
+  
+    with_origin(origin).with_destination(destination).tap do |result|
+      valid_patterns = result.select do |pattern|
+        if pattern.origin_zone_id == pattern.destination_zone_id
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin and destination zones are the same"
+          false
+        else
+          true
+        end
+      end
+  
+      valid_patterns.each do |pattern|
+        Rails.logger.info "Valid Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
       end
     end
   }
