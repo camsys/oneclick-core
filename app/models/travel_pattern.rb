@@ -82,7 +82,16 @@ class TravelPattern < ApplicationRecord
 
   # Ensure that the origin and destination zones are not the same unless explicitly allowed
   scope :valid_trip, ->(origin, destination) {
-    with_origin(origin).with_destination(destination).where.not(origin_zone_id: destination_zone_ids)
+    origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+    destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+  
+    Rails.logger.info "Validating trip with Origin Zone IDs: #{origin_zone_ids} and Destination Zone IDs: #{destination_zone_ids}"
+  
+    with_origin(origin).with_destination(destination).where.not(origin_zone_id: destination_zone_ids).tap do |result|
+      result.each do |pattern|
+        Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
+      end
+    end
   }
 
   ##
