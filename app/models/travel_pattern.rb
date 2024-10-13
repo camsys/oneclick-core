@@ -23,61 +23,66 @@ class TravelPattern < ApplicationRecord
     joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
   end
 
-    ##
+  ##
   # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
   # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
   # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+ is
-  # set to +true+ for that Travel Pattern.
-  # 
+  # set to +true+ for that Travel Pattern, but origin-to-origin or destination-to-destination trips
+  # are not allowed unless explicitly defined in both origin_zone and destination_zone.
+  #
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
   # @option origin [Number] :lat The latitude of the trip's starting point.
   # @option origin [Number] :lng The longitude of the trip's starting point.
   scope :with_origin, ->(origin) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
-  
+
     travel_patterns = TravelPattern.arel_table
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
-  
+
     Rails.logger.info "Filtering Travel Patterns by Origin Zone IDs: #{origin_zone_ids}"
-  
+
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
-        .or(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-          .and(travel_patterns[:destination_zone_id].in(origin_zone_ids))
-        )
+      .or(
+        travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        .and(travel_patterns[:destination_zone_id].in(origin_zone_ids))
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) # Ensures origin and destination are not the same zone
+      )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
     end
   }
 
   ##
-  # This scope returns only Travel Patterns where the provided +destination+ is a valid ending 
-  # point for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+.
-  # The +origin_zone+ is considered a valid ending point if +allow_reverse_sequence_trips+ is
-  # set to +true+ for that Travel Pattern.
-  # 
+  # This scope returns only Travel Patterns where the provided +destination+ is a valid ending
+  # point for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
+  # +origin_zone+ is considered a valid ending point if +allow_reverse_sequence_trips+ is set to +true+
+  # for that Travel Pattern, but origin-to-origin or destination-to-destination trips are not allowed
+  # unless explicitly defined in both origin_zone and destination_zone.
+  #
   # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
   # @option destination [Number] :lat The latitude of the trip's ending point.
   # @option destination [Number] :lng The longitude of the trip's ending point.
   scope :with_destination, ->(destination) {
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
-  
+
     travel_patterns = TravelPattern.arel_table
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
-  
+
     Rails.logger.info "Filtering Travel Patterns by Destination Zone IDs: #{destination_zone_ids}"
-  
+
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
-        .or(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-          .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
-        )
+      .or(
+        travel_patterns[:allow_reverse_sequence_trips].eq(true)
+        .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) # Ensures destination and origin are not the same zone
+      )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
   }
+
 
 
   ##
