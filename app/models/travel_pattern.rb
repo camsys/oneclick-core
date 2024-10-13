@@ -118,10 +118,10 @@ class TravelPattern < ApplicationRecord
         Rails.logger.info "Valid Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
       end
   
+      Rails.logger.info "Final valid patterns: #{valid_patterns.map(&:id)}"
       valid_patterns
     end
   }
-
   ##
   # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
   # Pattern's list of associated purposes.
