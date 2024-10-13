@@ -38,15 +38,15 @@ class TravelPattern < ApplicationRecord
 
     travel_patterns = TravelPattern.arel_table
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
-
     Rails.logger.info "Filtering Travel Patterns by Origin Zone IDs: #{origin_zone_ids}"
+    Rails.logger.info "Origin zone names are: #{OdZone.where(id: origin_zone_ids).pluck(:name)}"
 
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
       .or(
         travel_patterns[:allow_reverse_sequence_trips].eq(true)
         .and(travel_patterns[:destination_zone_id].in(origin_zone_ids))
-        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) # Ensures origin and destination are not the same zone
+        .and(travel_patterns[:origin_zone_id].not_in(origin_zone_ids)) # Ensures origin and destination are distinct
       )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
@@ -70,18 +70,20 @@ class TravelPattern < ApplicationRecord
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
 
     Rails.logger.info "Filtering Travel Patterns by Destination Zone IDs: #{destination_zone_ids}"
+    Rails.logger.info "Destination zone names are: #{OdZone.where(id: destination_zone_ids).pluck(:name)}"
 
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
       .or(
         travel_patterns[:allow_reverse_sequence_trips].eq(true)
         .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
-        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) # Ensures destination and origin are not the same zone
+        .and(travel_patterns[:destination_zone_id].not_in(destination_zone_ids)) # Ensures destination and origin are distinct
       )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
   }
+
 
 
 
