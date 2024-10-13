@@ -23,7 +23,7 @@ class TravelPattern < ApplicationRecord
     joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
   end
 
-  ## 
+    ##
   # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
   # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
   # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+ is
@@ -42,6 +42,10 @@ class TravelPattern < ApplicationRecord
   
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
+        .or(
+          travel_patterns[:allow_reverse_sequence_trips].eq(true)
+          .and(travel_patterns[:destination_zone_id].in(origin_zone_ids))
+        )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
     end
@@ -69,12 +73,12 @@ class TravelPattern < ApplicationRecord
         .or(
           travel_patterns[:allow_reverse_sequence_trips].eq(true)
           .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
-          .and(travel_patterns[:destination_zone_id].in(destination_zone_ids))
         )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
   }
+
 
   ##
   # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
