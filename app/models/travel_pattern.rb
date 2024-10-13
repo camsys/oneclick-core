@@ -24,12 +24,9 @@ class TravelPattern < ApplicationRecord
   end
 
   ##
-  # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
-  # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
-  # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+ is
-  # set to +true+ for that Travel Pattern, but origin-to-origin or destination-to-destination trips
-  # are not allowed unless explicitly defined in both origin_zone and destination_zone.
-  #
+  # This scope returns only Travel Patterns where the provided +origin+ matches the Travel Pattern's
+  # origin_zone_id, or where the destination_zone_id is used if allow_reverse_sequence_trips is set to true.
+  # 
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
   # @option origin [Number] :lat The latitude of the trip's starting point.
   # @option origin [Number] :lng The longitude of the trip's starting point.
@@ -38,15 +35,15 @@ class TravelPattern < ApplicationRecord
 
     travel_patterns = TravelPattern.arel_table
     origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+
     Rails.logger.info "Filtering Travel Patterns by Origin Zone IDs: #{origin_zone_ids}"
-    Rails.logger.info "Origin zone names are: #{OdZone.where(id: origin_zone_ids).pluck(:name)}"
 
     where(
       travel_patterns[:origin_zone_id].in(origin_zone_ids)
       .or(
         travel_patterns[:allow_reverse_sequence_trips].eq(true)
         .and(travel_patterns[:destination_zone_id].in(origin_zone_ids))
-        .and(travel_patterns[:origin_zone_id].not_in(origin_zone_ids)) # Ensures origin and destination are distinct
+        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id])) # Make sure we don't match origin to origin
       )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
@@ -54,12 +51,9 @@ class TravelPattern < ApplicationRecord
   }
 
   ##
-  # This scope returns only Travel Patterns where the provided +destination+ is a valid ending
-  # point for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
-  # +origin_zone+ is considered a valid ending point if +allow_reverse_sequence_trips+ is set to +true+
-  # for that Travel Pattern, but origin-to-origin or destination-to-destination trips are not allowed
-  # unless explicitly defined in both origin_zone and destination_zone.
-  #
+  # This scope returns only Travel Patterns where the provided +destination+ matches the Travel Pattern's
+  # destination_zone_id, or where the origin_zone_id is used if allow_reverse_sequence_trips is set to true.
+  # 
   # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
   # @option destination [Number] :lat The latitude of the trip's ending point.
   # @option destination [Number] :lng The longitude of the trip's ending point.
@@ -70,19 +64,19 @@ class TravelPattern < ApplicationRecord
     destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
 
     Rails.logger.info "Filtering Travel Patterns by Destination Zone IDs: #{destination_zone_ids}"
-    Rails.logger.info "Destination zone names are: #{OdZone.where(id: destination_zone_ids).pluck(:name)}"
 
     where(
       travel_patterns[:destination_zone_id].in(destination_zone_ids)
       .or(
         travel_patterns[:allow_reverse_sequence_trips].eq(true)
         .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
-        .and(travel_patterns[:destination_zone_id].not_in(destination_zone_ids)) # Ensures destination and origin are distinct
+        .and(travel_patterns[:destination_zone_id].not_eq(travel_patterns[:origin_zone_id])) # Make sure we don't match destination to destination
       )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
   }
+
 
 
 
