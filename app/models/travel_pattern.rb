@@ -73,16 +73,12 @@ class TravelPattern < ApplicationRecord
       .or(
         travel_patterns[:allow_reverse_sequence_trips].eq(true)
         .and(travel_patterns[:origin_zone_id].in(destination_zone_ids))
-        .and(travel_patterns[:origin_zone_id].not_eq(travel_patterns[:destination_zone_id]))
+        .and(travel_patterns[:destination_zone_id].not_eq(travel_patterns[:origin_zone_id]))
       )
     ).tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
     end
   }
-
-
-
-
 
 
   ##
