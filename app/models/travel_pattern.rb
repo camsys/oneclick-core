@@ -54,6 +54,8 @@ class TravelPattern < ApplicationRecord
       valid_patterns = result.select do |pattern|
         original_origin_zone_id = pattern.origin_zone_id
         original_destination_zone_id = pattern.destination_zone_id
+        
+        Rails.logger.info "Original Origin Zone ID: #{original_origin_zone_id}, Original Destination Zone ID: #{original_destination_zone_id}"
   
         if original_origin_zone_id == original_destination_zone_id
           Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin and destination zones are the same"
@@ -116,6 +118,9 @@ class TravelPattern < ApplicationRecord
       valid_patterns = result.select do |pattern|
         original_origin_zone_id = pattern.origin_zone_id
         original_destination_zone_id = pattern.destination_zone_id
+        
+        
+        Rails.logger.info "Original Origin Zone ID: #{original_origin_zone_id}, Original Destination Zone ID: #{original_destination_zone_id}"
   
         if original_origin_zone_id == original_destination_zone_id
           Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin and destination zones are the same"
