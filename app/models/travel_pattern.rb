@@ -29,6 +29,7 @@ class TravelPattern < ApplicationRecord
   # 
   # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
    # @option origin [Number] :lng The longitude of the trip's starting point.
+   # @option origin [Number] :lng The longitude of the trip's starting point.
   scope :with_origin, ->(origin) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
   
@@ -48,7 +49,7 @@ class TravelPattern < ApplicationRecord
     patterns.tap do |result|
       Rails.logger.info "Travel Patterns found for origin: #{result.pluck(:id)}"
       result.each do |pattern|
-        Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
+        Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}, Allow Reverse: #{pattern.allow_reverse_sequence_trips}"
       end
   
       valid_patterns = result.select do |pattern|
@@ -107,18 +108,18 @@ class TravelPattern < ApplicationRecord
     patterns.tap do |result|
       Rails.logger.info "Travel Patterns found for destination: #{result.pluck(:id)}"
       result.each do |pattern|
-        Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}"
+        Rails.logger.info "Travel Pattern ID: #{pattern.id}, Origin Zone ID: #{pattern.origin_zone_id}, Destination Zone ID: #{pattern.destination_zone_id}, Allow Reverse: #{pattern.allow_reverse_sequence_trips}"
       end
   
       valid_patterns = result.select do |pattern|
         if pattern.origin_zone_id == pattern.destination_zone_id
           Rails.logger.info "Skipping pattern ID: #{pattern.id} because origin and destination zones are the same"
           false
-        elsif !destination_zone_ids.include?(pattern.destination_zone_id)
-          Rails.logger.info "Skipping pattern ID: #{pattern.id} because destination zone ID #{pattern.destination_zone_id} is not in #{destination_zone_ids}"
+        elsif !destination_zone_ids.include?(pattern.destination_zone_id) && !(pattern.allow_reverse_sequence_trips && destination_zone_ids.include?(pattern.origin_zone_id))
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} because destination zone ID #{pattern.destination_zone_id} is not in #{destination_zone_ids} and reverse trips are not allowed"
           false
         else
-          Rails.logger.info "Allowing pattern ID: #{pattern.id} because origin and destination zones are different and destination zone is valid"
+          Rails.logger.info "Allowing pattern ID: #{pattern.id} because origin and destination zones are different and destination zone is valid or reverse trips are allowed"
           true
         end
       end
