@@ -136,7 +136,7 @@ class TravelPattern < ApplicationRecord
       valid_patterns
     end
   }
-  }
+  
   ##
   # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
   # Pattern's list of associated purposes.
