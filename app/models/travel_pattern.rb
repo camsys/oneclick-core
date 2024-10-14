@@ -71,7 +71,7 @@ class TravelPattern < ApplicationRecord
   
         # Disallow invalid trips where origin and destination do not match correctly
         else
-          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to invalid origin-destination combination"
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to invalid origin-destination combination. Queried Origin Zone IDs: #{queried_origin}, Actual Origin Zone ID: #{actual_origin_zone}, Actual Destination Zone ID: #{actual_destination_zone}, Allow Reverse: #{pattern.allow_reverse_sequence_trips}"
           false
         end
       end
@@ -129,7 +129,7 @@ class TravelPattern < ApplicationRecord
   
         # Disallow invalid trips where origin and destination do not match correctly
         else
-          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to invalid destination-origin combination"
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to invalid destination-origin combination. Queried Destination Zone IDs: #{queried_destination}, Actual Origin Zone ID: #{actual_origin_zone}, Actual Destination Zone ID: #{actual_destination_zone}, Allow Reverse: #{pattern.allow_reverse_sequence_trips}"
           false
         end
       end
