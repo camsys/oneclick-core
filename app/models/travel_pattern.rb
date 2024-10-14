@@ -86,8 +86,13 @@ class TravelPattern < ApplicationRecord
           true
       
         # Allow regular trips from origin to destination only if destination is in the queried zones
-        elsif origin_match && destination_match && !queried_origin.include?(actual_destination_zone)
+        elsif origin_match && queried_destination.include?(actual_destination_zone)
           Rails.logger.info "Allowing regular trip for pattern ID: #{pattern.id} from origin to destination"
+          true
+      
+        # Allow reverse trips from destination to origin only if origin is in the queried zones and reverse trips are allowed
+        elsif destination_match && queried_origin.include?(actual_origin_zone) && pattern.allow_reverse_sequence_trips
+          Rails.logger.info "Allowing reverse trip for pattern ID: #{pattern.id} from destination to origin"
           true
       
         # Disallow invalid trips where origin and destination do not match correctly
