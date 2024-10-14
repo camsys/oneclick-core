@@ -75,11 +75,6 @@ class TravelPattern < ApplicationRecord
           Rails.logger.info "Allowing same-zone trip for pattern ID: #{pattern.id} where both origin and destination are #{actual_origin_zone}"
           true
       
-        # Disallow trips where both origin and destination are in the queried zones but not the same
-        elsif origin_match && destination_match && actual_origin_zone != actual_destination_zone
-          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to both origin and destination being in the queried zones but not the same"
-          false
-      
         # Allow reverse trips when allowed and zones are different
         elsif destination_match && origin_match && actual_origin_zone != actual_destination_zone && pattern.allow_reverse_sequence_trips
           Rails.logger.info "Allowing reverse trip for pattern ID: #{pattern.id} from destination to origin"
