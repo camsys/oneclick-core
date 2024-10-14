@@ -131,7 +131,7 @@ class TravelPattern < ApplicationRecord
         elsif !destination_zone_ids.include?(original_destination_zone_id) && !(pattern.allow_reverse_sequence_trips && destination_zone_ids.include?(original_origin_zone_id) && original_origin_zone_id != original_destination_zone_id)
           Rails.logger.info "Skipping pattern ID: #{pattern.id} because destination zone ID #{original_destination_zone_id} is not in #{destination_zone_ids} and reverse trips are not allowed"
           false
-        elsif destination_zone_ids.include?(original_origin_zone_id) && original_origin_zone_id != original_destination_zone_id
+        elsif destination_zone_ids.include?(original_origin_zone_id) && original_origin_zone_id != original_destination_zone_id && !pattern.allow_reverse_sequence_trips
           Rails.logger.info "Skipping pattern in destination method because ID: #{pattern.id} because origin zone ID #{original_origin_zone_id} is in #{destination_zone_ids} and destination zone is not valid"
           false
         else
