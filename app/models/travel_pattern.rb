@@ -35,12 +35,17 @@ class TravelPattern < ApplicationRecord
     Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
     Rails.logger.info "Querying for patterns with origin and destination"
   
-    Rails.logger.info "Running TravelPattern.where with origin_zone_id IN #{queried_origin} and destination_zone_id IN #{queried_destination}"
-    Rails.logger.info "Running TravelPattern.where with destination_zone_id IN #{queried_origin}, origin_zone_id IN #{queried_destination}, allow_reverse_sequence_trips: true"
+    patterns = TravelPattern
+      .where(origin_zone_id: queried_origin, destination_zone_id: queried_destination)
+      .or(
+        TravelPattern.where(
+          destination_zone_id: queried_origin,
+          origin_zone_id: queried_destination,
+          allow_reverse_sequence_trips: true
+        )
+      )
   
-    patterns = TravelPattern.where(origin_zone_id: queried_origin, destination_zone_id: queried_destination)
-                            .or(TravelPattern.where(destination_zone_id: queried_origin, origin_zone_id: queried_destination, allow_reverse_sequence_trips: true))
-  
+    # Ensure proper grouping of conditions in the SQL query
     Rails.logger.info "Generated SQL: #{patterns.to_sql}"
   
     Rails.logger.info "Initial Patterns found: #{patterns.pluck(:id)}"
@@ -107,9 +112,8 @@ class TravelPattern < ApplicationRecord
   
       valid_patterns
     end
-  }  
+  }
   
-
 
   ##
   # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
