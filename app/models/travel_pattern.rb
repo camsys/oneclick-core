@@ -36,12 +36,8 @@ class TravelPattern < ApplicationRecord
   
     Rails.logger.info "Querying for patterns with origin and destination"
   
-    patterns = TravelPattern.where(
-      (origin_zone_id: queried_origin, destination_zone_id: queried_destination)
-      .or(
-        { destination_zone_id: queried_origin, origin_zone_id: queried_destination, allow_reverse_sequence_trips: true }
-      )
-    )
+    patterns = TravelPattern.where(origin_zone_id: queried_origin, destination_zone_id: queried_destination)
+                            .or(TravelPattern.where(destination_zone_id: queried_origin, origin_zone_id: queried_destination, allow_reverse_sequence_trips: true))
   
     Rails.logger.info "Initial Patterns found: #{patterns.pluck(:id)}"
   
