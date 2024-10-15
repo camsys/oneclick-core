@@ -36,18 +36,14 @@ class TravelPattern < ApplicationRecord
     Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
   
     patterns = where(
-      travel_patterns[:origin_zone_id].in(queried_origin).or(
-        travel_patterns[:destination_zone_id].in(queried_origin).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
-      ).or(
-        travel_patterns[:destination_zone_id].in(queried_destination).or(
-          travel_patterns[:origin_zone_id].in(queried_destination).and(
-            travel_patterns[:allow_reverse_sequence_trips].eq(true)
-          )
-        )
+      travel_patterns[:origin_zone_id].in(queried_origin)
+        .and(travel_patterns[:destination_zone_id].in(queried_destination))
+      .or(
+        travel_patterns[:destination_zone_id].in(queried_origin)
+          .and(travel_patterns[:origin_zone_id].in(queried_destination))
+          .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
       )
-    )
+    )    
   
     Rails.logger.info "Initial Patterns found: #{patterns.pluck(:id)}"
   
