@@ -135,6 +135,8 @@ class Admin::ServiceSchedulesController < Admin::AdminController
     @schedule_type = @service_schedule.service_schedule_type
     @schedule_name = @service_schedule.name
     @schedule_description = @service_schedule.description
+    Rails.logger.info "Checking if user #{current_user.id} can update service schedule #{@service_schedule.id}"
+    Rails.logger.info "Can update: #{can?(:update, @service_schedule)}"
   end
 
   def update
