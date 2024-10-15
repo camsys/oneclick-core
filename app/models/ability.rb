@@ -135,7 +135,7 @@ class Ability
         can :manage, TravelPattern, agency_id: user.staff_agency.try(:id)
         can :manage, LandmarkSet, agency_id: user.staff_agency.try(:id)
         can :manage, OdZone, agency_id: user.staff_agency.try(:id)
-        can :manage, ServiceSchedule, agency_id: user.staff_agency.try(:id)
+        can :manage, ServiceSchedule, agency_id: [user.staff_agency.try(:id)] + user.staff_agency.try(:agency_oversight_agency).pluck(:transportation_agency_id)
         can :manage, Purpose, agency_id: user.staff_agency.try(:id)
         can :manage, FundingSource, agency_id: user.staff_agency.try(:id)
         can :manage, BookingWindow, agency_id: user.staff_agency.try(:id)
