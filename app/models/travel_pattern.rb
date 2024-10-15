@@ -375,26 +375,43 @@ class TravelPattern < ApplicationRecord
       :date
     ]
     query = self.all
-  
+
+    Rails.logger.info "Initial query: #{query.to_sql}"
+
     # First filter by all provided params except origin and destination
     filters.each do |filter|
       method_name = ("with_" + filter.to_s).to_sym
       param = query_params[filter]
-  
-      query = query.send(method_name, param) unless param.nil?
+
+      if param
+        Rails.logger.info "Applying filter: #{filter} with param: #{param}"
+        query = query.send(method_name, param)
+        Rails.logger.info "Query after applying #{filter}: #{query.to_sql}"
+      end
     end
-  
+
     # Handle origin and destination together
     if query_params[:origin] && query_params[:destination]
+      Rails.logger.info "Applying with_origin_and_destination with origin: #{query_params[:origin]} and destination: #{query_params[:destination]}"
       query = query.with_origin_and_destination(query_params[:origin], query_params[:destination])
     else
-      query = query.with_origin(query_params[:origin]) if query_params[:origin]
-      query = query.with_destination(query_params[:destination]) if query_params[:destination]
+      if query_params[:origin]
+        Rails.logger.info "Applying with_origin with origin: #{query_params[:origin]}"
+        query = query.with_origin(query_params[:origin])
+      end
+      if query_params[:destination]
+        Rails.logger.info "Applying with_destination with destination: #{query_params[:destination]}"
+        query = query.with_destination(query_params[:destination])
+      end
     end
-  
+
+    Rails.logger.info "Query before filtering by time: #{query.to_sql}"
+
     # Filter by time if start_time and end_time are provided
     travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
-  
+
+    Rails.logger.info "Final travel patterns: #{travel_patterns.map(&:id)}"
+
     travel_patterns
   end
 
