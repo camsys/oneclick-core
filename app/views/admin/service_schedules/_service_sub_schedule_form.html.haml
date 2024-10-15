@@ -43,6 +43,9 @@
           %button.btn.add-day-schedule{type:"button", disabled: !(can? :update, @service_schedule)}
             %span.text-muted Add hours
             %span.text-muted.glyphicon.glyphicon-plus
+
+          - if !can?(:update, @service_schedule)
+            = Rails.logger.info "Permission Denied: Cannot update service schedule ID #{@service_schedule.id} for user #{current_user.id}"
   .panel.schedule-row-wrapper{class: 'panel-default'}
     .row.panel-body
       .col-sm-6.optional-dates

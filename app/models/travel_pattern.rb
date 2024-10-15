@@ -23,7 +23,6 @@ class TravelPattern < ApplicationRecord
     joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
   end
 
-  
   scope :with_origin_and_destination, ->(origin, destination) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
