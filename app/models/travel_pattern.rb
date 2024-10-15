@@ -28,22 +28,20 @@ class TravelPattern < ApplicationRecord
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
   
-    travel_patterns = TravelPattern.arel_table
     queried_origin = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
     queried_destination = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
   
     Rails.logger.info "Queried Origin Zone IDs: #{queried_origin}"
     Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
   
+    Rails.logger.info "Querying for patterns with origin and destination"
+  
     patterns = where(
-      travel_patterns[:origin_zone_id].in(queried_origin)
-        .and(travel_patterns[:destination_zone_id].in(queried_destination))
+      (origin_zone_id: queried_origin, destination_zone_id: queried_destination)
       .or(
-        travel_patterns[:destination_zone_id].in(queried_origin)
-          .and(travel_patterns[:origin_zone_id].in(queried_destination))
-          .and(travel_patterns[:allow_reverse_sequence_trips].eq(true))
+        { destination_zone_id: queried_origin, origin_zone_id: queried_destination, allow_reverse_sequence_trips: true }
       )
-    )    
+    )
   
     Rails.logger.info "Initial Patterns found: #{patterns.pluck(:id)}"
   
