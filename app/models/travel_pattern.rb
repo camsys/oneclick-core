@@ -459,10 +459,12 @@ class TravelPattern < ApplicationRecord
     trip_start = trip_start.to_i
     trip_end = (trip_end || trip_start).to_i
 
-    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start/1.hour}:#{trip_start%1.hour/1.minute}, to: #{trip_end/1.hour}:#{trip_end%1.hour/1.minute}")
+    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start / 1.hour}:#{trip_start % 1.hour / 1.minute}, to: #{trip_end / 1.hour}:#{trip_end % 1.hour / 1.minute}")
     # Eager loading will ensure that all the previous filters will still apply to the nested relations
-    travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: {service_schedule: [:service_schedule_type, :service_sub_schedules]})
-    travel_patterns.select do |travel_pattern|
+    travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: { service_schedule: [:service_schedule_type, :service_sub_schedules] })
+    Rails.logger.info("Travel Patterns before time filtering: #{travel_patterns.map(&:id)}")
+
+    valid_patterns = travel_patterns.select do |travel_pattern|
       schedules = travel_pattern.schedules_by_type
 
       # If there are reduced schedules, then we don't need to check any other schedules
@@ -470,12 +472,12 @@ class TravelPattern < ApplicationRecord
         Rails.logger.info("Travel Pattern ##{travel_pattern.id} has matching reduced service schedules")
         schedules = schedules[:reduced_service_schedules]
       else
-        Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have maching calendar date schedules, checking other schedule types")
+        Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have matching calendar date schedules, checking other schedule types")
         schedules = schedules[:weekly_schedules] + schedules[:extra_service_schedules]
       end
 
       # Grab any valid schedules
-      schedules.any? do |travel_pattern_service_schedule|
+      valid_schedule = schedules.any? do |travel_pattern_service_schedule|
         service_schedule = travel_pattern_service_schedule.service_schedule
         service_schedule.service_sub_schedules.any? do |sub_schedule|
           valid_start_time = sub_schedule.start_time <= trip_start
@@ -484,7 +486,13 @@ class TravelPattern < ApplicationRecord
           valid_start_time && valid_end_time
         end
       end
-    end # end travel_patterns.select
-  end # end filter_by_time
+
+      Rails.logger.info("Travel Pattern ##{travel_pattern.id} valid schedule: #{valid_schedule}")
+      valid_schedule
+    end
+
+    Rails.logger.info("Valid Travel Patterns after time filtering: #{valid_patterns.map(&:id)}")
+    valid_patterns
+  end
 
 end
