@@ -35,13 +35,13 @@ class TravelPattern < ApplicationRecord
     Rails.logger.info "Queried Origin Zone IDs: #{queried_origin}"
     Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
   
+
+    Rails.logger.info "Querying for patterns with origin and destination"
+
     patterns = where(
-      Rails.logger.info "Querying for patterns with origin and destination"
       (origin_zone_id: queried_origin, destination_zone_id: queried_destination)
       .or(
-        destination_zone_id: queried_origin,
-        origin_zone_id: queried_destination,
-        allow_reverse_sequence_trips: true
+        { destination_zone_id: queried_origin, origin_zone_id: queried_destination, allow_reverse_sequence_trips: true }
       )
     )
   
