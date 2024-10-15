@@ -35,15 +35,10 @@ class TravelPattern < ApplicationRecord
     Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
     Rails.logger.info "Querying for patterns with origin and destination"
   
-    patterns = TravelPattern
-      .where(origin_zone_id: queried_origin, destination_zone_id: queried_destination)
-      .or(
-        TravelPattern.where(
-          destination_zone_id: queried_origin,
-          origin_zone_id: queried_destination,
-          allow_reverse_sequence_trips: true
-        )
-      )
+    patterns = TravelPattern.where(
+      "(origin_zone_id IN (?) AND destination_zone_id IN (?)) OR (destination_zone_id IN (?) AND origin_zone_id IN (?) AND allow_reverse_sequence_trips = ?)",
+      queried_origin, queried_destination, queried_origin, queried_destination, true
+    )
   
     # Ensure proper grouping of conditions in the SQL query
     Rails.logger.info "Generated SQL: #{patterns.to_sql}"
