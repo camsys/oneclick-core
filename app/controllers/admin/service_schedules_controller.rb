@@ -1,6 +1,7 @@
 class Admin::ServiceSchedulesController < Admin::AdminController
   authorize_resource except: :index
   before_action :authorize_user, only: [:new, :create]
+  before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
     @service_schedules = get_service_schedules_for_current_user
