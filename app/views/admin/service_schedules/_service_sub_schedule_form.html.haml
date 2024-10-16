@@ -51,7 +51,6 @@
         .col-sm-7.date-input-div
           = f.input :start_date,
             label: false,
-            readonly: mode == 'view' ? true : false,
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
@@ -61,7 +60,6 @@
         .col-sm-6.date-input-div
           = f.input :end_date,
             label: false,
-            readonly: mode == 'view' ? true : false,
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
