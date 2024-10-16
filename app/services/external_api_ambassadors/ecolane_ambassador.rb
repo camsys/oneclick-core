@@ -869,10 +869,10 @@ class EcolaneAmbassador < BookingAmbassador
       user = nil
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
-        email = @customer_number.gsub(' ', '_')
+        email = "#{@customer_number}_#{@service.name.parameterize}@ecolane_user.com"
         user = User.create!(
-          email = "#{@customer_number}_#{@service.name.parameterize}@ecolane_user.com", 
-            password: random, 
+          email: email,
+          password: random, 
             password_confirmation: random,            
           )
         profile.details = {customer_id: passenger["id"]}
