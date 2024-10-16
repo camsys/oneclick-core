@@ -40,7 +40,7 @@
         .col-sm-10
           %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-          %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+          %button.btn.add-day-schedule{type:"button"}
             %span.text-muted Add hours
             %span.text-muted.glyphicon.glyphicon-plus
   .panel.schedule-row-wrapper{class: 'panel-default'}
@@ -51,8 +51,7 @@
         .col-sm-7.date-input-div
           = f.input :start_date,
             label: false,
-            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
-            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
+            readonly: mode == 'view' ? true : false,
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
@@ -62,8 +61,7 @@
         .col-sm-6.date-input-div
           = f.input :end_date,
             label: false,
-            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
-            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
+            readonly: mode == 'view' ? true : false,
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
@@ -77,7 +75,7 @@
     .row.panel-body
       .col-sm-10
         %span.sub-schedule-container
-        %button.btn.add-calendar-date-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+        %button.btn.add-calendar-date-schedule{type:"button"}
           %span.text-muted Add a date
           %span.text-muted.glyphicon.glyphicon-plus
 
@@ -90,7 +88,7 @@
     .row.panel-body
       .col-sm-10
         %span.sub-schedule-container
-        %button.btn.add-calendar-time-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+        %button.btn.add-day-schedule{type:"button"}
           %span.text-muted Add hours
           %span.text-muted.glyphicon.glyphicon-plus
 
