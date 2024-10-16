@@ -871,7 +871,7 @@ class EcolaneAmbassador < BookingAmbassador
         random = SecureRandom.hex(8)
         email = @customer_number.gsub(' ', '_')
         user = User.create!(
-            email: "#{email}_#{@county}@ecolane_user.com", 
+          email = "#{@customer_number}_#{@service.name.parameterize}@ecolane_user.com", 
             password: random, 
             password_confirmation: random,            
           )
