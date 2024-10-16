@@ -75,8 +75,8 @@ namespace :ecolane do
 
         puts "Processing #{new_poi_hashes.count} POIs for #{system}"
         new_poi_duplicate_count = 0
-        # Import named pois before unnamed locations
-        new_poi_hashes_sorted = new_poi_hashes.sort_by { |h| h[:name].blank? ? 'ZZZZZ' : h[:name] }
+        # Skip actually sorting the hashes
+        new_poi_hashes_sorted = new_poi_hashes
         new_poi_hashes_sorted.each do |hash|
           poi_processed_count += 1
           puts "#{poi_processed_count} POIs processed, #{new_poi_duplicate_count} duplicates, #{poi_with_no_city} missing cities" if poi_processed_count % 100 == 0
@@ -159,7 +159,7 @@ namespace :ecolane do
       # Exclude any in use.
       # TODO: For OCC-957, this needs to be updated to match and update POIs in use using mobile API location id.
       landmark_set_landmark_ids = LandmarkSetLandmark.all.pluck(:landmark_id)
-      Landmark.is_old.where.not(id: landmark_set_landmark_ids).destroy_all
+      Landmark.is_old.where.not(id: landmark_set_landmark_ids).in_batches.destroy_all
       Landmark.is_old.where(id: landmark_set_landmark_ids).update_all(old: false)
       new_poi_count = Landmark.count
       summary_messages << "<strong>Summary:</strong><br>"
