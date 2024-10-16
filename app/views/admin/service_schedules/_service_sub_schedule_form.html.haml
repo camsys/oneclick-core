@@ -102,17 +102,19 @@
       var weeklySch = new ScheduleHelper(
         '#{weekly_schedules_json}',
         $('.schedule-week-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: weekly_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: weekly_sub_schedules, can_update: true}}'
       );
+
       var calendarDateSch = new ScheduleHelper(
         '#{calendar_date_schedules_json}',
         $('.schedule-calendar-dates-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/calendar_dates_service_sub_schedule", locals: {f: f, calendar_dates: calendar_date_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_dates_service_sub_schedule", locals: {f: f, calendar_dates: calendar_date_sub_schedules, can_update: true}}'
       );
+
       var calendarTimeSch = new ScheduleHelper(
         '#{calendar_time_schedules_json}',
         $('.schedule-calendar-times-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/calendar_times_service_sub_schedule", locals: {f: f, calendar_times: calendar_time_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_times_service_sub_schedule", locals: {f: f, calendar_times: calendar_time_sub_schedules, can_update: true}}'
       );
 
       // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
