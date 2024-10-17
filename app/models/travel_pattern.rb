@@ -410,41 +410,39 @@ class TravelPattern < ApplicationRecord
 
   def self.to_api_response(travel_patterns, service, valid_from = nil, valid_until = nil)
     business_days = service.business_days
-
-    # Filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
-    # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
+    date = service.localtime.to_date
+    start_date = date
+    end_date = date + 60.days
+  
     travel_patterns = [travel_patterns].flatten
-    travel_patterns.map { |travel_pattern|
+  
+    travel_patterns.map do |travel_pattern|
       booking_window = travel_pattern.booking_window
       additional_notice = service.localtime.hour >= booking_window.minimum_notice_cutoff_hour
-      date = service.localtime.to_date
-      start_date = date
-      end_date = date + 60.days
-
+  
       days_notice = (business_days.include?(date.strftime('%Y-%m-%d')) && !additional_notice) ? 0 : -1
-      while (days_notice < booking_window.minimum_days_notice && date < end_date) do
+      while days_notice < booking_window.minimum_days_notice && date < end_date
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
       end
-
+  
       start_date = date
-
-      while (days_notice < booking_window.maximum_days_notice && date < end_date) do
+  
+      while days_notice < booking_window.maximum_days_notice && date < end_date
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
       end
-      
+  
       end_date = date
-
+  
       travel_pattern.to_api_response(start_date, end_date, valid_from, valid_until)
-    }
-    .select { |travel_pattern|
+    end.select do |travel_pattern|
       calendar_business_hours = travel_pattern["to_calendar"].values
       calendar_business_hours.any? do |time_ranges|
         time_ranges.any? { |range| (range[:start_time] || -1) >= 0 && (range[:end_time] || -1) >= 1 }
       end
-    }
-  end
+    end
+  end  
 
   # This method should be the first time we call the database, before this we were only constructing the query
   def self.filter_by_time(travel_pattern_query, trip_start, trip_end)
