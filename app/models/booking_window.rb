@@ -11,31 +11,38 @@ class BookingWindow < ApplicationRecord
   scope :for_current_transport_user, -> (user) {where(agency: user.current_agency)}
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
 
-  scope :for_date, -> (date) do
-    notice = (date - Date.current).to_i
+  def self.active_service_days_up_to(end_date)
+    # Find all service schedules active up to the given end_date
+    ServiceSubSchedule
+      .where("day <= ?", end_date.wday) # Ensure we're within the day range (Monday to Sunday)
+      .or(ServiceSubSchedule.where(calendar_date: Date.current..end_date)) # Handle specific calendar dates
+      .distinct
+      .pluck(:day) # Get all relevant days with activity
+      .size # Count unique active days
+  end
+
+  # Updated `for_date` scope
+  scope :for_date, ->(date) do
+    active_days_count = active_service_days_up_to(date) # Only count relevant days
     current_hour = Time.now.hour
-  
-    Rails.logger.info ">> Entering BookingWindow.for_date with date: #{date}, notice: #{notice}, current_hour: #{current_hour}"
-  
+
+    Rails.logger.info ">> Entering BookingWindow.for_date with date: #{date}, active days count: #{active_days_count}, current_hour: #{current_hour}"
+
     query = where(
-      arel_table[:minimum_days_notice].eq(notice)
+      arel_table[:minimum_days_notice].eq(active_days_count)
                                       .and(arel_table[:minimum_notice_cutoff_hour].gt(current_hour))
-                                      .or(arel_table[:minimum_days_notice].lt(notice))
+                                      .or(arel_table[:minimum_days_notice].lt(active_days_count))
     ).where(
-      arel_table[:maximum_days_notice].gteq(notice)
+      arel_table[:maximum_days_notice].gteq(active_days_count)
     )
-  
-    # Log the generated SQL query and found results
+
     Rails.logger.info "Generated BookingWindow SQL: #{query.to_sql}"
-  
     results = query.to_a
-    Rails.logger.info "BookingWindows found for #{date}: #{results.map(&:id)}"
-  
-    # Log additional details about the booking windows if found
+
     results.each do |window|
-      Rails.logger.info "BookingWindow ID: #{window.id}, min_days_notice: #{window.minimum_days_notice}, max_days_notice: #{window.maximum_days_notice}, cutoff_hour: #{window.minimum_notice_cutoff_hour}"
+      Rails.logger.info "BookingWindow ID: #{window.id}, Min Days: #{window.minimum_days_notice}, Max Days: #{window.maximum_days_notice}, Cutoff Hour: #{window.minimum_notice_cutoff_hour}"
     end
-  
+
     Rails.logger.info ">> Exiting BookingWindow.for_date with results: #{results.map(&:id)}"
     query
   end
