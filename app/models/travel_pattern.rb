@@ -418,24 +418,33 @@ class TravelPattern < ApplicationRecord
       booking_window = travel_pattern.booking_window
       additional_notice = service.localtime.hour >= booking_window.minimum_notice_cutoff_hour
       date = service.localtime.to_date
+  
       start_date = date
       end_date = date + 60.days
+  
+      Rails.logger.info "Initial date: #{date}"
+      Rails.logger.info "Initial start_date: #{start_date}"
+      Rails.logger.info "Initial end_date: #{end_date}"
   
       days_notice = (business_days.include?(date.strftime('%Y-%m-%d')) && !additional_notice) ? 0 : -1
       while (days_notice < booking_window.minimum_days_notice && date < end_date) do
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+        Rails.logger.info "Calculating start_date: #{date}, days_notice: #{days_notice}"
       end
   
       start_date = date
+      Rails.logger.info "Final start_date: #{start_date}"
   
       days_notice = 0
       while (days_notice < booking_window.maximum_days_notice && date < end_date) do
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+        Rails.logger.info "Calculating end_date: #{date}, days_notice: #{days_notice}"
       end
   
       end_date = date
+      Rails.logger.info "Final end_date: #{end_date}"
   
       travel_pattern.to_api_response(start_date, end_date, valid_from, valid_until)
     }
