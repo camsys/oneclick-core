@@ -162,12 +162,30 @@ class TravelPattern < ApplicationRecord
   # 
   # @param [Date] date The date to use.
   scope :with_date, -> (date) do
-    raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
-
-    Rails.logger.info "Querying for Travel Patterns with date: #{date}"
-    joins(:travel_pattern_service_schedules, :booking_window)
-      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
-      .where(booking_window: BookingWindow.for_date(date)).distinct
+    begin
+      raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date)
+  
+      Rails.logger.info "Querying for Travel Patterns with date: #{date}"
+  
+      service_schedules = ServiceSchedule.for_date(date)
+      Rails.logger.info "Service Schedules for date #{date}: #{service_schedules.inspect}"
+  
+      booking_windows = BookingWindow.for_date(date)
+      Rails.logger.info "Booking Windows for date #{date}: #{booking_windows.inspect}"
+  
+      travel_patterns = joins(:travel_pattern_service_schedules, :booking_window)
+                        .where(travel_pattern_service_schedules: { service_schedule: service_schedules })
+                        .where(booking_window: booking_windows)
+                        .distinct
+  
+      Rails.logger.info "Travel Patterns found: #{travel_patterns.inspect}"
+  
+      travel_patterns
+    rescue => e
+      Rails.logger.error "Error querying for Travel Patterns with date #{date}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise
+    end
   end
 
   belongs_to :agency
