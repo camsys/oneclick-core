@@ -163,16 +163,11 @@ class TravelPattern < ApplicationRecord
   # @param [Date] date The date to use.
   scope :with_date, -> (date) do
     raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
-  
-    Rails.logger.info "Filtering patterns for date: #{date}"
-  
-    result = joins(:travel_pattern_service_schedules, :booking_window)
-      .where(travel_pattern_service_schedules: { service_schedule: ServiceSchedule.for_date(date) })
+
+    joins(:travel_pattern_service_schedules, :booking_window)
+      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
       .where(booking_window: BookingWindow.for_date(date)).distinct
-  
-    Rails.logger.info "Patterns found for date #{date}: #{result.pluck(:id)}"
-    result
-  end  
+  end
 
   belongs_to :agency
   belongs_to :booking_window
@@ -292,7 +287,7 @@ class TravelPattern < ApplicationRecord
     while date <= end_date
       date_string = date.strftime('%Y-%m-%d')
       calendar[date_string] = []
-      
+  
       has_holiday = false
   
       # Check reduced service schedules for holidays (nil start and end times)
@@ -336,7 +331,6 @@ class TravelPattern < ApplicationRecord
   
     calendar
   end
-  
   
   
   
