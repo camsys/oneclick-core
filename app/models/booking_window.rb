@@ -13,14 +13,33 @@ class BookingWindow < ApplicationRecord
 
   scope :for_date, -> (date) do
     notice = (date - Date.current).to_i
-    where(
+    current_hour = Time.now.hour
+  
+    Rails.logger.info ">> Entering BookingWindow.for_date with date: #{date}, notice: #{notice}, current_hour: #{current_hour}"
+  
+    query = where(
       arel_table[:minimum_days_notice].eq(notice)
-                                      .and(arel_table[:minimum_notice_cutoff_hour].gt(Time.now.hour))
+                                      .and(arel_table[:minimum_notice_cutoff_hour].gt(current_hour))
                                       .or(arel_table[:minimum_days_notice].lt(notice))
     ).where(
       arel_table[:maximum_days_notice].gteq(notice)
     )
+  
+    # Log the generated SQL query and found results
+    Rails.logger.info "Generated BookingWindow SQL: #{query.to_sql}"
+  
+    results = query.to_a
+    Rails.logger.info "BookingWindows found for #{date}: #{results.map(&:id)}"
+  
+    # Log additional details about the booking windows if found
+    results.each do |window|
+      Rails.logger.info "BookingWindow ID: #{window.id}, min_days_notice: #{window.minimum_days_notice}, max_days_notice: #{window.maximum_days_notice}, cutoff_hour: #{window.minimum_notice_cutoff_hour}"
+    end
+  
+    Rails.logger.info ">> Exiting BookingWindow.for_date with results: #{results.map(&:id)}"
+    query
   end
+  
 
   def earliest_booking
     present = DateTime.now
