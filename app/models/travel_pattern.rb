@@ -436,7 +436,6 @@ class TravelPattern < ApplicationRecord
       start_date = date
       Rails.logger.info "Final start_date: #{start_date}"
   
-      days_notice = 0
       Rails.logger.info "Before while loop for end_date calculation: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}, business_days: #{business_days}"
   
       while (days_notice < booking_window.maximum_days_notice && date < end_date) do
