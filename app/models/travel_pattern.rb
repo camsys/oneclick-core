@@ -483,22 +483,14 @@ class TravelPattern < ApplicationRecord
       end
 
       # Grab any valid schedules
-      valid_schedule = schedules.any? do |travel_pattern_service_schedule|
+      schedules.any? do |travel_pattern_service_schedule|
         service_schedule = travel_pattern_service_schedule.service_schedule
         service_schedule.service_sub_schedules.any? do |sub_schedule|
           valid_start_time = sub_schedule.start_time <= trip_start
-          valid_end_time = sub_schedule.end_time >= trip_end
-
           valid_start_time && valid_end_time
         end
       end
-
-      Rails.logger.info("Travel Pattern ##{travel_pattern.id} valid schedule: #{valid_schedule}")
-      valid_schedule
-    end
-
-    Rails.logger.info("Valid Travel Patterns after time filtering: #{valid_patterns.map(&:id)}")
-    valid_patterns
-  end
+    end # end travel_patterns.select
+  end # end filter_by_time
 
 end
