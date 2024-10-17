@@ -193,35 +193,25 @@ class TravelPattern < ApplicationRecord
   validates_presence_of :name, :booking_window, :agency, :origin_zone, :destination_zone, :travel_pattern_funding_sources, :travel_pattern_purposes, :travel_pattern_service_schedules
 
   def to_api_response(start_date, end_date, valid_from = nil, valid_until = nil)
-    Rails.logger.info "initializing to_api_response"
     travel_pattern_opts = { 
       only: [:id, :agency_id, :name, :description]
     }
     valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String)
-    Rails.logger.info "valid_from: #{valid_from}"
     valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)    
-    Rails.logger.info "valid_until: #{valid_until}"
     start_date = [start_date, valid_from].compact.max if valid_from
-    Rails.logger.info "start_date: #{start_date}"
     end_date = [end_date, valid_until].compact.min if valid_until
-    Rails.logger.info "end_date: #{end_date}"
   
     calendar_data = self.to_calendar(start_date, end_date, valid_from, valid_until)
-    Rails.logger.info "calendar_data: #{calendar_data}"
   
     # Adjust the calendar data for serialization
     adjusted_calendar_data = calendar_data.transform_values do |time_ranges|
       # Transform each time range in the array into a serializable format, if necessary
       time_ranges.map { |range| { start_time: range[:start_time], end_time: range[:end_time] } }
     end
-
-    Rails.logger.info "adjusted_calendar_data: #{adjusted_calendar_data}"
   
     self.as_json(travel_pattern_opts).merge({
       "to_calendar" => adjusted_calendar_data
     })
-
-    Rails.logger.info "finalizing to_api_response"
   end  
 
   def self.for_user(user)
