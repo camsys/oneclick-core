@@ -163,11 +163,16 @@ class TravelPattern < ApplicationRecord
   # @param [Date] date The date to use.
   scope :with_date, -> (date) do
     raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
-
-    joins(:travel_pattern_service_schedules, :booking_window)
-      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
+  
+    Rails.logger.info "Filtering patterns for date: #{date}"
+  
+    result = joins(:travel_pattern_service_schedules, :booking_window)
+      .where(travel_pattern_service_schedules: { service_schedule: ServiceSchedule.for_date(date) })
       .where(booking_window: BookingWindow.for_date(date)).distinct
-  end
+  
+    Rails.logger.info "Patterns found for date #{date}: #{result.pluck(:id)}"
+    result
+  end  
 
   belongs_to :agency
   belongs_to :booking_window
@@ -292,7 +297,7 @@ class TravelPattern < ApplicationRecord
   
       # Check reduced service schedules for holidays (nil start and end times)
       reduced_service_schedules.each do |service_schedule|
-        next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) && 
+        next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) &&
                     (service_schedule.end_date.nil? || service_schedule.end_date >= date)
   
         service_schedule.service_sub_schedules.each do |sub_schedule|
@@ -303,33 +308,36 @@ class TravelPattern < ApplicationRecord
           end
         end
   
-        break if has_holiday # Exit early if a holiday is found
+        break if has_holiday
       end
   
       # Proceed with adding time slots only if no holiday was found
       unless has_holiday
-        sub_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
+        valid_schedules = (weekly_schedules + extra_service_schedules).flat_map do |service_schedule|
           next unless (service_schedule.start_date.nil? || service_schedule.start_date <= date) &&
                       (service_schedule.end_date.nil? || service_schedule.end_date >= date)
   
           service_schedule.service_sub_schedules.select do |sub_schedule|
             (sub_schedule.day == date.wday || sub_schedule.calendar_date == date) &&
-            !(sub_schedule.start_time.nil? && sub_schedule.end_time.nil?) # Exclude nil times
+            sub_schedule.start_time.present? && sub_schedule.end_time.present?
           end
         end.compact
   
-        # Map to start_time and end_time, excluding nil values explicitly
-        sub_schedules.each do |ss|
-          calendar[date_string] << { start_time: ss.start_time, end_time: ss.end_time } unless ss.start_time.nil? || ss.end_time.nil?
+        valid_schedules.each do |ss|
+          calendar[date_string] << { start_time: ss.start_time, end_time: ss.end_time }
         end
       end
   
-      # Move to the next day
+      # Remove date from the calendar if no valid slots exist
+      calendar.delete(date_string) if calendar[date_string].empty?
+  
       date += 1.day
     end
   
     calendar
   end
+  
+  
   
   
   
