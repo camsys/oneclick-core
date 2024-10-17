@@ -197,7 +197,6 @@ class TravelPattern < ApplicationRecord
       Rails.logger.info "Travel patterns found for date #{date}: #{result.map(&:id)}"
     end
   
-    result
   end
   
 
