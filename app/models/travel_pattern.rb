@@ -162,13 +162,44 @@ class TravelPattern < ApplicationRecord
   # 
   # @param [Date] date The date to use.
   scope :with_date, -> (date) do
-    raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
-
-    Rails.logger.info "Querying for Travel Patterns with date: #{date}"
-    joins(:travel_pattern_service_schedules, :booking_window)
-      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
-      .where(booking_window: BookingWindow.for_date(date)).distinct
+    raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date)
+  
+    Rails.logger.info ">> Entering with_date scope"
+    Rails.logger.info "Received date parameter: #{date}"
+  
+    # Double-check if the date passed is what we expect (e.g., final adjusted end_date)
+    if defined?(end_date) && end_date != date
+      Rails.logger.warn "Warning: The date passed (#{date}) differs from the final adjusted end_date (#{end_date})"
+    else
+      Rails.logger.info "Using expected date: #{date}"
+    end
+  
+    # Log all travel pattern service schedules to verify they align with the date
+    schedules = ServiceSchedule.for_date(date)
+    Rails.logger.info "Service schedules matching date #{date}: #{schedules.map(&:id)}"
+  
+    # Log the booking windows to make sure their logic is correctly applied
+    booking_windows = BookingWindow.for_date(date)
+    Rails.logger.info "Booking windows matching date #{date}: #{booking_windows.map(&:id)}"
+  
+    # Execute the query and log the SQL being generated
+    query = joins(:travel_pattern_service_schedules, :booking_window)
+              .where(travel_pattern_service_schedules: { service_schedule: schedules })
+              .where(booking_window: booking_windows).distinct
+  
+    Rails.logger.info "Generated SQL in with_date: #{query.to_sql}"
+  
+    # Log the result to see if patterns are being found or filtered out
+    result = query.to_a
+    if result.empty?
+      Rails.logger.warn "No travel patterns found for date: #{date}."
+    else
+      Rails.logger.info "Travel patterns found for date #{date}: #{result.map(&:id)}"
+    end
+  
+    result
   end
+  
 
   belongs_to :agency
   belongs_to :booking_window
