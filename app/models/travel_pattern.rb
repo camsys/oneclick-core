@@ -437,11 +437,15 @@ class TravelPattern < ApplicationRecord
       Rails.logger.info "Final start_date: #{start_date}"
   
       days_notice = 0
+      Rails.logger.info "Before while loop for end_date calculation: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}, business_days: #{business_days}"
+  
       while (days_notice < booking_window.maximum_days_notice && date < end_date) do
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
-        Rails.logger.info "Calculating end_date: #{date}, days_notice: #{days_notice}"
+        Rails.logger.info "Inside while loop: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}"
       end
+  
+      Rails.logger.info "After while loop for end_date calculation: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}"
   
       end_date = date
       Rails.logger.info "Final end_date: #{end_date}"
