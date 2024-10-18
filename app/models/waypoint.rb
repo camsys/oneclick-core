@@ -23,6 +23,7 @@ class Waypoint < Place
   # This prevents the name from being duplicated in the address and makes it clean for display
   def formatted_address
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
+    comparision_address = [self.street_number, self.route].compact.join(' ')
     full_name = self.name || ''  # Fallback to empty string if name is nil
     short_name = full_name.split('|').first&.strip || ''
   
@@ -30,9 +31,10 @@ class Waypoint < Place
     Rails.logger.info "Address Parts: #{address_parts}"
     Rails.logger.info "Full Name: #{full_name}"
     Rails.logger.info "Short Name: #{short_name}"
+    Rails.logger.info "Comparison Address: #{comparison_address}"
   
     # Avoid duplication of short_name in address_parts
-    if address_parts.include?(short_name) || short_name.include?(address_parts)
+    if short_name.include?(comparison_address)
       full_address = address_parts
     else
       full_address = "#{short_name}, #{address_parts}"
