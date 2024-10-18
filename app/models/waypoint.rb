@@ -45,6 +45,11 @@ class Waypoint < Place
     # Remove any duplicate spaces to clean up the address
     full_address = full_address.gsub(/\s+/, ' ')
   
+    # Ensure the short name is not repeated in the full address
+    if full_address.include?(short_name) && full_address.include?(address_parts)
+      full_address = address_parts
+    end
+  
     # Log the final formatted address
     Rails.logger.info "Formatted Address: #{full_address}"
   
