@@ -1,5 +1,6 @@
 class Admin::ServiceSchedulesController < Admin::AdminController
   authorize_resource except: :index
+  before_action :authorize_user, only: [:new, :create]
   before_action :load_agency_from_params_or_user, only: [:new]
 
   def index
@@ -394,6 +395,12 @@ class Admin::ServiceSchedulesController < Admin::AdminController
   end
 
   private
+
+  def authorize_user
+    unless can?(:manage, ServiceSchedule)
+      redirect_to root_path, alert: 'You are not authorized to access this page.'
+    end
+  end
 
   def get_service_schedules_for_current_user
     ServiceSchedule.for_user(current_user)

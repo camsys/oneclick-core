@@ -152,8 +152,9 @@ class User < ApplicationRecord
   # Returns the user's (count) future trips, in descending order of trip time
   def future_trips(count=nil)
     # Sync up with any booking services
-    sync 
-    trips.selected.future.limit(count)
+    sync
+    future_trips = trips.selected.future.limit(count)
+    future_trips
   end
 
   # Returns an unordered collection of the traveler's waypoints
@@ -197,30 +198,23 @@ class User < ApplicationRecord
   ##
   # TODO(Drew) write documentation comment
   def get_services
-    county = county_name_if_ecolane_email
-    if county.nil?
-      # County name may be null if user has set email to a non-Ecolane email address.
-      # Search for county that user logged in as from most recent user booking profile.
-      # User booking profile is updated with county at login.
-      most_recent_booking_profile_details = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first&.details
-      if most_recent_booking_profile_details && most_recent_booking_profile_details[:county]
-        county = most_recent_booking_profile_details[:county]&.downcase&.capitalize
-      end
+    # Find the most recent booking profile with a service
+    most_recent_booking_profile = booking_profiles.order("updated_at DESC").where.not(service_id: nil).first
+  
+    if most_recent_booking_profile
+      service = most_recent_booking_profile.service
+      Rails.logger.info "Service found via booking profile: #{service.name}"
+      [service] 
+    else
+      Rails.logger.info "No service found for user #{id}"
+      []
     end
-    # Since a user can only have one TravelerTransitAgency why not just put the transportation_agency_id on the user table?
-    Service.joins("LEFT JOIN traveler_transit_agencies ON services.agency_id = traveler_transit_agencies.transportation_agency_id")
-            .merge( TravelerTransitAgency.where(user_id: id) )
-            .with_home_county(county)
-            .paratransit_services
-            .published
-            .is_ecolane
   end
-
-  ##
-  # TODO(Drew) write documentation comment
-  # TODO(Drew) change to (Home?) (Para?) (Ecolane?) Transit Service
+  
   def current_service
-    get_services.first
+    service = get_services.first
+    Rails.logger.info "Current service for user #{id}: #{service&.name || 'No service found'}"
+    service
   end
 
   ##
@@ -238,18 +232,23 @@ class User < ApplicationRecord
       customer.fetch('funding', {})
               .fetch('funding_source', {})
     ].flatten
+
+    Rails.logger.info "Funding Options: #{funding_options}"
     
     funding_options.each do |funding_source|
+      Rails.logger.info "Funding Source: #{funding_source}"
       allowed_purposes = [funding_source['allowed']].flatten
       allowed_purposes.each do |allowed_purpose|
         # Skip any allowed_purpose that is missing or blank
+        Rails.logger.info "Allowed Purpose: #{allowed_purpose}"
         next if allowed_purpose.nil? || allowed_purpose['purpose'].nil? || allowed_purpose['purpose'].strip.empty?
-
         purpose = allowed_purpose['purpose'].strip
         funding_hash[purpose] ||= []
         funding_hash[purpose].push(funding_source['name'].strip)
       end
     end
+
+    Rails.logger.info "Funding Hash: #{funding_hash}"
 
     funding_hash
   end

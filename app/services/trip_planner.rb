@@ -93,6 +93,7 @@ class TripPlanner
     end
 
     Rails.logger.info "Initial available services count: #{@available_services.count}"
+    Rails.logger.info "Available services: #{@available_services}"
 
     # Apply remaining filters if not in travel patterns mode.
     # Services using travel patterns are checked through travel patterns API.
@@ -119,11 +120,14 @@ class TripPlanner
       # Currently there's only one service per county, users are only allowed to book rides for their home service, and er only use paratransit services, so this may break
       options = {}
       options[:origin] = {lat: @trip.origin.lat, lng: @trip.origin.lng} if @trip.origin
+      Rails.logger.info "origin: #{options[:origin]}"
       options[:destination] = {lat: @trip.destination.lat, lng: @trip.destination.lng} if @trip.destination
+      Rails.logger.info "destination: #{options[:destination]}"
       options[:purpose_id] = @trip.purpose_id if @trip.purpose_id
       options[:date] = @trip.trip_time.to_date if @trip.trip_time
       
       @available_services.joins(:travel_patterns).merge(TravelPattern.available_for(options)).distinct
+      Rails.logger.info "Available services after travel patterns: #{@available_services}"
       @relevant_eligibilities = (@available_services.collect { |service| service.eligibilities }).flatten.uniq.sort_by{ |elig| elig.rank }
       @relevant_accommodations = Accommodation.all.ordered_by_rank
       @available_services = @available_services.available_for(@trip, only_by: [:eligibility]) #, :accommodation])
