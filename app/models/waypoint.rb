@@ -32,7 +32,7 @@ class Waypoint < Place
     Rails.logger.info "Short Name: #{short_name}"
   
     # Ensure the short name is not repeated unnecessarily
-    if short_name == full_name || address_parts.match?(/\b#{Regexp.escape(short_name)}\b/)
+    if address_parts.match?(/\b#{Regexp.escape(short_name)}\b/)
       full_address = address_parts
     else
       full_address = "#{short_name}, #{address_parts}"
