@@ -40,10 +40,18 @@ module Api
       def future_trips
         # Only return trips that have been booked properly
         future_trips_with_booking = @traveler.future_trips(params[:max_results] || 25).select do |trip|
-          trip.booking.present? && trip.booking.confirmation.present?
+          if trip.booking.nil?
+            next
+          elsif trip.booking.confirmation.nil?
+            next
+          else
+            true
+          end
         end
 
-        future_trips_hash = future_trips_with_booking.map { |t| filter_trip_name(t) }
+        future_trips_hash = future_trips_with_booking.compact.map { |t| filter_trip_name(t) }
+        Rails.logger.info "Filtered future trips for response: #{future_trips_hash.map { |t| {trip_id: t[:trip_id], status: t[:status]} }}"
+
         render status: 200, json: {trips: future_trips_hash}
       end
 
