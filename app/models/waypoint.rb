@@ -23,7 +23,7 @@ class Waypoint < Place
   # This prevents the name from being duplicated in the address and makes it clean for display
   def formatted_address
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
-    comparision_address = [self.street_number, self.route].compact.join(' ')
+    comparison_address = [self.street_number, self.route].compact.join(' ')
     full_name = self.name || ''  # Fallback to empty string if name is nil
     short_name = full_name.split('|').first&.strip || ''
   
