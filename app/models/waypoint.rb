@@ -35,10 +35,10 @@ class Waypoint < Place
     Rails.logger.info "Short Name: #{short_name}"
   
     # Build the formatted address
-    if short_name.present? && short_name != address_parts && !address_parts.include?(short_name)
-      full_address = "#{short_name}, #{address_parts}"
+    if short_name == full_name
+      full_address = full_name
     else
-      full_address = address_parts
+      full_address = "#{short_name}, (#{address_parts})"
     end
   
     # Remove duplicate spaces and trailing commas
