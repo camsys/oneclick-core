@@ -40,7 +40,7 @@
         .col-sm-10
           %span.sub-schedule-container{data: {day: d}}
             -# =render partial: 'admin/services/schedule_form', locals: {f: f, schedules: day_scheds}
-          %button.btn.add-day-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+          %button.btn.add-day-schedule{type:"button"}
             %span.text-muted Add hours
             %span.text-muted.glyphicon.glyphicon-plus
   .panel.schedule-row-wrapper{class: 'panel-default'}
@@ -51,8 +51,6 @@
         .col-sm-7.date-input-div
           = f.input :start_date,
             label: false,
-            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
-            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
@@ -62,8 +60,6 @@
         .col-sm-6.date-input-div
           = f.input :end_date,
             label: false,
-            readonly: mode == 'view' ? true : !(can? :update, @service_schedule),
-            disabled: mode == 'view' ? true : !(can? :update, @service_schedule),
             as: :string,
             input_html: {class: 'schedule-input calendar-date datepicker'}
           %span.glyphicon.glyphicon-calendar
@@ -77,7 +73,7 @@
     .row.panel-body
       .col-sm-10
         %span.sub-schedule-container
-        %button.btn.add-calendar-date-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+        %button.btn.add-calendar-date-schedule{type:"button"}
           %span.text-muted Add a date
           %span.text-muted.glyphicon.glyphicon-plus
 
@@ -90,7 +86,7 @@
     .row.panel-body
       .col-sm-10
         %span.sub-schedule-container
-        %button.btn.add-calendar-time-schedule{type:"button",disabled: ((cannot? :update, @service_schedule) || mode == "view")}
+        %button.btn.add-day-schedule{type:"button"}
           %span.text-muted Add hours
           %span.text-muted.glyphicon.glyphicon-plus
 
@@ -106,17 +102,19 @@
       var weeklySch = new ScheduleHelper(
         '#{weekly_schedules_json}',
         $('.schedule-week-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: weekly_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/weekly_service_sub_schedule", locals: {f: f, service_sub_schedules: weekly_sub_schedules, can_update: true}}'
       );
+
       var calendarDateSch = new ScheduleHelper(
         '#{calendar_date_schedules_json}',
         $('.schedule-calendar-dates-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/calendar_dates_service_sub_schedule", locals: {f: f, calendar_dates: calendar_date_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_dates_service_sub_schedule", locals: {f: f, calendar_dates: calendar_date_sub_schedules, can_update: true}}'
       );
+
       var calendarTimeSch = new ScheduleHelper(
         '#{calendar_time_schedules_json}',
         $('.schedule-calendar-times-container'),
-        '#{escape_javascript render partial: "admin/service_schedules/calendar_times_service_sub_schedule", locals: {f: f, calendar_times: calendar_time_sub_schedules, can_update: mode == 'view' ? false : (can? :update, @service_schedule)}}'
+        '#{escape_javascript render partial: "admin/service_schedules/calendar_times_service_sub_schedule", locals: {f: f, calendar_times: calendar_time_sub_schedules, can_update: true}}'
       );
 
       // Have the FormHandler watch the schedules for changes, plus trigger change event for the new schedule
