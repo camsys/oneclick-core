@@ -22,35 +22,31 @@ class Waypoint < Place
   ## This is used for FMR given they often have names with pipes in them as well as addresses listed as the name
   # This prevents the name from being duplicated in the address and makes it clean for display
   def formatted_address
-    # Join the address parts, ensuring no nils are included
     address_parts = [self.street_number, self.route, self.city, self.state, self.zip].compact.join(' ')
-    full_name = self.name || ''  # Default to empty string if name is nil
-  
-    # Extract short_name from full_name (before any pipe if present)
+    full_name = self.name || ''  # Fallback to empty string if name is nil
     short_name = full_name.split('|').first&.strip || ''
   
-    # Log the components for debugging
+    # Log intermediate values for debugging
     Rails.logger.info "Address Parts: #{address_parts}"
     Rails.logger.info "Full Name: #{full_name}"
     Rails.logger.info "Short Name: #{short_name}"
   
-    # Build the formatted address
-    if short_name == full_name
-      full_address = "#{short_name}, #{address_parts}"
-    elsif address_parts.include?(short_name)
+    # Ensure the short name is not repeated unnecessarily
+    if short_name == full_name || address_parts.match?(/\b#{Regexp.escape(short_name)}\b/)
       full_address = address_parts
     else
       full_address = "#{short_name}, #{address_parts}"
     end
   
-    # Remove duplicate spaces and trailing commas
-    full_address = full_address.gsub(/\s+/, ' ').gsub(/,\s*$/, '').strip
+    # Clean up any duplicate spaces
+    full_address = full_address.gsub(/\s+/, ' ').strip
   
-    # Log the final formatted address
+    # Log final address
     Rails.logger.info "Formatted Address: #{full_address}"
   
     full_address
   end
+  
   
   
 end
