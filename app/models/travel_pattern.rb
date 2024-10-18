@@ -23,53 +23,91 @@ class TravelPattern < ApplicationRecord
     joins(:travel_pattern_services).where(travel_pattern_services: {service_id: service.id}).distinct
   end
 
-  ## 
-  # This scope returns only Travel Patterns where the provided +origin+ is a valid starting point
-  # for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+. The
-  # +destination_zone+ is considered a valid starting point if +allow_reverse_sequence_trips+ is
-  # set to +true+ for that Travel Pattern.
-  # 
-  # @param [Hash] origin A Hash containing the latitude and longitude of a trip's starting point.
-  # @option origin [Number] :lat The latitude of the trip's starting point.
-  # @option origin [Number] :lng The longitude of the trip's starting point.
-  scope :with_origin, -> (origin) {
+  scope :with_origin_and_destination, ->(origin, destination) {
     raise ArgumentError.new("origin must contain :lat and :lng") unless origin[:lat].present? && origin[:lng].present?
-    
-    travel_patterns = TravelPattern.arel_table
-    origin_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
-
-    where(
-      travel_patterns[:origin_zone_id].in(origin_zone_ids).or(
-        travel_patterns[:destination_zone_id].in(origin_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
-      )
-    )
-  }
-
-  ##
-  # This scope returns only Travel Patterns where the provided +destination+ is a valid ending 
-  # point for trips as determined by the Travel Pattern's +origin_zone+ and +destination_zone+.
-  # The +origin_zone+ is considered a valid ending point if +allow_reverse_sequence_trips+ is
-  # set to +true+ for that Travel Pattern.
-  # 
-  # @param [Hash] destination A Hash containing the latitude and longitude of a trip's ending point.
-  # @option destination [Number] :lat The latitude of the trip's ending point.
-  # @option destination [Number] :lng The longitude of the trip's ending point.
-  scope :with_destination, -> (destination) {
     raise ArgumentError.new("destination must contain :lat and :lng") unless destination[:lat].present? && destination[:lng].present?
-
-    travel_patterns = TravelPattern.arel_table
-    destination_zone_ids = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
-
-    where(
-      travel_patterns[:destination_zone_id].in(destination_zone_ids).or(
-        travel_patterns[:origin_zone_id].in(destination_zone_ids).and(
-          travel_patterns[:allow_reverse_sequence_trips].eq(true)
-        )
-      )
+  
+    queried_origin = OdZone.joins(:region).where(region: Region.containing_point(origin[:lng], origin[:lat])).pluck(:id)
+    queried_destination = OdZone.joins(:region).where(region: Region.containing_point(destination[:lng], destination[:lat])).pluck(:id)
+  
+    Rails.logger.info "Queried Origin Zone IDs: #{queried_origin}"
+    Rails.logger.info "Queried Destination Zone IDs: #{queried_destination}"
+    Rails.logger.info "Querying for patterns with origin and destination"
+  
+    patterns = TravelPattern.where(
+      "(origin_zone_id IN (?) AND destination_zone_id IN (?)) OR (destination_zone_id IN (?) AND origin_zone_id IN (?) AND allow_reverse_sequence_trips = ?)",
+      queried_origin, queried_destination, queried_origin, queried_destination, true
     )
+  
+    # Ensure proper grouping of conditions in the SQL query
+    Rails.logger.info "Generated SQL: #{patterns.to_sql}"
+  
+    Rails.logger.info "Initial Patterns found: #{patterns.pluck(:id)}"
+  
+    patterns.tap do |result|
+      Rails.logger.info "Travel Patterns found for origin and destination: #{result.pluck(:id)}"
+      result.each do |pattern|
+        actual_origin_zone = pattern.origin_zone_id
+        actual_destination_zone = pattern.destination_zone_id
+  
+        Rails.logger.info "Pattern ID: #{pattern.id}, Actual Origin Zone ID: #{actual_origin_zone}, Actual Destination Zone ID: #{actual_destination_zone}, Allow Reverse: #{pattern.allow_reverse_sequence_trips}"
+      end
+  
+      valid_patterns = result.select do |pattern|
+        actual_origin_zone = pattern.origin_zone_id
+        actual_destination_zone = pattern.destination_zone_id
+  
+        Rails.logger.info "Evaluating Pattern ID: #{pattern.id}"
+        Rails.logger.info "Queried Origin Zone IDs: #{queried_origin}, Queried Destination Zone IDs: #{queried_destination}"
+        Rails.logger.info "Actual Origin Zone ID: #{actual_origin_zone}, Actual Destination Zone ID: #{actual_destination_zone}"
+  
+        # Determine the source of the match
+        origin_match = queried_origin.include?(actual_origin_zone)
+        Rails.logger.info "Origin match: #{origin_match}"
+        destination_match = queried_destination.include?(actual_destination_zone)
+        Rails.logger.info "Destination match: #{destination_match}"
+  
+        # Check if both origin and destination are the same zone and allowed
+        if actual_origin_zone == actual_destination_zone && origin_match && destination_match
+          Rails.logger.info "Allowing same-zone trip for pattern ID: #{pattern.id} where both origin and destination are #{actual_origin_zone}"
+          true
+  
+        # Allow reverse trips when allowed and zones are different
+        elsif destination_match && origin_match && actual_origin_zone != actual_destination_zone && pattern.allow_reverse_sequence_trips
+          Rails.logger.info "Allowing reverse trip for pattern ID: #{pattern.id} from destination to origin"
+          true
+  
+        # Allow regular trips from origin to destination only if destination is in the queried zones
+        elsif origin_match && queried_destination.include?(actual_destination_zone)
+          Rails.logger.info "Allowing regular trip for pattern ID: #{pattern.id} from origin to destination"
+          true
+  
+        # Allow reverse trips from destination to origin only if origin is in the queried zones and reverse trips are allowed
+        elsif destination_match && queried_origin.include?(actual_origin_zone) && pattern.allow_reverse_sequence_trips
+          Rails.logger.info "Allowing reverse trip for pattern ID: #{pattern.id} from destination to origin"
+          true
+  
+        elsif pattern.allow_reverse_sequence_trips && queried_origin.include?(actual_destination_zone) && queried_destination.include?(actual_origin_zone)
+          Rails.logger.info "Allowing reverse trip for pattern ID: #{pattern.id} from destination to origin"
+          true
+  
+        # Disallow invalid trips where origin and destination do not match correctly
+        else
+          Rails.logger.info "Skipping pattern ID: #{pattern.id} due to invalid origin-destination combination"
+          false
+        end
+      end
+  
+      Rails.logger.info "Final valid patterns: #{valid_patterns.map(&:id)}"
+      if valid_patterns.empty?
+        Rails.logger.info "No valid travel patterns found for origin and destination"
+        raise ActiveRecord::RecordNotFound, "No valid travel patterns found for origin and destination"
+      end
+  
+      valid_patterns
+    end
   }
+  
 
   ##
   # This scope returns only Travel Patterns where the provided +Purpose+ is included in the Travel
@@ -124,11 +162,30 @@ class TravelPattern < ApplicationRecord
   # 
   # @param [Date] date The date to use.
   scope :with_date, -> (date) do
-    raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date) 
-
-    joins(:travel_pattern_service_schedules, :booking_window)
-      .where(travel_pattern_service_schedules: {service_schedule: ServiceSchedule.for_date(date)})
-      .where(booking_window: BookingWindow.for_date(date)).distinct
+    begin
+      raise TypeError.new("#{date.class} can't be coerced into Date") unless date.is_a?(Date)
+  
+      Rails.logger.info "Querying for Travel Patterns with date: #{date}"
+  
+      service_schedules = ServiceSchedule.for_date(date)
+      Rails.logger.info "Service Schedules for date #{date}: #{service_schedules.inspect}"
+  
+      booking_windows = BookingWindow.for_date(date)
+      Rails.logger.info "Booking Windows for date #{date}: #{booking_windows.inspect}"
+  
+      travel_patterns = joins(:travel_pattern_service_schedules, :booking_window)
+                        .where(travel_pattern_service_schedules: { service_schedule: service_schedules })
+                        .where(booking_window: booking_windows)
+                        .distinct
+  
+      Rails.logger.info "Travel Patterns found: #{travel_patterns.inspect}"
+  
+      travel_patterns
+    rescue => e
+      Rails.logger.error "Error querying for Travel Patterns with date #{date}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise
+    end
   end
 
   belongs_to :agency
@@ -324,28 +381,54 @@ class TravelPattern < ApplicationRecord
     filters = [
       :agency, 
       :service, 
-      :origin,
-      :destination,
       :purpose, :purpose_id, 
       :funding_sources, :funding_source_ids, 
       :date
     ]
     query = self.all
 
-    # First filter by all provided params
+    Rails.logger.info "Initial query: #{query.to_sql}"
+
+    # First filter by all provided params except origin and destination
     filters.each do |filter|
       method_name = ("with_" + filter.to_s).to_sym
       param = query_params[filter]
 
-      query = query.send(method_name, param) unless param.nil?
+      if param
+        Rails.logger.info "Applying filter: #{filter} with param: #{param}"
+        query = query.send(method_name, param)
+        Rails.logger.info "Query after applying #{filter}: #{query.to_sql}"
+      end
     end
 
+    # Handle origin and destination together
+    if query_params[:origin] && query_params[:destination]
+      Rails.logger.info "Applying with_origin_and_destination with origin: #{query_params[:origin]} and destination: #{query_params[:destination]}"
+      query = query.with_origin_and_destination(query_params[:origin], query_params[:destination])
+    else
+      if query_params[:origin]
+        Rails.logger.info "Applying with_origin with origin: #{query_params[:origin]}"
+        query = query.with_origin(query_params[:origin])
+      end
+      if query_params[:destination]
+        Rails.logger.info "Applying with_destination with destination: #{query_params[:destination]}"
+        query = query.with_destination(query_params[:destination])
+      end
+    end
+
+    Rails.logger.info "Query before filtering by time: #{query.to_sql}"
+
+    # Filter by time if start_time and end_time are provided
     travel_patterns = self.filter_by_time(query.distinct, query_params[:start_time], query_params[:end_time])
+
+    Rails.logger.info "Final travel patterns: #{travel_patterns.map(&:id)}"
+
+    travel_patterns
   end
 
   def self.to_api_response(travel_patterns, service, valid_from = nil, valid_until = nil)
     business_days = service.business_days
-
+  
     # Filter out any patterns with no bookable dates. This can happen prior to selecting a date and time
     # if a travel pattern has only calendar date schedules and the dates are outside of the booking window.
     travel_patterns = [travel_patterns].flatten
@@ -353,24 +436,37 @@ class TravelPattern < ApplicationRecord
       booking_window = travel_pattern.booking_window
       additional_notice = service.localtime.hour >= booking_window.minimum_notice_cutoff_hour
       date = service.localtime.to_date
+  
       start_date = date
       end_date = date + 60.days
-
+  
+      Rails.logger.info "Initial date: #{date}"
+      Rails.logger.info "Initial start_date: #{start_date}"
+      Rails.logger.info "Initial end_date: #{end_date}"
+  
       days_notice = (business_days.include?(date.strftime('%Y-%m-%d')) && !additional_notice) ? 0 : -1
       while (days_notice < booking_window.minimum_days_notice && date < end_date) do
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+        Rails.logger.info "Calculating start_date: #{date}, days_notice: #{days_notice}"
       end
-
+  
       start_date = date
-
+      Rails.logger.info "Final start_date: #{start_date}"
+  
+      Rails.logger.info "Before while loop for end_date calculation: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}, business_days: #{business_days}"
+  
       while (days_notice < booking_window.maximum_days_notice && date < end_date) do
         date += 1.day
         days_notice += 1 if business_days.include?(date.strftime('%Y-%m-%d'))
+        Rails.logger.info "Inside while loop: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}"
       end
-      
+  
+      Rails.logger.info "After while loop for end_date calculation: date: #{date}, days_notice: #{days_notice}, end_date: #{end_date}"
+  
       end_date = date
-
+      Rails.logger.info "Final end_date: #{end_date}"
+  
       travel_pattern.to_api_response(start_date, end_date, valid_from, valid_until)
     }
     .select { |travel_pattern|
@@ -387,10 +483,12 @@ class TravelPattern < ApplicationRecord
     trip_start = trip_start.to_i
     trip_end = (trip_end || trip_start).to_i
 
-    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start/1.hour}:#{trip_start%1.hour/1.minute}, to: #{trip_end/1.hour}:#{trip_end%1.hour/1.minute}")
+    Rails.logger.info("Filtering through Travel Patterns that have a Service Schedule running from: #{trip_start / 1.hour}:#{trip_start % 1.hour / 1.minute}, to: #{trip_end / 1.hour}:#{trip_end % 1.hour / 1.minute}")
     # Eager loading will ensure that all the previous filters will still apply to the nested relations
-    travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: {service_schedule: [:service_schedule_type, :service_sub_schedules]})
-    travel_patterns.select do |travel_pattern|
+    travel_patterns = travel_pattern_query.eager_load(travel_pattern_service_schedules: { service_schedule: [:service_schedule_type, :service_sub_schedules] })
+    Rails.logger.info("Travel Patterns before time filtering: #{travel_patterns.map(&:id)}")
+
+    valid_patterns = travel_patterns.select do |travel_pattern|
       schedules = travel_pattern.schedules_by_type
 
       # If there are reduced schedules, then we don't need to check any other schedules
@@ -398,7 +496,7 @@ class TravelPattern < ApplicationRecord
         Rails.logger.info("Travel Pattern ##{travel_pattern.id} has matching reduced service schedules")
         schedules = schedules[:reduced_service_schedules]
       else
-        Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have maching calendar date schedules, checking other schedule types")
+        Rails.logger.info("Travel Pattern ##{travel_pattern.id} does not have matching calendar date schedules, checking other schedule types")
         schedules = schedules[:weekly_schedules] + schedules[:extra_service_schedules]
       end
 
@@ -407,8 +505,6 @@ class TravelPattern < ApplicationRecord
         service_schedule = travel_pattern_service_schedule.service_schedule
         service_schedule.service_sub_schedules.any? do |sub_schedule|
           valid_start_time = sub_schedule.start_time <= trip_start
-          valid_end_time = sub_schedule.end_time >= trip_end
-
           valid_start_time && valid_end_time
         end
       end
