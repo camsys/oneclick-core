@@ -31,8 +31,8 @@ class Waypoint < Place
     Rails.logger.info "Full Name: #{full_name}"
     Rails.logger.info "Short Name: #{short_name}"
   
-    # Ensure the short name is not repeated unnecessarily
-    if address_parts.gsub(/\s+/, ' ').include?(short_name)
+    # Avoid duplication of short_name in address_parts
+    if address_parts.include?(short_name) || short_name.include?(address_parts)
       full_address = address_parts
     else
       full_address = "#{short_name}, #{address_parts}"
