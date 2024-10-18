@@ -123,21 +123,24 @@ class EcolaneAmbassador < BookingAmbassador
   
   # Get all future trips and trips within the past month 
   # Create 1-Click Trips for those trips if they don't already exist
-  def sync days_ago=1
-
-    #For performance, only update trips in the future
+  def sync(days_ago=1)
+    Rails.logger.info "Syncing Ecolane trips for #{@user.id}"
+  
     options = {
       start: (Time.current - days_ago.day).iso8601[0...-6]
     }
-
-    (arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))).each do |order|
-      occ_trip_from_ecolane_trip order
+  
+    ecolane_trips = arrayify(fetch_customer_orders(options).try(:with_indifferent_access).try(:[], :orders).try(:[], :order))
+  
+    ecolane_trips.each do |order|
+      Rails.logger.info "Processing Ecolane trip ID: #{order[:id]} with status: #{order[:status]}"
+      occ_trip_from_ecolane_trip(order)
     end
-
+  
     # For trips that are round trips, make sure that they point to each other.
     link_trips
-
   end
+  
 
     # Books Trip (funding_source and sponsor must be specified)
   def book
@@ -209,6 +212,13 @@ class EcolaneAmbassador < BookingAmbassador
   
       if body_hash.try(:with_indifferent_access).try(:[], :status).try(:[], :result) == "success"
         confirmation = Hash.from_xml(resp.body).try(:with_indifferent_access).try(:[], :status).try(:[], :success).try(:[], :resource_id)
+        
+        existing_booking = Booking.find_by(confirmation: confirmation)
+        if existing_booking
+          Rails.logger.warn "Pre-existing booking found with confirmation number #{confirmation}. Existing booking ID: #{existing_booking.id}, Itinerary ID: #{existing_booking.itinerary_id}"
+          Rails.logger.info "Existing trip ID: #{existing_booking.itinerary.trip.id}, Origin: #{existing_booking.itinerary.trip.origin.formatted_address}, Destination: #{existing_booking.itinerary.trip.destination.formatted_address}"
+        end
+  
         eco_trip = fetch_order(confirmation)["order"]
         booking = self.booking
         booking.update(occ_booking_hash(eco_trip))
@@ -694,30 +704,29 @@ class EcolaneAmbassador < BookingAmbassador
   ### Create OCC Trip from Ecolane Trip ###
   def occ_trip_from_ecolane_trip eco_trip
     booking_id = eco_trip.try(:with_indifferent_access).try(:[], :id)
-    itinerary = @user.itineraries.joins(:booking).find_by('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
+    itineraries = @user.itineraries.joins(:booking).where('bookings.confirmation = ? AND service_id = ?', booking_id, @service.id)
 
-    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" and itinerary and not itinerary.selected?
-      return 
+    if eco_trip.try(:with_indifferent_access).try(:[], :status) == "canceled" and itineraries.any? and itineraries.none?(&:selected?)
+      return
     end
 
-    # This Trip has already been created, just update it with new times/status etc.
-    if itinerary
+    # Update all existing itineraries and bookings with the same confirmation code
+    if itineraries.any?
+    itineraries.each do |itinerary|
       booking = itinerary.booking 
       booking.update(occ_booking_hash(eco_trip))
       if booking.status == "canceled"
-        trip = itinerary.trip 
+        trip = itinerary.trip
         trip.selected_itinerary = nil
         trip.save
         # For some reason itinerary.unselect doesn't work here.
       end
       booking.save
       itinerary.update!(occ_itinerary_hash_from_eco_trip(eco_trip))
-      nil
-    # This Trip needs to be added to OCC
+    end
+    # Create new trip, itinerary, and booking if none exist
     else
-      # Make the Trip
       trip = Trip.create!(occ_trip_hash(eco_trip))
-      # Make the Itinerary
       itinerary = Itinerary.new(occ_itinerary_hash_from_eco_trip(eco_trip))
       itinerary.trip = trip
       itinerary.save 
@@ -861,9 +870,9 @@ class EcolaneAmbassador < BookingAmbassador
       user = nil
       @booking_profile = UserBookingProfile.where(service: @service, external_user_id: @customer_number).first_or_create do |profile|
         random = SecureRandom.hex(8)
-        email = @customer_number.gsub(' ', '_')
+        email = "#{@customer_number}_#{@service.name.parameterize}@ecolane_user.com"
         user = User.create!(
-            email: "#{email}_#{@county}@ecolane_user.com", 
+            email: email,
             password: random, 
             password_confirmation: random,            
           )
