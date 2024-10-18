@@ -136,9 +136,11 @@ class Ability
         can :manage, LandmarkSet, agency_id: user.staff_agency.try(:id)
         can :manage, OdZone, agency_id: user.staff_agency.try(:id)
         can :manage, ServiceSchedule, agency_id: user.staff_agency.try(:id)
+        can :manage, ServiceSubSchedule, service_schedule: { agency_id: user.staff_agency.try(:id) }
         can :manage, Purpose, agency_id: user.staff_agency.try(:id)
         can :manage, FundingSource, agency_id: user.staff_agency.try(:id)
         can :manage, BookingWindow, agency_id: user.staff_agency.try(:id)
+        can :manage, GeographyRecord, agency_id: user.staff_agency.try(:id)
 
         # Can access services associated with an oversight agency, and those with no oversight agency
         can :manage, Service,
