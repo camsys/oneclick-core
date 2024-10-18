@@ -36,7 +36,7 @@ class Waypoint < Place
   
     # Build the formatted address
     if short_name == full_name
-      full_address = address_parts
+      full_address = "#{short_name}, (#{address_parts})"
     elsif address_parts.include?(short_name)
       full_address = address_parts
     else
