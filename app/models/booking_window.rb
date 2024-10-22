@@ -31,6 +31,9 @@ class BookingWindow < ApplicationRecord
     ).where(
       arel_table[:maximum_days_notice].gteq(active_days_count)
     )
+    Rails.logger.info("BookingWindow.for_date: #{query.to_sql}")
+    Rails.logger.info("Minmum Days Notice: #{active_days_count}")
+    
 
     results = query.to_a
     query
