@@ -533,10 +533,12 @@ class EcolaneAmbassador < BookingAmbassador
 
     # Retrieve the maximum booking notice from Config or default to 59 if not set
     max_booking_notice_days = Config.find_by(key: 'maximum_booking_notice')&.value || 59
+    Rails.logger.info "Maximum booking notice days: #{max_booking_notice_days}"
   
     arrayify(customer_information["customer"]["funding"]["funding_source"]).each do |funding_source|
       valid_from = funding_source["valid_from"].present? ? Date.parse(funding_source["valid_from"]) : current_date
       valid_until = funding_source["valid_until"].present? ? Date.parse(funding_source["valid_until"]) : nil
+      Rails.logger.info "Valid from: #{valid_from}, Valid until: #{valid_until}"
   
       # Skip if the funding source has expired
       next if valid_until && valid_until < current_date
