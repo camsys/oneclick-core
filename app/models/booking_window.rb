@@ -12,10 +12,9 @@ class BookingWindow < ApplicationRecord
   scope :for_transport_user, -> (user) {where(agency: user.staff_agency)}
 
   def self.active_service_days_up_to(end_date)
-    # Find all service schedules active up to the given end_date
     ServiceSubSchedule
-      .where("day <= ?", end_date.wday)
-      .or(ServiceSubSchedule.where(calendar_date: Date.current..end_date))
+      .where("day IN (?) OR calendar_date BETWEEN ? AND ?", 
+             (0..6).to_a, Date.current, end_date)
       .distinct
       .pluck(:day)
       .size
@@ -31,9 +30,9 @@ class BookingWindow < ApplicationRecord
     ).where(
       arel_table[:maximum_days_notice].gteq(active_days_count)
     )
-    Rails.logger.info("BookingWindow.for_date: #{query.to_sql}")
-    Rails.logger.info("Minmum Days Notice: #{active_days_count}")
     
+    Rails.logger.info("BookingWindow.for_date Query: #{query.to_sql}")
+    Rails.logger.info("Date: #{date}, Weekday: #{date.wday}, Active Days Count: #{active_days_count}")
 
     results = query.to_a
     query
