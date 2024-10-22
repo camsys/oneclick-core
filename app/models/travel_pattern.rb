@@ -215,7 +215,9 @@ class TravelPattern < ApplicationRecord
       only: [:id, :agency_id, :name, :description]
     }
     valid_from = Date.strptime(valid_from, '%Y-%m-%d') if valid_from.is_a?(String)
+    Rails.logger.info "Valid From: #{valid_from}"
     valid_until = Date.strptime(valid_until, '%Y-%m-%d') if valid_until.is_a?(String)    
+    Rails.logger.info "Valid Until: #{valid_until}"
     start_date = [start_date, valid_from].compact.max if valid_from
     end_date = [end_date, valid_until].compact.min if valid_until
   
